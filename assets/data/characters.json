@@ -84,7 +84,8 @@
     {
       "id": "char_0009",
       "index": 8,
-      "name": "캐릭터 0009",
+      "name": "이네스",
+      "title": "녹슨 여관의 주인장",
       "tier": "SR",
       "path": "assets/art/characters/char_0009.png",
       "defaultOwned": false,
