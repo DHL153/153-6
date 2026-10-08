@@ -74,7 +74,8 @@
     {
       "id": "char_0008",
       "index": 7,
-      "name": "캐릭터 0008",
+      "name": "니콜",
+      "title": "마을의 녹슨 이발사",
       "tier": "SR",
       "path": "assets/art/characters/char_0008.png",
       "defaultOwned": false,
