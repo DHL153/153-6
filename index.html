@@ -13192,24 +13192,16 @@ html body #app #view-shop .gacha-btn-container > #btn-daily-free:disabled{backgr
       }
     });
   }
-  // 도감 카드 클릭 (캐릭터·전투 캐릭터 중 STEAM 에디션이 있는 등급만)
-  document.addEventListener('click',e=>{
-    const card=e.target.closest?.('#item-collection-grid .inv-item.steam-able');if(!card)return;
-    openSheet(card.dataset.cat,Number(card.dataset.id));
-  });
-  document.addEventListener('keydown',e=>{
-    if(e.key!=='Enter'&&e.key!==' ')return;
-    const card=e.target.closest?.('#item-collection-grid .inv-item.steam-able');if(!card)return;
-    e.preventDefault();openSheet(card.dataset.cat,Number(card.dataset.id));
-  });
+  // 도감 카드는 STEAM 에디션이 있어도 다른 카드와 똑같이 확대 이미지(#mr-item-inspect)만 보여 준다
+  // (로컬/STEAM·강화·장착/장터/분해 상세 시트는 도감에서 열지 않음)
 
-  // 선물 창의 [도감] → 도감 > 해당 분류 > STEAM 보기 → 상세 시트
+  // 선물 창의 [도감] → 도감 > 해당 분류 > STEAM 보기 → 해당 카드 확대 이미지
   U.showCodex=function(it){
     try{
       window.switchCollectionPage?.('item');
       window.setItemCategory?.(it.category);
       window.setCodexSourceFilter?.('steam');
-      setTimeout(()=>openSheet(it.category,it.localId),120);
+      setTimeout(()=>document.querySelector(`#item-collection-grid .inv-item[data-cat="${it.category}"][data-id="${it.localId}"]`)?.focus({preventScroll:false}),120);
     }catch(e){console.warn('[MRSteam codex]',e);}
   };
   U.openCodexSheet=openSheet;
