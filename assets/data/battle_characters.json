@@ -50,8 +50,8 @@
     {
       "id": "battle_char_0003",
       "index": 2,
-      "name": "세라",
-      "skillName": "문라이트 애로우",
+      "name": "산초",
+      "skillName": "바라타리아 브레이크",
       "tier": "SR",
       "idle": "assets/art/battle_characters/battle_char_0003_Idle.png",
       "attack": "assets/art/battle_characters/battle_char_0003_Idle.png",
