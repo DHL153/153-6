@@ -377,6 +377,9 @@
             touch-action:none; user-select:none; -webkit-user-drag:none; pointer-events:auto;
         }
         .char-preview-character.selected-character { z-index:4; }
+        /* 512x512(정사각형) 캐릭터 그림: 세로로 긴 상자에 넣으면 작아지므로 폭을 넓히고 발을 상자 아래에 맞춘다 */
+        .char-custom-layout .char-preview-character[data-art-shape="square"],
+        .char-custom-layout.char-panel-closed .char-preview-character[data-art-shape="square"] { width:auto; aspect-ratio:1/1; max-width:100%; object-position:center bottom; }
         .char-custom-layout.char-panel-closed .char-preview-character {
             width:44%; height:58%; cursor:pointer;
         }
@@ -7457,6 +7460,12 @@ function createSocialDataFoundation(assets, emojis) {
         if(!quiet && typeof showToast==='function') showToast(`캐릭터 ${charScene.characters.findIndex(c=>c.uid===next.uid)+1} 선택`);
     };
 
+    // 마이룸 캐릭터 그림 모양 표시 (정사각형이면 data-art-shape="square")
+    document.addEventListener('load',e=>{
+        const img=e.target;if(!(img instanceof HTMLImageElement)||!img.classList.contains('char-preview-character'))return;
+        const w=img.naturalWidth,h=img.naturalHeight;
+        if(w&&h&&Math.abs(w-h)/h<.05)img.dataset.artShape='square';else delete img.dataset.artShape;
+    },true);
     window.addOrSelectSceneCharacter=function(id){
         id=Number(id);
         const existing=(charScene.characters||[]).find(c=>Number(c.id)===id);
