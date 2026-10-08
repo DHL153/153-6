@@ -27,8 +27,8 @@
     {
       "id": "battle_char_0002",
       "index": 1,
-      "name": "아린",
-      "skillName": "블레이즈 피어스",
+      "name": "둘시네",
+      "skillName": "토보소 크래시",
       "tier": "SSR",
       "idle": "assets/art/battle_characters/battle_char_0002_Idle.png",
       "attack": "assets/art/battle_characters/battle_char_0002_Idle.png",
