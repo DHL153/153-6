@@ -3,7 +3,9 @@
 
 규칙 (모든 프레임 공통)
 - 캔버스: 512 x 512 투명 PNG
-- 달리기 몸 높이: BODY_H px (캐릭터의 달리기 프레임 중 가장 큰 높이 기준)
+- 몸 크기: 머리 꼭대기 ~ 발끝이 BODY_H px (무기·날개처럼 머리 위로 솟은 것은 계산에서 뺌)
+  · 머리 위치는 HEAD_TOP 표에 사람이 눈으로 확인해 적는다 (아래 설명)
+  · 탈것(자동차·말·비행기·열기구 등)은 전체 높이를 몸으로 본다
 - 발 위치: 달리기 프레임의 가장 아래가 FEET_Y px
 - 가로 중심: 달리기 프레임 중심(중앙값)을 256 px에 맞춤
 - 같은 캐릭터의 프레임은 같은 배율·같은 이동량 → 달리기 흔들림은 그대로 유지
@@ -16,8 +18,20 @@ import json, os, sys, statistics as st
 from PIL import Image
 
 CANVAS = 512
-BODY_H = 400
-FEET_Y = 456
+BODY_H = 290        # 머리 꼭대기 ~ 발끝
+FEET_Y = 472
+
+# 머리 꼭대기 위치 표 (캐릭터 번호 → y 픽셀)
+# 기준: 달리기 그림 전체(무기 포함)를 높이 400, 위 56 ~ 아래(발) 456 으로 맞췄을 때의 머리 꼭대기 y.
+# 56 = 무기 등 솟은 것이 없음(또는 탈것 전체를 몸으로 봄). 새 캐릭터는 56으로 두고 결과를 본 뒤 고친다.
+REF_TOP, REF_FEET = 56, 456
+HEAD_TOP = {
+    '0001': 62, '0002': 82, '0003': 178, '0004': 80, '0005': 70, '0006': 118,
+    '0007': 150, '0008': 145, '0009': 56, '0010': 56, '0011': 115, '0012': 210,
+    '0013': 115, '0014': 56, '0015': 56, '0016': 56, '0017': 62, '0018': 75,
+    '0019': 105, '0020': 72, '0021': 56, '0022': 70, '0023': 60, '0024': 78,
+    '0025': 56, '0026': 70, '0027': 70, '0028': 75, '0029': 78, '0030': 75,
+}
 MARGIN = 4          # 캔버스 가장자리 여백
 ALPHA_MIN = 24      # 이보다 옅은 픽셀(빛 번짐 등)은 크기 계산에서 제외
 
@@ -53,14 +67,15 @@ def place(im, s, dx, dy):
     return out
 
 
-def normalize(item):
+def normalize(item, num):
     runs = [open_unit(p) for p in item['runFrames']]
     rb = [bbox(im) for im in runs]
     top, bot = min(b[1] for b in rb), max(b[3] for b in rb)
     left, right = min(b[0] for b in rb), max(b[2] for b in rb)
     cx = st.median([(b[0] + b[2]) / 2 for b in rb])
 
-    s = BODY_H / (bot - top)
+    s = (REF_FEET - REF_TOP) / (bot - top)                       # 1단계: 전체 높이 400 기준
+    s *= BODY_H / (REF_FEET - HEAD_TOP.get(num, REF_TOP))          # 2단계: 머리~발을 BODY_H로
     # 달리기 프레임이 캔버스 밖으로 나가면 그 캐릭터 배율을 줄인다
     s = min(s, (CANVAS / 2 - MARGIN) / max(cx - left, right - cx), (FEET_Y - MARGIN) / (bot - top))
     dx, dy = CANVAS / 2 - cx * s, FEET_Y - bot * s
@@ -91,7 +106,7 @@ def main():
         num = item['id'][-4:]
         if only and num not in only:
             continue
-        frames, s = normalize(item)
+        frames, s = normalize(item, num)
         for p, im in frames.items():
             im.save(os.path.join(ROOT, p), optimize=True)
         print(f'{num} {item["name"]}: x{s:.2f}, {len(frames)} files')
