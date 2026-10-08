@@ -73,8 +73,8 @@
     {
       "id": "battle_char_0004",
       "index": 3,
-      "name": "미엘",
-      "skillName": "크리스탈 노바",
+      "name": "로시",
+      "skillName": "로시난테 러시",
       "tier": "SSR",
       "idle": "assets/art/battle_characters/battle_char_0004_Idle.png",
       "attack": "assets/art/battle_characters/battle_char_0004_Idle.png",
