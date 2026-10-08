@@ -94,7 +94,8 @@
     {
       "id": "char_0010",
       "index": 9,
-      "name": "캐릭터 0010",
+      "name": "브루노",
+      "title": "라 만차의 쌍도끼 나무꾼",
       "tier": "R",
       "path": "assets/art/characters/char_0010.png",
       "defaultOwned": false,
