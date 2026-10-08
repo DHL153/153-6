@@ -8495,6 +8495,8 @@ function createSocialDataFoundation(assets, emojis) {
     window.battleFormation=battleFormation;
     // Per-character visual adjust (battle + cut-in). y: % of sprite height (negative = up), scale: size.
     const BATTLE_CHAR_ADJUST={}; // 캐릭터별 보정 없음 (이미지 정규화로 대체)
+    // 스킬 컷인 그림 상자 (팀 인원별, 스테이지 폭·높이 비율) — startBattleTeamSkill과 같은 값
+    const BATTLE_CUT_BOX={1:[.78,.84],2:[.57,.90],3:[.43,.84]};
     function layoutBattleTeam(stage,team,preview=false){
         if(!stage)return;
         if(preview){layoutBattleTeamPreview(stage,team);return;}
@@ -8508,7 +8510,14 @@ function createSocialDataFoundation(assets, emojis) {
         // Every member shares one visible height and one ground line (the road of the battle background).
         const ground=H*BATTLE_GROUND_LINE,availableWidth=W*(count===3?.25:count===2?.32:.4);
         const measured=W>0&&H>0?members.filter(m=>m.bounds):[];
-        const visibleHeight=measured.length?Math.min(H*BATTLE_FIGHTER_HEIGHT,...measured.map(({bounds:b})=>availableWidth*b.h/(b.w*b.aspect))):0;
+        let visibleHeight=measured.length?Math.min(H*BATTLE_FIGHTER_HEIGHT,...measured.map(({bounds:b})=>availableWidth*b.h/(b.w*b.aspect))):0;
+        // 전투 캐릭터 크기 ↔ 스킬 컷인 크기 맞바꿈: 전투는 컷인 그림 크기로, 컷인은 원래 전투 그림 크기로 보여 준다
+        if(visibleHeight>0&&measured.length){
+            const bodyFrac=measured[0].bounds.h,battleImage=visibleHeight/bodyFrac;
+            const box=BATTLE_CUT_BOX[Math.min(3,Math.max(1,count))],cutImage=Math.min(W*box[0],H*box[1]);
+            stage.style.setProperty('--mr-cut-image',battleImage+'px');
+            visibleHeight=cutImage*bodyFrac;
+        }
         members.forEach(({id,el,bounds:b,index})=>{
             const number=Number(id)+1;
             el.style.setProperty('--team-z',String(7-index));
@@ -8713,8 +8722,10 @@ function createSocialDataFoundation(assets, emojis) {
             img.id=`battle-cut-in-${slot}`;img.className='team-cut-in';img.alt='';img.draggable=false;
             img.dataset.battleCharacter=String(number).padStart(4,'0');img.dataset.teamSlot=String(slot);
             img.style.setProperty('--cut-x',(count===1?50:count===2?[33,67][index]:[23,50,77][index])+'%');
-            img.style.setProperty('--cut-width',((count===1?78:count===2?57:43)*scale)+'%');
-            img.style.setProperty('--cut-height',((count===2?90:84)*scale)+'%');
+            // 컷인은 전투 화면에서 원래 쓰던 그림 크기(layoutBattleTeam이 계산한 --mr-cut-image)로
+            const swapped=parseFloat(stage.style.getPropertyValue('--mr-cut-image'));
+            if(swapped>0){img.style.setProperty('--cut-width',(swapped*scale)+'px');img.style.setProperty('--cut-height',(swapped*scale)+'px');}
+            else{img.style.setProperty('--cut-width',((count===1?78:count===2?57:43)*scale)+'%');img.style.setProperty('--cut-height',((count===2?90:84)*scale)+'%');}
             img.style.setProperty('--cut-y',(52+(BATTLE_CHAR_ADJUST[number]?.y||0)*.5)+'%');
             img.style.setProperty('--cut-z',String(5-index));img.style.setProperty('--cut-glow',tint);
             img.style.setProperty('--cut-delay',delay+'ms');img.style.setProperty('--cut-time',Math.max(1,duration-delay)+'ms');
