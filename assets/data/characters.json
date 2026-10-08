@@ -54,7 +54,8 @@
     {
       "id": "char_0006",
       "index": 5,
-      "name": "캐릭터 0006",
+      "name": "카르덴",
+      "title": "시에라 모레나의 괴짜 기술자",
       "tier": "SR",
       "path": "assets/art/characters/char_0006.png",
       "defaultOwned": false,
