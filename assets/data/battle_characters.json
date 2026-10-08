@@ -96,8 +96,8 @@
     {
       "id": "battle_char_0005",
       "index": 4,
-      "name": "엘리시아",
-      "skillName": "솔라 이지스",
+      "name": "마르셀라",
+      "skillName": "프리덤 너클",
       "tier": "UR",
       "idle": "assets/art/battle_characters/battle_char_0005_Idle.png",
       "attack": "assets/art/battle_characters/battle_char_0005_Idle.png",
