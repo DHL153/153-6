@@ -1879,15 +1879,6 @@
 }
 
 
-/* Character 0011: raise main/mini battle sprite by 11% of its own height.
-   Independent translate preserves the existing action transforms and cutscene. */
-#hero[src*="/battle_char_0011_"],
-#mini-battle-hero[src*="/battle_char_0011_"] { translate: 0 -11%; }
-/* Individual vehicle alignment; percentages follow sprite height. */
-#hero[src*="/battle_char_0015_"],
-#mini-battle-hero[src*="/battle_char_0015_"] { translate: 0 15%; }
-#hero[src*="/battle_char_0016_"],
-#mini-battle-hero[src*="/battle_char_0016_"] { translate: 0 -20%; }
 #record-break-reward{font-size:11px;line-height:1.5;white-space:normal;overflow-wrap:anywhere;margin-top:4px;}
 #record-break-banner{height:auto;max-height:none;}
 #record-break-banner.show{animation-duration:4.2s;}
@@ -2466,13 +2457,6 @@ html.game-booting #app{visibility:hidden!important;}
 
 <style id="mr-character19-timer-fix">
 /* 0019: 예외 확대·위치 보정 제거 → 기본 셋팅 사용 */
-/* 0015 skill only: 1.5x the standard 78% x 84% image box, raised by 10%
-   of the viewport. Keep the cinematic's existing centering and animation. */
-#app #battle-stage[data-battle-character="0015"] #skill-cinematic img{
- width:117%!important;
- height:126%!important;
- top:42%!important;
-}
 /* The old timer badge was fixed at 150px and clipped translated labels.
    Give it the whole first column; wrap between complete countdown groups. */
 #app #top-bar{grid-template-columns:minmax(0,1fr) 28px!important;}
@@ -2547,9 +2531,6 @@ html.game-booting #app{visibility:hidden!important;}
 .mr-review-scene{position:relative;overflow:hidden;background-size:100% 100%;background-position:center;border-radius:12px;background-color:#20334f;}
 .mr-review-scene img{position:absolute;object-fit:contain;pointer-events:none;}
 .mr-review-battle{aspect-ratio:520/148;}.mr-review-battle img{width:21%;height:74%;left:22%;top:13%;transform-origin:50% 100%;}
-.mr-review-battle img[data-character="0015"]{translate:0 15%;}
-.mr-review-battle img[data-character="0016"]{translate:0 -20%;}
-.mr-review-battle img[data-character="0011"]{translate:0 -11%;}
 .mr-review-room{aspect-ratio:3/4;max-height:48dvh;}.mr-review-room img{height:90%;width:85%;left:7.5%;bottom:0;}
 .mr-review-edits{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .mr-review-edits button{padding:12px;background:#20364c;border:1px solid #5da99e;border-radius:9px;color:#d9fff6;white-space:normal;cursor:pointer;}
@@ -2619,10 +2600,6 @@ html.game-booting #app{visibility:hidden!important;}
 </style>
 
 <style id="battle-size-preview-update">
-#app #battle-stage[data-battle-character="0021"] #hero{scale:1.3;transform-origin:50% 100%!important;}
-#app #battle-stage[data-battle-character="0021"] #skill-cinematic img{width:101.4%!important;height:109.2%!important;}
-#view-collection #mini-battle-hero[data-battle-character="0015"],
-#view-collection #mini-battle-hero[data-battle-character="0021"]{scale:1.3;transform-origin:50% 100%;}
 </style>
 <style id="mr-starter-sound-style">
 .mr-starter-controls{position:absolute;right:0;top:12px;display:flex;align-items:center;gap:8px;}
@@ -11990,16 +11967,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
 })();
 </script>
 <style id="mr-char-adjust-11-25">
-/* 0011: 전체 20% 축소 (전투·스킬 컷인·컬렉션 미리보기·리뷰) / 0025: 위로 20% */
-#hero[src*="/battle_char_0011_"]:not(.battle-team-hero),
-#mini-battle-hero[src*="/battle_char_0011_"]{scale:.8;transform-origin:50% 100%;}
-#hero[src*="/battle_char_0025_"]:not(.battle-team-hero),
-#mini-battle-hero[src*="/battle_char_0025_"]{translate:0 -20%;}
-#app #battle-stage[data-battle-character="0011"] #skill-cinematic img:not(.team-cut-in){scale:.8;transform-origin:50% 100%;}
-#view-collection #mini-battle-stage [data-battle-character="0011"]{scale:.8;transform-origin:50% 100%;}
-#view-collection #mini-battle-stage [data-battle-character="0025"]{translate:0 -20%;}
-.mr-review-battle img[data-character="0011"]{translate:0 -11%;scale:.8;transform-origin:50% 100%;}
-.mr-review-battle img[data-character="0025"]{translate:0 -20%;}
+/* 캐릭터별 크기·위치 보정은 없앰: 전투 캐릭터 이미지 자체를 같은 크기·같은 위치로 정규화함 (tools/normalize_battle_chars.py) */
 </style>
 <style id="mrfx-reveal-styles">
 /* ===== 획득 연출(뽑기·합성·조각 교환·스팀 장터) : 등급 규칙 N<R<SR<SSR<UR ===== */
