@@ -104,7 +104,8 @@
     {
       "id": "char_0011",
       "index": 10,
-      "name": "캐릭터 0011",
+      "name": "배가",
+      "title": "중절모의 떠돌이 광대",
       "tier": "SR",
       "path": "assets/art/characters/char_0011.png",
       "defaultOwned": false,
