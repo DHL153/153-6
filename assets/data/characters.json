@@ -64,7 +64,8 @@
     {
       "id": "char_0007",
       "index": 6,
-      "name": "캐릭터 0007",
+      "name": "루시아",
+      "title": "철벽의 방패 아가씨",
       "tier": "SR",
       "path": "assets/art/characters/char_0007.png",
       "defaultOwned": false,
