@@ -8488,8 +8488,8 @@ function createSocialDataFoundation(assets, emojis) {
     // The whole group (heroes + villain) is centered, then shrunk only if it would not fit.
     const BATTLE_FORMATIONS={
         1:{heroes:[-.6],enemy:.7},
-        2:{heroes:[-.42,-.98],enemy:.78},
-        3:{heroes:[-.3,-.92,-1.54],enemy:.9}
+        2:{heroes:[-.42,-1.47],enemy:.78},   // 캐릭터 사이 간격 1.05 (이전 0.56)
+        3:{heroes:[-.3,-1.35,-2.4],enemy:.9}   // 캐릭터 사이 간격 1.05 (이전 0.62)
     };
     const BATTLE_FORMATION_LEGACY={1:{heroes:[40],enemy:76},2:{heroes:[49,24],enemy:81},3:{heroes:[57,36,15],enemy:85}};
     function battleFormation(count,W,H){
