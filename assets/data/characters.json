@@ -124,7 +124,8 @@
     {
       "id": "char_0013",
       "index": 12,
-      "name": "캐릭터 0013",
+      "name": "산초",
+      "title": "네온 라만차의 복면 종자",
       "tier": "R",
       "path": "assets/art/characters/char_0013.png",
       "defaultOwned": false,
