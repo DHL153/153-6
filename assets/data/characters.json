@@ -104,8 +104,8 @@
     {
       "id": "char_0011",
       "index": 10,
-      "name": "배가",
-      "title": "중절모의 떠돌이 광대",
+      "name": "알론소",
+      "title": "네온 라만차의 광검 기사",
       "tier": "SR",
       "path": "assets/art/characters/char_0011.png",
       "defaultOwned": false,
@@ -114,7 +114,8 @@
     {
       "id": "char_0012",
       "index": 11,
-      "name": "캐릭터 0012",
+      "name": "둘시네",
+      "title": "네온 토보소의 합금 아가씨",
       "tier": "SSR",
       "path": "assets/art/characters/char_0012.png",
       "defaultOwned": false,
