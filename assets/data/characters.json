@@ -214,7 +214,8 @@
     {
       "id": "char_0022",
       "index": 21,
-      "name": "캐릭터 0022",
+      "name": "둘시네",
+      "title": "스카이아크 토보소의 해머 아가씨",
       "tier": "R",
       "path": "assets/art/characters/char_0022.png",
       "defaultOwned": false,
