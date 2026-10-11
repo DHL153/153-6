@@ -2708,6 +2708,39 @@ html.game-booting #app{visibility:hidden!important;}
 #mini-battle-stage[data-team-size] .mini-enemy img{max-width:100%;object-fit:contain;}
 @media(prefers-reduced-motion:reduce){#app #battle-stage[data-team-size] .hero.skill,.team-combined-impact{animation:none!important;}#app #battle-stage[data-team-size] .hero.attack{transform:none;}}
 </style>
+<style id="mr-finish-cutscene">
+/* 필살기 컷신: 시안 1 배치(왼쪽 아래 판) + 시안 2 글씨(칭호 먼저 → 0.52초 스킬 이름) · 시간은 --mrfc-time(1.2초) 비율 */
+#skill-cinematic .mrfc{position:absolute;inset:0;overflow:hidden;pointer-events:none;container-type:size;--t:var(--mrfc-time,1200ms);animation:mrfcBox var(--t) linear both;}
+#skill-cinematic .mrfc i{position:absolute;display:block;}
+#skill-cinematic .mrfc-lines{inset:-20% -10%;opacity:.5;mix-blend-mode:screen;background:repeating-linear-gradient(-12deg,transparent 0 3.2cqw,color-mix(in srgb,var(--mrfc-c1) 55%,transparent) 3.2cqw 3.45cqw,transparent 3.45cqw 7.5cqw);animation:mrfcLines var(--t) linear both;}
+#skill-cinematic .mrfc-glow{right:8cqw;top:50%;width:140cqh;height:140cqh;translate:0 -50%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mrfc-c1) 55%,transparent),transparent 65%);animation:mrfcGlow calc(var(--t)*.33) calc(var(--t)*.05) ease-out both;}
+#skill-cinematic .mrfc-art{width:165cqh;height:165cqh;left:calc(66cqw - var(--fx)*165cqh);top:calc(36cqh - var(--fy)*165cqh);background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
+#skill-cinematic .mrfc-plate{position:absolute;left:4cqw;bottom:12cqh;display:flex;flex-direction:column;align-items:flex-start;gap:1.2cqh;padding:3.6cqh 3.4cqw 4cqh 2.4cqw;background:linear-gradient(90deg,rgba(6,8,16,.9),rgba(6,8,16,.55));border-left:.8cqw solid var(--mrfc-c1);transform:skewX(-10deg);clip-path:inset(0 100% 0 0);animation:mrfcWipe calc(var(--t)*.18) calc(var(--t)*.1) cubic-bezier(.3,.8,.3,1) both;}
+#skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{display:block;white-space:nowrap;font-family:'Pretendard','Segoe UI','Hiragino Sans','Noto Sans CJK JP','Microsoft YaHei',sans-serif;}
+#skill-cinematic .mrfc-name{font-size:min(2.6cqw,7.6cqh);font-weight:800;letter-spacing:.06em;color:var(--mrfc-c2);-webkit-text-fill-color:var(--mrfc-c2);transform-origin:left center;opacity:0;animation:mrfcNameBig calc(var(--t)*.22) calc(var(--t)*.12) ease-out both,mrfcNameBack calc(var(--t)*.17) calc(var(--t)*.4) ease-in-out forwards;}
+#skill-cinematic .mrfc-skill{font-size:min(5.6cqw,16cqh);font-weight:900;line-height:1.05;color:#fff;-webkit-text-fill-color:#fff;text-shadow:0 0 .25cqw #0b0f18,0 0 .25cqw #0b0f18,0 .45cqw 0 #0b0f18,0 0 2.2cqw color-mix(in srgb,var(--mrfc-c1) 80%,transparent);transform-origin:left center;opacity:0;animation:mrfcSlam calc(var(--t)*.2) calc(var(--t)*.43) cubic-bezier(.2,1.4,.4,1) both;}
+#skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{margin-left:1cqw;rotate:0deg;}
+#skill-cinematic .mrfc-plate>*{transform:skewX(10deg);}
+#skill-cinematic .mrfc-flash{inset:0;background:#fff;opacity:0;animation:mrfcFlash calc(var(--t)*.22) calc(var(--t)*.78) ease-out both;}
+#app #battle-stage.simulation-paused #skill-cinematic .mrfc,#app #battle-stage.simulation-paused #skill-cinematic .mrfc *{animation-play-state:paused!important;}
+@keyframes mrfcBox{0%{opacity:0}4%{opacity:1}92%{opacity:1}100%{opacity:0}}
+@keyframes mrfcLines{from{transform:translateX(18%)}to{transform:translateX(-18%)}}
+@keyframes mrfcGlow{from{opacity:0;scale:.6}to{opacity:1;scale:1}}
+@keyframes mrfcIn{from{opacity:0;transform:translateX(30cqw) scale(1.1)}to{opacity:1;transform:none}}
+@keyframes mrfcOut{to{opacity:0;transform:translateX(-8cqw) scale(1.04)}}
+@keyframes mrfcWipe{to{clip-path:inset(-60% -40% -60% 0)}}
+@keyframes mrfcNameBig{from{opacity:0;transform:skewX(10deg) translateY(4cqh)}to{opacity:1;transform:skewX(10deg) translateY(-2cqh) scale(1.2)}}
+@keyframes mrfcNameBack{from{opacity:1;transform:skewX(10deg) translateY(-2cqh) scale(1.2)}to{opacity:1;transform:skewX(10deg)}}
+@keyframes mrfcSlam{from{opacity:0;transform:skewX(10deg) scale(1.7)}to{opacity:1;transform:skewX(10deg)}}
+@keyframes mrfcFlash{0%{opacity:0}30%{opacity:.85}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+ #skill-cinematic .mrfc,#skill-cinematic .mrfc *{animation:none!important;}
+ #skill-cinematic .mrfc{opacity:1!important;}
+ #skill-cinematic .mrfc-plate{clip-path:none!important;}
+ #skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{opacity:1!important;}
+ #skill-cinematic .mrfc-flash{opacity:0!important;}
+}
+</style>
 <style id="mr-random-cutins-v20261001-04">
 /* v04 overrides only the cinematic; formation and normal attacks remain v02. */
 #app #battle-stage[data-team-skill="on"] #skill-cinematic.on[data-cutscene-cast]{
@@ -8710,12 +8743,62 @@ function createSocialDataFoundation(assets, emojis) {
         const root=document.getElementById('skill-cinematic');
         if(root){
             root.querySelectorAll('.team-cut-in,.team-combined-impact').forEach(el=>el.remove());
-            delete root.dataset.teamCount;delete root.dataset.cutsceneCast;delete root.dataset.cutsceneImportance;
+            delete root.dataset.teamCount;delete root.dataset.cutsceneCast;delete root.dataset.cutsceneImportance;delete root.dataset.finishCut;
         }
+    }
+    // ---- 필살기 컷신 (보스 처치 순간 · 1.2초 · 주 캐릭터 1명) ----
+    // 마이룸 그림 속 얼굴 중심 [가로, 세로] (그림 폭 대비 비율). 새 마이룸 그림을 넣으면 이 표도 고친다.
+    const MYROOM_FACE={
+        1:[.70,.39],2:[.60,.37],3:[.58,.55],4:[.44,.37],5:[.49,.33],6:[.37,.35],7:[.54,.54],8:[.56,.39],9:[.59,.43],10:[.71,.56],
+        11:[.39,.39],12:[.56,.33],13:[.73,.20],14:[.67,.43],15:[.65,.33],16:[.57,.33],17:[.52,.50],18:[.50,.31],19:[.50,.41],20:[.65,.45],
+        21:[.74,.29],22:[.60,.21],23:[.75,.27],24:[.63,.33],25:[.57,.25],26:[.55,.35],27:[.56,.45],28:[.44,.41],29:[.57,.37],30:[.61,.35]
+    };
+    // 세계관 색 [선·빛, 칭호 글자]: 캐릭터 1~10 라만차 / 11~20 네온 라만차 / 21~30 스카이아크 라만차
+    const FINISH_WORLD_COLORS=[['#e07a3f','#ffc58a'],['#ff3fa4','#7ff6ff'],['#58b8ff','#ffd27a']];
+    // 언어별 이름이 데이터에 있으면 그것을, 없으면 원래(한국어) 이름을 쓴다: meta.i18n = {en:{title,skillName}, ...}
+    function localizedAssetText(meta,key){const lang=window.MRLocale?.language;return String((lang&&meta?.i18n?.[lang]?.[key])||meta?.[key]||'');}
+    function fitFinishCutText(cut){
+        const W=cut.clientWidth;if(!(W>0))return;
+        for(const [selector,limit] of [['.mrfc-name',.48],['.mrfc-skill',.56]]){
+            const el=cut.querySelector(selector);if(!el||!el.textContent)continue;
+            el.style.fontSize='';
+            const max=W*limit,width=el.scrollWidth;
+            if(width>max)el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)*max/width)+'px';
+        }
+    }
+    function startBattleFinishCutscene(stage,root,duration){
+        const leader=battleTeamEntries()[0];if(!leader)return false;
+        const battle=BATTLE_CHARACTER_META[leader.id]||{};
+        const room=Object.values(CHARACTER_META).find(c=>c&&c.id===battle.linkedCharacter);
+        if(!room?.path)return false;
+        const num=Number(String(room.id).match(/(\d+)$/)?.[1])||0;
+        const [fx,fy]=MYROOM_FACE[num]||[.5,.35];
+        const [c1,c2]=FINISH_WORLD_COLORS[Math.min(2,Math.max(0,Math.floor((num-1)/10)))];
+        stage.dataset.teamSkill='on';
+        Object.assign(root.dataset,{variant:'finish',teamCount:'1',cutsceneCast:String(leader.slot),cutsceneImportance:'finish',finishCut:'on'});
+        root.style.setProperty('--skill-duration',duration+'ms');
+        const cut=document.createElement('div');
+        // team-cut-in: 컷인 중 구슬 연출이 모이는 대상 · data-no-i18n: 이름 일부만 번역되어 섞이지 않게
+        cut.className='mrfc team-cut-in';cut.id=`battle-cut-in-${leader.slot}`;cut.dataset.teamSlot=String(leader.slot);
+        cut.setAttribute('data-no-i18n','');cut.setAttribute('aria-hidden','true');
+        cut.style.setProperty('--fx',fx);cut.style.setProperty('--fy',fy);
+        cut.style.setProperty('--mrfc-c1',c1);cut.style.setProperty('--mrfc-c2',c2);cut.style.setProperty('--mrfc-time',duration+'ms');
+        cut.innerHTML='<i class="mrfc-lines"></i><i class="mrfc-glow"></i><i class="mrfc-art"></i><div class="mrfc-plate"><span class="mrfc-name"></span><strong class="mrfc-skill"></strong></div><i class="mrfc-flash"></i>';
+        cut.querySelector('.mrfc-art').style.backgroundImage=`url("${encodeURI(room.path)}")`;
+        const title=localizedAssetText(room,'title'),skill=localizedAssetText(battle,'skillName')||localizedAssetText(battle,'name')||localizedAssetText(room,'name');
+        const nameEl=cut.querySelector('.mrfc-name');if(title)nameEl.textContent=title;else nameEl.remove();
+        cut.querySelector('.mrfc-skill').textContent=skill;
+        root.replaceChildren(cut);root.classList.add('on');
+        fitFinishCutText(cut);
+        window.MRBattleFX?.skill(duration);
+        playSfx('skillCharge',{gain:.35,minGap:150});
+        return true;
     }
     function startBattleTeamSkill(presentation={}){
         const stage=document.getElementById('battle-stage'),root=document.getElementById('skill-cinematic');if(!stage||!root)return;
         const duration=presentation.duration||750,kind=presentation.kind||'slash';
+        // 보스 처치(필살기)는 주 캐릭터 1명의 마이룸 컷신으로 (그림이 없으면 예전 팀 컷인)
+        if(kind==='finish'&&startBattleFinishCutscene(stage,root,duration))return;
         const members=chooseBattleCutsceneMembers(kind),count=members.length;
         if(!count)return;
         stage.dataset.teamSkill='on';root.dataset.variant=kind;root.dataset.teamCount=String(count);
