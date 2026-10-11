@@ -3935,18 +3935,23 @@ window.MRBattleFX=(()=>{
     let bossHp = bossMaxHp;
 
     // Enemy selection is shared by main battle and battle mini mode.
-    // 빌런: 비취 망령 군단 (보스 4종 = 짙은 비취 갑옷, 일반 4종 = 옅은 비취 갑옷)
+    // 보스 4종: 하이에나·설표 무법자와 비취 망령 지휘관
     const BOSS_ART=[
-        ['assets/art/villains/boss_0004.png','비취 도끼 망령'],
-        ['assets/art/villains/boss_0005.png','비취 쌍검 망령'],
-        ['assets/art/villains/boss_0006.png','비취 방패 망령'],
-        ['assets/art/villains/boss_0007.png','비취 작살 망령']
+        ['assets/art/villains/boss_0004.png','광견 하이에나'],
+        ['assets/art/villains/boss_0005.png','설표 암살자'],
+        ['assets/art/villains/boss_0006.png','비취 주술왕'],
+        ['assets/art/villains/boss_0007.png','비취 낫 군주']
     ];
+    // 일반 빌런 8종: 비취 망령 군단 (옅은 비취 4종 + 짙은 비취 4종)
     const FLYING_ENEMY_ART=[
         ['assets/art/villains/villain_0008.png','사슬 망령'],
         ['assets/art/villains/villain_0009.png','삼지창 망령'],
         ['assets/art/villains/villain_0010.png','망치 망령'],
-        ['assets/art/villains/villain_0011.png','장창 망령']
+        ['assets/art/villains/villain_0011.png','장창 망령'],
+        ['assets/art/villains/villain_0012.png','비취 도끼 망령'],
+        ['assets/art/villains/villain_0013.png','비취 쌍검 망령'],
+        ['assets/art/villains/villain_0014.png','비취 방패 망령'],
+        ['assets/art/villains/villain_0015.png','비취 작살 망령']
     ];
     MR.setEnemy=function(id){
         const enemy=document.getElementById('enemy');if(!enemy)return;
