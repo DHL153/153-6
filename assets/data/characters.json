@@ -184,7 +184,8 @@
     {
       "id": "char_0019",
       "index": 18,
-      "name": "캐릭터 0019",
+      "name": "팔로메",
+      "title": "네온 여관의 대검 주인장",
       "tier": "SR",
       "path": "assets/art/characters/char_0019.png",
       "defaultOwned": false,
