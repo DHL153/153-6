@@ -174,7 +174,8 @@
     {
       "id": "char_0018",
       "index": 17,
-      "name": "캐릭터 0018",
+      "name": "니콜",
+      "title": "네온 라만차의 가위창 이발사",
       "tier": "SSR",
       "path": "assets/art/characters/char_0018.png",
       "defaultOwned": false,
