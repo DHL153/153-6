@@ -65,7 +65,7 @@
       "id": "char_0007",
       "index": 6,
       "name": "루시아",
-      "title": "철벽의 방패 아가씨",
+      "title": "철벽의 방패 수호자",
       "tier": "SR",
       "path": "assets/art/characters/char_0007.png",
       "defaultOwned": false,
@@ -134,7 +134,8 @@
     {
       "id": "char_0014",
       "index": 13,
-      "name": "캐릭터 0014",
+      "name": "로시",
+      "title": "네온 라만차의 포격 수녀",
       "tier": "SSR",
       "path": "assets/art/characters/char_0014.png",
       "defaultOwned": false,
@@ -143,7 +144,8 @@
     {
       "id": "char_0015",
       "index": 14,
-      "name": "캐릭터 0015",
+      "name": "그리소스토모",
+      "title": "네온 라만차의 강철 양치기",
       "tier": "R",
       "path": "assets/art/characters/char_0015.png",
       "defaultOwned": false,
@@ -152,7 +154,8 @@
     {
       "id": "char_0016",
       "index": 15,
-      "name": "캐릭터 0016",
+      "name": "카르덴",
+      "title": "네온 라만차의 백발 정비공",
       "tier": "R",
       "path": "assets/art/characters/char_0016.png",
       "defaultOwned": false,
@@ -161,7 +164,8 @@
     {
       "id": "char_0017",
       "index": 16,
-      "name": "캐릭터 0017",
+      "name": "루시아",
+      "title": "네온 라만차의 합금 방패",
       "tier": "SR",
       "path": "assets/art/characters/char_0017.png",
       "defaultOwned": false,
