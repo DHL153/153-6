@@ -274,7 +274,8 @@
     {
       "id": "char_0028",
       "index": 27,
-      "name": "캐릭터 0028",
+      "name": "니콜",
+      "title": "스카이아크 라만차의 장창 이발사",
       "tier": "R",
       "path": "assets/art/characters/char_0028.png",
       "defaultOwned": false,
