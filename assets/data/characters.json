@@ -194,7 +194,8 @@
     {
       "id": "char_0020",
       "index": 19,
-      "name": "캐릭터 0020",
+      "name": "브루노",
+      "title": "네온 라만차의 쌍철퇴 나무꾼",
       "tier": "SR",
       "path": "assets/art/characters/char_0020.png",
       "defaultOwned": false,
