@@ -164,7 +164,8 @@
     {
       "id": "char_0017",
       "index": 16,
-      "name": "캐릭터 0017",
+      "name": "루시아",
+      "title": "네온 라만차의 합금 방패",
       "tier": "SR",
       "path": "assets/art/characters/char_0017.png",
       "defaultOwned": false,
