@@ -154,7 +154,8 @@
     {
       "id": "char_0016",
       "index": 15,
-      "name": "캐릭터 0016",
+      "name": "카르덴",
+      "title": "네온 라만차의 백발 정비공",
       "tier": "R",
       "path": "assets/art/characters/char_0016.png",
       "defaultOwned": false,
