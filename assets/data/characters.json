@@ -284,7 +284,8 @@
     {
       "id": "char_0029",
       "index": 28,
-      "name": "캐릭터 0029",
+      "name": "팔로메",
+      "title": "스카이아크 여관의 강철 주인장",
       "tier": "R",
       "path": "assets/art/characters/char_0029.png",
       "defaultOwned": false,
