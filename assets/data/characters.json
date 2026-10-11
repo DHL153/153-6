@@ -234,7 +234,8 @@
     {
       "id": "char_0024",
       "index": 23,
-      "name": "캐릭터 0024",
+      "name": "로시",
+      "title": "스카이아크 라만차의 개틀링 수녀",
       "tier": "SSR",
       "path": "assets/art/characters/char_0024.png",
       "defaultOwned": false,
