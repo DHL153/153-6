@@ -294,7 +294,8 @@
     {
       "id": "char_0030",
       "index": 29,
-      "name": "캐릭터 0030",
+      "name": "브루노",
+      "title": "스카이아크 라만차의 질풍 나무꾼",
       "tier": "R",
       "path": "assets/art/characters/char_0030.png",
       "defaultOwned": false,
