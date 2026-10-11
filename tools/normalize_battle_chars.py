@@ -44,8 +44,9 @@ IDLE_HEAD = {
     '0025': 2, '0026': 24, '0027': 23, '0028': 9, '0029': 30, '0030': 26,
 }
 # 기본 자세 발끝 위치 표 (%). 무기가 발보다 아래로 내려온 그림만 적는다 (없으면 100 = 그림 맨 아래가 발).
-# 주의: 0007·0011·0013·0027은 발 아래 무기 끝이 캔버스 밖으로 조금 잘려 저장됐다.
-#       이 캐릭터들을 다시 돌리면 그림 높이가 달라지므로, 새 그림으로 교체할 때만 값을 다시 재서 돌린다.
+# 주의: IDLE_CLIPPED 캐릭터는 발 아래 무기 끝이 캔버스 밖으로 조금 잘려 저장됐다.
+#       다시 돌리면 그림 높이가 달라지므로, 번호를 따로 적어 돌릴 때(새 그림으로 교체할 때)만 기본 자세를 다시 만든다.
+IDLE_CLIPPED = {'0007', '0011', '0013', '0027'}
 IDLE_FEET = {
     '0006': 95, '0007': 84, '0010': 93, '0011': 82, '0012': 91, '0013': 81,
     '0017': 94, '0027': 89,
@@ -77,6 +78,19 @@ def bbox(im):
     return im.getchannel('A').point(lambda v: 255 if v >= ALPHA_MIN else 0).getbbox()
 
 
+def body_center_x(im, top, bottom):
+    """머리~발 사이 줄에서 보이는 픽셀의 가로 중앙값 (무기가 한쪽으로 뻗어도 몸 쪽에 가깝다)."""
+    band = im.crop((0, round(top), im.width, round(bottom))).getchannel('A')
+    cols = band.point(lambda v: 255 if v >= ALPHA_MIN else 0).resize((im.width, 1), Image.BOX)
+    w = list(cols.tobytes())
+    half, acc = sum(w) / 2, 0
+    for x, v in enumerate(w):
+        acc += v
+        if acc >= half:
+            return x + 0.5
+    return im.width / 2
+
+
 def place(im, s, dx, dy):
     """배율 s로 키운 뒤 (dx, dy)만큼 옮겨 512 캔버스에 놓는다."""
     big = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
@@ -85,7 +99,7 @@ def place(im, s, dx, dy):
     return out
 
 
-def normalize(item, num):
+def normalize(item, num, redo_idle=True):
     runs = [open_unit(p) for p in item['runFrames']]
     rb = [bbox(im) for im in runs]
     top, bot = min(b[1] for b in rb), max(b[3] for b in rb)
@@ -104,6 +118,8 @@ def normalize(item, num):
     for p in {item['idle'], item['attack'], item['skill'], item['victory']}:
         if p in out:
             continue
+        if num in IDLE_CLIPPED and not redo_idle:
+            continue
         if not os.path.exists(os.path.join(ROOT, p)):
             print(f'  (없는 파일 건너뜀: {p})')
             continue
@@ -117,8 +133,12 @@ def normalize(item, num):
         # 캔버스를 넘지 않게 (발보다 아래로 내려온 무기 끝은 잘려도 몸 크기를 우선)
         fit = min(1, (CANVAS - 2 * MARGIN) / w, (FEET_Y - MARGIN) / ((feet - b[1]) * si))
         si *= fit
-        icx = (b[0] + b[2]) / 2
-        out[p] = place(im, si, CANVAS / 2 - icx * si, FEET_Y - feet * si)
+        # 가로: 무기를 뺀 몸 중심을 가운데로 (컷인에서 캐릭터가 한쪽으로 치우치지 않게)
+        head = b[1] + (b[3] - b[1]) * IDLE_HEAD.get(num, 0) / 100
+        icx = body_center_x(im, head, feet) if num in IDLE_HEAD else (b[0] + b[2]) / 2
+        dx = CANVAS / 2 - icx * si
+        dx = min(max(dx, MARGIN - b[0] * si), CANVAS - MARGIN - b[2] * si)  # 무기는 캔버스 안에
+        out[p] = place(im, si, dx, FEET_Y - feet * si)
     return out, s
 
 
@@ -128,7 +148,7 @@ def main():
         num = item['id'][-4:]
         if only and num not in only:
             continue
-        frames, s = normalize(item, num)
+        frames, s = normalize(item, num, redo_idle=num in only)
         for p, im in frames.items():
             im.save(os.path.join(ROOT, p), optimize=True)
         print(f'{num} {item["name"]}: x{s:.2f}, {len(frames)} files')
