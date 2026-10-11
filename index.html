@@ -3373,7 +3373,7 @@ html body #game-startup-screen.is-leaving{opacity:0!important;transition:opacity
 <div id="boss-hp-text">5 / 5</div>
 </div>
 <div id="boss-skill-alert" aria-live="polite"></div>
-<div id="normal-enemy-hp" aria-hidden="true"></div><div class="character enemy" id="enemy"><img alt="보랏빛 박쥐" src="assets/art/villains/villain_0004.png"/></div>
+<div id="normal-enemy-hp" aria-hidden="true"></div><div class="character enemy" id="enemy"><img alt="사슬 망령" src="assets/art/villains/villain_0008.png"/></div>
 </div>
 </div>
 <div id="game-section">
@@ -3532,7 +3532,7 @@ html body #game-startup-screen.is-leaving{opacity:0!important;transition:opacity
 <div class="bg-preview-panel" style="margin:10px 12px 0;">
 <div class="bg-preview-title"><span class="bg-preview-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>적용 미리보기</span></span></div>
 <div class="bg-live-grid">
-<div class="mini-stage" id="mini-battle-stage"><img id="mini-battle-hero" src="assets/art/battle_characters/battle_char_0001_Idle.png"/><div class="mini-enemy"><img alt="보랏빛 박쥐" src="assets/art/villains/villain_0004.png"/></div><div class="mini-label">⚔️ 전투</div></div>
+<div class="mini-stage" id="mini-battle-stage"><img id="mini-battle-hero" src="assets/art/battle_characters/battle_char_0001_Idle.png"/><div class="mini-enemy"><img alt="사슬 망령" src="assets/art/villains/villain_0008.png"/></div><div class="mini-label">⚔️ 전투</div></div>
 <div class="mini-stage" id="mini-merge-stage"><div class="mini-ball b1"></div><div class="mini-ball b2"></div><div class="mini-label">🔄 머지</div></div>
 </div>
 </div>
@@ -3935,16 +3935,18 @@ window.MRBattleFX=(()=>{
     let bossHp = bossMaxHp;
 
     // Enemy selection is shared by main battle and battle mini mode.
+    // 빌런: 비취 망령 군단 (보스 4종 = 짙은 비취 갑옷, 일반 4종 = 옅은 비취 갑옷)
     const BOSS_ART=[
-        ['assets/art/villains/boss_0001.png','이클립스'],
-        ['assets/art/villains/boss_0002.png','루인 골렘'],
-        ['assets/art/villains/boss_0003.png','블레이즈 하운드']
+        ['assets/art/villains/boss_0004.png','비취 도끼 망령'],
+        ['assets/art/villains/boss_0005.png','비취 쌍검 망령'],
+        ['assets/art/villains/boss_0006.png','비취 방패 망령'],
+        ['assets/art/villains/boss_0007.png','비취 작살 망령']
     ];
     const FLYING_ENEMY_ART=[
-        ['assets/art/villains/villain_0004.png','보랏빛 박쥐'],
-        ['assets/art/villains/villain_0005.png','하늘 해파리'],
-        ['assets/art/villains/villain_0006.png','황금 달나방'],
-        ['assets/art/villains/villain_0007.png','비행 빌런']
+        ['assets/art/villains/villain_0008.png','사슬 망령'],
+        ['assets/art/villains/villain_0009.png','삼지창 망령'],
+        ['assets/art/villains/villain_0010.png','망치 망령'],
+        ['assets/art/villains/villain_0011.png','장창 망령']
     ];
     MR.setEnemy=function(id){
         const enemy=document.getElementById('enemy');if(!enemy)return;
