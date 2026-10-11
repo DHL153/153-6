@@ -244,7 +244,8 @@
     {
       "id": "char_0025",
       "index": 24,
-      "name": "캐릭터 0025",
+      "name": "그리소스토모",
+      "title": "스카이아크 라만차의 황동 양치기",
       "tier": "R",
       "path": "assets/art/characters/char_0025.png",
       "defaultOwned": false,
