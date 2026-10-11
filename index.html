@@ -8480,7 +8480,7 @@ function createSocialDataFoundation(assets, emojis) {
     const BATTLE_FORMATIONS={
         1:{heroes:[-.6],enemy:.7},
         2:{heroes:[-.42,-1.27],enemy:.78},   // 캐릭터 사이 간격 0.85 (전투 캐릭터가 작아져서 1.05에서 줄임)
-        3:{heroes:[-.3,-1.15,-2.0],enemy:.9}   // 캐릭터 사이 간격 0.85
+        3:{heroes:[-.3,-1.15,-1.8],enemy:.9}   // 간격: 맨 오른쪽~가운데 0.85, 가운데~맨 왼쪽 0.65 (뒤쪽 간격이 넓어 보여 줄임)
     };
     const BATTLE_FORMATION_LEGACY={1:{heroes:[40],enemy:76},2:{heroes:[49,24],enemy:81},3:{heroes:[57,36,15],enemy:85}};
     function battleFormation(count,W,H){
@@ -8522,7 +8522,7 @@ function createSocialDataFoundation(assets, emojis) {
         }
         members.forEach(({id,el,bounds:b,index})=>{
             const number=Number(id)+1;
-            el.style.setProperty('--team-z',String(7-index));
+            el.style.setProperty('--team-z',String(7-index)); // 겹침 순서: 맨 오른쪽(주 캐릭터)이 맨 앞 → 가운데 → 맨 왼쪽
             el.dataset.battleCharacter=String(number).padStart(4,'0');
             if(b)el.dataset.artBox=[b.x,b.y,b.w,b.h,b.aspect].join(',');else delete el.dataset.artBox;
             if(b&&visibleHeight>0){
