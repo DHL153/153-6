@@ -224,7 +224,8 @@
     {
       "id": "char_0023",
       "index": 22,
-      "name": "캐릭터 0023",
+      "name": "산초",
+      "title": "스카이아크 라만차의 바람 종자",
       "tier": "R",
       "path": "assets/art/characters/char_0023.png",
       "defaultOwned": false,
