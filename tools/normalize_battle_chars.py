@@ -12,6 +12,9 @@
 - 기본 자세(Idle)는 IDLE_HEAD 표로 머리~발을 BODY_H로 맞춤, 발은 같은 위치. 캔버스를 넘으면 그 프레임만 살짝 줄임
 
 사용: python3 tools/normalize_battle_chars.py [0001 0002 ...]   (생략하면 30종 전부)
+캐릭터 그림을 새로 바꿀 때: 원본을 넣고 IDLE_HEAD는 그 캐릭터 값을 0, IDLE_FEET는 지운 뒤 한 번 돌리고,
+  결과 기본 자세 그림에서 머리 꼭대기(%)·발끝(%)을 눈으로 재서 표에 적고, 원본을 다시 넣어 번호를 적어 한 번 더 돌린다.
+  (표 값은 정규화된 기본 자세 그림 기준이라, 예전 값을 그대로 두면 새 그림 크기가 틀어진다)
 index.html 안의 FALLBACK_ASSET_DATA(battleCharacters)에서 파일 경로를 읽는다.
 """
 import json, os, sys, statistics as st
