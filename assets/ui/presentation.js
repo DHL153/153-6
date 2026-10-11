@@ -117,10 +117,11 @@ window.MR = (() => {
   function setEnemy(id) {
     const enemy=$('enemy');if(!enemy)return;
     const boss=id==='boss';
-    const names=['섀도윙','루인 가디언','블레이즈 폭스'];
+    const names=['사슬 망령','삼지창 망령','망치 망령','장창 망령','비취 도끼 망령','비취 쌍검 망령','비취 방패 망령','비취 작살 망령'];
+    const n=Math.max(0,(Number(id)||1)-1)%names.length;
     const image=document.createElement('img');
-    image.src=boss?'assets/art/villains/boss_0001.png':`assets/art/villains/villain_${String(id).padStart(4,'0')}.png`;
-    image.alt=boss?'이클립스':names[Number(id)-1];image.draggable=false;
+    image.src=boss?'assets/art/villains/boss_0004.png':`assets/art/villains/villain_${String(8+n).padStart(4,'0')}.png`;
+    image.alt=boss?'광견 하이에나':names[n];image.draggable=false;
     enemy.replaceChildren(image);
   }
   function hitMarkup(state) {
