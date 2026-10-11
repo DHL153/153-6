@@ -204,7 +204,8 @@
     {
       "id": "char_0021",
       "index": 20,
-      "name": "캐릭터 0021",
+      "name": "알론소",
+      "title": "스카이아크 라만차의 창공 검사",
       "tier": "SSR",
       "path": "assets/art/characters/char_0021.png",
       "defaultOwned": false,
