@@ -6899,6 +6899,21 @@ function createSocialDataFoundation(assets, emojis) {
     }
 
     // Data for the reveal card (name, type label, art, NEW = first copy owned).
+    // 캐릭터 뽑기 결과: 세계관·이름·칭호 (전투 캐릭터의 칭호는 연결된 마이룸 캐릭터의 칭호)
+    // 로컬 뽑기·합성·조각 교환과 STEAM 뽑기가 함께 씀 · 언어별 이름·칭호(meta.i18n)도 반영
+    function getRevealProfile(cat,id){
+        if((cat!=='char'&&cat!=='battle_char')||!window.MRWorld)return null;
+        try{
+            const meta=cat==='char'?CHARACTER_META[id]:BATTLE_CHARACTER_META[id],room=cat==='char'?meta:window.MRWorld.roomOf(meta),world=window.MRWorld.ofAsset(meta);
+            if(!meta||!world)return null;
+            const text=(m,key)=>typeof localizedAssetText==='function'?localizedAssetText(m,key):String(m?.[key]||'');
+            const name=text(meta,'name');
+            // 이름이 아직 없는 캐릭터(임시값이 종류 이름으로 바뀐 것)는 이름 줄을 비움
+            const placeholder=!name||name===COLLECTIBLE_LABELS[cat]||/\d{3,}/.test(name);
+            return {world,name:placeholder?'':name,title:room?text(room,'title'):''};
+        }catch(e){return null;}
+    }
+    window.getRevealProfile=getRevealProfile;
     function getRevealItem(drop,isNewOverride){
         const cat=drop.category,id=drop.id;
         const kind={char_bg:'lobby',bg_battle:'battle',bg_merge:'merge'}[cat];
@@ -6911,12 +6926,7 @@ function createSocialDataFoundation(assets, emojis) {
         }catch(e){}
         const type=COLLECTIBLE_LABELS[cat]||'';
         const count=Number(getInventoryRef(cat)?.[id]?.count||0);
-        // 캐릭터: 세계관·이름·칭호도 함께 (전투 캐릭터의 칭호는 연결된 마이룸 캐릭터의 칭호)
-        let profile=null;
-        if((cat==='char'||cat==='battle_char')&&window.MRWorld){
-            const meta=cat==='char'?CHARACTER_META[id]:BATTLE_CHARACTER_META[id],room=cat==='char'?meta:window.MRWorld.roomOf(meta),world=window.MRWorld.ofAsset(meta);
-            if(meta&&world)profile={world,name:meta.name||'',title:room?.title||''};
-        }
+        const profile=getRevealProfile(cat,id);
         return {category:cat,id,tier:drop.tier,type,name:type,profile,artHtml:getHtmlForCategoryAndId(cat,id),cover:!!kind,isNew:typeof isNewOverride==='boolean'?isNewOverride:count===1};
     }
     function getHtmlForCategoryAndId(cat, id) {
@@ -12502,8 +12512,8 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
   q('.rv-name').textContent=T(it.type||'');
   // 캐릭터는 카드 아래에 세계관 → 이름 → 칭호 (뒤집힌 뒤에만 보임)
   if(it.profile&&window.MRWorld){const pr=it.profile,box=document.createElement('div');box.className='rv-profile';box.style.setProperty('--mrw-c',pr.world.c1);box.style.setProperty('--mrw-c2',pr.world.c2);
-   box.innerHTML=`<span class="rvp-world">${window.MRWorld.emblem(pr.world,'rvp-emb')}<span>${pr.world.ko}</span></span><strong class="rvp-name"></strong>${pr.title?'<span class="rvp-title"></span>':''}`;
-   box.querySelector('.rvp-name').textContent=pr.name;if(pr.title)box.querySelector('.rvp-title').textContent=pr.title;
+   box.innerHTML=`<span class="rvp-world">${window.MRWorld.emblem(pr.world,'rvp-emb')}<span>${pr.world.ko}</span></span>${pr.name?'<strong class="rvp-name"></strong>':''}${pr.title?'<span class="rvp-title"></span>':''}`;
+   if(pr.name)box.querySelector('.rvp-name').textContent=pr.name;if(pr.title)box.querySelector('.rvp-title').textContent=pr.title;
    q('.rv-rare').after(box);}
   const art=q('.rv-art');art.innerHTML=it.artHtml||'';if(it.cover)art.classList.add('cover');
   art.querySelectorAll('img').forEach(im=>{im.removeAttribute('style');im.draggable=false;});
@@ -13103,7 +13113,8 @@ html body #app #view-battle #ui-section .btn-item .cost-label{margin-top:3px!imp
     const copies=inv.editions.filter(x=>x.category===it.category&&x.localId===it.localId).length;
     let type='';try{type=COLLECTIBLE_LABELS[it.category]||'';}catch(e){}
     let artHtml='';try{artHtml=getHtmlForCategoryAndId(it.category,it.localId);}catch(e){}
-    return {category:it.category,id:it.localId,tier:it.tier,type,name:type,artHtml,cover:false,isNew:copies<=1};
+    const profile=window.getRevealProfile?.(it.category,it.localId)||null; // 캐릭터: 세계관·이름·칭호
+    return {category:it.category,id:it.localId,tier:it.tier,type,name:type,profile,artHtml,cover:false,isNew:copies<=1};
   }
   let showing=false;
   function blocked(){
