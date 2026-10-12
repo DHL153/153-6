@@ -2709,8 +2709,8 @@ html.game-booting #app{visibility:hidden!important;}
 @media(prefers-reduced-motion:reduce){#app #battle-stage[data-team-size] .hero.skill,.team-combined-impact{animation:none!important;}#app #battle-stage[data-team-size] .hero.attack{transform:none;}}
 </style>
 <style id="mr-finish-cutscene">
-/* 필살기 컷신: 시안 1 배치(왼쪽 아래 판) + 시안 2 글씨(칭호 먼저 → 0.52초 스킬 이름) · 시간은 --mrfc-time(1.2초) 비율 */
-#skill-cinematic .mrfc{position:absolute;inset:0;overflow:hidden;pointer-events:none;container-type:size;--t:var(--mrfc-time,1200ms);animation:mrfcBox var(--t) linear both;}
+/* 필살기 컷신: 시안 1 배치(왼쪽 아래 판) + 시안 2 글씨(칭호 먼저 → 스킬 이름) · 시간은 --mrfc-time(1.8초) 비율 */
+#skill-cinematic .mrfc{position:absolute;inset:0;overflow:hidden;pointer-events:none;container-type:size;--t:var(--mrfc-time,1800ms);animation:mrfcBox var(--t) linear both;}
 #skill-cinematic .mrfc i{position:absolute;display:block;}
 #skill-cinematic .mrfc-glow{right:8cqw;top:50%;width:140cqh;height:140cqh;translate:0 -50%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mrfc-c1) 55%,transparent),transparent 65%);animation:mrfcGlow calc(var(--t)*.33) calc(var(--t)*.05) ease-out both;}
 #skill-cinematic .mrfc-art{width:165cqh;height:165cqh;left:calc(66cqw - var(--fx)*165cqh);top:calc(36cqh - var(--fy)*165cqh);background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
@@ -5649,7 +5649,7 @@ window.MRWorld=(()=>{
                 playSfx('bossClear'); playSfx('gold',{gain:1.15});
                 playVictoryPose('boss');
             }
-            setTimeout(checkBossTrigger, 1300);
+            setTimeout(checkBossTrigger, 1900); // 필살기 컷신(1.8초)이 끝난 뒤
         }
         return result;
     }
@@ -8977,7 +8977,8 @@ function createSocialDataFoundation(assets, emojis) {
         cut.querySelector('.mrfc-skill').textContent=skill;
         root.replaceChildren(cut);root.classList.add('on');
         fitFinishCutText(cut);
-        window.MRBattleFX?.skill(duration);
+        // 필살기 컷신에는 번개 이펙트(MRBattleFX.skill)를 쓰지 않음
+        window.MRBattleFX?.clearSkill?.();
         playSfx('skillCharge',{gain:.35,minGap:150});
         return true;
     }
@@ -9699,12 +9700,14 @@ function createSocialDataFoundation(assets, emojis) {
         return 'attack';
     }
 
+    const FINISH_CUTSCENE_MS=1800;
     function playVictoryPose(reason='normal'){
         if(!battleTeamEntries().length){setBattleHeroState('idle');return;}
-        const hold = reason==='boss' ? 1250 : 850;
+        const hold = reason==='boss' ? 1850 : 850;
         if(reason==='boss'){
-            activeSkillPresentation={kind:'finish',duration:1200};
-            setBattleHeroState('skill',1200);
+            // 보스 처치 필살기 컷신 1.8초
+            activeSkillPresentation={kind:'finish',duration:FINISH_CUTSCENE_MS};
+            setBattleHeroState('skill',FINISH_CUTSCENE_MS);
         }else setBattleHeroState('victory', hold);
     }
 
@@ -9855,7 +9858,7 @@ function createSocialDataFoundation(assets, emojis) {
                         if(enemy) enemy.className='character enemy';
                         if(typeof checkBossTrigger==='function') checkBossTrigger();
                         finishBattleVisualEvent(0);
-                    },1200);
+                    },FINISH_CUTSCENE_MS);
                 }else{
                     // HP가 남아 있는 동안 보스 이미지는 절대 일반 몬스터로 복귀하지 않습니다.
                     if(enemy){
