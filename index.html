@@ -10335,6 +10335,8 @@ function createSocialDataFoundation(assets, emojis) {
             tip.style.top=Math.max(12,Math.min(innerHeight-h-12,r.top+r.height/2-h/2))+'px';
         }
         function show(card){
+            // 2026-10-12: 컬렉션 전투 탭(전투 캐릭터·전투 배경·머지 배경)은 카드 형식이라 마우스 올림 큰 미리보기 없음
+            if(card.closest('#view-bg')){hide();return;}
             const source=card.querySelector('img');if(!source)return;
             if(active!==card)hide();active=card;
             tip.classList.toggle('emoji-inspection',source.classList.contains('reference-emoji'));
