@@ -398,8 +398,9 @@
         .char-custom-layout.room-walking .char-preview-character { transition:filter .16s ease !important; animation:none !important; cursor:pointer !important; }
         .room-speech {
             position:absolute; z-index:11; pointer-events:none;
-            max-width:min(78%,250px); width:max-content;
-            padding:7px 12px 8px; border-radius:14px;
+            min-width:38px; height:36px; width:max-content;
+            display:flex; align-items:center; justify-content:center;
+            padding:0 9px; border-radius:18px;
             background:rgba(255,255,255,.96); border:1.5px solid var(--rs-c,#ff9fc0);
             box-shadow:0 6px 16px rgba(20,16,40,.22);
             color:#2f2540; font-size:13px; font-weight:800; line-height:1.38;
@@ -412,9 +413,8 @@
             background:inherit; border-right:1.5px solid var(--rs-c,#ff9fc0); border-bottom:1.5px solid var(--rs-c,#ff9fc0);
             transform:rotate(45deg);
         }
-        .room-speech-who { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
-        .room-speech-who b { color:var(--rs-c,#ff477e); font-size:13px; font-weight:1000; }
-        .room-speech-who small { color:#6a6080; font-size:11px; font-weight:700; }
+        .room-speech-sym { font-size:21px; line-height:1; font-weight:900; font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",sans-serif; }
+        .room-speech-ico { width:24px; height:24px; display:block; object-fit:contain; }
         .room-speech.out { animation:roomSpeechOut .2s ease forwards; }
         @keyframes roomSpeechIn { from { opacity:0; transform:translate(-50%,-92%) scale(.7); } to { opacity:1; transform:translate(-50%,-100%) scale(1); } }
         @keyframes roomSpeechOut { to { opacity:0; transform:translate(-50%,-110%) scale(.94); } }
@@ -4127,12 +4127,14 @@ window.MRWorld=(()=>{
 //  · 캐릭터 그림(img)은 left/top = 중심, transform = MRRoomFit 기준이라는 마이룸 규칙을 그대로 따름
 //  · 움직이는 동안: 전투 달리기 6장(run), 몸 높이를 마이룸 그림과 같게 맞추고 끝에서 좌우 반전
 //  · 멈춤(가끔 쉼·마우스 올림·말풍선 중): 마이룸 그림. 높이(top)는 배치값 유지, 회전·반전은 쓰지 않음
-//  · 말풍선: 이름(세계 색)·칭호만 (대사 없음)
+//  · 말풍선: 하트·음표 같은 기호 하나 (이름·칭호·대사 없음). 종류는 REACTIONS에서 관리 ({text,color} 또는 {img})
 //  · 기기 '동작 줄이기'면 움직이지 않음 (말풍선은 동작)
 // 사용: MRRunWalker.create({zone, active(), list() → [{key, el, num(1~30), scale, x(%)}], info(key) → {name,title,color}, onStart(), onStop(), clickToSay})
 window.MRRunWalker=(()=>{
  const BT=182/512,BF=472/512; // 전투 캐릭터 그림의 머리 위·발끝 (MRWorld BATTLE_BODY와 같음)
- const CFG={crossSec:6,fps:12,idleChance:.35,idleMin:1.5,idleMax:4,midIdlePerSec:.08,speechMs:2600};
+ const CFG={crossSec:6,fps:12,idleChance:.35,idleMin:1.5,idleMax:4,midIdlePerSec:.08,speechMs:2200};
+ // 말풍선 기호: 클릭할 때마다 하나씩 무작위 (같은 기호 연속 금지). 그림 이모지를 쓰려면 {img:'assets/art/emojis/…png'}
+ const REACTIONS=[{text:'♥',color:'#ff477e'},{text:'♪',color:'#7a5cff'},{text:'♫',color:'#3fa7ff'},{text:'♡',color:'#ff6fa8'},{text:'✦',color:'#ffb020'}];
  const reduce=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
  const frames={}; // 번호 → {ok, list}
  function loadFrames(num){
@@ -4160,7 +4162,7 @@ window.MRRunWalker=(()=>{
 
  function create(opt){
   const states=new Map(); // key → {x(몸 중심 px), dir, mode, idleLeft, frame, frameT, speechUntil}
-  let active=false,last=0,hoverKey=null,speech=null,raf=0,dead=false;
+  let active=false,last=0,hoverKey=null,speech=null,raf=0,dead=false,lastReaction=-1;
   const items=()=>{try{return (opt.list()||[]).filter(it=>it&&it.el&&it.el.isConnected&&it.num);}catch(e){return [];}};
   const find=key=>items().find(it=>String(it.key)===String(key));
   function running(){
@@ -4237,13 +4239,15 @@ window.MRRunWalker=(()=>{
    const it=find(key),host=it?.el?.offsetParent;if(!it||!host)return;
    const s=states.get(String(key));if(s)s.speechUntil=performance.now()+CFG.speechMs;
    let inf=null;try{inf=opt.info?.(key);}catch(e){}inf=inf||info(it.num);
+   const list=REACTIONS.length?REACTIONS:[{text:'♥',color:'#ff477e'}];
+   let i=Math.floor(Math.random()*list.length);if(list.length>1&&i===lastReaction)i=(i+1)%list.length;lastReaction=i;
+   const r=list[i];
    removeSpeech();
-   const b=document.createElement('div');b.className='room-speech';b.setAttribute('role','status');
-   if(inf.color)b.style.setProperty('--rs-c',inf.color);
-   b.innerHTML=`<div class="room-speech-who"><b><span>${esc(inf.name)}</span></b>${inf.title?`<small><span>${esc(inf.title)}</span></small>`:''}</div>`;
+   const b=document.createElement('div');b.className='room-speech';b.setAttribute('role','img');b.setAttribute('aria-label',inf.name||'');
+   if(inf.color)b.style.setProperty('--rs-c',inf.color); // 테두리는 캐릭터의 세계 색
+   b.innerHTML=r.img?`<img class="room-speech-ico" src="${esc(r.img)}" alt="" draggable="false">`:`<span class="room-speech-sym" data-no-i18n style="color:${esc(r.color||'#ff477e')}">${esc(r.text)}</span>`;
    host.appendChild(b);
    speech={el:b,key:String(key),timer:setTimeout(()=>{b.classList.add('out');setTimeout(()=>{if(speech?.el===b)removeSpeech();},220);},CFG.speechMs)};
-   try{window.MRLocale?.refresh?.(b);}catch(e){}
    positionSpeech();
    try{if(typeof playSfx==='function')playSfx('characterLove',{minGap:140});}catch(e){}
   }
@@ -4256,7 +4260,7 @@ window.MRRunWalker=(()=>{
   raf=requestAnimationFrame(tick);
   return {say,isActive:()=>active,destroy(){dead=true;cancelAnimationFrame(raf);removeSpeech();if(active)stop();}};
  }
- return {create,CFG};
+ return {create,CFG,REACTIONS};
 })();
 </script>
 <script id="sd-cutscene-patch">
