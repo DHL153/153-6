@@ -376,7 +376,7 @@
             transition:left .28s ease, top .28s ease, width .28s ease, height .28s ease, transform .18s ease, filter .16s ease;
             touch-action:none; user-select:none; -webkit-user-drag:none; pointer-events:auto;
         }
-        .char-preview-character.selected-character { z-index:4; }
+        /* 2026-10-12: 캐릭터 앞뒤 순서 = 배치 목록 순서 (인라인 z-index, 뒤 2 → 앞 4). 선택해도 순서는 그대로 */
         .char-custom-layout.char-panel-closed .char-preview-character {
             width:44%; height:58%; cursor:pointer;
         }
@@ -570,6 +570,7 @@
         .char-custom-layout.char-editing.edit-target-background .char-preview-character,
         .char-custom-layout.char-editing.edit-target-emoji .char-preview-character { pointer-events:none !important; opacity:.55; } /* 배경·이모지 꾸미기 중 캐릭터는 반투명, 클릭은 아래로 */
         .char-move-hint { display:inline-flex; align-items:center; opacity:.7; }
+        #char-edit-character-controls button:disabled { opacity:.35; pointer-events:none; }
         .char-custom-layout.char-editing.edit-target-background #char-preview-bg { cursor:grab; }
         .char-custom-layout.char-panel-closed #char-preview-bg { transform:scale(var(--bg-user-scale,1)); transform-origin:center center; }
         .char-custom-layout.char-panel-closed #char-preview-body { transform:translate(-50%,-50%) scale(var(--char-user-scale,1)) rotate(var(--char-user-rotate,0deg)) scaleX(var(--char-user-flip,1)); }
@@ -3544,7 +3545,7 @@ html body #game-startup-screen.is-leaving{opacity:0!important;transition:opacity
 </div>
 <div id="char-customize-toolbar" class="tb-icon-only">
   <div class="char-edit-targets"><button id="char-edit-character" type="button" onclick="setCharEditTarget('character')" title="캐릭터 위치" aria-label="캐릭터 위치"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 22v-3a8 8 0 0 1 16 0v3"/></svg></button><button id="char-edit-background" type="button" onclick="setCharEditTarget('background')" title="배경" aria-label="배경"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z M4 18l5-6 4 4 3-4 4 6 M15 7h.01"/></svg></button><button id="char-edit-emoji" type="button" onclick="setCharEditTarget('emoji')" title="이모지" aria-label="이모지"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M8 9h.01 M16 9h.01 M7 14q5 6 10 0"/></svg></button></div>
-  <div id="char-edit-character-controls" class="char-edit-controls"><div class="char-character-transform-row"><span class="char-move-hint" title="캐릭터를 끌어서 위치를 옮기세요" aria-label="캐릭터를 끌어서 위치를 옮기세요"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M3 12h18 M9 6l3-3 3 3 M9 18l3 3 3-3 M6 9l-3 3 3 3 M18 9l3 3-3 3"/></svg></span><span class="char-placement-count" id="char-placement-count">1/3</span></div></div>
+  <div id="char-edit-character-controls" class="char-edit-controls"><div class="char-character-transform-row"><span class="char-move-hint" title="캐릭터를 끌어서 위치를 옮기세요" aria-label="캐릭터를 끌어서 위치를 옮기세요"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M3 12h18 M9 6l3-3 3 3 M9 18l3 3 3-3 M6 9l-3 3 3 3 M18 9l3 3-3 3"/></svg></span><span class="char-placement-count" id="char-placement-count">1/3</span><button type="button" id="char-layer-back" onclick="moveSelectedCharacterLayer(-1)" title="뒤로 보내기" aria-label="뒤로 보내기"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z M3 13l9 5 9-5 M12 21v-6 M9 18l3 3 3-3"/></svg></button><button type="button" id="char-layer-front" onclick="moveSelectedCharacterLayer(1)" title="앞으로 가져오기" aria-label="앞으로 가져오기"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 11l9 5-9 5-9-5z M3 8l9-5 9 5 M12 3v6 M9 6l3-3 3 3"/></svg></button></div></div>
   <div id="char-edit-background-controls" class="char-edit-controls"><button type="button" onclick="adjustBackgroundScale(-0.08)" title="축소" aria-label="축소"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6"/></svg></button><button type="button" onclick="adjustBackgroundScale(0.08)" title="확대" aria-label="확대"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6 M11 8v6"/></svg></button><button type="button" onclick="resetBackgroundTransform()" title="초기화" aria-label="초기화"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16 M3 12a9 9 0 0 1 15.5-6.2L21 8 M21 3v5h-5 M3 21v-5h5"/></svg></button></div>
   <div id="char-edit-emoji-controls" class="char-edit-controls">
     <button type="button" onclick="adjustSelectedEmojiScale(-0.10)" title="축소" aria-label="축소"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6"/></svg></button><button type="button" onclick="adjustSelectedEmojiScale(0.10)" title="확대" aria-label="확대"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6 M11 8v6"/></svg></button>
@@ -7817,6 +7818,10 @@ function createSocialDataFoundation(assets, emojis) {
     let charLoveTapCount = 0;
 
     function updateCharacterPlacementCount() {
+        const list=charScene.characters||[],idx=list.findIndex(c=>Number(c.uid)===Number(selectedCharacterUid));
+        const back=document.getElementById('char-layer-back'),front=document.getElementById('char-layer-front');
+        if(back)back.disabled=idx<=0;
+        if(front)front.disabled=idx<0||idx>=list.length-1;
         const el=document.getElementById('char-placement-count');
         if(el){el.innerHTML=`<svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 22v-3a8 8 0 0 1 16 0v3"/></svg><b>${Math.min(MAX_SCENE_CHARACTERS,charScene.characters?.length||0)}/${MAX_SCENE_CHARACTERS}</b>`;el.title='캐릭터';}
     }
@@ -7866,6 +7871,7 @@ function createSocialDataFoundation(assets, emojis) {
         selectedEl.style.left=`${selected.x}%`;
         selectedEl.style.top=`${selected.y}%`;
         selectedEl.style.transform=roomCharTransform(selectedEl,selected);
+        selectedEl.style.zIndex=String(2+charScene.characters.indexOf(selected));
         if(snapSelected){
             // 스타일을 즉시 확정한 뒤 다음 프레임부터 원래 애니메이션을 복구.
             void selectedEl.offsetWidth;
@@ -7883,6 +7889,7 @@ function createSocialDataFoundation(assets, emojis) {
             setSmartImageSrc(img,characterPath(c.id));
             img.style.left=`${c.x}%`;
             img.style.top=`${c.y}%`;
+            img.style.zIndex=String(2+charScene.characters.indexOf(c));
             img.onclick=(e)=>{
                 e.stopPropagation();
                 // 감상 모드: 선택을 바꾸지 않고 말풍선만 (2026-10-12)
@@ -7942,6 +7949,14 @@ function createSocialDataFoundation(assets, emojis) {
         charScene.characters.splice(idx,1);const next=charScene.characters[Math.max(0,Math.min(idx,charScene.characters.length-1))]||null;selectedCharacterUid=next?.uid??null;
         syncLegacyCharacterState();renderSceneCharacters(true);applySceneTransforms(true);renderCharItems();saveCharScene();
     }
+    // 2026-10-12: 선택한 캐릭터의 앞뒤 순서 바꾸기 (배치 목록 순서 = 겹칠 때 앞뒤, 친구 방문 화면도 같은 순서)
+    window.moveSelectedCharacterLayer=function(delta){
+        const list=charScene.characters||[],i=list.findIndex(c=>Number(c.uid)===Number(selectedCharacterUid)),j=i+delta;
+        if(i<0||j<0||j>=list.length)return;
+        [list[i],list[j]]=[list[j],list[i]];
+        renderSceneCharacters();saveCharScene();
+        if(typeof playSfx==='function')playSfx('characterSelect');
+    };
     window.removeSelectedCharacter=function(){if(selectedCharacterUid!=null)removeSceneCharacterByUid(selectedCharacterUid);};
     window.removeAllCharacters=async function(){if(!(charScene.characters||[]).length)return;if(!await gameConfirm('배치한 캐릭터를 모두 삭제할까요?'))return;charScene.characters=[];selectedCharacterUid=null;renderSceneCharacters(true);applySceneTransforms(true);renderCharItems();saveCharScene();};
 
