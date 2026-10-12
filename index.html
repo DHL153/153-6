@@ -4068,12 +4068,13 @@ window.MRWorld=(()=>{
   try{focusEl?.focus({preventScroll:true});}catch(e){}
  }
  // 배경 크게 보기: {src, kind, name, tier, owned, applied, apply(), returnFocus}
+ // 2026-10-12: 전투·머지 배경 이름(예: 프리즘 수정동굴)은 표시하지 않음 — 종류(전투 배경/머지 배경)만
  function openImage(ctx){
   closeDetail();
   const el=document.createElement('div');el.className='mrw-detail mrw-image';
   el.innerHTML=`<div class="mrw-box" role="dialog" aria-modal="true" aria-label="${esc(ctx.kind)}">
    <div class="mrw-photo"><img src="${esc(encodeURI(ctx.src))}" alt="" draggable="false"><span class="tier-label tier-${esc(ctx.tier)} mrw-tier">${esc(ctx.tier)}</span></div>
-   <div class="mrw-body"><div class="mrw-heading"><span class="mrw-title"><span>${esc(ctx.kind)}</span></span>${ctx.name?`<h3 class="mrw-nm">${esc(ctx.name)}</h3>`:''}</div>
+   <div class="mrw-body"><div class="mrw-heading"><span class="mrw-title"><span>${esc(ctx.kind)}</span></span></div>
     <div class="mrw-acts"><button type="button" class="mrw-close">닫기</button><button type="button" class="mrw-main" ${!ctx.owned||ctx.applied?'disabled':''}><span>${!ctx.owned?'미보유':ctx.applied?'적용 중':'적용하기'}</span></button></div></div></div>`;
   const onKey=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeDetail();}};
   el.addEventListener('click',e=>{if(e.target===el)closeDetail();});
