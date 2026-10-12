@@ -12350,19 +12350,47 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  }
  MRFX.hitRate=level=>level>=8?.86:level>=5?.94:1.04;
  // A1 + A2: enemy reacts to every hit; higher merge level = heavier hit.
+ // 2026-10-12 타격감 강화: 빌런·보스 모두 맞을 때 뒤로 밀리며 젖혀졌다가(짧은 멈춤 = 히트스톱) 반동으로 돌아옴
+ //  · 몸통(#enemy): 뒤로 밀림 + 뒤로 젖힘 (translate/rotate 속성 → 등장용 transform·떠다니기 translate와 겹치지 않음)
+ //  · 그림(img): 찌그러졌다 펴짐(scale) + 하얗게 번쩍
+ //  · 보스: 덩치가 커서 덜 밀리는 대신 부르르 떨림, 강한 타격·필살기는 화면도 살짝 흔들림(화면 흔들림 설정 따름)
+ //  · 연속 타격: 이전 반응을 끊고 새로 시작 → 흔들림이 쌓여 어지럽지 않게
+ const HIT={
+  normal:{kb:[0,12,18,26],tilt:[0,7,10,14],lift:[0,2,4,6]},
+  boss:{kb:[0,5,8,12],tilt:[0,2,3,4.5],lift:[0,0,1,2]}
+ };
  MRFX.enemyHit=function(level,state,shakeOn){
   try{
    const enemy=document.getElementById('enemy'),r=visible(enemy);if(!r||reduce())return;
    const t=state==='skill'?Math.max(2,tierOf(level)):tierOf(level);
-   const img=enemy.querySelector('img');
-   const kb=[0,6,10,16][t];
-   img?.animate([{transform:'translateX(0) scale(1,1)'},{transform:`translateX(${kb}px) scale(${1-.04*t},${1+.05*t})`,offset:.25},{transform:'translateX(0) scale(1,1)'}],{duration:180+t*40,easing:'cubic-bezier(.2,.8,.3,1)'});
-   img?.animate([{filter:'brightness(1)'},{filter:`brightness(${1.8+t*.5}) saturate(.55)`,offset:.15},{filter:'brightness(1)'}],{duration:200});
+   const img=enemy.querySelector('img'),boss=!!img?.classList.contains('boss-art'),P=boss?HIT.boss:HIT.normal;
+   (enemy._mrHit||[]).forEach(a=>{try{a.cancel();}catch(e){}});
+   const anims=[];
+   enemy.style.transformOrigin='50% 100%';
+   const kb=P.kb[t],tilt=P.tilt[t],lift=P.lift[t],dur=260+t*55,stop=.14+.05*t; // stop: 맞은 자세로 잠깐 멈추는 구간 끝
+   anims.push(enemy.animate([
+    {translate:'0 0',rotate:'0deg'},
+    {translate:`${kb}px ${-lift}px`,rotate:`${tilt}deg`,offset:.12},
+    {translate:`${kb*.92}px ${-lift}px`,rotate:`${tilt*.9}deg`,offset:stop},
+    {translate:`${-kb*.16}px 0`,rotate:`${-tilt*.22}deg`,offset:.72},
+    {translate:'0 0',rotate:'0deg'}
+   ],{duration:dur,easing:'cubic-bezier(.2,.75,.3,1)'}));
+   if(img){
+    anims.push(img.animate([
+     {scale:'1 1'},{scale:`${1-.06*t} ${1+.06*t}`,offset:.12},{scale:`${1+.035*t} ${1-.035*t}`,offset:.42},{scale:'1 1'}
+    ],{duration:dur,easing:'ease-out'}));
+    anims.push(img.animate([{filter:'brightness(1)'},{filter:`brightness(${2+t*.45}) saturate(.5)`,offset:.12},{filter:'brightness(1)'}],{duration:180+t*30}));
+    if(boss){ // 보스: 부르르 떨림
+     const j=2+t*1.5;
+     anims.push(img.animate([{translate:'0 0'},{translate:`${-j}px 0`},{translate:`${j}px 0`},{translate:`${-j*.6}px 0`},{translate:`${j*.4}px 0`},{translate:'0 0'}],{duration:150+t*40,easing:'linear'}));
+    }
+   }
+   enemy._mrHit=anims;
    const wobble=[{translate:'0 0'},{translate:'-3px 0'},{translate:'3px 0'},{translate:'0 0'}];
    document.getElementById('normal-enemy-hp')?.animate(wobble,{duration:180});
    document.getElementById('boss-hp-track')?.animate(wobble,{duration:200});
    hitBurst(r,t);
-   if(t>=3)shake(document.getElementById('battle-stage'),'s',shakeOn);
+   if(t>=3||(boss&&t>=2))shake(document.getElementById('battle-stage'),'s',shakeOn);
   }catch(e){}
  };
  // A3: finishing blow -> freeze beat, shards burst, punch zoom.
