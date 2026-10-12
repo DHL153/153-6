@@ -7716,7 +7716,7 @@ function createSocialDataFoundation(assets, emojis) {
             id: Math.max(0, Number(raw?.id ?? fallbackId)||0),
             x: Math.max(8, Math.min(92, Number(raw?.x)||50)),
             y: Math.max(10, Math.min(90, Number(raw?.y)||54)),
-            scale: Math.max(.55, Math.min(1.65, Number(raw?.scale)||1)),
+            scale: 1, // 2026-10-12: 캐릭터 크기 꾸미기 삭제 — 모두 기본 크기 (예전 저장값 무시)
             rotate: 0, // 2026-10-12: 캐릭터 회전·반전 꾸미기 삭제 (예전 저장값은 무시)
             flip: 1
         };
@@ -7875,7 +7875,7 @@ function createSocialDataFoundation(assets, emojis) {
         layer.querySelectorAll('.char-preview-character.scene-extra').forEach(el=>el.remove());
         charScene.characters.filter(c=>c.uid!==selected.uid).forEach(c=>{
             const img=document.createElement('img');
-            img.className='char-preview-character scene-extra';
+            img.className='char-preview-character scene-extra scene-snap'; // 2026-10-12: 새로 만든 그림이 기본 크기에서 줄어드는 전환 효과 방지
             img.dataset.uid=String(c.uid);
             img.dataset.characterId=String(c.id);
             img.onerror=function(){handleAssetImageError(this);};
@@ -7891,6 +7891,7 @@ function createSocialDataFoundation(assets, emojis) {
             };
             layer.appendChild(img);
             img.style.transform=roomCharTransform(img,c); // 붙인 뒤에 크기를 재야 함
+            void img.offsetWidth; requestAnimationFrame(()=>img.classList.remove('scene-snap'));
         });
         watchRoomCharacterBoxes(layer);
         syncLegacyCharacterState();
@@ -7928,7 +7929,7 @@ function createSocialDataFoundation(assets, emojis) {
             {x:50,y:54},{x:32,y:56},{x:68,y:56}
         ];
         const pos=defaults[count]||defaults[0];
-        const c=normalizeSceneCharacter({uid:sceneCharacterSerial,id,x:pos.x,y:pos.y,scale:count?0.88:1,rotate:0,flip:1},id,sceneCharacterSerial);
+        const c=normalizeSceneCharacter({uid:sceneCharacterSerial,id,x:pos.x,y:pos.y,scale:1,rotate:0,flip:1},id,sceneCharacterSerial);
         charScene.characters.push(c);
         selectedCharacterUid=c.uid;
         syncLegacyCharacterState();
