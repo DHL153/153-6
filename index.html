@@ -2230,6 +2230,12 @@ html.game-booting #app{visibility:hidden!important;}
 @keyframes enemyHover {0%,100%{translate:0 -5px}50%{translate:0 -13px}}
 #battle-stage.simulation-paused .flying-enemy-art {animation-play-state:paused!important;}
 @media(prefers-reduced-motion:reduce){#battle-stage .flying-enemy-art{animation:none;translate:0 -8px;}}
+/* 2026-10-12 보스 대기 움직임: 다리 없는 보스는 일반 빌런과 같은 위아래 살랑, 다리 있는 보스는 앞뒤로 살짝 */
+#battle-stage .boss-art.boss-float {animation:enemyHover 1.65s ease-in-out infinite;}
+#battle-stage .boss-art.boss-walk {animation:bossSway 1.9s ease-in-out infinite;transform-origin:50% 100%;}
+@keyframes bossSway {0%,100%{translate:0 0;rotate:0deg}30%{translate:-7px -1px;rotate:-1.5deg}70%{translate:3px 0;rotate:1deg}}
+#battle-stage.simulation-paused .boss-art {animation-play-state:paused!important;}
+@media(prefers-reduced-motion:reduce){#battle-stage .boss-art{animation:none!important;}}
 #view-skin > .view-content {display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:8px!important;gap:8px;}
 #view-skin .skin-level-panel {flex:0 0 auto;margin:0!important;padding:8px!important;box-shadow:0 3px 8px #111c3212;}
 #view-skin .skin-list-panel {flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;margin:0!important;padding:10px!important;}
@@ -4354,12 +4360,19 @@ window.MRRunWalker=(()=>{
 
     // Enemy selection is shared by main battle and battle mini mode.
     // 보스 4종: 하이에나·설표 무법자와 비취 망령 지휘관
+    // [그림, 이름, 대기 움직임] — 'walk' 다리 있음: 앞뒤로 살짝 / 'float' 다리 없음: 일반 빌런처럼 위아래 살랑 (2026-10-12)
     const BOSS_ART=[
-        ['assets/art/villains/boss_0004.png','광견 하이에나'],
-        ['assets/art/villains/boss_0005.png','설표 암살자'],
-        ['assets/art/villains/boss_0006.png','비취 주술왕'],
-        ['assets/art/villains/boss_0007.png','비취 낫 군주']
+        ['assets/art/villains/boss_0004.png','광견 하이에나','walk'],
+        ['assets/art/villains/boss_0005.png','설표 암살자','walk'],
+        ['assets/art/villains/boss_0006.png','비취 주술왕','float'],
+        ['assets/art/villains/boss_0007.png','비취 낫 군주','float']
     ];
+    // 2026-10-12: 보스는 출현할 때마다 무작위 (바로 전 보스와 같은 보스는 연속으로 나오지 않음)
+    let bossArtIndex=0;
+    MR.pickBossArt=function(){
+        const n=BOSS_ART.length;if(n<2){bossArtIndex=0;return;}
+        let i=Math.floor(Math.random()*(n-1));if(i>=bossArtIndex)i++;bossArtIndex=i;
+    };
     // 일반 빌런 8종: 비취 망령 군단 (옅은 비취 4종 + 짙은 비취 4종)
     const FLYING_ENEMY_ART=[
         ['assets/art/villains/villain_0008.png','사슬 망령'],
@@ -4375,11 +4388,16 @@ window.MRRunWalker=(()=>{
         const enemy=document.getElementById('enemy');if(!enemy)return;
         const isBoss=id==='boss';
         const list=isBoss?BOSS_ART:FLYING_ENEMY_ART;
-        const index=isBoss?Math.max(0,bossLevel-1):Math.max(0,(Number(id)||1)-1);
-        const [src,name]=list[index%list.length];
-        const image=document.createElement('img');image.src=src;image.alt=name;image.draggable=false;
-        image.className=isBoss?'boss-art':'flying-enemy-art';
-        enemy.replaceChildren(image);
+        const index=isBoss?bossArtIndex:Math.max(0,(Number(id)||1)-1);
+        const [src,name,motion]=list[index%list.length];
+        const cls=isBoss?'boss-art boss-'+(motion==='float'?'float':'walk'):'flying-enemy-art';
+        const cur=enemy.querySelector('img');
+        // 같은 적이 이미 떠 있으면 그림을 새로 만들지 않음 → 피격 반응·대기 움직임이 끊기지 않게 (보스는 맞을 때마다 호출됨)
+        if(!(cur&&cur.getAttribute('src')===src&&cur.className===cls)){
+            const image=document.createElement('img');image.src=src;image.alt=name;image.draggable=false;
+            image.className=cls;
+            enemy.replaceChildren(image);
+        }
         document.getElementById('battle-stage').dataset.enemyKind=isBoss?'boss':'normal';
         if(isBoss)document.getElementById('normal-enemy-hp').style.display='none';
     };
@@ -5775,6 +5793,7 @@ window.MRRunWalker=(()=>{
         if (typeof clearBattleVisualQueue === 'function') clearBattleVisualQueue(true);
 
         bossLevel = Math.max(1, 1 + Math.floor((nextBossAt - FIRST_BOSS_AT) / BOSS_MERGE_INTERVAL));
+        MR.pickBossArt(); // 이번 보스 그림을 무작위로
         // One merge attack equals one hit: 10 hits, 12 hits, 14 hits, ... (2026-10-12: 5+1 → 10+2)
         bossMaxHp = bossHpForLevel(bossLevel);
         bossHp = bossMaxHp;
