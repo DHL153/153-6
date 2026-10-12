@@ -4157,6 +4157,10 @@ window.MRWorld=(()=>{
 // 사용: MRRunWalker.create({zone, active(), list() → [{key, el, num(1~30), scale, x(%)}], info(key) → {name,title,color}, onStart(), onStop(), clickToSay})
 window.MRRunWalker=(()=>{
  const BT=182/512,BF=472/512; // 전투 캐릭터 그림의 머리 위·발끝 (MRWorld BATTLE_BODY와 같음)
+ // 2026-10-12 달리기 그림 크기 보정: 머리~발끝 키만 맞추면 달리다 멈출 때(마이룸 그림으로 바뀔 때) 크기가 튀어 보임
+ //  → 마이룸 그림의 얼굴을 달리기 그림에서 찾아(얼굴 크기 비교) 얼굴 크기가 같아지는 배율. 1보다 크면 달리기 그림을 키움
+ //  새 그림을 넣으면 다시 측정 (마이룸 얼굴 위치 = MRRoomFit.FACE)
+ const RUN_FIX={1:1.373,2:1.192,3:1.056,4:1.122,5:1.027,6:0.995,7:1.176,8:1.001,9:1.075,10:1.027,11:1.036,12:0.972,13:1.196,14:1.281,15:1.182,16:1.091,17:1.116,18:1.026,19:1.021,20:0.993,21:1.024,22:1.095,23:1.026,24:1.085,25:1.08,26:0.999,27:1.132,28:1.067,29:1.098,30:1.043};
  const CFG={crossSec:6,fps:12,idleChance:.35,idleMin:1.5,idleMax:4,midIdlePerSec:.08,speechMs:2200};
  // 말풍선 기호: 클릭할 때마다 하나씩 무작위 (같은 기호 연속 금지). 그림 이모지를 쓰려면 {img:'assets/art/emojis/…png'}
  const REACTIONS=[{text:'♥',color:'#ff477e'},{text:'♪',color:'#7a5cff'},{text:'♫',color:'#3fa7ff'},{text:'♡',color:'#ff6fa8'},{text:'✦',color:'#ffb020'}];
@@ -4204,7 +4208,7 @@ window.MRRunWalker=(()=>{
    const fr=frames[it.num],cur=el.getAttribute('src')||'';
    if(!paused&&s.mode==='run'&&fr&&fr.ok){
     if(!fr.list.includes(cur))el.dataset.roomSrc=cur; // 마이룸 그림 주소 기억 (멈출 때 되돌림)
-    const nR=d.n*d.span/(BF-BT),ty=d.sc*d.S*((d.base-.5)-nR*(BF-.5));
+    const nR=d.n*d.span/(BF-BT)*(RUN_FIX[it.num]||1),ty=d.sc*d.S*((d.base-.5)-nR*(BF-.5)); // 발끝은 그대로, 크기만 보정
     const src=fr.list[s.frame];if(cur!==src)el.src=src;
     el.style.left=s.x.toFixed(1)+'px';
     el.style.transform=`translate(-50%,-50%) translateY(${ty.toFixed(1)}px) scale(${(d.sc*nR).toFixed(4)}) scaleX(${s.dir})`;
