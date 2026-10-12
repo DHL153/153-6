@@ -368,7 +368,7 @@
         .char-custom-layout.char-panel-closed #char-preview-zone::before {
             opacity:0;
         }
-        #char-character-layer { position:absolute; inset:0; z-index:2; pointer-events:none; }
+        #char-character-layer { position:absolute; inset:0; z-index:3; pointer-events:none; } /* 2026-10-12: 배경 → 이모지·방꾸미기 → 캐릭터 순 */
         .char-preview-character {
             position:absolute; left:50%; top:50%; bottom:auto;
             width:58%; height:68%; object-fit:contain; object-position:center center;
@@ -394,6 +394,31 @@
         .char-preview-character.scene-snap {
             transition:none !important;
         }
+        /* 2026-10-12 마이룸 감상 모드 걷기: 위치·그림은 매 프레임 스크립트(roomWalker)가 정하므로 전환 효과·튀는 애니메이션 끔 */
+        .char-custom-layout.room-walking .char-preview-character { transition:filter .16s ease !important; animation:none !important; cursor:pointer !important; }
+        .room-speech {
+            position:absolute; z-index:11; pointer-events:none;
+            min-width:38px; height:36px; width:max-content;
+            display:flex; align-items:center; justify-content:center;
+            padding:0 9px; border-radius:18px;
+            background:rgba(255,255,255,.96); border:1.5px solid var(--rs-c,#ff9fc0);
+            box-shadow:0 6px 16px rgba(20,16,40,.22);
+            color:#2f2540; font-size:13px; font-weight:800; line-height:1.38;
+            transform:translate(-50%,-100%); transform-origin:var(--rs-tail,50%) 100%;
+            animation:roomSpeechIn .22s cubic-bezier(.2,.9,.3,1.2) both;
+        }
+        .room-speech::after {
+            content:""; position:absolute; top:100%; left:var(--rs-tail,50%);
+            width:10px; height:10px; margin:-5px 0 0 -6px;
+            background:inherit; border-right:1.5px solid var(--rs-c,#ff9fc0); border-bottom:1.5px solid var(--rs-c,#ff9fc0);
+            transform:rotate(45deg);
+        }
+        .room-speech-sym { font-size:21px; line-height:1; font-weight:900; font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",sans-serif; }
+        .room-speech-ico { width:24px; height:24px; display:block; object-fit:contain; }
+        .room-speech.out { animation:roomSpeechOut .2s ease forwards; }
+        @keyframes roomSpeechIn { from { opacity:0; transform:translate(-50%,-92%) scale(.7); } to { opacity:1; transform:translate(-50%,-100%) scale(1); } }
+        @keyframes roomSpeechOut { to { opacity:0; transform:translate(-50%,-110%) scale(.94); } }
+        @media (prefers-reduced-motion:reduce) { .room-speech, .room-speech.out { animation:none; } }
         .char-placement-count { color:#ff477e !important; min-width:auto !important; font-weight:1000 !important; }
         .char-item-btn.placed-character { box-shadow:inset 0 0 0 2px rgba(29,209,161,.65); }
         .placed-character-badge { position:absolute; left:4px; bottom:4px; z-index:7; background:#1dd1a1; color:#fff; border-radius:6px; padding:2px 4px; font-size:7px; font-weight:1000; }
@@ -482,7 +507,7 @@
         }
         
         /* ================= 캐릭터 감상/꾸미기 모드 ================= */
-        #char-emoji-layer { position:absolute; inset:0; z-index:4; pointer-events:none; }
+        #char-emoji-layer { position:absolute; inset:0; z-index:2; pointer-events:none; } /* 배경 바로 위 */
         .placed-emoji {
             position:absolute;
             left:var(--emoji-x); top:var(--emoji-y);
@@ -542,7 +567,7 @@
             width:100%; text-align:center; color:#8a7a9d; font-size:10px; font-weight:900;
         }
         .char-custom-layout.char-editing .char-preview-character.selected-character { cursor:grab; }
-        .char-custom-layout.char-editing.edit-target-background .char-preview-character { pointer-events:none; opacity:.92; }
+        .char-custom-layout.char-editing .char-preview-character { pointer-events:none !important; opacity:.55; } /* 꾸미기 중 캐릭터는 반투명, 클릭은 아래 이모지로 */
         .char-custom-layout.char-editing.edit-target-background #char-preview-bg { cursor:grab; }
         .char-custom-layout.char-panel-closed #char-preview-bg { transform:scale(var(--bg-user-scale,1)); transform-origin:center center; }
         .char-custom-layout.char-panel-closed #char-preview-body { transform:translate(-50%,-50%) scale(var(--char-user-scale,1)) rotate(var(--char-user-rotate,0deg)) scaleX(var(--char-user-flip,1)); }
@@ -3516,20 +3541,7 @@ html body #game-startup-screen.is-leaving{opacity:0!important;transition:opacity
   <button onclick="cancelCharCustomizeMode()">취소</button><b>꾸미기</b><button class="primary" onclick="finishCharCustomizeMode()">완료</button>
 </div>
 <div id="char-customize-toolbar" class="tb-icon-only">
-  <div class="char-edit-targets"><button id="char-edit-character" type="button" onclick="setCharEditTarget('character')" title="캐릭터" aria-label="캐릭터"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 22v-3a8 8 0 0 1 16 0v3"/></svg></button><button id="char-edit-background" type="button" onclick="setCharEditTarget('background')" title="배경" aria-label="배경"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z M4 18l5-6 4 4 3-4 4 6 M15 7h.01"/></svg></button><button id="char-edit-emoji" type="button" onclick="setCharEditTarget('emoji')" title="이모지" aria-label="이모지"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M8 9h.01 M16 9h.01 M7 14q5 6 10 0"/></svg></button></div>
-  <div id="char-edit-character-controls" class="char-edit-controls">
-    <div class="char-character-transform-row">
-      <span class="char-placement-count" id="char-placement-count">1/3</span>
-      <button type="button" onclick="adjustCharScale(-0.08)" title="축소" aria-label="축소"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6"/></svg></button><button type="button" onclick="adjustCharScale(0.08)" title="확대" aria-label="확대"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6 M11 8v6"/></svg></button>
-      <button type="button" onclick="adjustCharRotate(-8)" title="왼쪽 회전" aria-label="왼쪽 회전"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7 M3 3v5h5"/></svg></button><button type="button" onclick="adjustCharRotate(8)" title="오른쪽 회전" aria-label="오른쪽 회전"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7 M21 3v5h-5"/></svg></button>
-      <button type="button" onclick="flipCharacter()" title="반전" aria-label="반전"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M9 7l-5 5 5 5z M15 7l5 5-5 5z"/></svg></button>
-      <button type="button" onclick="resetCharacterTransform()" title="초기화" aria-label="초기화"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16 M3 12a9 9 0 0 1 15.5-6.2L21 8 M21 3v5h-5 M3 21v-5h5"/></svg></button>
-    </div>
-    <div class="char-character-delete-row">
-      <button type="button" class="danger" onclick="removeSelectedCharacter()" title="캐릭터 삭제" aria-label="캐릭터 삭제"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6"/></svg></button>
-      <button type="button" class="danger" onclick="removeAllCharacters()" title="캐릭터 모두 삭제" aria-label="캐릭터 모두 삭제"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M9.5 11.5l5 5 M14.5 11.5l-5 5"/></svg></button>
-    </div>
-  </div>
+  <div class="char-edit-targets"><button id="char-edit-background" type="button" onclick="setCharEditTarget('background')" title="배경" aria-label="배경"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z M4 18l5-6 4 4 3-4 4 6 M15 7h.01"/></svg></button><button id="char-edit-emoji" type="button" onclick="setCharEditTarget('emoji')" title="이모지" aria-label="이모지"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M8 9h.01 M16 9h.01 M7 14q5 6 10 0"/></svg></button></div>
   <div id="char-edit-background-controls" class="char-edit-controls"><button type="button" onclick="adjustBackgroundScale(-0.08)" title="축소" aria-label="축소"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6"/></svg></button><button type="button" onclick="adjustBackgroundScale(0.08)" title="확대" aria-label="확대"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6 M11 8v6"/></svg></button><button type="button" onclick="resetBackgroundTransform()" title="초기화" aria-label="초기화"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16 M3 12a9 9 0 0 1 15.5-6.2L21 8 M21 3v5h-5 M3 21v-5h5"/></svg></button></div>
   <div id="char-edit-emoji-controls" class="char-edit-controls">
     <button type="button" onclick="adjustSelectedEmojiScale(-0.10)" title="축소" aria-label="축소"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6"/></svg></button><button type="button" onclick="adjustSelectedEmojiScale(0.10)" title="확대" aria-label="확대"><svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-5-5 M8 11h6 M11 8v6"/></svg></button>
@@ -3998,7 +4010,7 @@ window.MRRoomFit=(()=>{
   if(ft&&el){const size=Math.min(el.clientWidth||0,el.clientHeight||0);d=scale*size*((BASE_FOOT-.5)-n*(ft-.5));}
   return 'translate(-50%,-50%) translateY('+(Math.round(d*10)/10)+'px) scale('+(scale*n)+') rotate('+rotate+'deg) scaleX('+flip+')';
  }
- return {FACE,TOP,FOOT,factor,transform,numOf};
+ return {FACE,TOP,FOOT,BASE_FOOT,factor,transform,numOf};
 })();
 </script>
 <script id="mr-world-ui-script">
@@ -4107,7 +4119,148 @@ window.MRWorld=(()=>{
   el.querySelector('.mrw-main').onclick=()=>{closeDetail();ctx.apply?.();};
   mount(el,ctx.returnFocus,onKey,el.querySelector('.mrw-main:not(:disabled)')||el.querySelector('.mrw-close'));
  }
- return {WORLDS,ofAsset,roomOf,emblem,filterBar,openDetail,openImage,closeDetail};
+ return {WORLDS,ROOM_BODY,ofAsset,roomOf,emblem,filterBar,openDetail,openImage,closeDetail};
+})();
+</script>
+<script id="mr-run-walker">
+// 2026-10-12 마이룸 캐릭터 달리기 엔진 (내 마이룸·친구 방문 화면 공용)
+//  · 캐릭터 그림(img)은 left/top = 중심, transform = MRRoomFit 기준이라는 마이룸 규칙을 그대로 따름
+//  · 움직이는 동안: 전투 달리기 6장(run), 몸 높이를 마이룸 그림과 같게 맞추고 끝에서 좌우 반전
+//  · 멈춤(가끔 쉼·마우스 올림·말풍선 중): 마이룸 그림. 높이(top)는 배치값 유지, 회전·반전은 쓰지 않음
+//  · 말풍선: 하트·음표 같은 기호 하나 (이름·칭호·대사 없음). 종류는 REACTIONS에서 관리 ({text,color} 또는 {img})
+//  · 기기 '동작 줄이기'면 움직이지 않음 (말풍선은 동작)
+// 사용: MRRunWalker.create({zone, active(), list() → [{key, el, num(1~30), scale, x(%)}], info(key) → {name,title,color}, onStart(), onStop(), clickToSay})
+window.MRRunWalker=(()=>{
+ const BT=182/512,BF=472/512; // 전투 캐릭터 그림의 머리 위·발끝 (MRWorld BATTLE_BODY와 같음)
+ const CFG={crossSec:6,fps:12,idleChance:.35,idleMin:1.5,idleMax:4,midIdlePerSec:.08,speechMs:2200};
+ // 말풍선 기호: 클릭할 때마다 하나씩 무작위 (같은 기호 연속 금지). 그림 이모지를 쓰려면 {img:'assets/art/emojis/…png'}
+ const REACTIONS=[{text:'♥',color:'#ff477e'},{text:'♪',color:'#7a5cff'},{text:'♫',color:'#3fa7ff'},{text:'♡',color:'#ff6fa8'},{text:'✦',color:'#ffb020'}];
+ const reduce=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
+ const frames={}; // 번호 → {ok, list}
+ function loadFrames(num){
+  if(frames[num])return frames[num];
+  const meta=(typeof BATTLE_CHARACTER_META!=='undefined')?BATTLE_CHARACTER_META[num-1]:null;
+  let list=(meta?.runFrames||[]).slice(0,6);
+  if(list.length<6){const p=String(num).padStart(4,'0');list=[1,2,3,4,5,6].map(i=>`assets/art/battle_characters/battle_char_${p}_run_0${i}.png`);}
+  const rec={ok:false,list};let left=list.length;
+  list.forEach(src=>{const im=new Image();im.onload=()=>{if(--left===0)rec.ok=true;};im.src=src;});
+  return frames[num]=rec;
+ }
+ function info(num){ // 기본 말풍선 정보: 이름·칭호·세계 색
+  const meta=(typeof CHARACTER_META!=='undefined')?CHARACTER_META[num-1]:null;
+  const w=window.MRWorld?.WORLDS?.[Math.min(2,Math.floor((num-1)/10))];
+  return {name:meta?.name||'',title:meta?.title||'',color:w?.c1||''};
+ }
+ // 몸 치수: S=그림 칸 한 변, n=MRRoomFit 보정, 발끝은 칸 중심에서 sc*S*(BASE_FOOT-.5) 아래
+ function dims(el,num,scale){
+  const fit=window.MRRoomFit,S=Math.min(el.clientWidth||0,el.clientHeight||0),sc=Number(scale)||1;
+  const n=fit?fit.factor(num):1,top=fit?.TOP?.[num],foot=fit?.FOOT?.[num],base=fit?.BASE_FOOT??.92;
+  const span=(top!=null&&foot)?foot-top:.72;
+  return {fit,S,sc,n,span,base,bodyH:n*span*S*sc,cx:window.MRWorld?.ROOM_BODY?.[num]?.[2]??.5};
+ }
+ const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
+
+ function create(opt){
+  const states=new Map(); // key → {x(몸 중심 px), dir, mode, idleLeft, frame, frameT, speechUntil}
+  let active=false,last=0,hoverKey=null,speech=null,raf=0,dead=false,lastReaction=-1;
+  const items=()=>{try{return (opt.list()||[]).filter(it=>it&&it.el&&it.el.isConnected&&it.num);}catch(e){return [];}};
+  const find=key=>items().find(it=>String(it.key)===String(key));
+  function running(){
+   try{return !dead&&!reduce.matches&&!document.hidden&&!!opt.active();}catch(e){return false;}
+  }
+  function stateOf(it,W){
+   let s=states.get(String(it.key));
+   if(!s){s={x:(Number(it.x)||50)/100*W,dir:Math.random()<.5?1:-1,mode:'run',idleLeft:0,frame:Math.floor(Math.random()*6),frameT:0,speechUntil:0};states.set(String(it.key),s);}
+   return s;
+  }
+  function startIdle(s){s.mode='idle';s.idleLeft=CFG.idleMin+Math.random()*(CFG.idleMax-CFG.idleMin);}
+  function place(it,s,paused){
+   const el=it.el,d=dims(el,it.num,it.scale);if(!d.S||!d.fit)return;
+   const fr=frames[it.num],cur=el.getAttribute('src')||'';
+   if(!paused&&s.mode==='run'&&fr&&fr.ok){
+    if(!fr.list.includes(cur))el.dataset.roomSrc=cur; // 마이룸 그림 주소 기억 (멈출 때 되돌림)
+    const nR=d.n*d.span/(BF-BT),ty=d.sc*d.S*((d.base-.5)-nR*(BF-.5));
+    const src=fr.list[s.frame];if(cur!==src)el.src=src;
+    el.style.left=s.x.toFixed(1)+'px';
+    el.style.transform=`translate(-50%,-50%) translateY(${ty.toFixed(1)}px) scale(${(d.sc*nR).toFixed(4)}) scaleX(${s.dir})`;
+   }else{
+    const room=el.dataset.roomSrc;if(room&&fr?.list.includes(cur))el.src=room;
+    el.style.left=(s.x-s.dir*(d.cx-.5)*d.S*d.sc*d.n).toFixed(1)+'px'; // 반전해도 몸 중심이 같은 자리
+    el.style.transform=d.fit.transform(el,it.num,d.sc,0,s.dir);
+   }
+  }
+  function start(){active=true;states.clear();items().forEach(it=>loadFrames(it.num));try{opt.onStart?.();}catch(e){}}
+  function stop(){
+   active=false;hoverKey=null;states.clear();removeSpeech();
+   items().forEach(it=>{const el=it.el,room=el.dataset.roomSrc;if(room&&frames[it.num]?.list.includes(el.getAttribute('src')||''))el.src=room;});
+   try{opt.onStop?.();}catch(e){}
+  }
+  function tick(t){
+   raf=requestAnimationFrame(tick);
+   if(!running()){if(active)stop();last=0;if(speech)positionSpeech();return;}
+   if(!active)start();
+   const dt=Math.min(.1,(t-(last||t))/1000);last=t;
+   const now=performance.now();
+   items().forEach(it=>{
+    const el=it.el;if(el.style.display==='none')return;
+    el.dataset.walkKey=String(it.key);
+    const host=el.offsetParent;if(!host)return;
+    const W=host.clientWidth,s=stateOf(it,W);loadFrames(it.num);
+    const S=Math.min(el.clientWidth||0,el.clientHeight||0),sc=Number(it.scale)||1;
+    const minX=S*sc*.26+8,maxX=Math.max(minX,W-minX);
+    const paused=hoverKey===String(it.key)||s.speechUntil>now;
+    if(!paused){
+     if(s.mode==='idle'){s.idleLeft-=dt;if(s.idleLeft<=0)s.mode='run';}
+     else{
+      s.x+=s.dir*(maxX-minX)/CFG.crossSec*dt;
+      if(s.x<=minX||s.x>=maxX){s.x=Math.min(maxX,Math.max(minX,s.x));s.dir*=-1;if(Math.random()<CFG.idleChance)startIdle(s);}
+      else if(Math.random()<dt*CFG.midIdlePerSec)startIdle(s);
+      s.frameT+=dt;if(s.frameT>=1/CFG.fps){s.frameT=0;s.frame=(s.frame+1)%6;}
+     }
+    }
+    s.x=Math.min(maxX,Math.max(minX,s.x));
+    place(it,s,paused);
+   });
+   if(speech)positionSpeech();
+  }
+  function removeSpeech(){if(!speech)return;clearTimeout(speech.timer);speech.el.remove();speech=null;}
+  // 말풍선을 머리 위에 두고 화면 밖으로 나가지 않게 좌우를 맞춤 (꼬리는 캐릭터를 가리킴)
+  function positionSpeech(){
+   const it=find(speech.key);if(!it||speech.el.parentNode!==it.el.offsetParent){removeSpeech();return;}
+   const el=it.el,d=dims(el,it.num,it.scale),s=active?states.get(String(it.key)):null;
+   const bodyX=s?s.x:el.offsetLeft,footY=el.offsetTop+d.sc*d.S*(d.base-.5),headY=footY-d.bodyH;
+   const W=el.offsetParent.clientWidth,bw=speech.el.offsetWidth,bh=speech.el.offsetHeight;
+   const x=Math.min(W-bw/2-6,Math.max(bw/2+6,bodyX));
+   speech.el.style.left=x.toFixed(1)+'px';
+   speech.el.style.top=Math.max(bh+8,headY-4).toFixed(1)+'px';
+   speech.el.style.setProperty('--rs-tail',Math.min(bw-16,Math.max(16,bodyX-x+bw/2)).toFixed(1)+'px');
+  }
+  function say(key){
+   const it=find(key),host=it?.el?.offsetParent;if(!it||!host)return;
+   const s=states.get(String(key));if(s)s.speechUntil=performance.now()+CFG.speechMs;
+   let inf=null;try{inf=opt.info?.(key);}catch(e){}inf=inf||info(it.num);
+   const list=REACTIONS.length?REACTIONS:[{text:'♥',color:'#ff477e'}];
+   let i=Math.floor(Math.random()*list.length);if(list.length>1&&i===lastReaction)i=(i+1)%list.length;lastReaction=i;
+   const r=list[i];
+   removeSpeech();
+   const b=document.createElement('div');b.className='room-speech';b.setAttribute('role','img');b.setAttribute('aria-label',inf.name||'');
+   if(inf.color)b.style.setProperty('--rs-c',inf.color); // 테두리는 캐릭터의 세계 색
+   b.innerHTML=r.img?`<img class="room-speech-ico" src="${esc(r.img)}" alt="" draggable="false">`:`<span class="room-speech-sym" data-no-i18n style="color:${esc(r.color||'#ff477e')}">${esc(r.text)}</span>`;
+   host.appendChild(b);
+   speech={el:b,key:String(key),timer:setTimeout(()=>{b.classList.add('out');setTimeout(()=>{if(speech?.el===b)removeSpeech();},220);},CFG.speechMs)};
+   positionSpeech();
+   try{if(typeof playSfx==='function')playSfx('characterLove',{minGap:140});}catch(e){}
+  }
+  const z=opt.zone;
+  if(z){
+   z.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=e.target?.closest?.('[data-walk-key]');hoverKey=el?el.dataset.walkKey:null;});
+   z.addEventListener('pointerleave',()=>{hoverKey=null;});
+   if(opt.clickToSay)z.addEventListener('click',e=>{const el=e.target?.closest?.('[data-walk-key]');if(el)say(el.dataset.walkKey);});
+  }
+  raf=requestAnimationFrame(tick);
+  return {say,isActive:()=>active,destroy(){dead=true;cancelAnimationFrame(raf);removeSpeech();if(active)stop();}};
+ }
+ return {create,CFG,REACTIONS};
 })();
 </script>
 <script id="sd-cutscene-patch">
@@ -7543,7 +7696,7 @@ function createSocialDataFoundation(assets, emojis) {
 
     // 감상/꾸미기 상태: 게임 데이터와 분리하여 사용자 로컬 설정으로만 저장
     let charCustomizeMode = false;
-    let charEditTarget = 'character'; // character | background
+    let charEditTarget = 'emoji'; // emoji | background (2026-10-12: 캐릭터 꾸미기 삭제 — 캐릭터는 감상 모드에서 스스로 달림)
     let sceneEmojiSerial = 0;
     let charScene = {
         // characters가 실제 배치 데이터. character는 이전 버전 호환용으로 선택 캐릭터와 동기화.
@@ -7561,8 +7714,8 @@ function createSocialDataFoundation(assets, emojis) {
             x: Math.max(8, Math.min(92, Number(raw?.x)||50)),
             y: Math.max(10, Math.min(90, Number(raw?.y)||54)),
             scale: Math.max(.55, Math.min(1.65, Number(raw?.scale)||1)),
-            rotate: Math.max(-35, Math.min(35, Number(raw?.rotate)||0)),
-            flip: Number(raw?.flip)===-1 ? -1 : 1
+            rotate: 0, // 2026-10-12: 캐릭터 회전·반전 꾸미기 삭제 (예전 저장값은 무시)
+            flip: 1
         };
     }
 
@@ -7729,8 +7882,9 @@ function createSocialDataFoundation(assets, emojis) {
             img.style.top=`${c.y}%`;
             img.onclick=(e)=>{
                 e.stopPropagation();
+                // 감상 모드: 선택을 바꾸지 않고 말풍선만 (2026-10-12)
+                if(!charCustomizeMode && isCharItemZoneHidden){ roomWalker.say(c.uid); return; }
                 selectPlacedCharacter(c.uid,true); playSfx('characterSelect');
-                if(!charCustomizeMode && isCharItemZoneHidden) spawnCharacterHearts(e.clientX,e.clientY);
             };
             layer.appendChild(img);
             img.style.transform=roomCharTransform(img,c); // 붙인 뒤에 크기를 재야 함
@@ -7942,7 +8096,7 @@ function createSocialDataFoundation(assets, emojis) {
             if (!charDragState || charDragState.kind!=='character' || charDragState.pointerId !== e.pointerId) return;
             const wasMoved = charDragState.moved; body.classList.remove('dragging'); body.releasePointerCapture?.(e.pointerId); charDragState = null;
             if (charCustomizeMode) { if(wasMoved) saveCharScene(); return; }
-            if (!wasMoved && isCharItemZoneHidden) spawnCharacterHearts(e.clientX, e.clientY);
+            if (!wasMoved && isCharItemZoneHidden) roomWalker.say(Number(body.dataset.uid||selectedCharacterUid)); // 2026-10-12: 하트 대신 말풍선
             if (wasMoved) saveCharScene();
         };
         body.addEventListener('pointerup', finish);
@@ -7966,6 +8120,27 @@ function createSocialDataFoundation(assets, emojis) {
         const bgFinish=(e)=>{ if(bgDrag&&bgDrag.pointerId===e.pointerId){bg.releasePointerCapture?.(e.pointerId);bgDrag=null;saveCharScene();} };
         bg.addEventListener('pointerup',bgFinish); bg.addEventListener('pointercancel',bgFinish);
     }
+
+    // 2026-10-12 마이룸 감상 모드: 배치한 캐릭터가 전투 달리기 그림(run 6장)으로 좌우 왕복 (엔진: MRRunWalker)
+    //  · 감상 모드(아이템 패널 닫힘 + 꾸미기 아님)에서만 움직임. 꾸미기·패널 열림·다른 화면이면 원래 배치 자리로 복귀
+    //  · 마우스를 올리면 멈춤, 클릭(탭)하면 이름·칭호 말풍선 (클릭은 기존 캐릭터 클릭 처리에서 say 호출)
+    const roomWalker=(()=>{
+        let w=null;
+        const zoneEl=()=>document.getElementById('char-preview-zone');
+        const elOf=uid=>document.querySelector(`#char-character-layer .char-preview-character[data-uid="${uid}"]`);
+        function init(){
+            if(w||!window.MRRunWalker)return;
+            const z=zoneEl();if(!z)return;
+            w=window.MRRunWalker.create({
+                zone:z,
+                active:()=>isCharItemZoneHidden && !charCustomizeMode && z.offsetParent!==null && z.clientWidth>0,
+                list:()=>(charScene.characters||[]).map(c=>({key:String(c.uid),el:elOf(c.uid),num:Number(c.id)+1,scale:c.scale,x:c.x})),
+                onStart:()=>document.querySelector('.char-custom-layout')?.classList.add('room-walking'),
+                onStop:()=>{document.querySelector('.char-custom-layout')?.classList.remove('room-walking');renderSceneCharacters();} // 저장된 배치로 복귀
+            });
+        }
+        return {init,say:uid=>w?.say(String(uid))};
+    })();
 
     function applySceneTransforms(persist=false) {
         const zone=document.getElementById('char-preview-zone'); if(!zone) return;
@@ -7993,7 +8168,7 @@ function createSocialDataFoundation(assets, emojis) {
         if(!isCharItemZoneHidden) toggleCharItemZone(true);
         charCustomizeSnapshot=JSON.stringify(charScene);
         selectedEmojiUid=null;
-        charCustomizeMode=true; setCharEditTarget('character');
+        charCustomizeMode=true; charEditTarget='emoji'; syncCharEditTargetUI();
         document.querySelector('.char-custom-layout')?.classList.add('char-editing');
         applySceneTransforms(false);
     };
@@ -8031,7 +8206,7 @@ function createSocialDataFoundation(assets, emojis) {
     }
 
     window.setCharEditTarget=function(target){
-        charEditTarget = target === 'background' ? 'background' : (target === 'emoji' ? 'emoji' : 'character');
+        charEditTarget = target === 'background' ? 'background' : 'emoji';
         if (charEditTarget !== 'emoji') selectedEmojiUid = null;
         syncCharEditTargetUI();
 
@@ -8050,7 +8225,6 @@ function createSocialDataFoundation(assets, emojis) {
         if(!charScene.emojis.length)return;
         if(await gameConfirm('배치한 이모지를 모두 삭제할까요?')){
             charScene.emojis=[]; selectedEmojiUid=null;
-            if(charEditTarget==='emoji') setCharEditTarget('character');
             renderPlacedEmojis(); saveCharScene();
         }
     };
@@ -8121,7 +8295,7 @@ function createSocialDataFoundation(assets, emojis) {
         if(selectedEmojiUid==null) return;
         charScene.emojis=charScene.emojis.filter(e=>String(e.uid)!==String(selectedEmojiUid));
         selectedEmojiUid=null;
-        setCharEditTarget('character');
+        syncCharEditTargetUI();
         renderPlacedEmojis(); saveCharScene();
     };
 
@@ -8243,6 +8417,7 @@ function createSocialDataFoundation(assets, emojis) {
         }
         renderSceneCharacters();
         setupCharacterLoveInteraction();
+        roomWalker.init();
         applySceneTransforms(false);
         catZone.innerHTML = '';
         CHAR_CATEGORIES.forEach(cat => {
@@ -14639,7 +14814,7 @@ html body #app #steam-shop .steam-cat-head.is-char{color:#e2c6ff;}
 #social-visit .visit-char{position:absolute;width:44%;height:58%;object-fit:contain;z-index:2;cursor:pointer;user-select:none;-webkit-user-drag:none;transition:filter .15s;}
 #social-visit .visit-char.love{animation:visit-love .6s cubic-bezier(.22,.85,.32,1);}
 @keyframes visit-love{40%{translate:0 -3%;filter:drop-shadow(0 0 10px rgba(255,120,170,.8));}}
-#social-visit .visit-emoji{position:absolute;z-index:4;line-height:1;font-size:clamp(14px,7cqw,42px);user-select:none;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));transform-origin:center center;}
+#social-visit .visit-emoji{position:absolute;z-index:1;line-height:1;font-size:clamp(14px,7cqw,42px);user-select:none;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));transform-origin:center center;}
 #social-visit .visit-emoji img{width:1em;height:1em;display:block;}
 #social-visit .visit-heart{position:absolute;z-index:8;pointer-events:none;font-size:16px;transform:translate(-50%,-50%) scale(.7);animation:visit-heart .95s ease-out forwards;}
 @keyframes visit-heart{0%{opacity:0;transform:translate(-50%,-35%) scale(.55);}18%{opacity:1;}100%{opacity:0;transform:translate(calc(-50% + var(--hx)),calc(-50% - 62px)) scale(1.2) rotate(var(--hr));}}
@@ -14775,14 +14950,35 @@ html body #app #item-collection-grid .inv-item.codex-focus{outline:3px solid var
       parts.push(`<span class="visit-emoji" style="left:${m.x}%;top:${m.y}%;transform:translate(-50%,-50%) scale(${m.scale}) rotate(${m.rotation}deg) scaleX(${m.flip})">${inner}</span>`);
     });
     e.layer.innerHTML=parts.join('');
-    // 친구 방도 같은 기본 크기 맞춤 (MRRoomFit)
-    if(window.MRRoomFit)requestAnimationFrame(()=>e.layer.querySelectorAll('.visit-char').forEach(img=>{
-      const c=room.characters[Number(img.dataset.i)];if(!c)return;
-      const num=window.MRRoomFit.numOf(img.getAttribute('src'));
-      if(num)img.style.transform=window.MRRoomFit.transform(img,num,Number(c.scale)||1,Number(c.rotation)||0,Number(c.flip)===-1?-1:1);
-    }));
+    view.room=room;
+    // 친구 방도 같은 기본 크기 맞춤 (MRRoomFit) — 2026-10-12: 캐릭터 회전·반전은 쓰지 않음
+    if(window.MRRoomFit)requestAnimationFrame(fitVisitChars);
+    ensureWalker();
     setOverlay(null);
     renderItems(room);
+  }
+
+  function visitCharNum(img){ return window.MRRoomFit?window.MRRoomFit.numOf(img.dataset.roomSrc||img.getAttribute('src')):0; }
+  function fitVisitChars(){
+    const e=view.els,room=view.room;if(!e||!room||!window.MRRoomFit)return;
+    e.layer.querySelectorAll('.visit-char').forEach(img=>{
+      const c=room.characters[Number(img.dataset.i)];if(!c)return;
+      const num=visitCharNum(img);
+      if(num){img.style.left=c.x+'%';img.style.transform=window.MRRoomFit.transform(img,num,Number(c.scale)||1,0,1);}
+    });
+  }
+  // 2026-10-12 친구 방도 내 마이룸처럼 캐릭터가 달리기 그림으로 좌우 왕복, 마우스 올리면 멈춤, 클릭하면 이름·칭호 말풍선
+  let walker=null;
+  function ensureWalker(){
+    if(walker||!window.MRRunWalker)return;
+    walker=window.MRRunWalker.create({
+      zone:box,
+      active:()=>!!(view.els&&view.room&&view.els.room.isConnected&&view.els.room.offsetParent!==null&&view.els.overlay.hidden),
+      list:()=>{const e=view.els,room=view.room;if(!e||!room)return [];
+        return [...e.layer.querySelectorAll('.visit-char')].map(img=>{const c=room.characters[Number(img.dataset.i)];
+          return c?{key:img.dataset.i,el:img,num:visitCharNum(img),scale:c.scale,x:c.x}:null;}).filter(Boolean);},
+      onStop:fitVisitChars
+    });
   }
 
   /* ---------- 방에 있는 아이템 목록 + 상세 팝업 ---------- */
@@ -14878,7 +15074,7 @@ html body #app #item-collection-grid .inv-item.codex-focus{outline:3px solid var
   function close(notify=true){
     clearTimeout(view.timer);
     closeDetail();
-    view.target=null; view.mirror=false; view.els=null; view.timer=null;
+    view.target=null; view.mirror=false; view.els=null; view.timer=null; view.room=null;
     box.innerHTML='';
     if(notify!==null) emitChange();
   }
@@ -14888,7 +15084,7 @@ html body #app #item-collection-grid .inv-item.codex-focus{outline:3px solid var
     const chip=e.target.closest('.visit-chip');
     if(chip){ openDetail(chip.dataset.cat,chip.dataset.id); return; }
     const ch=e.target.closest('.visit-char');
-    if(ch) hearts(ch,e);
+    if(ch){ if(walker) walker.say(ch.dataset.i); else hearts(ch,e); } // 2026-10-12: 하트 대신 이름·칭호 말풍선
   });
   S.on('state',snap=>{
     if(view.target && (snap.state==='idle' || !snap.members.some(m=>m.id===view.target))) close();
