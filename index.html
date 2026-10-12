@@ -2769,6 +2769,10 @@ html.game-booting #app{visibility:hidden!important;}
  #app #battle-stage[data-team-skill="on"] #skill-cinematic.on[data-cutscene-cast][data-variant] img.team-cut-in{animation:none!important;}
 }
 </style>
+<style id="mr-collection-no-preview">
+/* 2026-10-12: 컬렉션 전투 탭의 적용 미리보기(전투·머지) 제거. 미리보기 갱신 코드는 그대로 두어 다른 곳이 깨지지 않게 숨김만 함 */
+html body #app #view-bg .bg-preview-panel{display:none!important;}
+</style>
 <style id="mr-uniform-preview-v20261001-05">
 /* Collection only: unified visible art size and baseline, without pose scaling. */
 #view-collection #mini-battle-stage .battle-team-preview{
@@ -3560,7 +3564,7 @@ html body #game-startup-screen.is-leaving{opacity:0!important;transition:opacity
 </div>
 </div>
 </div><div class="collection-page" id="view-bg">
-<div class="bg-preview-panel" style="margin:10px 12px 0;">
+<div class="bg-preview-panel" style="margin:10px 12px 0;" hidden aria-hidden="true">
 <div class="bg-preview-title"><span class="bg-preview-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>적용 미리보기</span></span></div>
 <div class="bg-live-grid">
 <div class="mini-stage" id="mini-battle-stage"><img id="mini-battle-hero" src="assets/art/battle_characters/battle_char_0001_Idle.png"/><div class="mini-enemy"><img alt="사슬 망령" src="assets/art/villains/villain_0008.png"/></div><div class="mini-label">⚔️ 전투</div></div>
@@ -10331,6 +10335,8 @@ function createSocialDataFoundation(assets, emojis) {
             tip.style.top=Math.max(12,Math.min(innerHeight-h-12,r.top+r.height/2-h/2))+'px';
         }
         function show(card){
+            // 2026-10-12: 컬렉션 전투 탭(전투 캐릭터·전투 배경·머지 배경)은 카드 형식이라 마우스 올림 큰 미리보기 없음
+            if(card.closest('#view-bg')){hide();return;}
             const source=card.querySelector('img');if(!source)return;
             if(active!==card)hide();active=card;
             tip.classList.toggle('emoji-inspection',source.classList.contains('reference-emoji'));
