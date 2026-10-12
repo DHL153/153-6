@@ -4147,7 +4147,12 @@ window.MRWorld=(()=>{
     let nextBossAt = FIRST_BOSS_AT;
     let bossActive = false;
     let bossLevel = 1;
-    let bossMaxHp = 5;
+    let bossMaxHp = 10;
+    // 2026-10-12: 보스 출현 WARNING(1.75초) 동안은 보스가 피해를 받지 않음 → 처치 컷신이 WARNING과 겹치지 않게.
+    //  그동안의 머지는 버리지 않고 모아 두었다가 WARNING이 끝나면 보스에게 순서대로 적용
+    const BOSS_WARNING_MS = 1750;
+    let bossWarnUntil = 0, bossPendingHits = [], bossPendingTimer = 0;
+    const bossHpForLevel = lv => 10 + (Math.max(1, lv) - 1) * 2; // LV1 10 · LV5 18 · LV10 28
     let bossHp = bossMaxHp;
 
     // Enemy selection is shared by main battle and battle mini mode.
@@ -4185,7 +4190,8 @@ window.MRWorld=(()=>{
     function resetBossRunState(){
         cancelBossSkills();
         bossActive=false;bossVisualLock=false;bossLevel=1;
-        bossMaxHp=5;bossHp=bossMaxHp;
+        bossMaxHp=bossHpForLevel(1);bossHp=bossMaxHp;
+        bossWarnUntil=0;bossPendingHits=[];clearTimeout(bossPendingTimer);
         totalMergeEarned=0;nextBossAt=FIRST_BOSS_AT;
         bossSkillTriggered={at70:false,at40:false};
         updateBossHud();
@@ -5572,9 +5578,11 @@ window.MRWorld=(()=>{
         if (typeof clearBattleVisualQueue === 'function') clearBattleVisualQueue(true);
 
         bossLevel = Math.max(1, 1 + Math.floor((nextBossAt - FIRST_BOSS_AT) / BOSS_MERGE_INTERVAL));
-        // One merge attack equals one hit: 5 hits, 6 hits, 7 hits, ...
-        bossMaxHp = 5 + (bossLevel - 1);
+        // One merge attack equals one hit: 10 hits, 12 hits, 14 hits, ... (2026-10-12: 5+1 → 10+2)
+        bossMaxHp = bossHpForLevel(bossLevel);
         bossHp = bossMaxHp;
+        bossWarnUntil = performance.now() + BOSS_WARNING_MS;
+        bossPendingHits = []; clearTimeout(bossPendingTimer);
         const enemy = document.getElementById('enemy');
         const name = document.getElementById('boss-name');
         if(name) name.innerText=`👑 BOSS LV.${bossLevel}`;
@@ -9940,6 +9948,30 @@ function createSocialDataFoundation(assets, emojis) {
         // 핵심: 경제/데미지는 머지 순간 즉시 확정하고, 화면 연출은 별도 큐에서 순서대로 재생합니다.
         // 따라서 1.35초 스킬 컷신 중 추가 머지가 발생해도 Gold/보스 데미지가 누락되지 않습니다.
         if (bossActive) {
+            if (performance.now() < bossWarnUntil) { queueBossHitDuringWarning(mergeLevel, usedMultiplier, actionState); return; }
+            hitBossFromMerge(mergeLevel, usedMultiplier, actionState);
+            return;
+        }
+        normalEnemyMergeHit(mergeLevel, usedMultiplier, actionState);
+    }
+
+    // WARNING 중 머지: 모아 두었다가 WARNING이 끝나면 적용 (머지가 사라지지 않게)
+    function queueBossHitDuringWarning(mergeLevel, usedMultiplier, actionState){
+        bossPendingHits.push({mergeLevel, usedMultiplier, actionState});
+        clearTimeout(bossPendingTimer);
+        bossPendingTimer = setTimeout(flushBossPendingHits, Math.max(0, bossWarnUntil - performance.now()) + 30);
+    }
+    function flushBossPendingHits(){
+        if (!bossPendingHits.length) return;
+        if (globalPause) { bossPendingTimer = setTimeout(flushBossPendingHits, 400); return; }
+        const list = bossPendingHits; bossPendingHits = [];
+        if (isGameOver || runFinished) return;
+        // 보스가 쓰러진 뒤 남은 머지는 평소처럼 일반 몬스터 공격으로
+        for (const h of list) { if (bossActive) hitBossFromMerge(h.mergeLevel, h.usedMultiplier, h.actionState); else normalEnemyMergeHit(h.mergeLevel, h.usedMultiplier, h.actionState); }
+    }
+
+    function hitBossFromMerge(mergeLevel, usedMultiplier, actionState){
+        {
             const bossResult = damageBoss(1, usedMultiplier, false);
             if(bossResult.hit){
                 enqueueBattleVisual({
@@ -9953,9 +9985,10 @@ function createSocialDataFoundation(assets, emojis) {
                     multiplier:usedMultiplier
                 });
             }
-            return;
         }
+    }
 
+    function normalEnemyMergeHit(mergeLevel, usedMultiplier, actionState){
         // 일반 몬스터는 3번 공격받아야 처치됩니다.
         const currentEnemyId=normalEnemyId;
         normalEnemyHp=Math.max(0,normalEnemyHp-1);
