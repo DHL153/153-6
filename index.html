@@ -2713,7 +2713,8 @@ html.game-booting #app{visibility:hidden!important;}
 #skill-cinematic .mrfc{position:absolute;inset:0;overflow:hidden;pointer-events:none;container-type:size;--t:var(--mrfc-time,1800ms);animation:mrfcBox var(--t) linear both;}
 #skill-cinematic .mrfc i{position:absolute;display:block;}
 #skill-cinematic .mrfc-glow{right:8cqw;top:50%;width:140cqh;height:140cqh;translate:0 -50%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mrfc-c1) 55%,transparent),transparent 65%);animation:mrfcGlow calc(var(--t)*.33) calc(var(--t)*.05) ease-out both;}
-#skill-cinematic .mrfc-art{width:165cqh;height:165cqh;left:calc(66cqw - var(--fx)*165cqh);top:calc(36cqh - var(--fy)*165cqh);background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
+/* 2026-10-12: 얼굴 클로즈업 — 그림을 키우고(165→240cqh) 얼굴 중심(--fx,--fy)을 화면 (66%, 42%)에 둠 */
+#skill-cinematic .mrfc-art{width:240cqh;height:240cqh;left:calc(66cqw - var(--fx)*240cqh);top:calc(42cqh - var(--fy)*240cqh);background:center/contain no-repeat;filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--mrfc-c1) 70%,transparent));animation:mrfcIn calc(var(--t)*.22) calc(var(--t)*.07) cubic-bezier(.2,.9,.25,1.15) both,mrfcOut calc(var(--t)*.17) calc(var(--t)*.83) ease-in forwards;}
 #skill-cinematic .mrfc-plate{position:absolute;left:4cqw;bottom:12cqh;display:flex;flex-direction:column;align-items:flex-start;gap:1.2cqh;padding:3.6cqh 3.4cqw 4cqh 2.4cqw;background:linear-gradient(90deg,rgba(6,8,16,.9),rgba(6,8,16,.55));border-left:.8cqw solid var(--mrfc-c1);transform:skewX(-10deg);clip-path:inset(0 100% 0 0);animation:mrfcWipe calc(var(--t)*.18) calc(var(--t)*.1) cubic-bezier(.3,.8,.3,1) both;}
 #skill-cinematic .mrfc-name,#skill-cinematic .mrfc-skill{display:block;white-space:nowrap;font-family:'Pretendard','Segoe UI','Hiragino Sans','Noto Sans CJK JP','Microsoft YaHei',sans-serif;}
 #skill-cinematic .mrfc-name{font-size:min(2.6cqw,7.6cqh);font-weight:800;letter-spacing:.06em;color:var(--mrfc-c2);-webkit-text-fill-color:var(--mrfc-c2);transform-origin:left center;opacity:0;animation:mrfcNameBig calc(var(--t)*.22) calc(var(--t)*.12) ease-out both,mrfcNameBack calc(var(--t)*.17) calc(var(--t)*.4) ease-in-out forwards;}
@@ -3976,6 +3977,30 @@ window.MRBattleFX=(()=>{
 .mrfx-reveal .rvp-title{font-size:13px;font-weight:700;color:var(--mrw-c2);}
 @media(prefers-reduced-motion:reduce){.mrw-detail,.mrw-detail .mrw-box{animation:none!important;}#app #battle-character-grid .battle-char-card:hover{transform:none;}}
 </style>
+<script id="mr-room-fit">
+// 마이룸 그림(512×512) 속 얼굴·발 위치 — 2026-10-12 실제 그림으로 다시 측정
+//  FACE[번호] = [얼굴 중심 가로, 세로] (그림 크기 대비), FOOT[번호] = 발끝 세로 위치
+//  · 필살기 컷신: 얼굴을 기준으로 클로즈업 (MYROOM_FACE)
+//  · 마이룸 배치: 키(머리 꼭대기~발끝)를 모든 캐릭터가 같게 맞추고, 발끝을 같은 높이에 둠 → 기본 크기가 고르게
+//  새 마이룸 그림을 넣으면 이 표만 고치면 된다.
+window.MRRoomFit=(()=>{
+ const FACE={1:[0.68,0.44],2:[0.56,0.43],3:[0.59,0.56],4:[0.49,0.4],5:[0.49,0.38],6:[0.51,0.44],7:[0.57,0.5],8:[0.59,0.45],9:[0.58,0.46],10:[0.57,0.49],11:[0.47,0.47],12:[0.53,0.4],13:[0.71,0.34],14:[0.66,0.43],15:[0.59,0.36],16:[0.58,0.36],17:[0.54,0.52],18:[0.51,0.34],19:[0.49,0.38],20:[0.62,0.46],21:[0.7,0.44],22:[0.58,0.33],23:[0.7,0.44],24:[0.51,0.39],25:[0.54,0.37],26:[0.62,0.35],27:[0.575,0.54],28:[0.5,0.39],29:[0.58,0.35],30:[0.64,0.42]};
+ // TOP[번호] = 머리 꼭대기(머리카락·모자 포함, 무기 제외) 세로 위치
+ const TOP={1:0.19,2:0.18,3:0.3,4:0.15,5:0.17,6:0.29,7:0.36,8:0.28,9:0.3,10:0.32,11:0.15,12:0.2,13:0.14,14:0.24,15:0.16,16:0.14,17:0.34,18:0.2,19:0.24,20:0.2,21:0.15,22:0.12,23:0.15,24:0.15,25:0.1,26:0.13,27:0.27,28:0.24,29:0.22,30:0.19};
+ const FOOT={1:0.85,2:0.94,3:0.95,4:0.88,5:0.94,6:0.98,7:0.83,8:0.98,9:0.98,10:0.95,11:0.95,12:0.96,13:0.72,14:0.92,15:0.87,16:0.96,17:0.92,18:0.97,19:0.98,20:0.96,21:0.94,22:0.97,23:0.87,24:0.87,25:0.95,26:0.98,27:0.87,28:0.94,29:0.94,30:0.93};
+ const TARGET=0.72, BASE_FOOT=0.92, MIN=0.8, MAX=1.25; // TARGET = 30종 키의 중간값
+ const numOf=v=>{const m=String(v??'').match(/char_(\d{4})/);return m?Number(m[1]):Number(v)||0;};
+ function factor(num){const t=TOP[num],ft=FOOT[num];if(t==null||!ft)return 1;const m=ft-t;return m>0?Math.max(MIN,Math.min(MAX,TARGET/m)):1;}
+ // el: 그림 박스(object-fit:contain, 정사각형 그림), scale/rotate/flip: 사용자 조정값
+ function transform(el,num,scale=1,rotate=0,flip=1){
+  const n=factor(num),ft=FOOT[num];
+  let d=0;
+  if(ft&&el){const size=Math.min(el.clientWidth||0,el.clientHeight||0);d=scale*size*((BASE_FOOT-.5)-n*(ft-.5));}
+  return 'translate(-50%,-50%) translateY('+(Math.round(d*10)/10)+'px) scale('+(scale*n)+') rotate('+rotate+'deg) scaleX('+flip+')';
+ }
+ return {FACE,TOP,FOOT,factor,transform,numOf};
+})();
+</script>
 <script id="mr-world-ui-script">
 // 세계관: 캐릭터 1~10 라만차 / 11~20 네온 라만차 / 21~30 스카이아크 라만차 (번호로 정함, 그림 엠블럼을 받으면 emblem()만 바꾼다)
 window.MRWorld=(()=>{
@@ -7630,6 +7655,28 @@ function createSocialDataFoundation(assets, emojis) {
         if(el){el.innerHTML=`<svg class="tb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 22v-3a8 8 0 0 1 16 0v3"/></svg><b>${Math.min(MAX_SCENE_CHARACTERS,charScene.characters?.length||0)}/${MAX_SCENE_CHARACTERS}</b>`;el.title='캐릭터';}
     }
 
+    // 2026-10-12: 기본 크기 맞춤 (MRRoomFit) — 사용자 크기·회전·반전은 그 위에 그대로
+    function roomCharTransform(el,c){
+        const num=Number(c.id)+1;
+        return window.MRRoomFit?window.MRRoomFit.transform(el,num,Number(c.scale)||1,Number(c.rotate)||0,Number(c.flip)===-1?-1:1)
+            :`translate(-50%,-50%) scale(${c.scale}) rotate(${c.rotate}deg) scaleX(${c.flip})`;
+    }
+    // 패널을 열고 닫으면 그림 박스 크기가 바뀌므로 발 위치 보정을 다시 계산
+    function refitRoomCharacters(){
+        const layer=document.getElementById('char-character-layer');if(!layer)return;
+        layer.querySelectorAll('.char-preview-character').forEach(el=>{
+            const c=(charScene.characters||[]).find(x=>String(x.uid)===el.dataset.uid);
+            if(c&&el.style.display!=='none')el.style.transform=roomCharTransform(el,c);
+        });
+    }
+    let roomFitWatched=false;
+    function watchRoomCharacterBoxes(layer){
+        if(roomFitWatched||!layer)return;roomFitWatched=true;
+        layer.addEventListener('transitionend',e=>{if(e.propertyName==='width'||e.propertyName==='height')refitRoomCharacters();});
+        const zone=document.getElementById('char-preview-zone');
+        if(zone&&typeof ResizeObserver==='function')new ResizeObserver(()=>requestAnimationFrame(refitRoomCharacters)).observe(zone);
+    }
+
     function renderSceneCharacters(snapSelected=false) {
         const layer=document.getElementById('char-character-layer');
         const selectedEl=document.getElementById('char-preview-body');
@@ -7652,7 +7699,7 @@ function createSocialDataFoundation(assets, emojis) {
         setSmartImageSrc(selectedEl,characterPath(selected.id));
         selectedEl.style.left=`${selected.x}%`;
         selectedEl.style.top=`${selected.y}%`;
-        selectedEl.style.transform=`translate(-50%,-50%) scale(${selected.scale}) rotate(${selected.rotate}deg) scaleX(${selected.flip})`;
+        selectedEl.style.transform=roomCharTransform(selectedEl,selected);
         if(snapSelected){
             // 스타일을 즉시 확정한 뒤 다음 프레임부터 원래 애니메이션을 복구.
             void selectedEl.offsetWidth;
@@ -7670,14 +7717,15 @@ function createSocialDataFoundation(assets, emojis) {
             setSmartImageSrc(img,characterPath(c.id));
             img.style.left=`${c.x}%`;
             img.style.top=`${c.y}%`;
-            img.style.transform=`translate(-50%,-50%) scale(${c.scale}) rotate(${c.rotate}deg) scaleX(${c.flip})`;
             img.onclick=(e)=>{
                 e.stopPropagation();
                 selectPlacedCharacter(c.uid,true); playSfx('characterSelect');
                 if(!charCustomizeMode && isCharItemZoneHidden) spawnCharacterHearts(e.clientX,e.clientY);
             };
             layer.appendChild(img);
+            img.style.transform=roomCharTransform(img,c); // 붙인 뒤에 크기를 재야 함
         });
+        watchRoomCharacterBoxes(layer);
         syncLegacyCharacterState();
         updateCharacterPlacementCount();
     }
@@ -8945,11 +8993,7 @@ function createSocialDataFoundation(assets, emojis) {
     }
     // ---- 필살기 컷신 (보스 처치 순간 · 1.2초 · 주 캐릭터 1명) ----
     // 마이룸 그림 속 얼굴 중심 [가로, 세로] (그림 폭 대비 비율). 새 마이룸 그림을 넣으면 이 표도 고친다.
-    const MYROOM_FACE={
-        1:[.70,.39],2:[.60,.37],3:[.58,.55],4:[.44,.37],5:[.49,.33],6:[.37,.35],7:[.54,.54],8:[.56,.39],9:[.59,.43],10:[.71,.56],
-        11:[.39,.39],12:[.56,.33],13:[.73,.20],14:[.67,.43],15:[.65,.33],16:[.57,.33],17:[.52,.50],18:[.50,.31],19:[.50,.41],20:[.65,.45],
-        21:[.74,.29],22:[.60,.21],23:[.75,.27],24:[.63,.33],25:[.57,.25],26:[.55,.35],27:[.56,.45],28:[.44,.41],29:[.57,.37],30:[.61,.35]
-    };
+    const MYROOM_FACE=window.MRRoomFit.FACE; // 얼굴 위치 표는 mr-room-fit 한 곳에서 관리
     // 세계관 색 [선·빛, 칭호 글자]: 캐릭터 1~10 라만차 / 11~20 네온 라만차 / 21~30 스카이아크 라만차
     const FINISH_WORLD_COLORS=[['#e07a3f','#ffc58a'],['#ff3fa4','#7ff6ff'],['#58b8ff','#ffd27a']];
     // 언어별 이름: 데이터의 meta.i18n[언어] → 번역 사전(문장 전체 일치) → 원래(한국어) 이름
@@ -14720,6 +14764,12 @@ html body #app #item-collection-grid .inv-item.codex-focus{outline:3px solid var
       parts.push(`<span class="visit-emoji" style="left:${m.x}%;top:${m.y}%;transform:translate(-50%,-50%) scale(${m.scale}) rotate(${m.rotation}deg) scaleX(${m.flip})">${inner}</span>`);
     });
     e.layer.innerHTML=parts.join('');
+    // 친구 방도 같은 기본 크기 맞춤 (MRRoomFit)
+    if(window.MRRoomFit)requestAnimationFrame(()=>e.layer.querySelectorAll('.visit-char').forEach(img=>{
+      const c=room.characters[Number(img.dataset.i)];if(!c)return;
+      const num=window.MRRoomFit.numOf(img.getAttribute('src'));
+      if(num)img.style.transform=window.MRRoomFit.transform(img,num,Number(c.scale)||1,Number(c.rotation)||0,Number(c.flip)===-1?-1:1);
+    }));
     setOverlay(null);
     renderItems(room);
   }
