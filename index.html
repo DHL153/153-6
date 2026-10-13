@@ -6723,6 +6723,14 @@ window.MRRunWalker=(()=>{
         const label=`${k('steam.tab.local','로컬')} ${l>0?'✓':'–'} · STEAM ${st>0?'×'+st:'–'}`;
         return `<span class="codex-src ${extraClass}" title="${label}" aria-label="${label}"><i class="src-l${l>0?' on':''}"></i><i class="src-s${st>0?' on':''}"></i></span>`;
     }
+    // 2026-10-14: 보유 수량 배지 = 로컬 + STEAM 합계, STEAM 몫이 있으면 파란 점 표시 (마이룸·도감 공통)
+    function ownedCountBadgeHtml(local,steam){
+        local=Math.max(0,Number(local)||0);steam=Math.max(0,Number(steam)||0);const total=local+steam;if(total<=0)return '';
+        const k=(key,f)=>window.MRLocale?.k?.(key)||f;
+        const tip=steam>0?`${k('steam.tab.local','로컬')} ${local} · STEAM ${steam}`:'';
+        return `<div class="count${steam>0?' has-steam':''}"${tip?` title="${tip}"`:''}>${total}${steam>0?'<i class="cnt-steam" aria-hidden="true"></i>':''}</div>`;
+    }
+    window.ownedCountBadgeHtml=ownedCountBadgeHtml;
     window.usableCount=usableCount;window.steamOwnedCount=steamOwnedCount;
     // STEAM 보유가 바뀌었을 때 (장터 판매·분해): 더 이상 못 쓰는 캐릭터는 편성·마이룸에서 자동 교체
     window.reconcileSteamUsage=function(lostKeys){
@@ -8762,7 +8770,7 @@ function createSocialDataFoundation(assets, emojis) {
                 div.dataset.characterTier = tier;
                 const imgSrc = characterPath(id);
                 const placedBadge=placed ? `<div class="placed-character-badge">${selected?'선택됨':'배치됨'}</div>` : '';
-                div.innerHTML = `<div class="char-tier-badge">${tier}</div><img src="${imgSrc}" onerror="handleAssetImageError(this)" onload="handleAssetImageLoad(this)"><div class="bg-image-missing">이미지 없음<br>${String(id+1).padStart(4,'0')}</div>${data.count > 0 ? `<div class="count">${data.count}</div>` : (use > 0 ? '' : '<div class="lock-mark">🔒</div>')}${placedBadge}`;
+                div.innerHTML = `<div class="char-tier-badge">${tier}</div><img src="${imgSrc}" onerror="handleAssetImageError(this)" onload="handleAssetImageLoad(this)"><div class="bg-image-missing">이미지 없음<br>${String(id+1).padStart(4,'0')}</div>${use > 0 ? ownedCountBadgeHtml(data.count, steamOwnedCount('char',id)) : '<div class="lock-mark">🔒</div>'}${placedBadge}`;
                 div.insertAdjacentHTML('beforeend',sourceBarsHtml('char',id));
                 if (use > 0) {
                     div.onclick = () => addOrSelectSceneCharacter(id);
@@ -9749,7 +9757,7 @@ function createSocialDataFoundation(assets, emojis) {
                 const imageOnly=['char','battle_char','char_bg','bg_battle','item'].includes(e.cat);
                 const subLabel=imageOnly ? '' : e.label;
                 if(emojiMeta){div.title=EMOJI_CATEGORY_LABELS[emojiMeta.category]||'이모지';div.dataset.emojiCategory=emojiMeta.category;}
-                div.innerHTML=`<div class="tier-label tier-${tier}">${tier}</div>${visual}${subLabel?`<div style="font-size:8px; margin-top:3px; text-align:center; line-height:1.05;">${subLabel}</div>`:''}${owned?(e.count>0&&codexSourceFilter!=='steam'?`<div class="count">${e.count}</div>`:''):'<div class="lock-mark">🔒</div>'}${canSteam?`<span class="codex-src" aria-label="${(window.MRLocale?.k?.('steam.tab.local')||'로컬')+' '+(e.count>0?'✓':'–')+' · STEAM '+(steamCount>0?'✓':'–')}"><i class="src-l${e.count>0?' on':''}"></i><i class="src-s${steamCount>0?' on':''}"></i></span>`:''}`;
+                div.innerHTML=`<div class="tier-label tier-${tier}">${tier}</div>${visual}${subLabel?`<div style="font-size:8px; margin-top:3px; text-align:center; line-height:1.05;">${subLabel}</div>`:''}${owned?(codexSourceFilter==='steam'?ownedCountBadgeHtml(0,steamCount):codexSourceFilter==='local'?ownedCountBadgeHtml(e.count,0):ownedCountBadgeHtml(e.count,steamCount)):'<div class="lock-mark">🔒</div>'}${canSteam?`<span class="codex-src" aria-label="${(window.MRLocale?.k?.('steam.tab.local')||'로컬')+' '+(e.count>0?'✓':'–')+' · STEAM '+(steamCount>0?'✓':'–')}"><i class="src-l${e.count>0?' on':''}"></i><i class="src-s${steamCount>0?' on':''}"></i></span>`:''}`;
                 if(canSteam){div.tabIndex=0;div.setAttribute('role','button');}
                 grid.appendChild(div);
             });
@@ -16010,6 +16018,11 @@ html body #app #game-brand .brand-actions{margin-left:auto;}
 #char-remove-character{color:#ff8a8a!important;}
 .char-edit-controls button:disabled{opacity:.4;cursor:default;}
 .char-custom-layout:not(.edit-target-emoji) .char-emoji-actions{display:none!important;}
+</style>
+<style id="mr-count-steam">
+/* 2026-10-14: 수량 배지에 STEAM 몫 표시 (파란 점) */
+html body #app .count.has-steam{gap:3px!important;padding-right:5px!important;}
+html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--steam,#4ea4ff);box-shadow:0 0 0 1.5px #fff;flex:0 0 auto;}
 </style>
 </body>
 </html>
