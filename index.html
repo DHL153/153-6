@@ -4060,8 +4060,10 @@ window.MRRoomFit=(()=>{
  const TOP={1:0.19,2:0.18,3:0.3,4:0.15,5:0.17,6:0.29,7:0.36,8:0.28,9:0.3,10:0.32,11:0.15,12:0.2,13:0.14,14:0.24,15:0.16,16:0.14,17:0.34,18:0.2,19:0.24,20:0.2,21:0.15,22:0.12,23:0.15,24:0.15,25:0.1,26:0.13,27:0.27,28:0.24,29:0.22,30:0.19};
  const FOOT={1:0.85,2:0.94,3:0.95,4:0.88,5:0.94,6:0.98,7:0.83,8:0.98,9:0.98,10:0.95,11:0.95,12:0.96,13:0.72,14:0.92,15:0.87,16:0.96,17:0.92,18:0.97,19:0.98,20:0.96,21:0.94,22:0.97,23:0.87,24:0.87,25:0.95,26:0.98,27:0.87,28:0.94,29:0.94,30:0.93};
  const TARGET=0.72, BASE_FOOT=0.92, MIN=0.8, MAX=1.25; // TARGET = 30종 키의 중간값
+ // 2026-10-13 마이룸 캐릭터 전체 크기: 기존의 70% (멈춤·달리기·친구 방문·말풍선 위치 모두 이 값을 따라감, 발끝 높이는 그대로)
+ const SIZE=0.7;
  const numOf=v=>{const m=String(v??'').match(/char_(\d{4})/);return m?Number(m[1]):Number(v)||0;};
- function factor(num){const t=TOP[num],ft=FOOT[num];if(t==null||!ft)return 1;const m=ft-t;return m>0?Math.max(MIN,Math.min(MAX,TARGET/m)):1;}
+ function factor(num){const t=TOP[num],ft=FOOT[num];if(t==null||!ft)return SIZE;const m=ft-t;return SIZE*(m>0?Math.max(MIN,Math.min(MAX,TARGET/m)):1);}
  // el: 그림 박스(object-fit:contain, 정사각형 그림), scale/rotate/flip: 사용자 조정값
  function transform(el,num,scale=1,rotate=0,flip=1){
   const n=factor(num),ft=FOOT[num];
@@ -4069,7 +4071,7 @@ window.MRRoomFit=(()=>{
   if(ft&&el){const size=Math.min(el.clientWidth||0,el.clientHeight||0);d=scale*size*((BASE_FOOT-.5)-n*(ft-.5));}
   return 'translate(-50%,-50%) translateY('+(Math.round(d*10)/10)+'px) scale('+(scale*n)+') rotate('+rotate+'deg) scaleX('+flip+')';
  }
- return {FACE,TOP,FOOT,BASE_FOOT,factor,transform,numOf};
+ return {FACE,TOP,FOOT,BASE_FOOT,SIZE,factor,transform,numOf};
 })();
 </script>
 <script id="mr-world-ui-script">
@@ -4298,7 +4300,7 @@ window.MRRunWalker=(()=>{
     const host=el.offsetParent;if(!host)return;
     const W=host.clientWidth,s=stateOf(it,W);loadFrames(it.num);
     const S=Math.min(el.clientWidth||0,el.clientHeight||0),sc=Number(it.scale)||1;
-    const minX=S*sc*.26+8,maxX=Math.max(minX,W-minX);
+    const minX=S*sc*.26*(window.MRRoomFit?.SIZE??1)+8,maxX=Math.max(minX,W-minX); // 왕복 끝 여백도 캐릭터 크기(SIZE)에 맞춤
     const paused=hoverKey===String(it.key)||s.speechUntil>now;
     if(!paused){
      if(s.mode==='idle'){s.idleLeft-=dt;if(s.idleLeft<=0)s.mode='run';}
