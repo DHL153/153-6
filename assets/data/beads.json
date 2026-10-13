@@ -3,7 +3,7 @@
   "items": [
     {
       "id": "bead_0001",
-      "name": "별빛 루미",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0001.png",
       "smile": "assets/art/beads/bead_0001_smile.png",
@@ -12,7 +12,7 @@
     },
     {
       "id": "bead_0002",
-      "name": "산호빛 아린",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0002.png",
       "smile": "assets/art/beads/bead_0002_smile.png",
@@ -21,7 +21,7 @@
     },
     {
       "id": "bead_0003",
-      "name": "달빛 세라",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0003.png",
       "smile": "assets/art/beads/bead_0003_smile.png",
@@ -30,7 +30,7 @@
     },
     {
       "id": "bead_0004",
-      "name": "수정 미엘",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0004.png",
       "smile": "assets/art/beads/bead_0004_smile.png",
@@ -39,7 +39,7 @@
     },
     {
       "id": "bead_0005",
-      "name": "허니",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0005.png",
       "smile": "assets/art/beads/bead_0005_smile.png",
@@ -48,7 +48,7 @@
     },
     {
       "id": "bead_0006",
-      "name": "민트",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0006.png",
       "smile": "assets/art/beads/bead_0006_smile.png",
@@ -57,7 +57,7 @@
     },
     {
       "id": "bead_0007",
-      "name": "오닉스",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0007.png",
       "smile": "assets/art/beads/bead_0007_smile.png",
@@ -66,7 +66,7 @@
     },
     {
       "id": "bead_0008",
-      "name": "블로섬",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0008.png",
       "smile": "assets/art/beads/bead_0008_smile.png",
@@ -75,7 +75,7 @@
     },
     {
       "id": "bead_0009",
-      "name": "코퍼",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0009.png",
       "smile": "assets/art/beads/bead_0009_smile.png",
@@ -84,7 +84,7 @@
     },
     {
       "id": "bead_0010",
-      "name": "스노우",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0010.png",
       "smile": "assets/art/beads/bead_0010_smile.png",
@@ -93,7 +93,7 @@
     },
     {
       "id": "bead_0011",
-      "name": "피치",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0011.png",
       "smile": "assets/art/beads/bead_0011_smile.png",
@@ -102,7 +102,7 @@
     },
     {
       "id": "bead_0012",
-      "name": "헤이즐",
+      "name": "",
       "tier": "R",
       "path": "assets/art/beads/bead_0012.png",
       "smile": "assets/art/beads/bead_0012_smile.png",
@@ -111,7 +111,7 @@
     },
     {
       "id": "bead_0013",
-      "name": "루비",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0013.png",
       "smile": "assets/art/beads/bead_0013_smile.png",
@@ -120,7 +120,7 @@
     },
     {
       "id": "bead_0014",
-      "name": "틸",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0014.png",
       "smile": "assets/art/beads/bead_0014_smile.png",
@@ -129,7 +129,7 @@
     },
     {
       "id": "bead_0015",
-      "name": "플래티나",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0015.png",
       "smile": "assets/art/beads/bead_0015_smile.png",
