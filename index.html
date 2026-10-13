@@ -9344,11 +9344,15 @@ function createSocialDataFoundation(assets, emojis) {
             if(width>max)el.style.fontSize=(parseFloat(getComputedStyle(el).fontSize)*max/width)+'px';
         }
     }
+    // 2026-10-14: 보스 처치 컷신은 주 → 동료1 → 동료2 → 주 … 순서로 돌아가며 (그림 없는 캐릭터는 건너뜀)
+    let finishCutTurn=0;
     function startBattleFinishCutscene(stage,root,duration){
-        const leader=battleTeamEntries()[0];if(!leader)return false;
+        const entries=battleTeamEntries();if(!entries.length)return false;
+        const roomOf=e=>{const b=BATTLE_CHARACTER_META[e.id]||{};return Object.values(CHARACTER_META).find(c=>c&&c.id===b.linkedCharacter);};
+        let leader=null,room=null;
+        for(let k=0;k<entries.length;k++){const e=entries[(finishCutTurn+k)%entries.length],r=roomOf(e);if(r?.path){leader=e;room=r;finishCutTurn=(finishCutTurn+k+1)%entries.length;break;}}
+        if(!leader)return false;
         const battle=BATTLE_CHARACTER_META[leader.id]||{};
-        const room=Object.values(CHARACTER_META).find(c=>c&&c.id===battle.linkedCharacter);
-        if(!room?.path)return false;
         const num=Number(String(room.id).match(/(\d+)$/)?.[1])||0;
         const [fx,fy]=MYROOM_FACE[num]||[.5,.35];
         const [c1,c2]=FINISH_WORLD_COLORS[Math.min(2,Math.max(0,Math.floor((num-1)/10)))];
