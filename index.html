@@ -4330,8 +4330,11 @@ window.MRRunWalker=(()=>{
     let globalPause = false;
     let dialogPause = false;
     let isBattling = false;
-    let mergeCount = 0; 
-    let gold = 1000;
+    // 2026-10-13 첫 게임 시작 재화 (새 세이브·전체 초기화 때 적용)
+    const STARTING_MERGE = 400;
+    const STARTING_GOLD = 5000;
+    let mergeCount = STARTING_MERGE;
+    let gold = STARTING_GOLD;
 
     // V7: 골드와 완전히 분리된 실력 SCORE. 게임오버 때 한 판 기록이 확정됩니다.
     let runScore = 0;
@@ -7063,12 +7066,12 @@ function createSocialDataFoundation(assets, emojis) {
 
             // 6.0 경제 밸런스 전환:
             // 누적 테스트 재화만 초기화하고 수집/장착/조각/일일 보상 상태는 보존합니다.
-            gold = 1000;
-            mergeCount = 0;
+            gold = STARTING_GOLD;
+            mergeCount = STARTING_MERGE;
 
             if(!resetInProgress) localStorage.setItem(BALANCE_MIGRATION_KEY,'done');
             saveEconomyState();
-            console.info('[Merge&Run 6.0] balance migration: Gold=1000, Merge=0');
+            console.info(`[Merge&Run 6.0] balance migration: Gold=${STARTING_GOLD}, Merge=${STARTING_MERGE}`);
             return true;
         } catch(e) {
             console.warn('[Merge&Run 6.0] balance migration failed',e);
