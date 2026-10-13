@@ -6246,15 +6246,14 @@ window.MRRunWalker=(()=>{
     // 새 묶음을 추가할 때는 EMOJI_SETS에 한 줄만 추가한다 (예: 전투 캐릭터 이모지 → character_emoji_0001.png …).
     // 이미 배포한 묶음의 count는 늘리기만 하고 줄이지 않는다 (줄이면 그 ID가 사라짐).
     const EMOJI_ART_DIR = 'assets/art/emojis/';
+    // 2026-10-14: 가구(myroom_furniture_0001~0010)·얼굴 꾸미기(myroom_face_0001~0020) 묶음 삭제 — 세이브 호환은 RETIRED_ID_PATTERNS
     const EMOJI_SETS = [
         {category:'reaction',  prefix:'game_reaction_',    count:10},
         {category:'character', prefix:'character_emoji_',  count:0},   // 전투 캐릭터 이모지 (추가 예정)
         {category:'animal',    prefix:'myroom_animal_',    count:10},
         {category:'plant',     prefix:'myroom_plant_',     count:10},
         {category:'food',      prefix:'myroom_food_',      count:10},
-        {category:'furniture', prefix:'myroom_furniture_', count:10},
         {category:'decor',     prefix:'myroom_decor_',     count:10},
-        {category:'face',      prefix:'myroom_face_',      count:20},
         {category:'game',      prefix:'myroom_game_',      count:10}
     ];
     const EMOJI_CATALOG = EMOJI_SETS.flatMap(set=>Array.from({length:set.count},(_,i)=>{
@@ -6263,7 +6262,7 @@ window.MRRunWalker=(()=>{
     })).map((e,referenceOrder)=>({...e,referenceOrder}));
     const EMOJI_META_BY_SYMBOL = Object.fromEntries(EMOJI_CATALOG.map(e=>[e.symbol,e]));
     // 툴팁·스크린리더용 이름 (화면에는 아이콘만 표시). 순서 = 탭 순서. 이모지가 0개인 분류는 탭에서 숨긴다.
-    const EMOJI_CATEGORY_LABELS = {reaction:'반응',character:'캐릭터',animal:'동물',plant:'식물',food:'음식',furniture:'가구',decor:'장식',face:'얼굴 꾸미기',game:'게임'};
+    const EMOJI_CATEGORY_LABELS = {reaction:'반응',character:'캐릭터',animal:'동물',plant:'식물',food:'음식',decor:'장식',game:'게임'};
     function emojiCategoriesWithItems(){return Object.keys(EMOJI_CATEGORY_LABELS).filter(c=>EMOJI_CATALOG.some(e=>e.category===c));}
 
     function menuIcon(kind){
@@ -6937,7 +6936,7 @@ function createSocialDataFoundation(assets, emojis) {
         ...Array.from({length:7},(_,i)=>'bead_'+String(26+i).padStart(4,'0'))
     ]);
     // 2026-10-07: 유니코드 이모지 카탈로그(emoji_0002~1278, reference_*) 전체를 이미지 이모지로 교체하며 은퇴
-    const RETIRED_ID_PATTERNS=[/^emoji_\d{4}$/,/^reference_(face|object|travel)_\d+$/];
+    const RETIRED_ID_PATTERNS=[/^emoji_\d{4}$/,/^reference_(face|object|travel)_\d+$/,/^myroom_(furniture|face)_\d{4}$/]; // 2026-10-14: 가구·얼굴 꾸미기 이모지 삭제
     const retired=id=>typeof id==='string'&&(RETIRED_IDS.has(id)||RETIRED_ID_PATTERNS.some(r=>r.test(id)));
     function fromIdOrNull(cat,id){return retired(id)?null:fromId(cat,id);}
     function toId(cat,id){return byLegacy.get(key(cat,id))?.id||null;}
@@ -6967,7 +6966,7 @@ function createSocialDataFoundation(assets, emojis) {
             ids.add(x.instanceId);fromId(cat,x.assetId);
             return {instanceId:x.instanceId,assetId:x.assetId,...transform(x,type),...(cat==='char'&&x.steam===true?{steam:true}:{})};
         }
-        return {schema:'merge-run.room',version:1,coordinateSpace:'percent',background:{assetId:room.background.assetId,...transform(room.background,'background')},characters:room.characters.map(x=>placement(x,'char','character')),emojis:room.emojis.map(x=>placement(x,'item','emoji'))};
+        return {schema:'merge-run.room',version:1,coordinateSpace:'percent',background:{assetId:room.background.assetId,...transform(room.background,'background')},characters:room.characters.map(x=>placement(x,'char','character')),emojis:room.emojis.filter(x=>!(object(x)&&retired(x.assetId))).map(x=>placement(x,'item','emoji'))} /* 은퇴한 이모지는 방 전체를 거부하지 않고 빼고 보여 줌 */;
     }
     function encodeEconomy(s) {
         const inventory={};
