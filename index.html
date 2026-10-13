@@ -6137,7 +6137,7 @@ window.MRRunWalker=(()=>{
         if(topTimer) {
             const e = isEmojiGachaReady ? '😊✅' : `😊${formatTimerMMSS(emojiGachaTimer)}`;
             const p = isPremiumGachaReady ? '✨✅' : `✨${formatTimerMMSS(premiumGachaTimer)}`;
-            setUiHTML(topTimer,`<span class="draw-label" aria-label="선물">🎁</span><span class="draw-countdown">${e}</span><span class="draw-countdown">${p}</span>${window.MRSteamUI?.topTimerHtml?.()||''}`);
+            setUiHTML(topTimer,`<span class="draw-label" aria-label="${window.MRLocale?.t?.('선물')||'선물'}">🎁</span><span class="draw-countdown">${e}</span><span class="draw-countdown">${p}</span>${window.MRSteamUI?.topTimerHtml?.()||''}`);
             topTimer.style.borderColor = (isEmojiGachaReady || isPremiumGachaReady) ? '#27ae60' : '#f39c12';
             topTimer.style.backgroundColor = (isEmojiGachaReady || isPremiumGachaReady) ? '#f0fff4' : '#fffdf2';
         }
@@ -6339,7 +6339,18 @@ window.MRRunWalker=(()=>{
             const dbKey=kindToDb[item.kind]; if(!dbKey) continue;
             BG_TYPE_DB[dbKey][tier].push(item.index); BACKGROUND_ASSETS[item.kind][item.index]=item.path; BACKGROUND_META[item.kind][item.index]=item;
         }
-
+        registerAssetNameTerms();
+    }
+    // 구슬 스킨·배경은 공식 이름이 없다 (한국어 작업 이름만 있음) → 다른 언어에서는 한국어 이름 대신 종류 이름으로 보이게 번역 사전에 등록
+    function registerAssetNameTerms(){
+        const terms={};
+        const add=(meta,cat)=>{const n=String(meta?.name||'').trim();if(!n||!/[가-힣]/.test(n)||/\d{3,}/.test(n)||meta?.i18n)return;terms[n]=COLLECTIBLE_LABELS[cat];};
+        Object.values(BEAD_META_BY_PATH).forEach(m=>add(m,'skin'));
+        Object.values(BACKGROUND_META.lobby||{}).forEach(m=>add(m,'char_bg'));
+        Object.values(BACKGROUND_META.battle||{}).forEach(m=>add(m,'bg_battle'));
+        Object.values(BACKGROUND_META.merge||{}).forEach(m=>add(m,'bg_merge'));
+        window.__mrAssetNameTerms=terms;
+        if(window.MRLocale&&typeof MRLocale.addTerms==='function')MRLocale.addTerms(terms);
     }
 
 
@@ -11800,6 +11811,8 @@ function createSocialDataFoundation(assets, emojis) {
  Object.assign(messages,{"축소":{"ko":"축소","en":"Smaller","ja":"縮小","zh-CN":"缩小","zh-TW":"縮小","es":"Reducir","pt-BR":"Diminuir","fr":"Réduire","ru":"Уменьшить","it":"Riduci","pl":"Pomniejsz","de":"Verkleinern"},"왼쪽 회전":{"ko":"왼쪽 회전","en":"Rotate left","ja":"左に回転","zh-CN":"向左旋转","zh-TW":"向左旋轉","es":"Girar a la izquierda","pt-BR":"Girar à esquerda","fr":"Pivoter à gauche","ru":"Повернуть влево","it":"Ruota a sinistra","pl":"Obróć w lewo","de":"Nach links drehen"},"오른쪽 회전":{"ko":"오른쪽 회전","en":"Rotate right","ja":"右に回転","zh-CN":"向右旋转","zh-TW":"向右旋轉","es":"Girar a la derecha","pt-BR":"Girar à direita","fr":"Pivoter à droite","ru":"Повернуть вправо","it":"Ruota a destra","pl":"Obróć w prawo","de":"Nach rechts drehen"},"캐릭터 삭제":{"ko":"캐릭터 삭제","en":"Remove character","ja":"キャラクターを削除","zh-CN":"删除角色","zh-TW":"刪除角色","es":"Quitar personaje","pt-BR":"Remover personagem","fr":"Retirer le personnage","ru":"Убрать персонажа","it":"Rimuovi personaggio","pl":"Usuń postać","de":"Charakter entfernen"},"캐릭터 모두 삭제":{"ko":"캐릭터 모두 삭제","en":"Remove all characters","ja":"キャラクターをすべて削除","zh-CN":"删除全部角色","zh-TW":"刪除全部角色","es":"Quitar todos los personajes","pt-BR":"Remover todos os personagens","fr":"Retirer tous les personnages","ru":"Убрать всех персонажей","it":"Rimuovi tutti i personaggi","pl":"Usuń wszystkie postacie","de":"Alle Charaktere entfernen"},"이모지 삭제":{"ko":"이모지 삭제","en":"Remove emoji","ja":"絵文字を削除","zh-CN":"删除表情","zh-TW":"刪除表情","es":"Quitar emoji","pt-BR":"Remover emoji","fr":"Retirer l’emoji","ru":"Убрать эмодзи","it":"Rimuovi emoji","pl":"Usuń emoji","de":"Emoji entfernen"},"이모지 추가":{"ko":"이모지 추가","en":"Add emoji","ja":"絵文字を追加","zh-CN":"添加表情","zh-TW":"新增表情","es":"Añadir emoji","pt-BR":"Adicionar emoji","fr":"Ajouter un emoji","ru":"Добавить эмодзи","it":"Aggiungi emoji","pl":"Dodaj emoji","de":"Emoji hinzufügen"}});
  Object.assign(messages,{"반응":{"ko":"반응","en":"Reactions","ja":"リアクション","zh-CN":"反应","zh-TW":"反應","es":"Reacciones","pt-BR":"Reações","fr":"Réactions","ru":"Реакции","it":"Reazioni","pl":"Reakcje","de":"Reaktionen"},"동물":{"ko":"동물","en":"Animals","ja":"動物","zh-CN":"动物","zh-TW":"動物","es":"Animales","pt-BR":"Animais","fr":"Animaux","ru":"Животные","it":"Animali","pl":"Zwierzęta","de":"Tiere"},"식물":{"ko":"식물","en":"Plants","ja":"植物","zh-CN":"植物","zh-TW":"植物","es":"Plantas","pt-BR":"Plantas","fr":"Plantes","ru":"Растения","it":"Piante","pl":"Rośliny","de":"Pflanzen"},"음식":{"ko":"음식","en":"Food","ja":"食べ物","zh-CN":"食物","zh-TW":"食物","es":"Comida","pt-BR":"Comida","fr":"Nourriture","ru":"Еда","it":"Cibo","pl":"Jedzenie","de":"Essen"},"가구":{"ko":"가구","en":"Furniture","ja":"家具","zh-CN":"家具","zh-TW":"家具","es":"Muebles","pt-BR":"Móveis","fr":"Meubles","ru":"Мебель","it":"Mobili","pl":"Meble","de":"Möbel"},"장식":{"ko":"장식","en":"Decor","ja":"装飾","zh-CN":"装饰","zh-TW":"裝飾","es":"Decoración","pt-BR":"Decoração","fr":"Décoration","ru":"Декор","it":"Decorazioni","pl":"Dekoracje","de":"Deko"},"얼굴 꾸미기":{"ko":"얼굴 꾸미기","en":"Face parts","ja":"顔パーツ","zh-CN":"脸部装饰","zh-TW":"臉部裝飾","es":"Partes de cara","pt-BR":"Partes do rosto","fr":"Accessoires visage","ru":"Детали лица","it":"Parti del viso","pl":"Części twarzy","de":"Gesichtsteile"},"게임":{"ko":"게임","en":"Game","ja":"ゲーム","zh-CN":"游戏","zh-TW":"遊戲","es":"Juego","pt-BR":"Jogo","fr":"Jeu","ru":"Игра","it":"Gioco","pl":"Gra","de":"Spiel"},"배치 이모지 전체 삭제":{"ko":"배치 이모지 전체 삭제","en":"Remove all placed emoji","ja":"配置した絵文字をすべて削除","zh-CN":"删除全部已放置表情","zh-TW":"刪除全部已放置表情","es":"Quitar todos los emojis","pt-BR":"Remover todos os emojis","fr":"Retirer tous les emojis","ru":"Убрать все эмодзи","it":"Rimuovi tutte le emoji","pl":"Usuń wszystkie emoji","de":"Alle Emojis entfernen"}});
  Object.assign(messages,{"마이룸 캐릭터":{"ko":"마이룸 캐릭터","en":"My Room character","ja":"マイルームキャラ","zh-CN":"我的房间角色","zh-TW":"我的房間角色","es":"Personaje de Mi habitación","pt-BR":"Personagem do Meu quarto","fr":"Personnage de Ma chambre","ru":"Персонаж «Моей комнаты»","it":"Personaggio della Mia stanza","pl":"Postać Mojego pokoju","de":"Mein-Zimmer-Charakter"},"마이룸 배경":{"ko":"마이룸 배경","en":"My Room background","ja":"マイルーム背景","zh-CN":"我的房间背景","zh-TW":"我的房間背景","es":"Fondo de Mi habitación","pt-BR":"Fundo do Meu quarto","fr":"Décor de Ma chambre","ru":"Фон «Моей комнаты»","it":"Sfondo della Mia stanza","pl":"Tło Mojego pokoju","de":"Mein-Zimmer-Hintergrund"}});
+ /* 2026-10-13: 다른 언어에서 한국어가 섞여 나오던 문구 */
+ Object.assign(messages,{"보스 출현": {"ko": "보스 출현", "en": "Boss incoming", "ja": "ボス出現", "zh-CN": "首领出现", "zh-TW": "首領出現", "es": "¡Llega el jefe!", "pt-BR": "Chefe chegando", "fr": "Le boss arrive", "ru": "Появился босс", "it": "Arriva il boss", "pl": "Nadchodzi boss", "de": "Boss erscheint"}, "캐릭터 위치": {"ko": "캐릭터 위치", "en": "Character position", "ja": "キャラの位置", "zh-CN": "角色位置", "zh-TW": "角色位置", "es": "Posición del personaje", "pt-BR": "Posição do personagem", "fr": "Position du personnage", "ru": "Позиция персонажа", "it": "Posizione del personaggio", "pl": "Pozycja postaci", "de": "Charakterposition"}, "캐릭터를 끌어서 위치를 옮기세요": {"ko": "캐릭터를 끌어서 위치를 옮기세요", "en": "Drag the character to move it", "ja": "キャラをドラッグして移動します", "zh-CN": "拖动角色来移动位置", "zh-TW": "拖曳角色來移動位置", "es": "Arrastra el personaje para moverlo", "pt-BR": "Arraste o personagem para movê-lo", "fr": "Faites glisser le personnage pour le déplacer", "ru": "Перетащите персонажа, чтобы переместить", "it": "Trascina il personaggio per spostarlo", "pl": "Przeciągnij postać, aby ją przesunąć", "de": "Charakter zum Verschieben ziehen"}, "뒤로 보내기": {"ko": "뒤로 보내기", "en": "Send backward", "ja": "後ろへ", "zh-CN": "下移一层", "zh-TW": "下移一層", "es": "Enviar atrás", "pt-BR": "Enviar para trás", "fr": "Reculer", "ru": "На задний план", "it": "Porta indietro", "pl": "Przesuń do tyłu", "de": "Nach hinten"}, "앞으로 가져오기": {"ko": "앞으로 가져오기", "en": "Bring forward", "ja": "前へ", "zh-CN": "上移一层", "zh-TW": "上移一層", "es": "Traer adelante", "pt-BR": "Trazer para frente", "fr": "Avancer", "ru": "На передний план", "it": "Porta avanti", "pl": "Przesuń do przodu", "de": "Nach vorne"}, "선물": {"ko": "선물", "en": "Gifts", "ja": "プレゼント", "zh-CN": "礼物", "zh-TW": "禮物", "es": "Regalos", "pt-BR": "Presentes", "fr": "Cadeaux", "ru": "Подарки", "it": "Regali", "pl": "Prezenty", "de": "Geschenke"}, "편성": {"ko": "편성", "en": "Team", "ja": "編成", "zh-CN": "编队", "zh-TW": "編隊", "es": "Equipo", "pt-BR": "Equipe", "fr": "Équipe", "ru": "Отряд", "it": "Squadra", "pl": "Drużyna", "de": "Team"}, "조각 교환": {"ko": "조각 교환", "en": "Shard exchange", "ja": "かけら交換", "zh-CN": "碎片兑换", "zh-TW": "碎片兌換", "es": "Canje de fragmentos", "pt-BR": "Troca de fragmentos", "fr": "Échange d'éclats", "ru": "Обмен осколков", "it": "Scambio frammenti", "pl": "Wymiana odłamków", "de": "Splittertausch"}, "🤖 오토 플레이 · 점수 집계 중…": {"ko": "🤖 오토 플레이 · 점수 집계 중…", "en": "🤖 Auto-play · Tallying score…", "ja": "🤖 オートプレイ · スコア集計中…", "zh-CN": "🤖 自动游玩 · 正在统计分数…", "zh-TW": "🤖 自動遊玩 · 正在統計分數…", "es": "🤖 Juego automático · Contando puntos…", "pt-BR": "🤖 Jogo automático · Contando pontos…", "fr": "🤖 Jeu auto · Calcul du score…", "ru": "🤖 Автоигра · Подсчёт очков…", "it": "🤖 Gioco automatico · Calcolo punteggio…", "pl": "🤖 Autogra · Liczenie wyniku…", "de": "🤖 Auto-Spiel · Punkte werden gezählt…"}, "아트 미리보기 모드에서는 구매할 수 없어요": {"ko": "아트 미리보기 모드에서는 구매할 수 없어요", "en": "Purchases are disabled in art preview mode", "ja": "アートプレビュー中は購入できません", "zh-CN": "美术预览模式下无法购买", "zh-TW": "美術預覽模式下無法購買", "es": "No puedes comprar en el modo de vista previa", "pt-BR": "Não é possível comprar no modo de pré-visualização", "fr": "Achat impossible en mode aperçu", "ru": "В режиме предпросмотра покупки недоступны", "it": "Non puoi acquistare in modalità anteprima", "pl": "Zakupy są niedostępne w trybie podglądu", "de": "Im Vorschaumodus nicht kaufbar"}, "Matter.js를 불러오지 못했습니다.": {"ko": "Matter.js를 불러오지 못했습니다.", "en": "Couldn't load Matter.js.", "ja": "Matter.jsを読み込めませんでした。", "zh-CN": "无法加载 Matter.js。", "zh-TW": "無法載入 Matter.js。", "es": "No se pudo cargar Matter.js.", "pt-BR": "Não foi possível carregar o Matter.js.", "fr": "Impossible de charger Matter.js.", "ru": "Не удалось загрузить Matter.js.", "it": "Impossibile caricare Matter.js.", "pl": "Nie udało się wczytać Matter.js.", "de": "Matter.js konnte nicht geladen werden."}});
  // Melody merge setting strings
  Object.assign(messages,{"멜로디 머지":{"ko":"멜로디 머지","en":"Melody merge","fr":"Fusion mélodique","it":"Fusione melodica","de":"Melodie-Fusion","es":"Fusión melódica","ru":"Мелодия слияния","pt-BR":"Fusão melódica","zh-CN":"旋律合成","zh-TW":"旋律合成","ja":"メロディーマージ","pl":"Melodyjne łączenie"},"연속 머지가 길어지면 동요 멜로디 연주":{"ko":"연속 머지가 길어지면 동요 멜로디 연주","en":"Long merge chains play a nursery tune","fr":"Les longues chaînes de fusions jouent une comptine","it":"Le lunghe catene di fusioni suonano una filastrocca","de":"Lange Fusionsketten spielen ein Kinderlied","es":"Las cadenas largas de fusión tocan una canción infantil","ru":"Длинные цепочки слияний играют детскую мелодию","pt-BR":"Sequências longas de fusão tocam uma cantiga","zh-CN":"连续合成较长时会演奏童谣旋律","zh-TW":"連續合成較長時會演奏童謠旋律","ja":"連続マージが長く続くと童謡のメロディーを演奏","pl":"Długie serie łączenia grają dziecięcą melodię"}});
  // Daily claim (hybrid) strings
@@ -11829,6 +11842,7 @@ function createSocialDataFoundation(assets, emojis) {
  const keys=[...new Set([...Object.keys(aliases),...Object.keys(messages)])].filter(k=>!k.includes('{')).sort((a,b)=>b.length-a.length);
  const escapePattern=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const keysByFirst=new Map();
+ const assetTerms=new Set(); // addTerms로 들어온 이름: 다른 한글과 붙어 있으면 바꾸지 않음 (예: '솔라' ≠ '도레미파솔라시도')
  for(const key of keys){const list=keysByFirst.get(key[0])||[];list.push(key);keysByFirst.set(key[0],list);}
  const sourcePattern=new RegExp(keys.map(escapePattern).join('|'));
  const templatePatterns=Object.keys(messages).filter(k=>k.includes('{')).sort((a,b)=>b.length-a.length).map(key=>{
@@ -11871,7 +11885,7 @@ function createSocialDataFoundation(assets, emojis) {
     i+=match[0].length;matched=true;break;
    }
    if(matched)continue;
-   const key=(keysByFirst.get(raw[i])||[]).find(k=>raw.startsWith(k,i)&&(!/^[A-Za-z]/.test(k)||i===0||!/[A-Za-z]/.test(raw[i-1]))&&(!/[A-Za-z]$/.test(k)||!/[A-Za-z]/.test(raw[i+k.length]||''))&&(!(k.length===1&&/[가-힣]/.test(k))||!/[가-힣]/.test(raw[i+1]||'')&&!/[가-힣]/.test(raw[i-1]||'')));
+   const key=(keysByFirst.get(raw[i])||[]).find(k=>raw.startsWith(k,i)&&(!/^[A-Za-z]/.test(k)||i===0||!/[A-Za-z]/.test(raw[i-1]))&&(!/[A-Za-z]$/.test(k)||!/[A-Za-z]/.test(raw[i+k.length]||''))&&(!(k.length===1&&/[가-힣]/.test(k))||!/[가-힣]/.test(raw[i+1]||'')&&!/[가-힣]/.test(raw[i-1]||''))&&(!assetTerms.has(k)||!/[가-힣]/.test(raw[i-1]||'')&&!/[가-힣]/.test(raw[i+k.length]||'')));
    if(key){const canonical=aliases[key]??key;out+=messages[canonical]?.[language]??(canonical!==key?translate(canonical):canonical);i+=key.length;}
    else {out+=raw[i];i++;}
   }
@@ -11948,7 +11962,19 @@ function createSocialDataFoundation(assets, emojis) {
  function schedule(root){if(root)mark(root);if(!pending){pending=true;requestAnimationFrame(apply);}}
  // exact: 문장 전체가 사전에 있을 때만 번역 (이름처럼 일부만 바뀌면 안 되는 글자용)
  function exact(raw){const key=aliases[raw]??raw;return messages[key]?.[language]??null;}
- window.MRLocale={t:translate,k:resolveKey,exact,entry:id=>keyed[id]?{...keyed[id]}:null,languages:()=>languages.slice(),audit,get language(){return language;},setLanguage(code){const next=languages.includes(code)?code:'ko';if(next!==language){language=next;fullRefresh=true;}document.documentElement.lang=language;schedule();},refresh(root){schedule(root);}};
+ // 실행 중 추가 용어: {한국어 원문: 번역 사전에 있는 다른 한국어 원문(예: 종류 이름)} → 그 원문의 번역으로 표시
+ function addTerms(map){
+  let added=false;
+  for(const [raw,target] of Object.entries(map||{})){
+   if(!raw||messages[raw]||!messages[target])continue;
+   messages[raw]={...messages[target],ko:raw};
+   assetTerms.add(raw);
+   const list=keysByFirst.get(raw[0])||[];list.push(raw);list.sort((a,b)=>b.length-a.length);keysByFirst.set(raw[0],list);added=true;
+  }
+  if(added){translationMemo.clear();fullRefresh=true;schedule();}
+ }
+ window.MRLocale={t:translate,k:resolveKey,exact,addTerms,entry:id=>keyed[id]?{...keyed[id]}:null,languages:()=>languages.slice(),audit,get language(){return language;},setLanguage(code){const next=languages.includes(code)?code:'ko';if(next!==language){language=next;fullRefresh=true;}document.documentElement.lang=language;schedule();},refresh(root){schedule(root);}};
+ if(window.__mrAssetNameTerms)addTerms(window.__mrAssetNameTerms);
  const nativeConfirm=window.confirm.bind(window),nativeAlert=window.alert.bind(window);
  window.confirm=text=>nativeConfirm(translate(String(text)));window.alert=text=>nativeAlert(translate(String(text)));
  observer=new MutationObserver(records=>{collect(records);if(dirtyRoots.size)schedule();});
@@ -15852,5 +15878,19 @@ html body #app #view-shop > .shop-mode-tabs > .smt-thumb{top:18px!important;bott
   if(!get('view-shop')?.classList.contains('active'))orderShopGacha();
 })();
 </script>
+<style id="mr-i18n-css-hints">
+/* CSS 안내 문구(번역 사전이 닿지 않는 ::before)의 언어별 표시 */
+html[lang="en"] #char-edit-emoji-controls.no-selection::before{content:"Select a placed emoji";}
+html[lang="ja"] #char-edit-emoji-controls.no-selection::before{content:"配置した絵文字を選んでください";}
+html[lang="zh-CN"] #char-edit-emoji-controls.no-selection::before{content:"请选择已放置的表情";}
+html[lang="zh-TW"] #char-edit-emoji-controls.no-selection::before{content:"請選擇已放置的表情";}
+html[lang="es"] #char-edit-emoji-controls.no-selection::before{content:"Selecciona un emoji colocado";}
+html[lang="pt-BR"] #char-edit-emoji-controls.no-selection::before{content:"Selecione um emoji colocado";}
+html[lang="fr"] #char-edit-emoji-controls.no-selection::before{content:"Sélectionnez un emoji placé";}
+html[lang="ru"] #char-edit-emoji-controls.no-selection::before{content:"Выберите размещённый эмодзи";}
+html[lang="it"] #char-edit-emoji-controls.no-selection::before{content:"Seleziona un'emoji posizionata";}
+html[lang="pl"] #char-edit-emoji-controls.no-selection::before{content:"Wybierz umieszczone emoji";}
+html[lang="de"] #char-edit-emoji-controls.no-selection::before{content:"Platziertes Emoji auswählen";}
+</style>
 </body>
 </html>

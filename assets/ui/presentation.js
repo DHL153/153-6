@@ -191,8 +191,10 @@ window.MR = (() => {
       const src=img.getAttribute('src');if(!src?.startsWith('assets/art/'))return;
       const all=[...Object.values(CHARACTER_META),...Object.values(BATTLE_CHARACTER_META),...Object.values(BEAD_META_BY_PATH),...Object.values(BACKGROUND_META.lobby),...Object.values(BACKGROUND_META.battle),...Object.values(BACKGROUND_META.merge)];
       const meta=all.find(m=>m.path===src||m.idle===src);if(!meta)return;
-      img.dataset.artNamed='true';img.alt=meta.name||'';img.draggable=false;
-      const card=img.closest('.inv-item,.char-item-btn,.economy-item');if(card)card.title=`${meta.name} · ${meta.tier}`;
+      // 이름은 번역 사전을 거친다 (구슬 스킨·배경은 다른 언어에서 종류 이름으로). 카드가 이미 자기 title을 가지면 덮어쓰지 않는다
+      const name=(window.MRLocale?.t?.(meta.name||'')||meta.name||'');
+      img.dataset.artNamed='true';img.alt=name;img.draggable=false;
+      const card=img.closest('.inv-item,.char-item-btn,.economy-item');if(card&&!card.getAttribute('title'))card.title=`${meta.name} · ${meta.tier}`;
     });
   }
   function initialize(){
