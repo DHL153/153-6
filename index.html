@@ -361,12 +361,15 @@
 
         /* 카테고리 닫힘 = 감상/몰입 모드.
            배경을 무조건 화면에 꽉 채우고 JSON focusX/focusY를 크롭 기준점으로 사용한다. */
+        /* 2026-10-13 방 상자 맞춤 (B+A): 열림·닫힘 모두 배경 원본 비율 그대로(contain).
+           캐릭터·이모지 층은 스크립트(mr-room-stage)가 배경 그림이 실제로 그려진 영역에 맞춰 함께 줄어듦.
+           남는 위·아래(또는 좌·우)는 같은 배경을 흐리고 어둡게 깔아 마감. */
         .char-custom-layout.char-panel-closed #char-preview-bg {
-            object-fit:cover;
+            object-fit:contain;
             object-position:var(--bg-focus-x) var(--bg-focus-y);
         }
-        .char-custom-layout.char-panel-closed #char-preview-zone::before {
-            opacity:0;
+        #char-preview-zone::before, .char-custom-layout.char-panel-closed #char-preview-zone::before {
+            opacity:1; filter:blur(16px) brightness(.55) saturate(.85);
         }
         #char-character-layer { position:absolute; inset:0; z-index:3; pointer-events:none; } /* 2026-10-12: 배경 → 이모지·방꾸미기 → 캐릭터 순 */
         .char-preview-character {
@@ -11368,6 +11371,46 @@ function createSocialDataFoundation(assets, emojis) {
     // DOM readiness is sufficient: a stalled optional image must not hide the language controls.
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startGame,{once:true});
     else queueMicrotask(startGame);
+</script>
+<script id="mr-room-stage">
+// 2026-10-13 마이룸 방 상자 맞춤: 캐릭터·이모지 층을 배경 그림이 실제로 그려진 사각형에 겹침
+//  · 배경은 object-fit:contain + 초점(--bg-focus-x/y) + 사용자 확대(--bg-user-scale, 닫힘 상태만)
+//  · 층 위치·크기를 그 사각형으로 맞추면 패널을 열고 닫아도 캐릭터 바닥선·소품 위치가 배경과 어긋나지 않음
+(()=>{
+ const $=id=>document.getElementById(id);
+ function fit(){
+  const zone=$('char-preview-zone'),img=$('char-preview-bg');if(!zone||!img)return;
+  const W=zone.clientWidth,H=zone.clientHeight,iw=img.naturalWidth,ih=img.naturalHeight;
+  if(!(W>0&&H>0&&iw>0&&ih>0))return;
+  const cs=getComputedStyle(zone),fx=(parseFloat(cs.getPropertyValue('--bg-focus-x'))||50)/100,fy=(parseFloat(cs.getPropertyValue('--bg-focus-y'))||50)/100;
+  const k=Math.min(W/iw,H/ih);let w=iw*k,h=ih*k,x=(W-w)*fx,y=(H-h)*fy;
+  const closed=!!zone.closest('.char-panel-closed');
+  const s=closed?Math.max(1,Math.min(1.8,parseFloat(cs.getPropertyValue('--bg-user-scale'))||1)):1;
+  if(s!==1){x=W/2+(x-W/2)*s;y=H/2+(y-H/2)*s;w*=s;h*=s;}
+  const box=[x,y,w,h].map(v=>v.toFixed(1)+'px');
+  let changed=false;
+  for(const id of ['char-character-layer','char-emoji-layer']){
+   const L=$(id);if(!L)continue;const st=L.style;
+   if(st.left!==box[0]||st.top!==box[1]||st.width!==box[2]||st.height!==box[3]){
+    st.inset='auto';st.left=box[0];st.top=box[1];st.width=box[2];st.height=box[3];changed=true;
+   }
+  }
+  if(changed){try{if(typeof refitRoomCharacters==='function')refitRoomCharacters();}catch(e){}}
+ }
+ let raf=0;const later=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;fit();});};
+ function init(){
+  const zone=$('char-preview-zone'),img=$('char-preview-bg');if(!zone||!img)return;
+  img.addEventListener('load',later);
+  if(typeof ResizeObserver==='function')new ResizeObserver(later).observe(zone);
+  if(typeof MutationObserver==='function'){
+   new MutationObserver(later).observe(zone,{attributes:true,attributeFilter:['style']});
+   const layout=zone.closest('.char-custom-layout');if(layout)new MutationObserver(later).observe(layout,{attributes:true,attributeFilter:['class']});
+  }
+  window.addEventListener('resize',later);later();
+ }
+ window.mrFitRoomStage=fit;
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 </script>
 
 <script id="mr-i18n-keys" type="application/json">
