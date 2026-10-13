@@ -364,13 +364,16 @@
         /* 2026-10-13 방 상자 맞춤 (B+A): 열림·닫힘 모두 배경 원본 비율 그대로(contain).
            캐릭터·이모지 층은 스크립트(mr-room-stage)가 배경 그림이 실제로 그려진 영역에 맞춰 함께 줄어듦.
            남는 위·아래(또는 좌·우)는 같은 배경을 흐리고 어둡게 깔아 마감. */
+        /* 2026-10-13 수정: 흐린 띠는 카테고리 열림(배경 고르기)에서만. 기본(닫힘)은 빈틈 없이 꽉 채움(cover)
+           — 위·아래가 잘릴 때는 바닥이 남도록 아래쪽 기준(--bg-cover-y, 기본 70%) */
         .char-custom-layout.char-panel-closed #char-preview-bg {
-            object-fit:contain;
-            object-position:var(--bg-focus-x) var(--bg-focus-y);
+            object-fit:cover;
+            object-position:var(--bg-focus-x) var(--bg-cover-y,70%);
         }
-        #char-preview-zone::before, .char-custom-layout.char-panel-closed #char-preview-zone::before {
+        #char-preview-zone::before {
             opacity:1; filter:blur(16px) brightness(.55) saturate(.85);
         }
+        .char-custom-layout.char-panel-closed #char-preview-zone::before { opacity:0; }
         #char-character-layer { position:absolute; inset:0; z-index:3; pointer-events:none; } /* 2026-10-12: 배경 → 이모지·방꾸미기 → 캐릭터 순 */
         .char-preview-character {
             position:absolute; left:50%; top:50%; bottom:auto;
@@ -11385,8 +11388,11 @@ function createSocialDataFoundation(assets, emojis) {
   const W=zone.clientWidth,H=zone.clientHeight,iw=img.naturalWidth,ih=img.naturalHeight;
   if(!(W>0&&H>0&&iw>0&&ih>0))return;
   const cs=getComputedStyle(zone),fx=(parseFloat(cs.getPropertyValue('--bg-focus-x'))||50)/100,fy=(parseFloat(cs.getPropertyValue('--bg-focus-y'))||50)/100;
-  const k=Math.min(W/iw,H/ih);let w=iw*k,h=ih*k,x=(W-w)*fx,y=(H-h)*fy;
   const closed=!!zone.closest('.char-panel-closed');
+  // 닫힘(기본 감상)은 꽉 채움(cover), 열림(배경 고르기)은 전체 보기(contain)
+  const fyc=Math.abs(fy-.5)<.001?.7:fy;
+  if(closed&&zone.style.getPropertyValue('--bg-cover-y')!==(fyc*100)+'%')zone.style.setProperty('--bg-cover-y',(fyc*100)+'%');
+  const k=closed?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih);let w=iw*k,h=ih*k,x=(W-w)*fx,y=(H-h)*(closed?fyc:fy);
   const s=closed?Math.max(1,Math.min(1.8,parseFloat(cs.getPropertyValue('--bg-user-scale'))||1)):1;
   if(s!==1){x=W/2+(x-W/2)*s;y=H/2+(y-H/2)*s;w*=s;h*=s;}
   const box=[x,y,w,h].map(v=>v.toFixed(1)+'px');
