@@ -4,7 +4,7 @@
     {
       "id": "bead_0001",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0001.png",
       "smile": "assets/art/beads/bead_0001_smile.png",
       "defaultOwned": true,
@@ -13,7 +13,7 @@
     {
       "id": "bead_0002",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0002.png",
       "smile": "assets/art/beads/bead_0002_smile.png",
       "defaultOwned": true,
@@ -22,7 +22,7 @@
     {
       "id": "bead_0003",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0003.png",
       "smile": "assets/art/beads/bead_0003_smile.png",
       "defaultOwned": true,
@@ -31,7 +31,7 @@
     {
       "id": "bead_0004",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0004.png",
       "smile": "assets/art/beads/bead_0004_smile.png",
       "defaultOwned": true,
@@ -40,7 +40,7 @@
     {
       "id": "bead_0005",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0005.png",
       "smile": "assets/art/beads/bead_0005_smile.png",
       "defaultOwned": true,
@@ -49,7 +49,7 @@
     {
       "id": "bead_0006",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0006.png",
       "smile": "assets/art/beads/bead_0006_smile.png",
       "defaultOwned": true,
@@ -58,7 +58,7 @@
     {
       "id": "bead_0007",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0007.png",
       "smile": "assets/art/beads/bead_0007_smile.png",
       "defaultOwned": true,
@@ -67,7 +67,7 @@
     {
       "id": "bead_0008",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0008.png",
       "smile": "assets/art/beads/bead_0008_smile.png",
       "defaultOwned": true,
@@ -76,7 +76,7 @@
     {
       "id": "bead_0009",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0009.png",
       "smile": "assets/art/beads/bead_0009_smile.png",
       "defaultOwned": true,
@@ -85,7 +85,7 @@
     {
       "id": "bead_0010",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0010.png",
       "smile": "assets/art/beads/bead_0010_smile.png",
       "defaultOwned": true,
@@ -94,7 +94,7 @@
     {
       "id": "bead_0011",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0011.png",
       "smile": "assets/art/beads/bead_0011_smile.png",
       "defaultOwned": true,
@@ -103,7 +103,7 @@
     {
       "id": "bead_0012",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0012.png",
       "smile": "assets/art/beads/bead_0012_smile.png",
       "defaultOwned": true,
@@ -112,7 +112,7 @@
     {
       "id": "bead_0013",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0013.png",
       "smile": "assets/art/beads/bead_0013_smile.png",
       "defaultOwned": false,
@@ -121,7 +121,7 @@
     {
       "id": "bead_0014",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0014.png",
       "smile": "assets/art/beads/bead_0014_smile.png",
       "defaultOwned": false,
@@ -130,7 +130,7 @@
     {
       "id": "bead_0015",
       "name": "",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/beads/bead_0015.png",
       "smile": "assets/art/beads/bead_0015_smile.png",
       "defaultOwned": false,
@@ -139,7 +139,7 @@
     {
       "id": "bead_0016",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0016.png",
       "smile": "assets/art/beads/bead_0016_smile.png",
       "defaultOwned": false,
@@ -148,7 +148,7 @@
     {
       "id": "bead_0017",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0017.png",
       "smile": "assets/art/beads/bead_0017_smile.png",
       "defaultOwned": false,
@@ -157,7 +157,7 @@
     {
       "id": "bead_0018",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0018.png",
       "smile": "assets/art/beads/bead_0018_smile.png",
       "defaultOwned": false,
@@ -166,7 +166,7 @@
     {
       "id": "bead_0019",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0019.png",
       "smile": "assets/art/beads/bead_0019_smile.png",
       "defaultOwned": false,
@@ -175,7 +175,7 @@
     {
       "id": "bead_0020",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0020.png",
       "smile": "assets/art/beads/bead_0020_smile.png",
       "defaultOwned": false,
@@ -184,7 +184,7 @@
     {
       "id": "bead_0021",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0021.png",
       "smile": "assets/art/beads/bead_0021_smile.png",
       "defaultOwned": false,
@@ -193,7 +193,7 @@
     {
       "id": "bead_0022",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0022.png",
       "smile": "assets/art/beads/bead_0022_smile.png",
       "defaultOwned": false,
@@ -202,7 +202,7 @@
     {
       "id": "bead_0023",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0023.png",
       "smile": "assets/art/beads/bead_0023_smile.png",
       "defaultOwned": false,
@@ -211,7 +211,7 @@
     {
       "id": "bead_0024",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0024.png",
       "smile": "assets/art/beads/bead_0024_smile.png",
       "defaultOwned": false,
@@ -220,7 +220,7 @@
     {
       "id": "bead_0025",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0025.png",
       "smile": "assets/art/beads/bead_0025_smile.png",
       "defaultOwned": false,
