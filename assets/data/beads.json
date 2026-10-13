@@ -112,7 +112,7 @@
     {
       "id": "bead_0013",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0013.png",
       "smile": "assets/art/beads/bead_0013_smile.png",
       "defaultOwned": false,
@@ -121,7 +121,7 @@
     {
       "id": "bead_0014",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0014.png",
       "smile": "assets/art/beads/bead_0014_smile.png",
       "defaultOwned": false,
@@ -130,7 +130,7 @@
     {
       "id": "bead_0015",
       "name": "",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/beads/bead_0015.png",
       "smile": "assets/art/beads/bead_0015_smile.png",
       "defaultOwned": false,
