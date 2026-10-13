@@ -15996,7 +15996,8 @@ html[lang="de"] #char-edit-emoji-controls.no-selection::before{content:"Platzier
 </style>
 <style id="mr-logo-la-mancha">
 /* 2026-10-13 새 로고 (Merge & Run: La Mancha): 로딩 화면에만 크게. 메인 화면 왼쪽 위 로고는 숨김 */
-#game-startup-screen .mr-startup-logo{width:min(170px,36vw)!important;max-height:22vh;object-fit:contain;}
+#game-startup-screen .mr-startup-logo{width:min(170px,36vw)!important;max-height:22vh;object-fit:contain;position:absolute!important;top:max(6vh,28px);left:0;right:0;margin:0 auto!important;z-index:2;}
+#game-startup-screen{box-sizing:border-box;padding-top:12vh!important;}
 html body #app #game-brand .brand-lockup{display:none!important;}
 html body #app #game-brand{justify-content:flex-end!important;}
 html body #app #game-brand .brand-actions{margin-left:auto;}
