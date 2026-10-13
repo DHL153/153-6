@@ -6876,7 +6876,9 @@ function createSocialDataFoundation(assets, emojis) {
     // (모르는 ID = 미래 버전/손상 세이브는 지금처럼 보호) — 아이템을 지울 때는 여기에 반드시 추가할 것.
     const RETIRED_IDS=new Set([
         // 2026-10-07 PR #49: 마이룸 배경을 캐릭터의 방 27종으로 교체하며 일상 배경 0028~0068 삭제
-        ...Array.from({length:41},(_,i)=>'bg_lobby_'+String(28+i).padStart(4,'0'))
+        ...Array.from({length:41},(_,i)=>'bg_lobby_'+String(28+i).padStart(4,'0')),
+        // 2026-10-13 PR #56: 구슬 스킨 25종으로 줄이며 0026~0032 삭제 — 빠뜨려서 예전 세이브가 통째로 거부되고 매번 시작 선택창이 뜨던 문제 수정
+        ...Array.from({length:7},(_,i)=>'bead_'+String(26+i).padStart(4,'0'))
     ]);
     // 2026-10-07: 유니코드 이모지 카탈로그(emoji_0002~1278, reference_*) 전체를 이미지 이모지로 교체하며 은퇴
     const RETIRED_ID_PATTERNS=[/^emoji_\d{4}$/,/^reference_(face|object|travel)_\d+$/];
@@ -6933,7 +6935,7 @@ function createSocialDataFoundation(assets, emojis) {
             if(typeof count!=='number'||!Number.isFinite(count)||count<0)fail('invalid inventory count');
             inv[r.category][r.legacyId]=count;
         }
-        s.inventory=inv;s.equippedSkins=stable.equippedSkins.map(id=>fromId('skin',id));
+        s.inventory=inv;s.equippedSkins=stable.equippedSkins.map(id=>fromIdOrNull('skin',id)); // 삭제된 스킨을 장착 중이면 null → 불러올 때 기본 스킨으로
         s.battleCharacter=fromId('battle_char',stable.battleCharacter);s.bgConfig={...s.bgConfig,battle:fromId('bg_battle',stable.battleBackground),merge:fromId('bg_merge',stable.mergeBackground)};s.lobby=fromIdOrNull('char_bg',stable.lobby);
         if(stable.battleTeam!==undefined&&(!Array.isArray(stable.battleTeam)||stable.battleTeam.length!==3))fail('invalid battle team');
         s.battleTeam=stable.battleTeam?stable.battleTeam.map(id=>id===null?null:fromId('battle_char',id)):[s.battleCharacter,null,null];
