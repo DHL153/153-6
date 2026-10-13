@@ -9102,8 +9102,9 @@ function createSocialDataFoundation(assets, emojis) {
     const BATTLE_FORMATIONS={
         1:{heroes:[-.6],enemy:.7},
         // 2026-10-13: 서로 떨어져 따로 싸우는 느낌 → 한 무리로 붙여 살짝 겹치게. 겹침 순서는 주 캐릭터 > 동료 1 > 동료 2 (--team-z)
-        2:{heroes:[-.42,-.9],enemy:.78},    // 간격 0.48 (이전 0.85)
-        3:{heroes:[-.3,-.76,-1.18],enemy:.9}   // 간격 0.46·0.42 (이전 0.85·0.65)
+        // 2026-10-14: 큰 방패·무기 캐릭터(루시아 등)가 겹쳐 보여 간격 50% 넓힘 — 동료 1 자리는 그대로, 주 캐릭터는 앞으로·동료 2는 뒤로. 주 캐릭터↔적 거리는 유지
+        2:{heroes:[-.18,-.9],enemy:1.02},   // 간격 0.72 (이전 0.48)
+        3:{heroes:[-.07,-.76,-1.39],enemy:1.13}   // 간격 0.69·0.63 (이전 0.46·0.42)
     };
     const BATTLE_FORMATION_LEGACY={1:{heroes:[40],enemy:76},2:{heroes:[49,24],enemy:81},3:{heroes:[57,36,15],enemy:85}};
     function battleFormation(count,W,H){
