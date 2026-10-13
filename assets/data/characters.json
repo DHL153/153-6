@@ -6,7 +6,7 @@
       "index": 0,
       "name": "알론소",
       "title": "녹슨 검의 방랑자",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0001.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -16,7 +16,7 @@
       "index": 1,
       "name": "둘시네",
       "title": "토보소의 무쇠 아가씨",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0002.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -26,7 +26,7 @@
       "index": 2,
       "name": "산초",
       "title": "라 만차의 충직한 종자",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0003.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -36,7 +36,7 @@
       "index": 3,
       "name": "로시",
       "title": "라 만차의 녹슨 수녀",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0004.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -46,7 +46,7 @@
       "index": 4,
       "name": "그리소스토모",
       "title": "산골의 철권 양치기",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0005.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -56,7 +56,7 @@
       "index": 5,
       "name": "카르덴",
       "title": "시에라 모레나의 괴짜 기술자",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0006.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -66,7 +66,7 @@
       "index": 6,
       "name": "루시아",
       "title": "철벽의 방패 수호자",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0007.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -76,7 +76,7 @@
       "index": 7,
       "name": "니콜",
       "title": "마을의 녹슨 이발사",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0008.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -86,7 +86,7 @@
       "index": 8,
       "name": "팔로메",
       "title": "녹슨 여관의 주인장",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0009.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -96,7 +96,7 @@
       "index": 9,
       "name": "브루노",
       "title": "라 만차의 쌍도끼 나무꾼",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0010.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -106,7 +106,7 @@
       "index": 10,
       "name": "알론소",
       "title": "네온 라만차의 광검 기사",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0011.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -116,7 +116,7 @@
       "index": 11,
       "name": "둘시네",
       "title": "네온 토보소의 합금 아가씨",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0012.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -126,7 +126,7 @@
       "index": 12,
       "name": "산초",
       "title": "네온 라만차의 복면 종자",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0013.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -136,7 +136,7 @@
       "index": 13,
       "name": "로시",
       "title": "네온 라만차의 포격 수녀",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0014.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -146,7 +146,7 @@
       "index": 14,
       "name": "그리소스토모",
       "title": "네온 라만차의 강철 양치기",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0015.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -156,7 +156,7 @@
       "index": 15,
       "name": "카르덴",
       "title": "네온 라만차의 백발 정비공",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0016.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -166,7 +166,7 @@
       "index": 16,
       "name": "루시아",
       "title": "네온 라만차의 합금 방패",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0017.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -176,7 +176,7 @@
       "index": 17,
       "name": "니콜",
       "title": "네온 라만차의 가위창 이발사",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0018.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -186,7 +186,7 @@
       "index": 18,
       "name": "팔로메",
       "title": "네온 여관의 대검 주인장",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0019.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -196,7 +196,7 @@
       "index": 19,
       "name": "브루노",
       "title": "네온 라만차의 쌍철퇴 나무꾼",
-      "tier": "SR",
+      "tier": "R",
       "path": "assets/art/characters/char_0020.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -206,7 +206,7 @@
       "index": 20,
       "name": "알론소",
       "title": "스카이아크 라만차의 창공 검사",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0021.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -216,7 +216,7 @@
       "index": 21,
       "name": "둘시네",
       "title": "스카이아크 토보소의 해머 아가씨",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0022.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -226,7 +226,7 @@
       "index": 22,
       "name": "산초",
       "title": "스카이아크 라만차의 바람 종자",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0023.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -236,7 +236,7 @@
       "index": 23,
       "name": "로시",
       "title": "스카이아크 라만차의 개틀링 수녀",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0024.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -246,7 +246,7 @@
       "index": 24,
       "name": "그리소스토모",
       "title": "스카이아크 라만차의 황동 양치기",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0025.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -256,7 +256,7 @@
       "index": 25,
       "name": "카르덴",
       "title": "스카이아크 라만차의 항로 기술자",
-      "tier": "SSR",
+      "tier": "E",
       "path": "assets/art/characters/char_0026.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -266,7 +266,7 @@
       "index": 26,
       "name": "루시아",
       "title": "스카이아크 라만차의 운철 방패",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0027.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -276,7 +276,7 @@
       "index": 27,
       "name": "니콜",
       "title": "스카이아크 라만차의 장창 이발사",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0028.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -286,7 +286,7 @@
       "index": 28,
       "name": "팔로메",
       "title": "스카이아크 여관의 강철 주인장",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0029.png",
       "defaultOwned": false,
       "gachaEnabled": true
@@ -296,7 +296,7 @@
       "index": 29,
       "name": "브루노",
       "title": "스카이아크 라만차의 질풍 나무꾼",
-      "tier": "R",
+      "tier": "U",
       "path": "assets/art/characters/char_0030.png",
       "defaultOwned": false,
       "gachaEnabled": true
