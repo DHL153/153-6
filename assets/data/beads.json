@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 5,
   "items": [
     {
       "id": "bead_0001",
@@ -138,7 +138,7 @@
     },
     {
       "id": "bead_0016",
-      "name": "바이올렛",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0016.png",
       "smile": "assets/art/beads/bead_0016_smile.png",
@@ -147,7 +147,7 @@
     },
     {
       "id": "bead_0017",
-      "name": "로즈골드",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0017.png",
       "smile": "assets/art/beads/bead_0017_smile.png",
@@ -156,7 +156,7 @@
     },
     {
       "id": "bead_0018",
-      "name": "코발트",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0018.png",
       "smile": "assets/art/beads/bead_0018_smile.png",
@@ -165,7 +165,7 @@
     },
     {
       "id": "bead_0019",
-      "name": "에메랄드",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0019.png",
       "smile": "assets/art/beads/bead_0019_smile.png",
@@ -174,8 +174,8 @@
     },
     {
       "id": "bead_0020",
-      "name": "노아",
-      "tier": "R",
+      "name": "",
+      "tier": "SR",
       "path": "assets/art/beads/bead_0020.png",
       "smile": "assets/art/beads/bead_0020_smile.png",
       "defaultOwned": false,
@@ -183,7 +183,7 @@
     },
     {
       "id": "bead_0021",
-      "name": "오팔",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0021.png",
       "smile": "assets/art/beads/bead_0021_smile.png",
@@ -192,7 +192,7 @@
     },
     {
       "id": "bead_0022",
-      "name": "스칼렛",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0022.png",
       "smile": "assets/art/beads/bead_0022_smile.png",
@@ -201,7 +201,7 @@
     },
     {
       "id": "bead_0023",
-      "name": "프로스트",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0023.png",
       "smile": "assets/art/beads/bead_0023_smile.png",
@@ -210,7 +210,7 @@
     },
     {
       "id": "bead_0024",
-      "name": "솔라",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0024.png",
       "smile": "assets/art/beads/bead_0024_smile.png",
@@ -219,46 +219,10 @@
     },
     {
       "id": "bead_0025",
-      "name": "달시계 루넷",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/beads/bead_0025.png",
       "smile": "assets/art/beads/bead_0025_smile.png",
-      "defaultOwned": false,
-      "defaultLevel": null
-    },
-    {
-      "id": "bead_0026",
-      "name": "사막별 사하라",
-      "tier": "SR",
-      "path": "assets/art/beads/bead_0026.png",
-      "smile": "assets/art/beads/bead_0026_smile.png",
-      "defaultOwned": false,
-      "defaultLevel": null
-    },
-    {
-      "id": "bead_0027",
-      "name": "네온 비트",
-      "tier": "SR",
-      "path": "assets/art/beads/bead_0027.png",
-      "smile": "assets/art/beads/bead_0027_smile.png",
-      "defaultOwned": false,
-      "defaultLevel": null
-    },
-    {
-      "id": "bead_0028",
-      "name": "단풍 안경 모미",
-      "tier": "SR",
-      "path": "assets/art/beads/bead_0028.png",
-      "smile": "assets/art/beads/bead_0028_smile.png",
-      "defaultOwned": false,
-      "defaultLevel": null
-    },
-    {
-      "id": "bead_0029",
-      "name": "오팔 드래곤 이리스",
-      "tier": "SR",
-      "path": "assets/art/beads/bead_0029.png",
-      "smile": "assets/art/beads/bead_0029_smile.png",
       "defaultOwned": false,
       "defaultLevel": null
     }
