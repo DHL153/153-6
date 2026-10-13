@@ -1,5 +1,5 @@
 {
-  "version": 16,
+  "version": 17,
   "items": [
     {
       "id": "bg_battle_0001",
@@ -209,7 +209,7 @@
       "id": "bg_lobby_0014",
       "kind": "lobby",
       "index": 14,
-      "name": "로비 배경 0014",
+      "name": "",
       "tier": "SR",
       "path": "assets/art/backgrounds/lobby/bg_lobby_0014.png",
       "defaultOwned": false,
@@ -257,7 +257,7 @@
       "id": "bg_lobby_0018",
       "kind": "lobby",
       "index": 18,
-      "name": "로비 배경 0018",
+      "name": "",
       "tier": "R",
       "path": "assets/art/backgrounds/lobby/bg_lobby_0018.png",
       "defaultOwned": false,
