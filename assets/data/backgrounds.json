@@ -1,5 +1,5 @@
 {
-  "version": 17,
+  "version": 18,
   "items": [
     {
       "id": "bg_battle_0001",
@@ -317,7 +317,7 @@
       "id": "bg_lobby_0023",
       "kind": "lobby",
       "index": 23,
-      "name": "로비 배경 0023",
+      "name": "",
       "tier": "R",
       "path": "assets/art/backgrounds/lobby/bg_lobby_0023.png",
       "defaultOwned": false,
@@ -380,6 +380,18 @@
       "name": "",
       "tier": "R",
       "path": "assets/art/backgrounds/lobby/bg_lobby_0028.png",
+      "defaultOwned": false,
+      "gachaEnabled": true,
+      "focusX": 50,
+      "focusY": 50
+    },
+    {
+      "id": "bg_lobby_0029",
+      "kind": "lobby",
+      "index": 29,
+      "name": "",
+      "tier": "R",
+      "path": "assets/art/backgrounds/lobby/bg_lobby_0029.png",
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
