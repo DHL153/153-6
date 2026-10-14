@@ -16381,6 +16381,10 @@ html.mr-uikit body #app #view-shop .cost{border-width:1px!important;border-image
 html.mr-uikit body #app #view-shop .shop-mode-tabs{margin:12px 14px 4px!important;border-width:1px!important;border-image:var(--uk-tab) / 9px 11px 9px 11px / 0 stretch!important;}
 html.mr-uikit body #app #view-shop .smt-thumb{border-width:1px!important;border-image:var(--uk-tab-on) / 9px 11px 9px 11px / 0 stretch!important;box-shadow:none!important;}
 html.mr-uikit body #app #view-shop .shop-mode-tabs button{border-radius:0!important;}
+/* 2026-10-14: 스위치 위·아래 여백 같게 (예전 둥근 홈은 숨기고 손잡이를 안쪽 8px로) */
+html.mr-uikit body #app #view-shop > .shop-mode-tabs{padding:8px 10px!important;}
+html.mr-uikit body #app #view-shop > .shop-mode-tabs::before{display:none!important;}
+html.mr-uikit body #app #view-shop > .shop-mode-tabs > .smt-thumb{top:8px!important;bottom:8px!important;left:10px!important;width:calc((100% - 26px) / 2)!important;}
 /* 오늘의 상점 링크 · 합성 버튼 · 필터 */
 html.mr-uikit body #app #view-shop #daily-shop-link,html.mr-uikit body #app #view-shop .action-btn-sub{border-width:1px!important;border-image:var(--uk-btn) / 9px 10px 9px 10px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
 html.mr-uikit body #app #view-shop #daily-shop-link:active,html.mr-uikit body #app #view-shop .action-btn-sub:active{border-image:var(--uk-btn-p) / 9px 10px 9px 10px / 0 stretch!important;}
