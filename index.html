@@ -10804,6 +10804,12 @@ function createSocialDataFoundation(assets, emojis) {
             const frames=(assets.runFrames||[]).filter(Boolean);let frame=0;
             if(frames.length){hero.src=frames[0];reviewTimer=setInterval(()=>{hero.src=frames[++frame%frames.length];},95);}
             hero.onerror=()=>{clearInterval(reviewTimer);hero.onerror=null;hero.src=assets.idle;};
+            // 2026-10-14: 전투 미리보기도 실제 전투 화면처럼 — 하늘 + 세계별 먼 풍경 + 땅 타일(2:1, 칸 높이 그대로 반복), 캐릭터는 주 캐릭터 자리·크기
+            (()=>{
+                const view=hero.parentElement,n=Number(choices.bg_battle)||1,w=n<=10?'rust':n<=20?'neon':'skyarc',D='assets/art/backgrounds/sky/';
+                view.classList.add('mr-review-battle-real');
+                view.style.backgroundImage=`url("${backgroundPath('battle',choices.bg_battle)}"),url("${D}far_${w}.png"),url("${D}thumb_day.png")`;
+            })();
             const roomChar=scene('마이룸',backgroundPath('lobby',choices.char_bg),characterPath(choices.char),'mr-review-room');
             // 2026-10-14: 마이룸 미리보기도 실제 마이룸과 같게 — 캐릭터 기본 크기(MRRoomFit) + 1층 바닥선(MRFloors)에 발, 배경은 아래 70% 기준 꽉 채움
             (()=>{
@@ -16741,6 +16747,11 @@ html.mr-uikit body #app #view-daily .dg-back:active{border-image:var(--uk-btn-p)
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
 #mr-starter .mr-review-room{position:relative;overflow:hidden;}
 #mr-starter .mr-review-room img.mr-review-roomchar{position:absolute!important;width:44%!important;height:58%!important;left:50%;top:50%;bottom:auto!important;right:auto!important;object-fit:contain;transform:translate(-50%,-50%);}
+</style>
+<style id="mr-starter-battle-preview">
+/* 2026-10-14: 시작 선택 5/5 전투 미리보기 = 실제 전투 화면 구성 (땅 2:1 타일 반복 · 먼 실루엣 60% · 낮 하늘), 주 캐릭터 26.6% / 높이 84% / 바닥 7.4% */
+#mr-starter .mr-review-scene.mr-review-battle-real{background-repeat:repeat-x,repeat-x,no-repeat!important;background-size:auto 100%,auto 60%,cover!important;background-position:left bottom,left bottom,center!important;background-color:#8fb8d8!important;}
+#mr-starter .mr-review-battle-real img{width:auto!important;height:84%!important;aspect-ratio:1;left:26.6%!important;top:auto!important;bottom:7.4%!important;transform:translateX(-50%)!important;}
 </style>
 </body>
 </html>
