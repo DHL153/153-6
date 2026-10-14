@@ -3581,6 +3581,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 <div id="normal-enemy-hp" aria-hidden="true"></div><div class="character enemy" id="enemy"><img alt="사슬 망령" src="assets/art/villains/villain_0008.png"/></div>
 </div>
 </div>
+<div id="mr-bm-divider" aria-hidden="true"></div>
 <div id="game-section">
 <!-- 💡 캔버스 오류 원천 방지를 위한 명시적 크기 고정 -->
 <div id="merge-box">
@@ -16347,5 +16348,14 @@ html.uk-framed #mr-app-frame{display:block;}
  if(document.readyState==='loading')addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
+<style id="mr-ui-kit-divider">
+/* 2026-10-14: 전투 ↔ 머지 사이 황동 리벳 띠 (경계 위에 겹쳐 그려서 두 화면 크기는 그대로) */
+#mr-bm-divider{display:none;}
+html body #app.mini-mode #mr-bm-divider,html body.mini-window #mr-bm-divider,html body #app.mini-battle-mode #mr-bm-divider,html body #app.mini-merge-mode #mr-bm-divider{display:none!important;}
+html.mr-uikit body #app #view-battle #mr-bm-divider{display:block;position:relative;height:0;flex:0 0 0;z-index:40;pointer-events:none;}
+html.mr-uikit body #app #view-battle #mr-bm-divider::before{content:"";position:absolute;left:0;right:0;top:-7px;height:13px;
+ border-style:solid;border-color:transparent;border-width:0 12px;border-image:url("assets/ui/theme/ui_strip.webp") 0 24 fill / 0 12px / 0 round;
+ filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));}
+</style>
 </body>
 </html>
