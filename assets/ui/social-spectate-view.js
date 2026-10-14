@@ -39,7 +39,7 @@
     const num=(v,max)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
     const enemy=p.enemy||{};
     return {
-      team, bg:cleanSrc(p.bg),
+      team, bg:cleanSrc(p.bg), sky:cleanSrc(p.sky),
       enemy:{ src:cleanSrc(enemy.src), boss:!!enemy.boss },
       boss:p.boss?{ name:String(p.boss.name||'').replace(/[^\w .\-]/g,'').slice(0,24), hp:num(p.boss.hp,9999), max:Math.max(1,num(p.boss.max,9999)) }:null,
       pips:p.pips?{ on:num(p.pips.on,10), max:Math.max(1,num(p.pips.max,10)) }:null,
@@ -52,6 +52,8 @@
 .mrsv-bg{position:absolute;inset:0;background-size:auto 100%;background-repeat:repeat-x;background-position:0 50%;animation:mrsv-scroll 40s linear infinite;z-index:0;}
 .mrsv-stage.paused .mrsv-bg{animation-play-state:paused;}
 @keyframes mrsv-scroll{to{background-position:-1200px 50%;}}
+.mrsv-bg.has-sky{background-size:auto 100%,auto 135%;background-position:0 50%,0 0;animation-name:mrsv-scroll-sky;}
+@keyframes mrsv-scroll-sky{to{background-position:-1200px 50%,0 0;}}
 .mrsv-hero{position:absolute;bottom:8%;height:72%;width:auto;max-width:34%;object-fit:contain;transform:translateX(-50%);z-index:3;pointer-events:none;user-select:none;}
 .mrsv-hero[hidden]{display:none;}
 .mrsv-hero.attack{animation:mrsv-lunge .4s ease-out;}
@@ -110,7 +112,9 @@
       lastAt=Date.now();
       overlay(d.paused?'social.spectatePaused':null);
       e.stage.classList.toggle('paused',d.paused);
-      if(d.bg) e.bg.style.backgroundImage=`url("${d.bg}")`;
+      // 땅(투명 하늘) 위에 친구의 현재 하늘을 함께 그림. 하늘이 없으면 예전처럼 땅만
+      if(d.bg) e.bg.style.backgroundImage=d.sky?`url("${d.bg}"),url("${d.sky}")`:`url("${d.bg}")`;
+      e.bg.classList.toggle('has-sky',!!(d.bg&&d.sky));
       const W=e.stage.clientWidth||300, H=e.stage.clientHeight||150;
       const form=formation(d.team.length,W,H);
       e.heroes.forEach((img,i)=>{
