@@ -16540,6 +16540,11 @@ window.MRFloors=(()=>{
    w.__floors=true;window.normalizeSceneCharacter=w;
   }
   mainImg()?.addEventListener('load',()=>requestAnimationFrame(afterMainRender));
+  // 2026-10-14: 패널 열기/닫기(전체 보기 ↔ 꽉 채우기)·창 크기로 방 상자가 바뀌면 바닥 위치 다시 계산 (px로 세우므로)
+  let q=false;const again=()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;afterMainRender();});};
+  if(typeof ResizeObserver==='function'){const ro=new ResizeObserver(again);['char-character-layer','char-preview-zone'].forEach(id=>{const el=document.getElementById(id);if(el)ro.observe(el);});}
+  const lay=document.querySelector('.char-custom-layout');if(lay&&typeof MutationObserver==='function')new MutationObserver(again).observe(lay,{attributes:true,attributeFilter:['class']});
+  const L=document.getElementById('char-character-layer');if(L&&typeof MutationObserver==='function')new MutationObserver(again).observe(L,{attributes:true,attributeFilter:['style']});
   addEventListener('resize',()=>requestAnimationFrame(afterMainRender));
  }
  hook();
