@@ -3426,7 +3426,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 <!-- MR_ART_EDITION -->
 <div id="app">
 <div id="daily-reward-toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<header id="game-brand"><div class="brand-lockup"><img class="mr-brand-logo" data-brand-logo alt="Merge &amp; Run: La Mancha"></div><div class="brand-actions"><button id="btn-test-unlock-all" class="test-unlock-btn" type="button" onclick="toggleTestUnlockAll()" title="테스트용: 모든 수집 리소스 보유 상태를 임시로 전환"><span class="unlock-line unlock-icon">🔒</span><span class="unlock-line">전체</span><span class="unlock-line">해금 OFF</span></button><button class="quiet-icon" onclick="MR.toggleSound()" id="quick-sound" title="소리 켜기 / 끄기" aria-label="소리 켜기 / 끄기"></button><button class="quiet-icon mini-shortcut" id="quick-mini-merge" onclick="setMiniMode(true,'merge')" title="머지 미니모드" aria-label="머지 미니모드"><span class="shortcut-label">머지</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-battle" onclick="setMiniMode(true,'battle')" title="전투 미니모드" aria-label="전투 미니모드"><span class="shortcut-label">전투</span></button></div></header><script id="mr-brand-init">
+<header id="game-brand"><div class="brand-lockup"><img class="mr-brand-logo" data-brand-logo alt="Merge &amp; Run: La Mancha"></div><div class="brand-actions"><button id="btn-test-unlock-all" class="test-unlock-btn" type="button" onclick="toggleTestUnlockAll()" title="테스트용: 모든 수집 리소스 보유 상태를 임시로 전환"><span class="unlock-line unlock-icon">🔒</span><span class="unlock-line">전체</span><span class="unlock-line">해금 OFF</span></button><button class="quiet-icon" onclick="MR.toggleSound()" id="quick-sound" title="소리 켜기 / 끄기" aria-label="소리 켜기 / 끄기"></button><button class="quiet-icon mini-shortcut" id="quick-mini-merge" onclick="setMiniMode(true,'merge')" title="머지 미니모드" aria-label="머지 미니모드"><span class="shortcut-label">머지</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-battle" onclick="setMiniMode(true,'battle')" title="전투 미니모드" aria-label="전투 미니모드"><span class="shortcut-label">전투</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-room" onclick="setMiniMode(true,'room')" title="마이룸 미니모드" aria-label="마이룸 미니모드"><span class="shortcut-label">마이룸</span></button></div></header><script id="mr-brand-init">
 (()=>{
  const custom=new Image();custom.onload=()=>document.querySelectorAll('[data-brand-logo]').forEach(el=>el.src=custom.src);custom.src='assets/ui/merge-and-run-la-mancha-logo.webp';
 
@@ -3568,6 +3568,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
   <button class="mini-pause-btn" id="mini-pause-btn" onclick="toggleMiniPause()" aria-label="일시정지" title="일시정지">⏸</button>
   <button class="mini-exit-btn" onclick="setMiniMode(false)" aria-label="미니 모드 종료">↗</button>
 </div>
+<div id="mini-room" aria-label="마이룸"><img class="mrm-bg" alt="" draggable="false"><div class="mrm-layer"></div></div>
 <div id="board-section">
 <div id="battle-stage"><div id="battle-sky" aria-hidden="true"><div class="sky-grad"><i></i><i></i><i></i><i></i><i></i></div><div class="sky-stars"></div><div class="sky-cel"><i class="cel-sun"></i><i class="cel-moon"></i><i class="cel-portal"></i></div><div class="sky-far" id="battle-sky-far"></div></div><div id="battle-panorama" aria-hidden="true"><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/></div><div id="skill-cinematic" aria-hidden="true"></div><div id="battle-chain-pop" aria-live="polite"></div>
 <button id="battle-pause-btn" onclick="toggleManualPause()" title="일시정지">⏸</button>
@@ -3789,7 +3790,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 <div class="settings-wrap">
 
 <div class="settings-group"><div class="settings-title">🖥️ 화면</div>
-<div class="setting-row"><div><div class="setting-name">미니 모드</div><div class="setting-desc">미니 모드 안내</div></div><div class="mini-mode-actions"><button class="mini-mode-choice" id="setting-mini-merge" onclick="setMiniMode(true,'merge')">🔮 머지</button><button class="mini-mode-choice" id="setting-mini-battle" onclick="setMiniMode(true,'battle')">⚔️ 전투</button></div></div>
+<div class="setting-row"><div><div class="setting-name">미니 모드</div><div class="setting-desc">미니 모드 안내</div></div><div class="mini-mode-actions"><button class="mini-mode-choice" id="setting-mini-merge" onclick="setMiniMode(true,'merge')">🔮 머지</button><button class="mini-mode-choice" id="setting-mini-battle" onclick="setMiniMode(true,'battle')">⚔️ 전투</button><button class="mini-mode-choice" id="setting-mini-room" onclick="setMiniMode(true,'room')">🏠 마이룸</button></div></div>
 <div class="setting-row"><div><div class="setting-name">항상 위에 표시 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">항상 위에 표시</div></div><button class="toggle-switch" id="setting-always-top" onclick="toggleGameSetting('alwaysOnTop')">OFF</button></div>
 <div class="setting-row"><div><div class="setting-name">창 위치 기억 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">종료 전 위치에서 다시 시작</div></div><button class="toggle-switch" id="setting-remember-pos" onclick="toggleGameSetting('rememberWindowPosition')">OFF</button></div>
 <div class="setting-row"><div><div class="setting-name">화면 모서리에 붙이기 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">화면 모서리에 붙이기</div></div><button class="toggle-switch" id="setting-snap" onclick="toggleGameSetting('snapToCorner')">OFF</button></div>
@@ -4649,7 +4650,7 @@ window.MRRunWalker=(()=>{
     let leaderboardPeriod = 'weekly';
     let localRuns = [];
     const DEFAULT_GAME_SETTINGS = {
-        miniMode:false, miniModeType:'merge', melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true,
+        miniMode:false, miniModeType:'merge', miniRoom:false, melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true,
         alwaysOnTop:false, windowSize:'default', rememberWindowPosition:true, snapToCorner:true,
         opacity:100, fpsLimit:60,
         autoDrop:false, autoStart:false, backgroundProgress:true,
@@ -5281,7 +5282,7 @@ window.MRRunWalker=(()=>{
         const cfg=(typeof multList!=='undefined' && typeof multIndex!=='undefined') ? multList[multIndex] : null;
         if(mmc && cfg) setUiText(mmc,cfg.cost===0?'무료':`🔄 ${cfg.cost}/구슬`);
         const mt=document.getElementById('mini-mode-type');
-        if(mt) setUiText(mt,gameSettings.miniModeType==='battle'?'⚔️ BATTLE · AUTO':'🔮 MERGE');
+        if(mt) setUiText(mt,gameSettings.miniModeType==='battle'?(gameSettings.miniRoom?'🏠 MY ROOM':'⚔️ BATTLE · AUTO'):'🔮 MERGE');
     }
     let mainMergeReference=null;
     function measureMainMergeReference(){
@@ -5352,6 +5353,7 @@ window.MRRunWalker=(()=>{
             app.classList.toggle('mini-mode',!!gameSettings.miniMode);
             app.classList.toggle('mini-merge-mode',!!gameSettings.miniMode && gameSettings.miniModeType!=='battle');
             app.classList.toggle('mini-battle-mode',!!gameSettings.miniMode && gameSettings.miniModeType==='battle');
+            app.classList.toggle('mini-room-mode',!!gameSettings.miniMode && gameSettings.miniModeType==='battle' && !!gameSettings.miniRoom);
         }
         document.body.classList.toggle('mini-window',!!gameSettings.miniMode);
         document.documentElement.lang=gameSettings.language||'ko';
@@ -5371,9 +5373,11 @@ window.MRRunWalker=(()=>{
         const mergeMiniBtn=document.getElementById('setting-mini-merge');
         const battleMiniBtn=document.getElementById('setting-mini-battle');
         if(mergeMiniBtn) mergeMiniBtn.classList.toggle('active',!!gameSettings.miniMode && miniType==='merge');
-        if(battleMiniBtn) battleMiniBtn.classList.toggle('active',!!gameSettings.miniMode && miniType==='battle');
+        if(battleMiniBtn) battleMiniBtn.classList.toggle('active',!!gameSettings.miniMode && miniType==='battle' && !gameSettings.miniRoom);
+        const roomMiniBtn=document.getElementById('setting-mini-room');
+        if(roomMiniBtn) roomMiniBtn.classList.toggle('active',!!gameSettings.miniMode && miniType==='battle' && !!gameSettings.miniRoom);
         const miniTypeLabel=document.getElementById('mini-mode-type');
-        if(miniTypeLabel) miniTypeLabel.innerText=miniType==='battle'?'⚔️ BATTLE · AUTO':'🔮 MERGE';
+        if(miniTypeLabel) miniTypeLabel.innerText=miniType==='battle'?(gameSettings.miniRoom?'🏠 MY ROOM':'⚔️ BATTLE · AUTO'):'🔮 MERGE';
         const mergeFooter=document.getElementById('mini-footer-merge-left');
         const battleFooter=document.getElementById('mini-footer-battle-left');
         const footerText=document.getElementById('mini-footer-text');
@@ -5404,11 +5408,13 @@ window.MRRunWalker=(()=>{
     let battleMiniPreviousAutoDrop=null;
 
     window.setMiniMode=function(enabled,type=null){
+        // 2026-10-14 미니 마이룸: 전투 미니와 같은 방식(전투·자동 떨어뜨리기 계속)에 마이룸 화면만 덮어 보여 줌
+        const wantRoom=!!enabled&&type==='room';if(type==='room')type='battle';
         if(!gameSettings.miniMode)measureMainMergeReference();
         const wasBattleMini=!!gameSettings.miniMode && gameSettings.miniModeType==='battle';
 
         if(!enabled){
-            gameSettings.miniMode=false;
+            gameSettings.miniMode=false;gameSettings.miniRoom=false;
             if(wasBattleMini && battleMiniPreviousAutoDrop!==null){
                 gameSettings.autoDrop=!!battleMiniPreviousAutoDrop;
                 battleMiniPreviousAutoDrop=null;
@@ -5428,6 +5434,7 @@ window.MRRunWalker=(()=>{
 
         gameSettings.miniMode=true;
         gameSettings.miniModeType=nextType;
+        gameSettings.miniRoom=wantRoom&&nextType==='battle';
         saveGameSettings(); applyGameSettings();
         if(typeof switchMenu==='function') switchMenu('battle');
     };
@@ -12024,7 +12031,7 @@ function createSocialDataFoundation(assets, emojis) {
  // Gacha reveal UI strings
  Object.assign(messages,{"화면을 누르면 넘어가요":{"ko":"화면을 누르면 넘어가요","en":"Tap the screen to continue","fr":"Touchez l’écran pour continuer","it":"Tocca lo schermo per continuare","de":"Tippe auf den Bildschirm, um fortzufahren","es":"Toca la pantalla para continuar","ru":"Коснитесь экрана, чтобы продолжить","pt-BR":"Toque na tela para continuar","zh-CN":"点击屏幕继续","zh-TW":"點擊畫面繼續","ja":"画面をタップして進む","pl":"Dotknij ekranu, aby kontynuować"},"모두 건너뛰기":{"ko":"모두 건너뛰기","en":"Skip all","fr":"Tout passer","it":"Salta tutto","de":"Alles überspringen","es":"Saltar todo","ru":"Пропустить всё","pt-BR":"Pular tudo","zh-CN":"全部跳过","zh-TW":"全部跳過","ja":"すべてスキップ","pl":"Pomiń wszystko"}});
  // My Room (official name) background label
- Object.assign(messages,{"마이룸에는 캐릭터가 최소 1명 있어야 해요.": {"ko": "마이룸에는 캐릭터가 최소 1명 있어야 해요.", "en": "Your room needs at least one character.", "ja": "マイルームにはキャラクターが最低1人必要です。", "zh-CN": "我的房间至少需要一个角色。", "zh-TW": "我的房間至少需要一個角色。", "es": "Tu sala necesita al menos un personaje.", "pt-BR": "Seu quarto precisa de pelo menos um personagem.", "fr": "Votre salle doit contenir au moins un personnage.", "ru": "В комнате должен быть хотя бы один персонаж.", "it": "La tua stanza deve avere almeno un personaggio.", "pl": "W pokoju musi być co najmniej jedna postać.", "de": "Dein Raum braucht mindestens einen Charakter."}}); Object.assign(messages,{"축소":{"ko":"축소","en":"Smaller","ja":"縮小","zh-CN":"缩小","zh-TW":"縮小","es":"Reducir","pt-BR":"Diminuir","fr":"Réduire","ru":"Уменьшить","it":"Riduci","pl":"Pomniejsz","de":"Verkleinern"},"왼쪽 회전":{"ko":"왼쪽 회전","en":"Rotate left","ja":"左に回転","zh-CN":"向左旋转","zh-TW":"向左旋轉","es":"Girar a la izquierda","pt-BR":"Girar à esquerda","fr":"Pivoter à gauche","ru":"Повернуть влево","it":"Ruota a sinistra","pl":"Obróć w lewo","de":"Nach links drehen"},"오른쪽 회전":{"ko":"오른쪽 회전","en":"Rotate right","ja":"右に回転","zh-CN":"向右旋转","zh-TW":"向右旋轉","es":"Girar a la derecha","pt-BR":"Girar à direita","fr":"Pivoter à droite","ru":"Повернуть вправо","it":"Ruota a destra","pl":"Obróć w prawo","de":"Nach rechts drehen"},"캐릭터 삭제":{"ko":"캐릭터 삭제","en":"Remove character","ja":"キャラクターを削除","zh-CN":"删除角色","zh-TW":"刪除角色","es":"Quitar personaje","pt-BR":"Remover personagem","fr":"Retirer le personnage","ru":"Убрать персонажа","it":"Rimuovi personaggio","pl":"Usuń postać","de":"Charakter entfernen"},"캐릭터 모두 삭제":{"ko":"캐릭터 모두 삭제","en":"Remove all characters","ja":"キャラクターをすべて削除","zh-CN":"删除全部角色","zh-TW":"刪除全部角色","es":"Quitar todos los personajes","pt-BR":"Remover todos os personagens","fr":"Retirer tous les personnages","ru":"Убрать всех персонажей","it":"Rimuovi tutti i personaggi","pl":"Usuń wszystkie postacie","de":"Alle Charaktere entfernen"},"이모지 삭제":{"ko":"이모지 삭제","en":"Remove emoji","ja":"絵文字を削除","zh-CN":"删除表情","zh-TW":"刪除表情","es":"Quitar emoji","pt-BR":"Remover emoji","fr":"Retirer l’emoji","ru":"Убрать эмодзи","it":"Rimuovi emoji","pl":"Usuń emoji","de":"Emoji entfernen"},"이모지 추가":{"ko":"이모지 추가","en":"Add emoji","ja":"絵文字を追加","zh-CN":"添加表情","zh-TW":"新增表情","es":"Añadir emoji","pt-BR":"Adicionar emoji","fr":"Ajouter un emoji","ru":"Добавить эмодзи","it":"Aggiungi emoji","pl":"Dodaj emoji","de":"Emoji hinzufügen"}});
+ Object.assign(messages,{"마이룸에는 캐릭터가 최소 1명 있어야 해요.": {"ko": "마이룸에는 캐릭터가 최소 1명 있어야 해요.", "en": "Your room needs at least one character.", "ja": "マイルームにはキャラクターが最低1人必要です。", "zh-CN": "我的房间至少需要一个角色。", "zh-TW": "我的房間至少需要一個角色。", "es": "Tu sala necesita al menos un personaje.", "pt-BR": "Seu quarto precisa de pelo menos um personagem.", "fr": "Votre salle doit contenir au moins un personnage.", "ru": "В комнате должен быть хотя бы один персонаж.", "it": "La tua stanza deve avere almeno un personaggio.", "pl": "W pokoju musi być co najmniej jedna postać.", "de": "Dein Raum braucht mindestens einen Charakter."}}); Object.assign(messages,{"마이룸 미니모드": {"ko": "마이룸 미니모드", "en": "My Room mini mode", "ja": "マイルームミニモード", "zh-CN": "我的房间迷你模式", "zh-TW": "我的房間迷你模式", "es": "Minimodo Mi habitación", "pt-BR": "Minimodo Meu quarto", "fr": "Mini-mode Ma chambre", "ru": "Мини-режим «Моя комната»", "it": "Modalità mini La mia stanza", "pl": "Tryb mini Mój pokój", "de": "Mini-Modus Mein Zimmer"}, "🎁 STEAM 보상이 도착했어요": {"ko": "🎁 STEAM 보상이 도착했어요", "en": "🎁 STEAM reward has arrived", "ja": "🎁 STEAM報酬が届きました", "zh-CN": "🎁 STEAM 奖励已到达", "zh-TW": "🎁 STEAM 獎勵已送達", "es": "🎁 Ha llegado una recompensa de STEAM", "pt-BR": "🎁 Chegou uma recompensa STEAM", "fr": "🎁 Une récompense STEAM est arrivée", "ru": "🎁 Пришла награда STEAM", "it": "🎁 È arrivata una ricompensa STEAM", "pl": "🎁 Nagroda STEAM dotarła", "de": "🎁 STEAM-Belohnung ist da"}, "🏠 마이룸": {"ko": "🏠 마이룸", "en": "🏠 My Room", "ja": "🏠 マイルーム", "zh-CN": "🏠 我的房间", "zh-TW": "🏠 我的房間", "es": "🏠 Mi habitación", "pt-BR": "🏠 Meu quarto", "fr": "🏠 Ma chambre", "ru": "🏠 Моя комната", "it": "🏠 La mia stanza", "pl": "🏠 Mój pokój", "de": "🏠 Mein Zimmer"}}); Object.assign(messages,{"축소":{"ko":"축소","en":"Smaller","ja":"縮小","zh-CN":"缩小","zh-TW":"縮小","es":"Reducir","pt-BR":"Diminuir","fr":"Réduire","ru":"Уменьшить","it":"Riduci","pl":"Pomniejsz","de":"Verkleinern"},"왼쪽 회전":{"ko":"왼쪽 회전","en":"Rotate left","ja":"左に回転","zh-CN":"向左旋转","zh-TW":"向左旋轉","es":"Girar a la izquierda","pt-BR":"Girar à esquerda","fr":"Pivoter à gauche","ru":"Повернуть влево","it":"Ruota a sinistra","pl":"Obróć w lewo","de":"Nach links drehen"},"오른쪽 회전":{"ko":"오른쪽 회전","en":"Rotate right","ja":"右に回転","zh-CN":"向右旋转","zh-TW":"向右旋轉","es":"Girar a la derecha","pt-BR":"Girar à direita","fr":"Pivoter à droite","ru":"Повернуть вправо","it":"Ruota a destra","pl":"Obróć w prawo","de":"Nach rechts drehen"},"캐릭터 삭제":{"ko":"캐릭터 삭제","en":"Remove character","ja":"キャラクターを削除","zh-CN":"删除角色","zh-TW":"刪除角色","es":"Quitar personaje","pt-BR":"Remover personagem","fr":"Retirer le personnage","ru":"Убрать персонажа","it":"Rimuovi personaggio","pl":"Usuń postać","de":"Charakter entfernen"},"캐릭터 모두 삭제":{"ko":"캐릭터 모두 삭제","en":"Remove all characters","ja":"キャラクターをすべて削除","zh-CN":"删除全部角色","zh-TW":"刪除全部角色","es":"Quitar todos los personajes","pt-BR":"Remover todos os personagens","fr":"Retirer tous les personnages","ru":"Убрать всех персонажей","it":"Rimuovi tutti i personaggi","pl":"Usuń wszystkie postacie","de":"Alle Charaktere entfernen"},"이모지 삭제":{"ko":"이모지 삭제","en":"Remove emoji","ja":"絵文字を削除","zh-CN":"删除表情","zh-TW":"刪除表情","es":"Quitar emoji","pt-BR":"Remover emoji","fr":"Retirer l’emoji","ru":"Убрать эмодзи","it":"Rimuovi emoji","pl":"Usuń emoji","de":"Emoji entfernen"},"이모지 추가":{"ko":"이모지 추가","en":"Add emoji","ja":"絵文字を追加","zh-CN":"添加表情","zh-TW":"新增表情","es":"Añadir emoji","pt-BR":"Adicionar emoji","fr":"Ajouter un emoji","ru":"Добавить эмодзи","it":"Aggiungi emoji","pl":"Dodaj emoji","de":"Emoji hinzufügen"}});
  Object.assign(messages,{"반응":{"ko":"반응","en":"Reactions","ja":"リアクション","zh-CN":"反应","zh-TW":"反應","es":"Reacciones","pt-BR":"Reações","fr":"Réactions","ru":"Реакции","it":"Reazioni","pl":"Reakcje","de":"Reaktionen"},"동물":{"ko":"동물","en":"Animals","ja":"動物","zh-CN":"动物","zh-TW":"動物","es":"Animales","pt-BR":"Animais","fr":"Animaux","ru":"Животные","it":"Animali","pl":"Zwierzęta","de":"Tiere"},"식물":{"ko":"식물","en":"Plants","ja":"植物","zh-CN":"植物","zh-TW":"植物","es":"Plantas","pt-BR":"Plantas","fr":"Plantes","ru":"Растения","it":"Piante","pl":"Rośliny","de":"Pflanzen"},"음식":{"ko":"음식","en":"Food","ja":"食べ物","zh-CN":"食物","zh-TW":"食物","es":"Comida","pt-BR":"Comida","fr":"Nourriture","ru":"Еда","it":"Cibo","pl":"Jedzenie","de":"Essen"},"가구":{"ko":"가구","en":"Furniture","ja":"家具","zh-CN":"家具","zh-TW":"家具","es":"Muebles","pt-BR":"Móveis","fr":"Meubles","ru":"Мебель","it":"Mobili","pl":"Meble","de":"Möbel"},"장식":{"ko":"장식","en":"Decor","ja":"装飾","zh-CN":"装饰","zh-TW":"裝飾","es":"Decoración","pt-BR":"Decoração","fr":"Décoration","ru":"Декор","it":"Decorazioni","pl":"Dekoracje","de":"Deko"},"얼굴 꾸미기":{"ko":"얼굴 꾸미기","en":"Face parts","ja":"顔パーツ","zh-CN":"脸部装饰","zh-TW":"臉部裝飾","es":"Partes de cara","pt-BR":"Partes do rosto","fr":"Accessoires visage","ru":"Детали лица","it":"Parti del viso","pl":"Części twarzy","de":"Gesichtsteile"},"게임":{"ko":"게임","en":"Game","ja":"ゲーム","zh-CN":"游戏","zh-TW":"遊戲","es":"Juego","pt-BR":"Jogo","fr":"Jeu","ru":"Игра","it":"Gioco","pl":"Gra","de":"Spiel"},"배치 이모지 전체 삭제":{"ko":"배치 이모지 전체 삭제","en":"Remove all placed emoji","ja":"配置した絵文字をすべて削除","zh-CN":"删除全部已放置表情","zh-TW":"刪除全部已放置表情","es":"Quitar todos los emojis","pt-BR":"Remover todos os emojis","fr":"Retirer tous les emojis","ru":"Убрать все эмодзи","it":"Rimuovi tutte le emoji","pl":"Usuń wszystkie emoji","de":"Alle Emojis entfernen"}});
  Object.assign(messages,{"마이룸 캐릭터":{"ko":"마이룸 캐릭터","en":"My Room character","ja":"マイルームキャラ","zh-CN":"我的房间角色","zh-TW":"我的房間角色","es":"Personaje de Mi habitación","pt-BR":"Personagem do Meu quarto","fr":"Personnage de Ma chambre","ru":"Персонаж «Моей комнаты»","it":"Personaggio della Mia stanza","pl":"Postać Mojego pokoju","de":"Mein-Zimmer-Charakter"},"마이룸 배경":{"ko":"마이룸 배경","en":"My Room background","ja":"マイルーム背景","zh-CN":"我的房间背景","zh-TW":"我的房間背景","es":"Fondo de Mi habitación","pt-BR":"Fundo do Meu quarto","fr":"Décor de Ma chambre","ru":"Фон «Моей комнаты»","it":"Sfondo della Mia stanza","pl":"Tło Mojego pokoju","de":"Mein-Zimmer-Hintergrund"}});
  /* 2026-10-13: 다른 언어에서 한국어가 섞여 나오던 문구 */
@@ -15899,7 +15906,7 @@ html body #app #top-bar{grid-template-columns:minmax(0,1fr) auto!important;}
 html body #app #top-bar #nav-daily{width:auto!important;height:28px!important;white-space:nowrap;}
 @media (max-width:420px){html body #app #top-bar #nav-daily{padding:4px 6px!important;gap:3px!important;}html body #app #top-bar #nav-daily>span:first-of-type{display:none!important;}html body #app #top-bar #nav-daily .daily-icon{display:block!important;width:14px;height:14px;}}
 /* Header buttons share one size (same as 머지 / 전투): 50 x 42 */
-html body #app #game-brand #btn-test-unlock-all,html body #app #game-brand #quick-sound,html body #app #game-brand #quick-mini-merge,html body #app #game-brand #quick-mini-battle{
+html body #app #game-brand #btn-test-unlock-all,html body #app #game-brand #quick-sound,html body #app #game-brand #quick-mini-merge,html body #app #game-brand #quick-mini-battle,html body #app #game-brand #quick-mini-room{
  flex:0 0 50px!important;width:50px!important;min-width:50px!important;max-width:50px!important;height:42px!important;min-height:42px!important;max-height:42px!important;
  border-radius:10px!important;border-width:1px!important;border-style:solid!important;box-sizing:border-box!important;display:inline-flex!important;flex-direction:column;align-items:center!important;justify-content:center!important;}
 html body #app #game-brand #btn-test-unlock-all{padding:1px 0!important;font-size:6px!important;}
@@ -16400,5 +16407,124 @@ html.mr-uikit body #app #view-shop .economy-tab{border-width:1px!important;borde
 html.mr-uikit body #app #view-shop .economy-tab.active{border-image:var(--uk-tab-on) / 7px 8px 7px 8px / 0 stretch!important;color:#fff!important;}
 html.mr-uikit body #app #view-shop .economy-balance,html.mr-uikit body #app #view-shop .selector-wallet,html.mr-uikit body #app #view-shop .shop-help-note{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;}
 </style>
+<style id="mr-mini-room-css">
+/* 2026-10-14 미니 마이룸: 전투 미니(전투·점수 계속)에 마이룸 화면만 보여 줌. 방 그림 2:3 세로 */
+#mini-room{display:none;}
+html body #app.mini-mode.mini-room-mode #board-section{display:none!important;}
+html body #app.mini-mode.mini-room-mode #mini-room{display:block;position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:hidden;background:#14223a;isolation:isolate;container-type:inline-size;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+#mini-room .mrm-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;transform-origin:center center;}
+#mini-room .mrm-layer{position:absolute;inset:0;z-index:1;}
+#mini-room .mrm-char{position:absolute;width:44%;height:58%;object-fit:contain;z-index:2;cursor:pointer;-webkit-user-drag:none;-webkit-touch-callout:none;}
+#mini-room .mrm-emoji{position:absolute;z-index:1;line-height:1;font-size:clamp(14px,7cqw,42px);pointer-events:none;transform-origin:center center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));}
+#mini-room .mrm-emoji img{width:1em;height:1em;display:block;}
+/* 길게 누르기 반응: 폴짝 / 좌우 흔들기 (transform은 걷기 엔진이 쓰므로 translate·rotate 속성으로 겹쳐 움직임) */
+#mini-room .mrm-char.mrm-jump{animation:mrmJump .7s cubic-bezier(.3,.7,.3,1);}
+#mini-room .mrm-char.mrm-wiggle{animation:mrmWiggle .7s ease-in-out;}
+@keyframes mrmJump{0%{translate:0 0}30%{translate:0 -18%}55%{translate:0 0}72%{translate:0 -7%}100%{translate:0 0}}
+@keyframes mrmWiggle{0%,100%{rotate:0deg}20%{rotate:-9deg}40%{rotate:8deg}60%{rotate:-6deg}80%{rotate:4deg}}
+#mini-room .mrm-heart{position:absolute;z-index:8;pointer-events:none;font-size:16px;color:#ff5c8a;text-shadow:0 1px 2px rgba(0,0,0,.35);transform:translate(-50%,-50%);animation:mrmHeart .9s ease-out forwards;}
+@keyframes mrmHeart{0%{opacity:0;transform:translate(-50%,-40%) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--hx)),calc(-50% - 56px)) scale(1.15) rotate(var(--hr))}}
+@media (prefers-reduced-motion:reduce){#mini-room .mrm-char.mrm-jump,#mini-room .mrm-char.mrm-wiggle{animation:none}#mini-room .mrm-heart{animation:none;opacity:0}}
+/* 창 크기: PC 미니 창은 폭 320 · 방 2:3 + 위 정보줄 */
+@media (min-width:601px){
+ html body.mini-window #app.mini-battle-mode.mini-room-mode{width:320px!important;max-width:320px!important;height:520px!important;min-height:0!important;}
+}
+/* 좁은 정보줄: 마이룸 미니에서는 조각·머지 수는 숨기고 점수·골드·뽑기·스팀만 */
+html body #app.mini-room-mode #mini-play-header .mini-fragment-stat,html body #app.mini-room-mode #mini-play-header .mini-merge-stat{display:none!important;}
+html body #app.mini-mode.mini-room-mode #mini-play-header{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto 30px 30px!important;grid-template-areas:"score gold steam pause exit"!important;}
+/* 알림: 방 아래쪽 가운데 작은 말풍선 */
+html body #app.mini-room-mode > .mrfx-notice{top:auto!important;bottom:12px!important;left:50%!important;right:auto!important;translate:-50% 0;max-width:86%!important;}
+</style>
+<script id="mr-mini-room">
+// 2026-10-14 미니 마이룸 (1차·2차)
+//  1차: 미니 창에 내 마이룸(배경·캐릭터·이모지) + 걷기 엔진(MRRunWalker) + 얇은 정보줄 + [마이룸] 버튼
+//  2차: 짧게 누르면 말풍선+하트, 길게 누르면 폴짝/좌우 흔들기 중 무작위, 뽑기 준비·STEAM 보상 알림
+(function(){
+ const app=()=>document.getElementById('app');
+ const root=()=>document.getElementById('mini-room');
+ const on=()=>!!app()?.classList.contains('mini-room-mode');
+ const T=s=>{try{return window.MRLocale?.t?.(s)||s;}catch(e){return s;}};
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+ let room=null,walker=null;
+ const numOf=img=>window.MRRoomFit?window.MRRoomFit.numOf(img.dataset.roomSrc||img.getAttribute('src')):0;
+ function fit(){
+  const r=root();if(!r||!room||!window.MRRoomFit)return;
+  r.querySelectorAll('.mrm-char').forEach(img=>{const c=room.characters[Number(img.dataset.i)];const n=numOf(img);if(c&&n){img.style.left=c.x+'%';img.style.transform=window.MRRoomFit.transform(img,n,Number(c.scale)||1,0,1);}});
+ }
+ function render(){
+  const r=root();if(!r)return;
+  let assets;
+  try{const F=window.MergeRunFoundation;room=F.getRoomSnapshot();assets=F.resolveRoomAssets(room);}catch(e){room=null;if(on())setTimeout(render,400);return;} // 방이 아직 안 불러와졌으면 잠시 뒤 다시
+  const bg=r.querySelector('.mrm-bg'),b=room.background;
+  bg.src=assets.background;bg.style.objectPosition=`${b.x}% ${b.y}%`;bg.style.transform=`scale(${b.scale})`;
+  const parts=[];
+  room.characters.forEach((c,i)=>parts.push(`<img class="mrm-char" data-i="${i}" alt="" draggable="false" src="${esc(assets.characters[i])}" style="left:${c.x}%;top:${c.y}%;transform:translate(-50%,-50%) scale(${c.scale});z-index:${2+i}">`));
+  room.emojis.forEach((m,i)=>{const a=assets.emojis[i]||{};const inner=a.src?`<img src="${esc(a.src)}" alt="" draggable="false">`:esc(a.text||'');
+   parts.push(`<span class="mrm-emoji" style="left:${m.x}%;top:${m.y}%;transform:translate(-50%,-50%) scale(${m.scale}) rotate(${m.rotation}deg) scaleX(${m.flip})">${inner}</span>`);});
+  r.querySelector('.mrm-layer').innerHTML=parts.join('');
+  requestAnimationFrame(fit);
+  ensureWalker();
+ }
+ function ensureWalker(){
+  if(walker||!window.MRRunWalker||!root())return;
+  walker=window.MRRunWalker.create({
+   zone:root(),
+   active:()=>on()&&root().offsetParent!==null&&root().clientWidth>0&&!document.querySelector('.mr-dialog-shade'),
+   list:()=>{if(!room)return [];return [...root().querySelectorAll('.mrm-char')].map(img=>{const c=room.characters[Number(img.dataset.i)];return c?{key:img.dataset.i,el:img,num:numOf(img),scale:c.scale,x:c.x}:null;}).filter(Boolean);},
+   onStop:fit
+  });
+ }
+ // 하트: 누른 자리에서 3개
+ function hearts(x,y){
+  const r=root();if(!r)return;
+  for(let k=0;k<3;k++){const h=document.createElement('span');h.className='mrm-heart';h.textContent='♥';h.setAttribute('data-no-i18n','');
+   h.style.left=x+'px';h.style.top=y+'px';h.style.setProperty('--hx',((k-1)*16+Math.random()*8-4)+'px');h.style.setProperty('--hr',((k-1)*14)+'deg');h.style.animationDelay=(k*70)+'ms';
+   r.appendChild(h);setTimeout(()=>h.remove(),1100);}
+ }
+ // 짧게 = 말풍선+하트 / 길게(0.45초) = 폴짝 또는 좌우 흔들기 (무작위) + 말풍선
+ const LONG_MS=450;let press=null,lastAnim='';
+ function react(img){
+  const pick=['mrm-jump','mrm-wiggle'];let cls=pick[Math.floor(Math.random()*2)];
+  img.classList.remove('mrm-jump','mrm-wiggle');void img.offsetWidth;img.classList.add(cls);lastAnim=cls;
+  setTimeout(()=>img.classList.remove(cls),760);
+  try{if(typeof playSfx==='function')playSfx(cls==='mrm-jump'?'characterSelect':'characterLove',{minGap:140});}catch(e){}
+ }
+ function bind(){
+  const r=root();if(!r||r.dataset.bound)return;r.dataset.bound='1';
+  r.addEventListener('contextmenu',e=>{if(e.target.closest('.mrm-char'))e.preventDefault();});
+  r.addEventListener('pointerdown',e=>{
+   const img=e.target.closest?.('.mrm-char');if(!img)return;
+   const rr=r.getBoundingClientRect();
+   press={img,x:e.clientX-rr.left,y:e.clientY-rr.top,long:false,timer:setTimeout(()=>{if(!press)return;press.long=true;walker?.say(img.dataset.walkKey||img.dataset.i);react(img);},LONG_MS)};
+  });
+  const end=e=>{
+   if(!press)return;clearTimeout(press.timer);
+   if(!press.long&&e.type==='pointerup'){walker?.say(press.img.dataset.walkKey||press.img.dataset.i);hearts(press.x,press.y);}
+   press=null;
+  };
+  r.addEventListener('pointerup',end);r.addEventListener('pointercancel',end);r.addEventListener('pointerleave',end);
+ }
+ // 알림: 뽑기 준비(데스크톱 알림과 같은 때) · STEAM 보상 도착 → 방 아래 작은 말풍선
+ function hookNotices(){
+  if(typeof window.notifyUser==='function'&&!window.notifyUser.__miniRoom){
+   const orig=window.notifyUser;
+   const wrapped=function(kind,title,body){try{if(on()&&kind==='gacha')window.MRFX?.notify?.({type:'gacha',text:T(String(title||'')),ms:2600});}catch(e){}return orig.apply(this,arguments);};
+   wrapped.__miniRoom=true;window.notifyUser=wrapped;
+  }
+  let hadGift=false;
+  setInterval(()=>{const g=!!document.getElementById('mini-steam')?.classList.contains('has-gift');if(g&&!hadGift&&on())window.MRFX?.notify?.({type:'steam',text:T('🎁 STEAM 보상이 도착했어요'),ms:2800});hadGift=g;},1000);
+ }
+ function sync(){if(on()){bind();render();}}
+ function start(){
+  const a=app();if(!a)return;
+  new MutationObserver(()=>{const now=on();if(now!==start.was){start.was=now;if(now)sync();}}).observe(a,{attributes:true,attributeFilter:['class']});
+  start.was=on();if(start.was)sync();
+  addEventListener('resize',()=>{if(on())requestAnimationFrame(fit);});
+  hookNotices();
+ }
+ if(document.readyState==='loading')addEventListener('DOMContentLoaded',()=>setTimeout(start,0));else setTimeout(start,0);
+ window.MRMiniRoom={render,isOn:on};
+})();
+</script>
 </body>
 </html>

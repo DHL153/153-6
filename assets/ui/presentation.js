@@ -201,6 +201,7 @@ window.MR = (() => {
     $('quick-sound').innerHTML=icon('Volume2');
     $('quick-mini-merge').innerHTML=icon('Circle')+'<span class="shortcut-label">머지</span>';
     $('quick-mini-battle').innerHTML=icon('Swords')+'<span class="shortcut-label">전투</span>';
+    if($('quick-mini-room'))$('quick-mini-room').innerHTML=icon('House')+'<span class="shortcut-label">마이룸</span>';
     const navIcons={shop:'ShoppingBag',collection:'Layers',battle:'Swords',social:'Users',menu:'Menu'};
     Object.entries(navIcons).forEach(([id,name])=>{
       const el=$('nav-'+id);if(!el)return;el.querySelector('.icon').innerHTML=icon(name);el.setAttribute('role','button');el.tabIndex=0;
