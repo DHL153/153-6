@@ -6973,7 +6973,10 @@ function createSocialDataFoundation(assets, emojis) {
         // 2026-10-07 PR #49: 마이룸 배경을 캐릭터의 방 27종으로 교체하며 일상 배경 0028~0068 삭제
         ...Array.from({length:38},(_,i)=>'bg_lobby_'+String(31+i).padStart(4,'0')), // 2026-10-13: 0028~0030은 스카이아크 방으로 다시 사용
         // 2026-10-13 PR #56: 구슬 스킨 25종으로 줄이며 0026~0032 삭제 — 빠뜨려서 예전 세이브가 통째로 거부되고 매번 시작 선택창이 뜨던 문제 수정
-        ...Array.from({length:7},(_,i)=>'bead_'+String(26+i).padStart(4,'0'))
+        ...Array.from({length:7},(_,i)=>'bead_'+String(26+i).padStart(4,'0')),
+        // 2026-10-14 PR #83: 전투 배경을 하늘·땅 30종으로 교체하며 0031~0032 삭제 (0001~0030은 새 그림으로 다시 사용)
+        //   빠뜨려서 예전 세이브가 통째로 거부되고 새로고침마다 시작 선택창이 뜨던 문제 수정
+        'bg_battle_0031','bg_battle_0032'
     ]);
     // 2026-10-07: 유니코드 이모지 카탈로그(emoji_0002~1278, reference_*) 전체를 이미지 이모지로 교체하며 은퇴
     const RETIRED_ID_PATTERNS=[/^emoji_\d{4}$/,/^reference_(face|object|travel)_\d+$/,/^myroom_(furniture|face)_\d{4}$/]; // 2026-10-14: 가구·얼굴 꾸미기 이모지 삭제
@@ -7031,7 +7034,7 @@ function createSocialDataFoundation(assets, emojis) {
             inv[r.category][r.legacyId]=count;
         }
         s.inventory=inv;s.equippedSkins=stable.equippedSkins.map(id=>fromIdOrNull('skin',id)); // 삭제된 스킨을 장착 중이면 null → 불러올 때 기본 스킨으로
-        s.battleCharacter=fromId('battle_char',stable.battleCharacter);s.bgConfig={...s.bgConfig,battle:fromId('bg_battle',stable.battleBackground),merge:fromId('bg_merge',stable.mergeBackground)};s.lobby=fromIdOrNull('char_bg',stable.lobby);
+        s.battleCharacter=fromId('battle_char',stable.battleCharacter);s.bgConfig={...s.bgConfig,battle:fromIdOrNull('bg_battle',stable.battleBackground),merge:fromId('bg_merge',stable.mergeBackground)};s.lobby=fromIdOrNull('char_bg',stable.lobby);
         if(stable.battleTeam!==undefined&&(!Array.isArray(stable.battleTeam)||stable.battleTeam.length!==3))fail('invalid battle team');
         s.battleTeam=stable.battleTeam?stable.battleTeam.map(id=>id===null?null:fromId('battle_char',id)):[s.battleCharacter,null,null];
         if(stable.confirmedBattleTeam!==undefined&&(!Array.isArray(stable.confirmedBattleTeam)||stable.confirmedBattleTeam.length!==3))fail('invalid confirmed battle team');
@@ -7200,6 +7203,11 @@ function createSocialDataFoundation(assets, emojis) {
                 if(Number.isFinite(saved.mergeCount)) mergeCount=Math.max(0,saved.mergeCount);
                 if(Array.isArray(saved.equippedSkins)) equippedSkins=equippedSkins.map((fallback,i)=>skinInventory[saved.equippedSkins[i]]?.count>0?saved.equippedSkins[i]:fallback);
                 if(bgInventory.bg_battle[saved.bgConfig?.battle]?.count>0) bgConfig.battle=saved.bgConfig.battle;
+                else { // 쓰던 전투 배경이 카탈로그에서 빠졌으면 보유한 배경(시작 선택 우선)으로
+                    const starterBattleBg=saved.starterSelection?.choices?.bg_battle;
+                    const ownedBattleBg=bgInventory.bg_battle[starterBattleBg]?.count>0?starterBattleBg:Object.keys(bgInventory.bg_battle).map(Number).sort((a,b)=>a-b).find(id=>bgInventory.bg_battle[id]?.count>0);
+                    if(ownedBattleBg!==undefined) bgConfig.battle=ownedBattleBg;
+                }
                 if(bgInventory.bg_merge[saved.bgConfig?.merge]?.count>0) bgConfig.merge=saved.bgConfig.merge;
                 if(usableCount('battle_char',saved.battleCharacter)>0) battleCharacter=saved.battleCharacter;
                 const savedTeam=saved.battleTeam??[battleCharacter,null,null];
@@ -10678,6 +10686,7 @@ function createSocialDataFoundation(assets, emojis) {
             choices[s.key]=pick.id;
             if(inv[pick.id])inv[pick.id].count=Math.max(1,inv[pick.id].count||0);
             if(s.key==='char_bg'&&!((Number(inv[charConfig.bg]?.count)||0)>0)){charConfig.bg=pick.id;try{saveCharScene();}catch(e){}}
+            if(s.key==='bg_battle'&&!((Number(inv[bgConfig.battle]?.count)||0)>0)){bgConfig.battle=pick.id;try{setBattleStageBackground(backgroundPath('battle',pick.id));}catch(e){}}
         }
         starterSelection={version:1,complete:true,step:3,choices};
         saveEconomyState();
