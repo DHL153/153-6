@@ -16357,5 +16357,44 @@ html.mr-uikit body #app #view-battle #mr-bm-divider::before{content:"";position:
  border-style:solid;border-color:transparent;border-width:0 8px;border-image:url("assets/ui/theme/ui_strip.webp") 0 24 fill / 0 8px / 0 round; /* 2026-10-14: 위 점수줄 아래 황동 띠와 같은 두께(약 8px) */
  filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));}
 </style>
+<style id="mr-ui-kit-shop">
+/* 2026-10-14: 상점에도 라만차 UI 그림 세트 — 뽑기 카드=판, 비용 칩=탭, 로컬/STEAM 스위치=탭, 합성 버튼=버튼/강조 버튼 */
+html.mr-uikit body #app #view-shop .btn-gacha,
+html.mr-uikit body #app #view-shop .shop-mode-tabs,html.mr-uikit body #app #view-shop .smt-thumb,
+html.mr-uikit body #app #view-shop .cost,
+html.mr-uikit body #app #view-shop #daily-shop-link,
+html.mr-uikit body #app #view-shop .craft-slots-container,
+html.mr-uikit body #app #view-shop .action-btn-sub,html.mr-uikit body #app #view-shop .action-btn-main,
+html.mr-uikit body #app #view-shop .craft-filter-btn,
+html.mr-uikit body #app #view-shop .economy-item,html.mr-uikit body #app #view-shop .economy-tab,html.mr-uikit body #app #view-shop .economy-balance,html.mr-uikit body #app #view-shop .selector-wallet,html.mr-uikit body #app #view-shop .shop-help-note{
+ border-style:solid!important;border-color:transparent!important;border-radius:0!important;background-color:transparent!important;background-image:none!important;}
+/* 뽑기 카드 = 판 틀 */
+html.mr-uikit body #app #view-shop .btn-gacha{border-width:1px!important;border-image:var(--uk-panel) / 18px / 0 stretch!important;box-shadow:0 5px 12px rgba(0,0,0,.5)!important;}
+html.mr-uikit body #app #view-shop .btn-gacha:not(.is-unavailable):not(.steam-draw){box-shadow:0 5px 12px rgba(0,0,0,.5),0 0 14px rgba(241,190,90,.28)!important;}
+html.mr-uikit body #app #view-shop .btn-gacha.daily-free{box-shadow:0 5px 12px rgba(0,0,0,.5),0 0 16px rgba(124,227,209,.45)!important;}
+html.mr-uikit body #app #view-shop .btn-gacha:not(.is-unavailable):active{transform:translateY(1px);filter:brightness(.92);}
+html.mr-uikit body #app #view-shop .btn-gacha.is-unavailable{filter:saturate(.75) brightness(.86);}
+html.mr-uikit body #app #view-shop .btn-gacha .title{text-shadow:0 1px 2px #000;}
+/* 비용·정보 칩 = 탭(꺼짐) */
+html.mr-uikit body #app #view-shop .cost{border-width:1px!important;border-image:var(--uk-tab) / 6px 7px 6px 7px / 0 stretch!important;}
+/* 로컬 / STEAM 스위치 */
+html.mr-uikit body #app #view-shop .shop-mode-tabs{margin:12px 14px 4px!important;border-width:1px!important;border-image:var(--uk-tab) / 9px 11px 9px 11px / 0 stretch!important;}
+html.mr-uikit body #app #view-shop .smt-thumb{border-width:1px!important;border-image:var(--uk-tab-on) / 9px 11px 9px 11px / 0 stretch!important;box-shadow:none!important;}
+html.mr-uikit body #app #view-shop .shop-mode-tabs button{border-radius:0!important;}
+/* 오늘의 상점 링크 · 합성 버튼 · 필터 */
+html.mr-uikit body #app #view-shop #daily-shop-link,html.mr-uikit body #app #view-shop .action-btn-sub{border-width:1px!important;border-image:var(--uk-btn) / 9px 10px 9px 10px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app #view-shop #daily-shop-link:active,html.mr-uikit body #app #view-shop .action-btn-sub:active{border-image:var(--uk-btn-p) / 9px 10px 9px 10px / 0 stretch!important;}
+html.mr-uikit body #app #view-shop .action-btn-main{border-width:1px!important;border-image:var(--uk-pri) / 9px 10px 9px 10px / 0 stretch!important;box-shadow:none!important;color:#fff!important;text-shadow:0 1px 2px #5a2400;}
+html.mr-uikit body #app #view-shop .action-btn-main:active{border-image:var(--uk-pri-p) / 9px 10px 9px 10px / 0 stretch!important;}
+html.mr-uikit body #app #view-shop .action-btn-main:disabled,html.mr-uikit body #app #view-shop .action-btn-sub:disabled{filter:grayscale(.8) brightness(.75);}
+html.mr-uikit body #app #view-shop .craft-filter-btn{border-width:1px!important;border-image:var(--uk-btn) / 7px 8px 7px 8px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app #view-shop .craft-filter-btn.active{border-image:var(--uk-tab-on) / 7px 8px 7px 8px / 0 stretch!important;color:#fff!important;}
+/* 합성 칸 바탕 = 어두운 탭 판 */
+html.mr-uikit body #app #view-shop .craft-slots-container{border-width:1px!important;border-image:var(--uk-tab) / 10px 12px 10px 12px / 0 stretch!important;}
+html.mr-uikit body #app #view-shop .economy-item{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;}
+html.mr-uikit body #app #view-shop .economy-tab{border-width:1px!important;border-image:var(--uk-btn) / 7px 8px 7px 8px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app #view-shop .economy-tab.active{border-image:var(--uk-tab-on) / 7px 8px 7px 8px / 0 stretch!important;color:#fff!important;}
+html.mr-uikit body #app #view-shop .economy-balance,html.mr-uikit body #app #view-shop .selector-wallet,html.mr-uikit body #app #view-shop .shop-help-note{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;}
+</style>
 </body>
 </html>
