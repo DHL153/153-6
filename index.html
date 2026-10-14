@@ -10804,7 +10804,25 @@ function createSocialDataFoundation(assets, emojis) {
             const frames=(assets.runFrames||[]).filter(Boolean);let frame=0;
             if(frames.length){hero.src=frames[0];reviewTimer=setInterval(()=>{hero.src=frames[++frame%frames.length];},95);}
             hero.onerror=()=>{clearInterval(reviewTimer);hero.onerror=null;hero.src=assets.idle;};
-            scene('마이룸',backgroundPath('lobby',choices.char_bg),characterPath(choices.char),'mr-review-room');
+            const roomChar=scene('마이룸',backgroundPath('lobby',choices.char_bg),characterPath(choices.char),'mr-review-room');
+            // 2026-10-14: 마이룸 미리보기도 실제 마이룸과 같게 — 캐릭터 기본 크기(MRRoomFit) + 1층 바닥선(MRFloors)에 발, 배경은 아래 70% 기준 꽉 채움
+            (()=>{
+                const view=roomChar.parentElement,num=Number(choices.char)+1,bgIdx=Number(choices.char_bg);
+                roomChar.classList.add('mr-review-roomchar');view.style.backgroundPosition='50% 70%';
+                const bgImg=new Image();bgImg.src=backgroundPath('lobby',bgIdx);
+                const place=()=>{
+                    const W=view.clientWidth,H=view.clientHeight;if(!W||!H||!bgImg.naturalWidth)return;
+                    const k=Math.max(W/bgImg.naturalWidth,H/bgImg.naturalHeight),dh=bgImg.naturalHeight*k,oy=(H-dh)*.7;
+                    const f=window.MRFloors?.floorsOf?.(bgIdx)?.[0]||[88];const floorY=oy+dh*(f[0]+.8)/100;
+                    const S=Math.min(roomChar.clientWidth,roomChar.clientHeight);if(!S)return;
+                    const base=window.MRRoomFit?.BASE_FOOT??.92;
+                    roomChar.style.left='50%';roomChar.style.top=(floorY-S*(base-.5))+'px';
+                    roomChar.style.transform=window.MRRoomFit?window.MRRoomFit.transform(roomChar,num,1,0,1):'translate(-50%,-50%)';
+                };
+                bgImg.onload=()=>requestAnimationFrame(place);roomChar.addEventListener('load',()=>requestAnimationFrame(place));
+                if(typeof ResizeObserver==='function')new ResizeObserver(()=>requestAnimationFrame(place)).observe(view);
+                requestAnimationFrame(place);
+            })();
             window.MRLocale?.refresh(host);
         }
         function render(){
@@ -16718,6 +16736,11 @@ html.mr-uikit body #app #view-daily .dg-back{border-width:1px!important;border-i
 /* 진행 막대: 판 위에서도 보이게 어두운 홈 + 얇은 황동 테 */
 html.mr-uikit body #app #view-daily .dg-total-bar,html.mr-uikit body #app #view-daily .dg-record-bar,html.mr-uikit body #app #view-daily .dg-bar{background:#070d16!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.8),0 0 0 1px rgba(201,162,74,.45)!important;}
 html.mr-uikit body #app #view-daily .dg-back:active{border-image:var(--uk-btn-p) / 8px 9px 8px 9px / 0 stretch!important;}
+</style>
+<style id="mr-starter-room-preview">
+/* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
+#mr-starter .mr-review-room{position:relative;overflow:hidden;}
+#mr-starter .mr-review-room img.mr-review-roomchar{position:absolute!important;width:44%!important;height:58%!important;left:50%;top:50%;bottom:auto!important;right:auto!important;object-fit:contain;transform:translate(-50%,-50%);}
 </style>
 </body>
 </html>
