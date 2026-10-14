@@ -16702,5 +16702,22 @@ html body #app.mini-room-mode > .mrfx-notice{top:auto!important;bottom:12px!impo
  window.MRMiniRoom={render,isOn:on};
 })();
 </script>
+<style id="mr-ui-kit-daily">
+/* 2026-10-14: 오늘의 목표에도 라만차 UI 그림 세트 — 큰 칸=판 틀, 미션·기록 카드=작은 판, 보상 칩=탭, 뒤로=버튼 */
+html.mr-uikit body #app #view-daily .dg-total,html.mr-uikit body #app #view-daily .dg-bonus,
+html.mr-uikit body #app #view-daily .dg-mission,html.mr-uikit body #app #view-daily .dg-record,
+html.mr-uikit body #app #view-daily .dg-chip,html.mr-uikit body #app #view-daily .dg-reset,html.mr-uikit body #app #view-daily .dg-back{
+ border-style:solid!important;border-color:transparent!important;border-radius:0!important;background-color:transparent!important;background-image:none!important;}
+html.mr-uikit body #app #view-daily .dg-total,html.mr-uikit body #app #view-daily .dg-bonus{border-width:1px!important;border-image:var(--uk-panel) / 16px / 0 stretch!important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}
+html.mr-uikit body #app #view-daily .dg-mission,html.mr-uikit body #app #view-daily .dg-record{border-width:1px!important;border-image:var(--uk-panel) / 14px / 0 stretch!important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;}
+/* 받을 수 있음 = 황금빛, 완료 = 청록빛 */
+html.mr-uikit body #app #view-daily .dg-mission.is-ready,html.mr-uikit body #app #view-daily .dg-bonus.is-ready{box-shadow:0 4px 10px rgba(0,0,0,.45),0 0 14px rgba(241,190,90,.55)!important;}
+html.mr-uikit body #app #view-daily .dg-mission.is-done,html.mr-uikit body #app #view-daily .dg-bonus.is-done,html.mr-uikit body #app #view-daily .dg-record.is-done{box-shadow:0 4px 10px rgba(0,0,0,.45),0 0 12px rgba(124,227,209,.35)!important;}
+html.mr-uikit body #app #view-daily .dg-chip,html.mr-uikit body #app #view-daily .dg-reset{border-width:1px!important;border-image:var(--uk-tab) / 6px 7px 6px 7px / 0 stretch!important;}
+html.mr-uikit body #app #view-daily .dg-back{border-width:1px!important;border-image:var(--uk-btn) / 8px 9px 8px 9px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+/* 진행 막대: 판 위에서도 보이게 어두운 홈 + 얇은 황동 테 */
+html.mr-uikit body #app #view-daily .dg-total-bar,html.mr-uikit body #app #view-daily .dg-record-bar,html.mr-uikit body #app #view-daily .dg-bar{background:#070d16!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.8),0 0 0 1px rgba(201,162,74,.45)!important;}
+html.mr-uikit body #app #view-daily .dg-back:active{border-image:var(--uk-btn-p) / 8px 9px 8px 9px / 0 stretch!important;}
+</style>
 </body>
 </html>
