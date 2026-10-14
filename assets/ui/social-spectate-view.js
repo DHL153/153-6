@@ -26,6 +26,8 @@
     return { heroes:FALLBACK_HEROES[Math.max(0,Math.min(2,(count||1)-1))], enemy:78 };
   }
 
+  // 전투 하늘 단계 5개(새벽·낮·노을·밤·포털) — 본 게임 #battle-sky와 같은 색
+  const SKY_GRADIENTS=['linear-gradient(#4b5b8c,#a993b5 26%,#f1c39e 48%)','linear-gradient(#5fa9dc,#a9d6ec 26%,#efe6cc 48%)','linear-gradient(#56396b,#cf6f58 26%,#f5b462 48%)','linear-gradient(#141c3a,#26345e 26%,#3f5582 48%)','linear-gradient(#35296a,#6f53aa 26%,#bda2e4 48%)'];
   function cleanSrc(src){
     const s=String(src||'').split('?')[0].replace(/^\.\//,'');
     return ASSET_RE.test(s)?s:'';
@@ -39,7 +41,7 @@
     const num=(v,max)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
     const enemy=p.enemy||{};
     return {
-      team, bg:cleanSrc(p.bg), sky:cleanSrc(p.sky),
+      team, bg:cleanSrc(p.bg), skyStage:(Number.isInteger(p.skyStage)&&p.skyStage>=0&&p.skyStage<5)?p.skyStage:null,
       enemy:{ src:cleanSrc(enemy.src), boss:!!enemy.boss },
       boss:p.boss?{ name:String(p.boss.name||'').replace(/[^\w .\-]/g,'').slice(0,24), hp:num(p.boss.hp,9999), max:Math.max(1,num(p.boss.max,9999)) }:null,
       pips:p.pips?{ on:num(p.pips.on,10), max:Math.max(1,num(p.pips.max,10)) }:null,
@@ -52,7 +54,7 @@
 .mrsv-bg{position:absolute;inset:0;background-size:auto 100%;background-repeat:repeat-x;background-position:0 50%;animation:mrsv-scroll 40s linear infinite;z-index:0;}
 .mrsv-stage.paused .mrsv-bg{animation-play-state:paused;}
 @keyframes mrsv-scroll{to{background-position:-1200px 50%;}}
-.mrsv-bg.has-sky{background-size:auto 100%,auto 135%;background-position:0 50%,0 0;animation-name:mrsv-scroll-sky;}
+.mrsv-bg.has-sky{background-size:auto 100%,100% 100%;background-position:0 50%,0 0;animation-name:mrsv-scroll-sky;}
 @keyframes mrsv-scroll-sky{to{background-position:-1200px 50%,0 0;}}
 .mrsv-hero{position:absolute;bottom:8%;height:72%;width:auto;max-width:34%;object-fit:contain;transform:translateX(-50%);z-index:3;pointer-events:none;user-select:none;}
 .mrsv-hero[hidden]{display:none;}
@@ -112,9 +114,10 @@
       lastAt=Date.now();
       overlay(d.paused?'social.spectatePaused':null);
       e.stage.classList.toggle('paused',d.paused);
-      // 땅(투명 하늘) 위에 친구의 현재 하늘을 함께 그림. 하늘이 없으면 예전처럼 땅만
-      if(d.bg) e.bg.style.backgroundImage=d.sky?`url("${d.bg}"),url("${d.sky}")`:`url("${d.bg}")`;
-      e.bg.classList.toggle('has-sky',!!(d.bg&&d.sky));
+      // 땅(투명 하늘) 뒤에 친구의 현재 하늘 단계 색을 깔아 줌. 정보가 없으면 예전처럼 땅만
+      const sky=d.skyStage===null?'':SKY_GRADIENTS[d.skyStage];
+      if(d.bg) e.bg.style.backgroundImage=sky?`url("${d.bg}"),${sky}`:`url("${d.bg}")`;
+      e.bg.classList.toggle('has-sky',!!(d.bg&&sky));
       const W=e.stage.clientWidth||300, H=e.stage.clientHeight||150;
       const form=formation(d.team.length,W,H);
       e.heroes.forEach((img,i)=>{
