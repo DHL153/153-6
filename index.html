@@ -16202,5 +16202,67 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/bg_sk
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<style id="mr-theme-rust">
+/* 2026-10-14 시안: 러스트 라만차 테마 (그림 없이 코드만으로 녹슨 철판·리벳·황동 느낌)
+   끄기: 주소 뒤에 ?theme=off  — 나중에 그림 세트(ui_btn 등)가 오면 이 블록의 배경을 그림으로 교체 */
+:root{
+ --rt-iron:#231b16;--rt-iron2:#2f241d;--rt-iron3:#3b2d23;--rt-rust:#8b4a26;--rt-rust2:#b5642f;
+ --rt-brass:#c9a24a;--rt-brass-hi:#f1d58c;--rt-brass-lo:#6e5120;--rt-cream:#f3e7cf;--rt-dim:#bba88a;
+ --rt-noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .32 0 0 0 0 .16 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+ --rt-stain:radial-gradient(ellipse at 18% 30%,rgba(181,100,47,.22),transparent 55%),radial-gradient(ellipse at 82% 75%,rgba(139,74,38,.2),transparent 60%);
+ --rt-plate:var(--rt-stain),var(--rt-noise),linear-gradient(180deg,var(--rt-iron3),var(--rt-iron) 70%);
+ /* 네 모서리 리벳 (8px 안쪽) */
+ --rt-rivet:radial-gradient(circle,var(--rt-brass-hi) 0 1.6px,var(--rt-brass) 2.2px,var(--rt-brass-lo) 3px,transparent 3.6px);
+ --rt-rivets:var(--rt-rivet) 7px 7px/8px 8px no-repeat,var(--rt-rivet) calc(100% - 7px) 7px/8px 8px no-repeat,var(--rt-rivet) 7px calc(100% - 7px)/8px 8px no-repeat,var(--rt-rivet) calc(100% - 7px) calc(100% - 7px)/8px 8px no-repeat;
+ --rt-rim:inset 0 0 0 1px var(--rt-brass-lo),inset 0 1px 0 1px rgba(241,213,140,.35),inset 0 -2px 0 rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.5);
+}
+/* 바깥 틀 (PC) */
+@media (min-width:700px){
+ html.mr-theme-rust body:not(.mini-window) #app{border:0!important;border-radius:14px!important;box-shadow:0 0 0 3px var(--rt-brass-lo),0 0 0 6px var(--rt-brass),0 0 0 8px var(--rt-brass-lo),0 0 0 14px var(--rt-iron),0 0 0 15px #000,0 20px 60px rgba(0,0,0,.7)!important;}
+ html.mr-theme-rust body{background:var(--rt-noise),radial-gradient(ellipse at 50% 40%,#2a1d14,#0d0907 75%)!important;}
+}
+html.mr-theme-rust body #app{background:var(--rt-noise),#16110d!important;}
+/* 위 머리줄 · 점수줄 · 아래 메뉴: 철판 */
+html.mr-theme-rust body #app #game-brand,html.mr-theme-rust body #app #top-bar,html.mr-theme-rust body #app #bottom-nav,html.mr-theme-rust body #app #collection-subnav{background:var(--rt-plate)!important;border-color:transparent!important;}
+html.mr-theme-rust body #app #top-bar{box-shadow:inset 0 -3px 0 var(--rt-brass-lo),inset 0 -4px 0 rgba(241,213,140,.25),0 3px 6px rgba(0,0,0,.5)!important;position:relative;z-index:3;}
+html.mr-theme-rust body #app #bottom-nav{box-shadow:inset 0 3px 0 var(--rt-brass-lo),inset 0 4px 0 rgba(241,213,140,.25),0 -3px 6px rgba(0,0,0,.5)!important;}
+html.mr-theme-rust body #app #collection-subnav{box-shadow:inset 0 -2px 0 var(--rt-brass-lo)!important;}
+html.mr-theme-rust body #app #main-content,html.mr-theme-rust body #app .view-container,html.mr-theme-rust body #app .collection-page{background-color:transparent!important;}
+/* 버튼: 철판 + 황동 테두리 + 리벳 */
+html.mr-theme-rust body #app .brand-actions button,html.mr-theme-rust body #app .subnav-btn{
+ background:var(--rt-noise),linear-gradient(180deg,#4a382b,#2b2019)!important;
+ border:1px solid var(--rt-brass)!important;border-radius:6px!important;box-shadow:var(--rt-rim)!important;color:var(--rt-cream)!important;text-shadow:0 1px 0 #000;}
+html.mr-theme-rust body #app .brand-actions button:active,html.mr-theme-rust body #app .subnav-btn:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),inset 0 0 0 1px var(--rt-brass-lo)!important;}
+html.mr-theme-rust body #app .subnav-btn.active{
+ background:var(--rt-noise),linear-gradient(180deg,#e2b65a,#a8742c 60%,#7a5220)!important;
+ color:#2a1a0c!important;text-shadow:0 1px 0 rgba(255,235,180,.6);border-color:var(--rt-brass-hi)!important;
+ box-shadow:var(--rt-rim),0 0 10px rgba(226,182,90,.35)!important;}
+html.mr-theme-rust body #app .subnav-btn.active svg{color:#2a1a0c!important;stroke:#2a1a0c!important;}
+/* 아래 메뉴 */
+html.mr-theme-rust body #app #bottom-nav .nav-item{color:var(--rt-dim)!important;}
+html.mr-theme-rust body #app #bottom-nav .nav-item.active{
+ background:var(--rt-noise),linear-gradient(180deg,#5a4130,#33251c)!important;color:var(--rt-brass-hi)!important;
+ border-radius:6px!important;box-shadow:inset 0 0 0 1px var(--rt-brass),inset 0 1px 0 1px rgba(241,213,140,.3),0 0 10px rgba(226,182,90,.25)!important;}
+html.mr-theme-rust body #app #bottom-nav .nav-item.active *{color:var(--rt-brass-hi)!important;}
+/* 판(패널)·카드 */
+html.mr-theme-rust body #app .panel,html.mr-theme-rust body #app .collection-power-card{
+ background:var(--rt-rivets),var(--rt-plate)!important;border:2px solid var(--rt-brass-lo)!important;border-radius:8px!important;
+ box-shadow:inset 0 0 0 1px rgba(241,213,140,.28),inset 0 0 24px rgba(0,0,0,.55),0 3px 8px rgba(0,0,0,.6)!important;}
+html.mr-theme-rust body #app .panel-title{color:var(--rt-brass-hi)!important;border-color:var(--rt-brass-lo)!important;text-shadow:0 1px 0 #000;letter-spacing:.02em;}
+/* 점수 · 재화 글씨 */
+html.mr-theme-rust body #app #top-bar .stat-badge.score{color:var(--rt-cream)!important;}
+html.mr-theme-rust body #app #top-bar .stat-badge.score *{text-shadow:0 2px 0 #000;}
+/* 머지 아래 아이템 줄 */
+html.mr-theme-rust body #app #view-battle #ui-section,html.mr-theme-rust body #app #merge-mini-item-bar{background:var(--rt-plate)!important;border-top:3px solid var(--rt-brass-lo)!important;box-shadow:inset 0 1px 0 rgba(241,213,140,.3)!important;}
+/* 판 안의 작은 버튼(분류·출처·등급 칩) + 머지 아이템 버튼 */
+html.mr-theme-rust body #app .collection-tab,html.mr-theme-rust body #app .codex-source-btn,html.mr-theme-rust body #app .codex-tier-btn,html.mr-theme-rust body #app #view-battle #ui-section .btn-item,html.mr-theme-rust body #app #merge-mini-item-bar .merge-mini-item-btn{
+ background:var(--rt-noise),linear-gradient(180deg,#3e2f24,#241b15)!important;border:1px solid var(--rt-brass-lo)!important;border-radius:6px!important;
+ box-shadow:inset 0 1px 0 rgba(241,213,140,.22),inset 0 -2px 0 rgba(0,0,0,.4)!important;color:var(--rt-cream)!important;}
+html.mr-theme-rust body #app .collection-tab.active,html.mr-theme-rust body #app .codex-source-btn.active,html.mr-theme-rust body #app .codex-tier-btn.active{
+ background:var(--rt-noise),linear-gradient(180deg,#e2b65a,#a8742c 60%,#7a5220)!important;border-color:var(--rt-brass-hi)!important;color:#2a1a0c!important;
+ box-shadow:inset 0 1px 0 rgba(255,240,200,.5),0 0 8px rgba(226,182,90,.35)!important;}
+html.mr-theme-rust body #app .collection-tab.active *,html.mr-theme-rust body #app .codex-source-btn.active *,html.mr-theme-rust body #app .codex-tier-btn.active *{color:#2a1a0c!important;stroke:currentColor;}
+</style>
+<script>(function(){try{if(!/[?&]theme=off\b/.test(location.search))document.documentElement.classList.add('mr-theme-rust');}catch(e){}})();</script>
 </body>
 </html>
