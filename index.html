@@ -16255,5 +16255,97 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<style id="mr-ui-kit-la-mancha">
+/* 2026-10-14: 라만차 UI 그림 세트 (assets/ui/theme/) — 9칸 나누기(border-image)로 버튼·탭·판·띠에 입힘. 끄기: 주소 뒤 ?theme=off */
+:root{
+ --uk-btn:url("assets/ui/theme/ui_btn.webp") 46 50 46 50 fill;
+ --uk-btn-p:url("assets/ui/theme/ui_btn_pressed.webp") 46 50 46 50 fill;
+ --uk-pri:url("assets/ui/theme/ui_btn_primary.webp") 46 50 46 50 fill;
+ --uk-pri-p:url("assets/ui/theme/ui_btn_primary_pressed.webp") 46 50 46 50 fill;
+ --uk-tab:url("assets/ui/theme/ui_tab.webp") 36 40 36 40 fill;
+ --uk-tab-on:url("assets/ui/theme/ui_tab_active.webp") 30 36 30 36 fill;
+ --uk-panel:url("assets/ui/theme/ui_panel.webp") 62 fill;
+ --uk-bar-top:url("assets/ui/theme/ui_bar_top.webp") 14 24 30 24 fill;
+ --uk-bar-bot:url("assets/ui/theme/ui_bar_bottom.webp") 30 24 14 24 fill;
+ --uk-plate:url("assets/ui/theme/ui_plate.webp");
+ --uk-cream:#f6ead2;
+}
+html.mr-uikit body #app .brand-actions button,
+html.mr-uikit body #app .subnav-btn,
+html.mr-uikit body #app #bottom-nav .nav-item,
+html.mr-uikit body #app #view-battle #ui-section .btn-item,
+html.mr-uikit body #app #merge-mini-item-bar .merge-mini-item-btn,
+html.mr-uikit body #app .collection-tab,html.mr-uikit body #app .codex-source-btn,html.mr-uikit body #app .codex-tier-btn,
+html.mr-uikit body .mr-dialog-actions button,
+html.mr-uikit body .mr-starter-foot button,
+html.mr-uikit body #game-startup-screen button,
+html.mr-uikit body #app .panel,html.mr-uikit body #app .collection-power-card,html.mr-uikit body .mr-dialog-box,
+html.mr-uikit body #app #top-bar,html.mr-uikit body #app #bottom-nav,html.mr-uikit body #app #view-battle #ui-section,html.mr-uikit body #app #merge-mini-item-bar{
+ border-style:solid!important;border-color:transparent!important;border-radius:0!important;background-color:transparent!important;background-image:none!important;}
+/* 버튼 (보통 / 눌림) */
+html.mr-uikit body #app .brand-actions button,html.mr-uikit body #app #view-battle #ui-section .btn-item,html.mr-uikit body #app #merge-mini-item-bar .merge-mini-item-btn,
+html.mr-uikit body .mr-dialog-actions button,html.mr-uikit body .mr-starter-foot button{
+ border-width:1px!important;border-image:var(--uk-btn) / 9px 10px 9px 10px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit body #app .brand-actions button:active,html.mr-uikit body #app #view-battle #ui-section .btn-item:active,html.mr-uikit body #app #merge-mini-item-bar .merge-mini-item-btn:active,
+html.mr-uikit body .mr-dialog-actions button:active,html.mr-uikit body .mr-starter-foot button:active{border-image:var(--uk-btn-p) / 9px 10px 9px 10px / 0 stretch!important;}
+html.mr-uikit body #app #view-battle #ui-section .btn-item{border-image-width:12px 13px 12px 13px!important;}
+/* 강조 버튼: 확인 · 다음/시작 */
+html.mr-uikit body .mr-dialog-actions button:last-child,html.mr-uikit body .mr-starter-foot button:last-child,html.mr-uikit body #game-startup-screen button{
+ border-width:1px!important;border-image:var(--uk-pri) / 10px 11px 10px 11px / 0 stretch!important;color:#fff!important;text-shadow:0 1px 2px #5a2400,0 0 6px #7a3300;box-shadow:none!important;}
+html.mr-uikit body .mr-dialog-actions button:last-child:active,html.mr-uikit body .mr-starter-foot button:last-child:active,html.mr-uikit body #game-startup-screen button:active{border-image:var(--uk-pri-p) / 10px 11px 10px 11px / 0 stretch!important;}
+html.mr-uikit body .mr-starter-foot button[disabled],html.mr-uikit body .mr-dialog-actions button[disabled]{filter:grayscale(.8) brightness(.75);}
+/* 탭 (꺼짐 / 켜짐) */
+html.mr-uikit body #app .subnav-btn{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app .subnav-btn.active{border-image:var(--uk-tab-on) / 8px 10px 8px 10px / 0 stretch!important;color:#fff!important;text-shadow:0 1px 2px #001b2c;position:relative;overflow:visible!important;}
+html.mr-uikit body #app .subnav-btn.active svg{color:#fff!important;}
+html.mr-uikit body #app .subnav-btn.active::after{content:"";position:absolute;left:50%;top:-11px;width:20px;height:22px;transform:translateX(-50%);background:url("assets/ui/theme/ui_tab_windmill.webp") center/contain no-repeat;pointer-events:none;z-index:2;}
+html.mr-uikit body #app #collection-subnav{background:var(--uk-plate) center/cover,#14223a!important;border:0!important;box-shadow:inset 0 -2px 0 #6e5120!important;overflow:visible!important;padding-top:12px!important;}
+/* 작은 칩 (도감 분류·출처·등급) */
+html.mr-uikit body #app .collection-tab,html.mr-uikit body #app .codex-source-btn,html.mr-uikit body #app .codex-tier-btn{border-width:1px!important;border-image:var(--uk-btn) / 7px 8px 7px 8px / 0 stretch!important;box-shadow:none!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app .collection-tab.active,html.mr-uikit body #app .codex-source-btn.active,html.mr-uikit body #app .codex-tier-btn.active{border-image:var(--uk-tab-on) / 7px 8px 7px 8px / 0 stretch!important;color:#fff!important;}
+html.mr-uikit body #app .collection-tab.active *,html.mr-uikit body #app .codex-source-btn.active *,html.mr-uikit body #app .codex-tier-btn.active *{color:#fff!important;}
+/* 판 */
+html.mr-uikit body #app .panel,html.mr-uikit body #app .collection-power-card,html.mr-uikit body .mr-dialog-box{
+ border-width:1px!important;border-image:var(--uk-panel) / 22px / 0 stretch!important;box-shadow:0 6px 14px rgba(0,0,0,.55)!important;}
+html.mr-uikit body #app .collection-power-card{border-image-width:16px!important;}
+html.mr-uikit body .mr-dialog-box{border-image-width:26px!important;padding:26px 24px 22px!important;}
+html.mr-uikit body #app .panel-title{color:#f1d58c!important;border-color:#6e5120!important;text-shadow:0 1px 2px #000;}
+/* 위 · 아래 띠 */
+html.mr-uikit body #app #game-brand{background:var(--uk-plate) center/cover,#14223a!important;border:0!important;}
+html.mr-uikit body #app #top-bar{border-width:1px!important;border-image:var(--uk-bar-top) / 4px 10px 9px 10px / 0 stretch!important;box-shadow:0 3px 6px rgba(0,0,0,.5)!important;position:relative;z-index:3;}
+html.mr-uikit body #app #bottom-nav,html.mr-uikit body #app #view-battle #ui-section,html.mr-uikit body #app #merge-mini-item-bar{border-width:1px!important;border-image:var(--uk-bar-bot) / 9px 10px 4px 10px / 0 stretch!important;box-shadow:0 -3px 6px rgba(0,0,0,.45)!important;}
+html.mr-uikit body #app #bottom-nav .nav-item{border:1px solid transparent!important;color:#c9b996!important;}
+html.mr-uikit body #app #bottom-nav .nav-item.active{border-image:var(--uk-tab-on) / 9px 11px 9px 11px / 0 stretch!important;box-shadow:none!important;color:#fff!important;}
+html.mr-uikit body #app #bottom-nav .nav-item.active *{color:#fff!important;}
+/* PC 바깥 틀 (그림 틀이 #app 둘레에 겹쳐 그려짐) */
+html.mr-uikit.uk-framed body #app{border-color:#0d1524!important;border-width:2px!important;border-radius:2px!important;}
+html.mr-uikit.uk-framed body{background:radial-gradient(ellipse at 50% 40%,#1b2a44,#070b14 75%)!important;}
+#mr-app-frame{position:fixed;pointer-events:none;z-index:2147483000;display:none;border-style:solid;border-color:transparent;border-width:42px 48px 43px 48px;
+ border-image:url("assets/ui/theme/ui_frame_main.webp") 106 120 108 120 / 42px 48px 43px 48px / 0 round;}
+#mr-app-frame::after{content:"";position:absolute;left:50%;top:-57px;width:40px;height:34px;transform:translateX(-50%);background:url("assets/ui/theme/ui_frame_windmill.webp") center/contain no-repeat;}
+html.uk-framed #mr-app-frame{display:block;}
+</style>
+<script id="mr-ui-kit-js">
+(function(){
+ try{if(/[?&]theme=off\b/.test(location.search))return;}catch(e){}
+ document.documentElement.classList.add('mr-uikit');
+ // PC 바깥 틀: 틀 안쪽 구멍(0.4배 기준 L17·T18·R17·B19 px) + 8px 틈이 #app 둘레에 오도록 위치. 위아래 여유가 없으면 틀을 숨김
+ const G=8,IN={l:17+G,t:18+G,r:17+G,b:19+G};
+ function place(){
+  const app=document.getElementById('app');let fr=document.getElementById('mr-app-frame');
+  if(!app)return;
+  if(!fr){fr=document.createElement('div');fr.id='mr-app-frame';fr.setAttribute('aria-hidden','true');document.body.appendChild(fr);}
+  const r=app.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
+  const ok=vw>=700&&!document.body.classList.contains('mini-window')&&r.left>=IN.l+30&&r.top>=IN.t+4&&vh-r.bottom>=IN.b+4&&r.height>0;
+  document.documentElement.classList.toggle('uk-framed',ok);
+  if(!ok)return;
+  Object.assign(fr.style,{left:(r.left-IN.l)+'px',top:(r.top-IN.t)+'px',width:(r.width+IN.l+IN.r)+'px',height:(r.height+IN.t+IN.b)+'px'});
+ }
+ let q=false;const sched=()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;place();});};
+ addEventListener('resize',sched);
+ const start=()=>{place();const app=document.getElementById('app');if(app&&typeof ResizeObserver==='function')new ResizeObserver(sched).observe(app);if(typeof MutationObserver==='function')new MutationObserver(sched).observe(document.body,{attributes:true,attributeFilter:['class']});};
+ if(document.readyState==='loading')addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
 </body>
 </html>
