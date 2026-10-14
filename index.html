@@ -3569,7 +3569,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
   <button class="mini-exit-btn" onclick="setMiniMode(false)" aria-label="미니 모드 종료">↗</button>
 </div>
 <div id="board-section">
-<div id="battle-stage"><div id="battle-sky" aria-hidden="true"><i class="on"></i><i></i></div><div id="battle-panorama" aria-hidden="true"><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/></div><div id="skill-cinematic" aria-hidden="true"></div><div id="battle-chain-pop" aria-live="polite"></div>
+<div id="battle-stage"><div id="battle-sky" aria-hidden="true"><div class="sky-grad"><i></i><i></i><i></i><i></i><i></i></div><div class="sky-stars"></div><div class="sky-cel"><i class="cel-sun"></i><i class="cel-moon"></i><i class="cel-portal"></i></div><div class="sky-far" id="battle-sky-far"></div></div><div id="battle-panorama" aria-hidden="true"><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/><img src="assets/art/backgrounds/battle/bg_battle_0001.png" alt=""/></div><div id="skill-cinematic" aria-hidden="true"></div><div id="battle-chain-pop" aria-live="polite"></div>
 <button id="battle-pause-btn" onclick="toggleManualPause()" title="일시정지">⏸</button>
 <img class="hero" id="hero" onerror="handleAssetImageError(this)" onload="handleAssetImageLoad(this)" src="assets/art/battle_characters/battle_char_0001_Idle.png"/>
 <div id="boss-hud">
@@ -6597,6 +6597,7 @@ window.MRRunWalker=(()=>{
         if(!stage || !src) return;
         stage.style.setProperty('--battle-bg-image',`url('${src}')`);
         MR.setPanorama(src);
+        window.MRBattleSky?.setGround(src); // 세계별 먼 실루엣·풍차
     }
 
     // JSON이 file:// 환경에서 fallback으로 전환되거나 확장자가 섞여 있어도
@@ -14940,7 +14941,7 @@ html body #app #steam-shop .steam-cat-head.is-char{color:#e2c6ff;}
     return {
       team,
       bg:V.cleanSrc(document.querySelector('#battle-panorama img')?.getAttribute('src')),
-      sky:V.cleanSrc(window.MRBattleSky?.src()),
+      skyStage:window.MRBattleSky?.stage?.() ?? null,
       enemy:{ src:V.cleanSrc(enemyImg?.getAttribute('src')), boss:stage.dataset.enemyKind==='boss' },
       boss:bossOn?{ name:(document.getElementById('boss-name')?.textContent||'').replace(/[^\w .\-]/g,'').trim().slice(0,24), hp:Number(hpNums[0])||0, max:Number(hpNums[1])||1 }:null,
       pips:(pipsEl && pipsEl.style.display!=='none' && pips.length)?{ on:pipsOn, max:pips.length }:null,
@@ -16127,74 +16128,126 @@ html body #app .count.has-steam{gap:3px!important;padding-right:5px!important;}
 html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--steam,#4ea4ff);box-shadow:0 0 0 1.5px #fff;flex:0 0 auto;}
 </style>
 <style id="mr-battle-sky">
-/* 2026-10-14 전투 배경 2레이어
-   - 하늘 #battle-sky: 공통 5종(새벽·낮·노을·밤·포털), 보스를 잡을 때마다 다음 하늘로 1.8초 겹쳐 바뀜
-   - 땅 #battle-panorama: 위쪽이 투명한 땅 그림, 화면 높이에 맞춰 원본 비율(2:1) 유지 + 좌우 반전 타일 반복
-   - 패럴랙스: 하늘은 땅 속도의 8% + 구름 흐름(초당 4px), 연쇄 가속은 30%만 따라감 (멀미 방지) */
+/* 2026-10-14 전투 배경 레이어 (시안 C: 실루엣 하늘)
+   뒤 → 앞: 하늘색(코드) · 해/달/포털(고정) · 먼 실루엣 + 랜드마크 풍차(땅의 15% 속도) · 땅
+   - 하늘 단계 5개(새벽·낮·노을·밤·포털): 보스를 잡을 때마다 다음 단계, 1.8초에 걸쳐 색·해·달이 바뀜
+   - 해와 달은 아주 멀어서 제자리 (기차 창밖처럼). 포털은 제자리에서 천천히 회전, 풍차 날개는 계속 회전
+   - 실루엣·풍차는 세계별(1~10 러스트 · 11~20 네온 · 21~30 스카이아크). 실루엣 모양은 그림, 색은 하늘 단계에 맞춰 코드가 칠함
+   - 연쇄 가속은 먼 풍경에 30%만 반영 (멀미 방지) */
 #battle-sky{position:absolute;inset:0;z-index:-3;overflow:hidden;pointer-events:none;background:#6fa7dc;transition:filter .1s}
-#battle-sky i{position:absolute;left:0;top:0;height:100%;width:calc(100% + var(--mr-sky-w,400px));background-image:var(--mr-sky-img,none);background-repeat:repeat-x;background-size:var(--mr-sky-w,400px) auto;background-position:0 0;opacity:0;transition:opacity 1.8s ease;animation:mrSkyTravel var(--mr-sky-dur,60s) linear infinite;will-change:transform,opacity}
-#battle-sky i.on{opacity:1}
-@keyframes mrSkyTravel{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-1 * var(--mr-sky-w,400px)),0,0)}}
-#battle-stage.simulation-paused #battle-sky i{animation-play-state:paused}
+#battle-sky>div{position:absolute;inset:0}
+.sky-grad i{position:absolute;inset:0;opacity:0;transition:opacity 1.8s ease}
+.sky-grad i:nth-child(1){background:linear-gradient(#4b5b8c,#a993b5 26%,#f1c39e 48%)}
+.sky-grad i:nth-child(2){background:linear-gradient(#5fa9dc,#a9d6ec 26%,#efe6cc 48%)}
+.sky-grad i:nth-child(3){background:linear-gradient(#56396b,#cf6f58 26%,#f5b462 48%)}
+.sky-grad i:nth-child(4){background:linear-gradient(#141c3a,#26345e 26%,#3f5582 48%)}
+.sky-grad i:nth-child(5){background:linear-gradient(#35296a,#6f53aa 26%,#bda2e4 48%)}
+#battle-stage[data-sky="0"] .sky-grad i:nth-child(1),#battle-stage[data-sky="1"] .sky-grad i:nth-child(2),#battle-stage[data-sky="2"] .sky-grad i:nth-child(3),#battle-stage[data-sky="3"] .sky-grad i:nth-child(4),#battle-stage[data-sky="4"] .sky-grad i:nth-child(5){opacity:1}
+.sky-stars{opacity:0;transition:opacity 1.8s;background:
+  radial-gradient(1.4px 1.4px at 8% 12%,#fff6d0 99%,transparent),radial-gradient(1.2px 1.2px at 19% 30%,#fff6d0 99%,transparent),radial-gradient(1.6px 1.6px at 31% 8%,#fff6d0 99%,transparent),
+  radial-gradient(1.1px 1.1px at 44% 24%,#fff6d0 99%,transparent),radial-gradient(1.5px 1.5px at 55% 6%,#fff6d0 99%,transparent),radial-gradient(1.2px 1.2px at 63% 28%,#fff6d0 99%,transparent),
+  radial-gradient(1.4px 1.4px at 88% 14%,#fff6d0 99%,transparent),radial-gradient(1.1px 1.1px at 95% 32%,#fff6d0 99%,transparent),radial-gradient(1.3px 1.3px at 38% 34%,#fff6d0 99%,transparent)}
+#battle-stage[data-sky="3"] .sky-stars{opacity:.9}
+#battle-stage[data-sky="0"] .sky-stars{opacity:.35}
+/* 해·달·포털: 고정 위치. 해는 단계마다 자리를 옮기며(1.8초) 떠오르고 지는 느낌 */
+.sky-cel i{position:absolute;aspect-ratio:1;background:center/contain no-repeat;opacity:0;transition:opacity 1.8s ease,left 1.8s ease,top 1.8s ease,height 1.8s ease,filter 1.8s ease}
+.sky-cel .cel-sun{background-image:url('assets/art/backgrounds/sky/cel_sun.png');left:24%;top:13%;height:22%}
+.sky-cel .cel-moon{background-image:url('assets/art/backgrounds/sky/cel_moon.png');left:76%;top:7%;height:22%}
+.sky-cel .cel-portal{background-image:url('assets/art/backgrounds/sky/cel_portal.png');left:46%;top:4%;height:30%;animation:mrSkySpin 14s linear infinite}
+#battle-stage[data-sky="0"] .cel-sun{opacity:1;filter:saturate(.75) brightness(1.08)}
+#battle-stage[data-sky="1"] .cel-sun{opacity:1;left:76%;top:6%;height:22%}
+#battle-stage[data-sky="2"] .cel-sun{opacity:1;left:62%;top:10%;height:26%;filter:hue-rotate(-18deg) saturate(1.25)}
+#battle-stage[data-sky="3"] .cel-moon,#battle-stage[data-sky="4"] .cel-portal{opacity:1}
+@keyframes mrSkySpin{to{transform:rotate(360deg)}}
+/* 먼 실루엣 + 랜드마크 풍차: 타일 반복(풍차는 두 칸에 하나), 땅과 같은 방식으로 흐름 */
+#battle-sky .sky-far{inset:0 auto auto 0;height:60%;width:calc(100% + 2 * var(--mr-far-w,350px));display:flex;animation:mrFarTravel var(--mr-far-dur,160s) linear infinite;will-change:transform}
+@keyframes mrFarTravel{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-2 * var(--mr-far-w,350px)),0,0)}}
+.far-tile{position:relative;flex:0 0 var(--mr-far-w,350px);height:100%}
+.far-sil{position:absolute;inset:0;background-color:var(--mr-far-c,#a9bccb);-webkit-mask:var(--mr-far-img) 0 0/100% 100% no-repeat;mask:var(--mr-far-img) 0 0/100% 100% no-repeat;transition:background-color 1.8s ease}
+.far-mill{position:absolute;left:56%;bottom:0;height:64%;aspect-ratio:1/2;filter:var(--mr-mill-tint,none);transition:filter 1.8s ease}
+.far-tile:nth-child(even) .far-mill{display:none}
+.mill-tower{position:absolute;inset:0;background:var(--mr-mill-tower) center bottom/contain no-repeat}
+.mill-blades{position:absolute;left:50%;top:calc(var(--mr-mill-hub,.22) * 100%);width:160%;aspect-ratio:1;background:var(--mr-mill-blades) center/contain no-repeat;animation:mrMillSpin 7s linear infinite}
+@keyframes mrMillSpin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+#battle-stage.battle-action-pause:not([data-rush]) .sky-far,#battle-stage.simulation-paused .sky-far,#battle-stage.simulation-paused .mill-blades,#battle-stage.simulation-paused .cel-portal{animation-play-state:paused}
 #battle-stage.skill-cutscene #battle-sky{filter:grayscale(1) brightness(.22) contrast(1.12)}
+/* 하늘 단계별: 먼 실루엣 색 · 풍차 색조 · 땅 색조 (그림은 낮 조명 기준) */
+#battle-stage[data-sky="0"]{--mr-far-c:#a17d92;--mr-mill-tint:brightness(.82) saturate(.7) hue-rotate(-6deg);--mr-ground-tint:brightness(.86) saturate(.8) hue-rotate(-6deg)}
+#battle-stage[data-sky="1"]{--mr-far-c:#8ea4b8;--mr-mill-tint:saturate(.85) brightness(1.02);--mr-ground-tint:none}
+#battle-stage[data-sky="2"]{--mr-far-c:#9c5550;--mr-mill-tint:sepia(.25) saturate(1.05) brightness(.85) hue-rotate(-10deg);--mr-ground-tint:sepia(.18) saturate(1.12) brightness(.9) hue-rotate(-10deg)}
+#battle-stage[data-sky="3"]{--mr-far-c:#22304f;--mr-mill-tint:brightness(.45) saturate(.6);--mr-ground-tint:brightness(.55) saturate(.7) contrast(1.05)}
+#battle-stage[data-sky="4"]{--mr-far-c:#7660a8;--mr-mill-tint:brightness(.78) saturate(.75) hue-rotate(-18deg);--mr-ground-tint:brightness(.82) saturate(.85) hue-rotate(-18deg)}
 #battle-panorama{width:calc(100% + 2 * var(--mr-ground-w,290px))!important;animation-name:mrGroundTravel!important;animation-duration:var(--mr-ground-dur,24s)!important}
 #battle-panorama img{width:var(--mr-ground-w,290px)!important;flex:0 0 var(--mr-ground-w,290px)!important;object-fit:fill!important;background:none!important;filter:var(--mr-ground-tint,none);transition:filter 1.8s ease}
 @keyframes mrGroundTravel{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-2 * var(--mr-ground-w,290px)),0,0)}}
-/* 하늘에 맞춰 땅 색조 (그림은 낮 조명 기준) */
-#battle-stage[data-sky="0"]{--mr-ground-tint:brightness(.86) saturate(.8) hue-rotate(-6deg)}
-#battle-stage[data-sky="2"]{--mr-ground-tint:sepia(.18) saturate(1.12) brightness(.9) hue-rotate(-10deg)}
-#battle-stage[data-sky="3"]{--mr-ground-tint:brightness(.55) saturate(.7) contrast(1.05)}
-#battle-stage[data-sky="4"]{--mr-ground-tint:brightness(.82) saturate(.85) hue-rotate(-18deg)}
-@media(prefers-reduced-motion:reduce){#battle-sky i,#battle-panorama{animation:none!important}}
-/* 전투 배경 썸네일(컬렉션·뽑기·시작 선택 등): 투명한 하늘 자리에 낮 하늘을 깔아 줌 */
-img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/bg_sky_thumb.png') center/contain no-repeat}
+@media(prefers-reduced-motion:reduce){#battle-sky .sky-far,.mill-blades,.cel-portal,#battle-panorama{animation:none!important}}
+/* 전투 배경 썸네일(컬렉션·뽑기·시작 선택 등): 투명한 하늘 자리에 낮 하늘색을 깔아 줌 (2:1 그림이라 썸네일과 같은 칸에 맞음) */
+img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb_day.png') center/contain no-repeat}
 </style>
 <script id="mr-battle-sky-js">
 (()=>{
-  const SKIES=[1,2,3,4,5].map(n=>`assets/art/backgrounds/sky/bg_sky_000${n}.png`);
-  const SKY_RATIO=1508/887, GROUND_RATIO=2;   // 그림 가로÷세로
-  const SKY_SCALE=1.35;                        // 하늘은 화면 높이의 1.35배 크기, 위쪽 기준
-  const BASE_LOOP_S=44;                        // 예전 배경: 화면 2칸 이동 = 44초 → 같은 체감 속도
-  const SKY_FOLLOW=0.08, SKY_DRIFT=4, SKY_BOOST=0.3;
+  const DIR='assets/art/backgrounds/sky/';
+  // 세계별 먼 실루엣·풍차. hub = 풍차 몸통 그림에서 날개 축의 세로 위치(위에서부터 비율)
+  const WORLDS={
+    rust:{far:'far_rust.png',tower:'mill_rust_tower.png',blades:'mill_rust_blades.png',hub:.228},
+    neon:{far:'far_neon.png',tower:'mill_neon_tower.png',blades:'mill_neon_blades.png',hub:.211},
+    skyarc:{far:'far_skyarc.png',tower:'mill_skyarc_tower.png',blades:'mill_skyarc_blades.png',hub:.228}
+  };
+  const STAGES=5, GROUND_RATIO=2, FAR_RATIO=4, FAR_HEIGHT=.6;  // 실루엣 그림 2048x512 = 4:1, 전투 칸 높이의 60%
+  const BASE_LOOP_S=44;                                       // 예전 배경: 화면 2칸 이동 = 44초 → 같은 체감 속도
+  const FAR_FOLLOW=.15, FAR_BOOST=.3;
   const $=id=>document.getElementById(id);
-  let cur=0, front=0, timer=0;
+  let cur=0, world='', timer=0;
 
+  function worldOf(src){
+    const n=Number((String(src||'').match(/bg_battle_(\d{4})/)||[])[1])||1;
+    return n<=10?'rust':n<=20?'neon':'skyarc';
+  }
+  function setGround(src){
+    const st=$('battle-stage'), w=worldOf(src); if(!st||w===world)return;
+    world=w; const d=WORLDS[w];
+    st.style.setProperty('--mr-far-img',`url('${DIR}${d.far}')`);
+    st.style.setProperty('--mr-mill-tower',`url('${DIR}${d.tower}')`);
+    st.style.setProperty('--mr-mill-blades',`url('${DIR}${d.blades}')`);
+    st.style.setProperty('--mr-mill-hub',String(d.hub));
+  }
   // 크기에 맞춰 타일 폭·속도 계산 (전투 칸 높이가 화면·미니 모드마다 다름)
   function layout(){
-    const st=$('battle-stage'), pano=$('battle-panorama'); if(!st||!pano)return;
+    const st=$('battle-stage'), pano=$('battle-panorama'), far=$('battle-sky-far'); if(!st||!pano||!far)return;
     const w=st.clientWidth, h=st.clientHeight; if(!w||!h)return; // 숨겨진 화면은 건너뜀
-    const gw=Math.max(1,Math.round(h*GROUND_RATIO)), sw=Math.max(1,Math.round(h*SKY_SCALE*SKY_RATIO));
-    const groundPx=w*2/BASE_LOOP_S, skyPx=groundPx*SKY_FOLLOW+SKY_DRIFT;
+    const gw=Math.max(1,Math.round(h*GROUND_RATIO)), fw=Math.max(1,Math.round(h*FAR_HEIGHT*FAR_RATIO));
+    const groundPx=w*2/BASE_LOOP_S;
     st.style.setProperty('--mr-ground-w',gw+'px');
     st.style.setProperty('--mr-ground-dur',(2*gw/groundPx).toFixed(2)+'s');
-    st.style.setProperty('--mr-sky-w',sw+'px');
-    st.style.setProperty('--mr-sky-dur',(sw/skyPx).toFixed(2)+'s');
-    // 화면 너비 + 반전 한 쌍(2칸)만큼 땅 그림이 있어야 끝이 안 보임
-    const imgs=pano.querySelectorAll('img'), need=Math.ceil(w/gw)+2;
-    const src=imgs[0]?.getAttribute('src')||'';
+    st.style.setProperty('--mr-far-w',fw+'px');
+    st.style.setProperty('--mr-far-dur',(2*fw/(groundPx*FAR_FOLLOW)).toFixed(2)+'s');
+    // 화면 너비 + 2칸만큼 그림이 있어야 끝이 안 보임 (먼 풍경은 풍차 주기를 맞추려고 짝수 칸)
+    const imgs=pano.querySelectorAll('img'), need=Math.ceil(w/gw)+2, src=imgs[0]?.getAttribute('src')||'';
     for(let i=imgs.length;i<need;i++){const im=document.createElement('img');im.alt='';if(src)im.src=src;pano.appendChild(im);}
+    let needFar=Math.ceil(w/fw)+2; needFar+=needFar%2;
+    for(let i=far.children.length;i<needFar;i++){
+      const t=document.createElement('div');t.className='far-tile';
+      t.innerHTML='<div class="far-sil"></div><div class="far-mill"><i class="mill-tower"></i><i class="mill-blades"></i></div>';
+      far.appendChild(t);
+    }
   }
-  function layers(){return [...document.querySelectorAll('#battle-sky i')];}
-  function apply(n,instant){
-    const st=$('battle-stage'), ls=layers(); if(!st||ls.length<2)return;
-    const idx=((Math.floor(Number(n)||0)%SKIES.length)+SKIES.length)%SKIES.length;
-    if(st.dataset.sky===String(idx))return;
-    cur=idx; st.dataset.sky=String(idx);
-    const target=instant?ls[front]:ls[1-front];
-    target.style.setProperty('--mr-sky-img',`url('${SKIES[idx]}')`);
-    if(!instant)front=1-front;
-    ls.forEach(l=>l.classList.toggle('on',l===target));
+  function apply(n){
+    const st=$('battle-stage'); if(!st)return;
+    cur=((Math.floor(Number(n)||0)%STAGES)+STAGES)%STAGES;
+    st.dataset.sky=String(cur);
   }
   window.MRBattleSky={
     // n = 이번 판에서 잡은 보스 수 → 하늘 0~4 순환. 처치 컷신이 시작된 뒤 바뀌도록 살짝 늦춤
-    setStage(n,instant){clearTimeout(timer);if(instant)apply(n,true);else timer=setTimeout(()=>apply(n,false),350);},
-    rush(rate){const r=1+(Math.max(1,Number(rate)||1)-1)*SKY_BOOST;layers().forEach(l=>(l.getAnimations?.()||[]).forEach(a=>{try{a.updatePlaybackRate(r);}catch(e){a.playbackRate=r;}}));},
-    src(){return SKIES[cur];},
+    setStage(n,instant){clearTimeout(timer);if(instant)apply(n);else timer=setTimeout(()=>apply(n),350);},
+    rush(rate){const r=1+(Math.max(1,Number(rate)||1)-1)*FAR_BOOST;const far=$('battle-sky-far');(far?.getAnimations?.()||[]).forEach(a=>{try{a.updatePlaybackRate(r);}catch(e){a.playbackRate=r;}});},
+    stage(){return cur;},
+    setGround,
     layout
   };
   function init(){
-    SKIES.forEach(s=>{const im=new Image();im.src=s;}); // 전환 때 깜빡임 방지
-    apply(0,true); layout();
+    Object.values(WORLDS).forEach(d=>[d.far,d.tower,d.blades].forEach(f=>{const im=new Image();im.src=DIR+f;})); // 세계가 바뀔 때 깜빡임 방지
+    setGround(document.querySelector('#battle-panorama img')?.getAttribute('src'));
+    apply(0); layout();
     const st=$('battle-stage');
     if(st&&window.ResizeObserver)new ResizeObserver(()=>layout()).observe(st);
     else window.addEventListener('resize',layout);
