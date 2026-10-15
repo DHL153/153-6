@@ -10783,6 +10783,11 @@ function createSocialDataFoundation(assets, emojis) {
     const MERGE_RING_KEY='mr-merge-ring-test';
     const mergeRingImages={};
     for(const [k,src] of Object.entries(MERGE_RING_SHEETS)){const im=new Image();im.decoding='async';im.src=src;mergeRingImages[k]=im;}
+    // 2026-10-16: R등급 구슬 전용 머지 이펙트 — 황동 톱니 고리 + 빛줄기 + 금속 불꽃 (4×4, 금빛 그대로, 구슬 색은 살짝만)
+    const MERGE_R_BURST=new Image();MERGE_R_BURST.decoding='async';MERGE_R_BURST.src='assets/art/effects/merge/fx_merge_r_burst_0001.webp';
+    const MERGE_R_CELL=2.0, MERGE_R_DURATION=600;
+    function isRareBeadLevel(level){try{const sk=equippedSkins&&equippedSkins[level];return !!sk&&SKINS_TIER_MAP[sk]==='R';}catch(e){return false;}}
+    window.mrIsRareBeadLevel=isRareBeadLevel;
     function mergeRingVariant(){try{return localStorage.getItem(MERGE_RING_KEY)==='solid'?'solid':'dash';}catch(e){return 'dash';}}
     const MERGE_RING_DURATION=480, MERGE_RING_CELL=1.8;
     // 구슬 대표색: 구슬 그림에서 채도 높은 픽셀 위주로 평균 (그림을 못 읽으면 따뜻한 흰색)
@@ -10816,10 +10821,10 @@ function createSocialDataFoundation(assets, emojis) {
     const mergeRingEffects=[];
     let mergeRingRAF=0,mergeRingLast=0;
     function drawMergeRing(fx){
-        const p=Math.min(1,fx.age/MERGE_RING_DURATION);
+        const p=Math.min(1,fx.age/fx.duration);
         const scale=fx.area.clientWidth/CANVAS_WIDTH;
         const point=window.mergeViewPoint?window.mergeViewPoint(fx.body.position.x,fx.body.position.y):fx.body.position;
-        const css=Math.max(8,fx.diameter*scale*MERGE_RING_CELL);
+        const css=Math.max(8,fx.diameter*scale*(fx.rare?MERGE_R_CELL:MERGE_RING_CELL));
         const dpr=Math.min(window.devicePixelRatio||1,2),px=Math.max(8,Math.round(css*dpr));
         const cv=fx.el;if(cv.width!==px){cv.width=cv.height=px;}
         cv.style.setProperty('--rs',css+'px');
@@ -10834,15 +10839,16 @@ function createSocialDataFoundation(assets, emojis) {
         const col=fx.color||beadColorOf(fx.skin);if(col)fx.color=col;
         const c=col||[255,233,200];const mix=.28; // 흰빛을 조금 남겨 밝게
         ctx.globalCompositeOperation='source-atop';
+        if(fx.rare){ctx.globalAlpha=.22;} // R: 금빛 그림을 살리고 구슬 색은 살짝만
         ctx.fillStyle=`rgb(${Math.round(c[0]+(255-c[0])*mix)},${Math.round(c[1]+(255-c[1])*mix)},${Math.round(c[2]+(255-c[2])*mix)})`;
-        ctx.fillRect(0,0,px,px);
+        ctx.fillRect(0,0,px,px);ctx.globalAlpha=1;
     }
     function tickMergeRing(now){
         const dt=mergeRingLast?Math.max(0,now-mergeRingLast):0;mergeRingLast=now;
         for(let i=mergeRingEffects.length-1;i>=0;i--){
             const fx=mergeRingEffects[i];
             if(!globalPause)fx.age+=dt;
-            if(isGameOver||!fx.el.isConnected||fx.age>=MERGE_RING_DURATION||(fx.body.isMerging&&fx.age>60)){fx.el.remove();mergeRingEffects.splice(i,1);continue;}
+            if(isGameOver||!fx.el.isConnected||fx.age>=fx.duration||(fx.body.isMerging&&fx.age>60)){fx.el.remove();mergeRingEffects.splice(i,1);continue;}
             drawMergeRing(fx);
         }
         if(mergeRingEffects.length)mergeRingRAF=requestAnimationFrame(tickMergeRing);else{mergeRingRAF=0;mergeRingLast=0;}
@@ -10853,7 +10859,9 @@ function createSocialDataFoundation(assets, emojis) {
         if(mergeRingEffects.length>=24)mergeRingEffects.shift().el.remove();
         const el=document.createElement('canvas');el.className='merge-ring-fx';el.setAttribute('aria-hidden','true');
         const skin=(equippedSkins&&equippedSkins[level])||'';
-        const fx={el,area,body,level,skin,img:mergeRingImages[mergeRingVariant()],diameter:LEVELS[level].radius*2,age:0,color:beadColorCache.get(skin)||null};
+        const rare=isRareBeadLevel(level);
+        const fx={el,area,body,level,skin,rare,img:rare?MERGE_R_BURST:mergeRingImages[mergeRingVariant()],duration:rare?MERGE_R_DURATION:MERGE_RING_DURATION,
+            diameter:LEVELS[level].radius*2,age:0,color:beadColorCache.get(skin)||null};
         drawMergeRing(fx);area.appendChild(el);mergeRingEffects.push(fx);
         if(!mergeRingRAF){mergeRingLast=performance.now();mergeRingRAF=requestAnimationFrame(tickMergeRing);}
     }
@@ -11584,7 +11592,10 @@ function createSocialDataFoundation(assets, emojis) {
                         const isMax=merge.level>=LEVELS.length-1;
                         const isHigh=!isMax&&merge.level>=5;
                         // Only the normal merge sound climbs the scale; high/max merge sounds keep their natural pitch.
-                        playSfx(isMax?'mergeMax':(isHigh?'mergeHigh':'merge'),{rate:(isMax||isHigh)?1:mergeChainRate(nextChain)});
+                        // 2026-10-16: R등급 구슬은 금속이 울리는 느낌으로 — 높은 머지 소리를 살짝 높게
+                        const isRare=!isMax&&window.mrIsRareBeadLevel?.(merge.level);
+                        if(isRare)playSfx('mergeHigh',{rate:1.15,gain:1.1});
+                        else playSfx(isMax?'mergeMax':(isHigh?'mergeHigh':'merge'),{rate:(isMax||isHigh)?1:mergeChainRate(nextChain)});
                     }
                     runMaxBallLevel=Math.max(runMaxBallLevel,merge.level+1);
                     addMergeScore(merge.level);
@@ -17191,8 +17202,9 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   lastMerge=performance.now();
   if(!shown()||quiet())return;
   const lv=Math.max(0,Number(level)||0);
-  addWind(15+lv*10);pulse(.06+lv*.014);
-  if(lv>=6){colors();sparkle(lv>=9?4:3,'gust');}
+  const rare=!!window.mrIsRareBeadLevel?.(lv);
+  addWind(15+lv*10+(rare?60:0));pulse(.06+lv*.014+(rare?.06:0));
+  if(lv>=6||rare){colors();sparkle(lv>=9?4:3,'gust');} // R등급 구슬 머지도 금빛 반짝이
  };
  // 보스 처치: 세계관 색 큰 바람
  window.mrCrestBoss=function(){
