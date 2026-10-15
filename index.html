@@ -4258,6 +4258,22 @@ window.MRWorld=(()=>{
   img.style.height=h+'%';img.style.top=(93-feet*h)+'%';img.style.left='50%';img.style.translate=(-cx*100)+'% 0';
  }
  // 상세 창 그림 맞춤: 보이는 범위가 칸 높이의 84% 이내, 가로는 중심 기준 양쪽이 칸 안에 (무기 끝은 15%까지 넘쳐도 됨), 발끝은 아래에서 10% 위
+ // 2026-10-16: 보이는 범위를 표 대신 실제 그림에서 바로 잼 (그림을 바꿔도 자동으로 맞음). 표(ART_BOX)는 재는 동안의 임시값
+ const boxCache=new Map();
+ function measureBox(src){
+  if(boxCache.has(src))return boxCache.get(src);
+  const p=new Promise(res=>{const im=new Image();im.onload=()=>{try{
+    const N=160,k=N/Math.max(im.naturalWidth,im.naturalHeight),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,w,h);
+    const d=g.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1,sx=0,n=0;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(d[(y*w+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;sx+=x;n++;}}
+    if(!n)return res(null);
+    // 정사각형 그림 기준 비율로 (fitArt가 정사각형 크기로 그림)
+    const S=Math.max(w,h),ox=(S-w)/2,oy=(S-h)/2,cx=((x0+x1+1)/2+sx/n+.5)/2;
+    res([(x0+ox)/S,(y0+oy)/S,(x1+1+ox)/S,(y1+1+oy)/S,(cx+ox)/S]);
+   }catch(e){res(null);}};im.onerror=()=>res(null);im.src=src;});
+  boxCache.set(src,p);return p;
+ }
  function fitArt(img,[x0,y0,x1,y1,c],hero){
   const W=hero?.clientWidth||0,H=hero?.clientHeight||0;if(!W||!H)return;
   const half=Math.max(c-x0,x1-c,.05),s=Math.min(H*.84/Math.max(.1,y1-y0),W*.48/half*1.15,H*1.5);
@@ -4313,6 +4329,7 @@ window.MRWorld=(()=>{
   const imgs=[...el.querySelectorAll('.mrw-hero img')];imgs.forEach((im,i)=>fitBody(im,slides[i].body));
   // 2026-10-12: 화면에 붙은 뒤 실제 칸 크기로 다시 맞춤 — 캐릭터를 가운데에, 위·아래가 잘리지 않게
   requestAnimationFrame(()=>imgs.forEach((im,i)=>{if(slides[i].box)fitArt(im,slides[i].box,el.querySelector('.mrw-hero'));}));
+  imgs.forEach((im,i)=>measureBox(slides[i].src).then(b=>{if(b&&im.isConnected)requestAnimationFrame(()=>fitArt(im,b,el.querySelector('.mrw-hero')));}));
   let page=0;const go=d=>{if(slides.length<2)return;page=(page+d+slides.length)%slides.length;imgs.forEach((im,i)=>im.hidden=i!==page);
    const pg=el.querySelector('.mrw-page');pg.querySelector('b').textContent=String(page+1);pg.querySelector('.mrw-page-label').textContent=slides[page].label;try{window.MRLocale?.refresh?.(pg);}catch(e){}};
   el.querySelector('.mrw-nav.prev')?.addEventListener('click',()=>go(-1));el.querySelector('.mrw-nav.next')?.addEventListener('click',()=>go(1));
