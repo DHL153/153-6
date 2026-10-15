@@ -3796,7 +3796,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 <div class="settings-wrap">
 
 <div class="settings-group"><div class="settings-title">🖥️ 화면</div>
-<div class="setting-row"><div><div class="setting-name">미니 모드</div><div class="setting-desc">미니 모드 안내</div></div><div class="mini-mode-actions"><button class="mini-mode-choice" id="setting-mini-merge" onclick="setMiniMode(true,'merge')">🔮 머지</button><button class="mini-mode-choice" id="setting-mini-battle" onclick="setMiniMode(true,'battle')">⚔️ 전투</button><button class="mini-mode-choice" id="setting-mini-room" onclick="setMiniMode(true,'room')">🏠 마이룸</button></div></div>
+<div class="setting-row mini-mode-row"><div><div class="setting-name">미니 모드</div></div><div class="mini-mode-actions"><button class="mini-mode-choice" id="setting-mini-merge" onclick="setMiniMode(true,'merge')">🔮 머지</button><button class="mini-mode-choice" id="setting-mini-battle" onclick="setMiniMode(true,'battle')">⚔️ 전투</button><button class="mini-mode-choice" id="setting-mini-room" onclick="setMiniMode(true,'room')">🏠 마이룸</button></div></div>
 <div class="setting-row"><div><div class="setting-name">항상 위에 표시 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">항상 위에 표시</div></div><button class="toggle-switch" id="setting-always-top" onclick="toggleGameSetting('alwaysOnTop')">OFF</button></div>
 <div class="setting-row"><div><div class="setting-name">창 위치 기억 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">종료 전 위치에서 다시 시작</div></div><button class="toggle-switch" id="setting-remember-pos" onclick="toggleGameSetting('rememberWindowPosition')">OFF</button></div>
 <div class="setting-row"><div><div class="setting-name">화면 모서리에 붙이기 <span class="setting-support">Steam 창 연동</span></div><div class="setting-desc">화면 모서리에 붙이기</div></div><button class="toggle-switch" id="setting-snap" onclick="toggleGameSetting('snapToCorner')">OFF</button></div>
@@ -17643,7 +17643,7 @@ html body #app #ui-section .btn-item .cost-label,html body #app #ui-section .btn
    언어를 바꾸거나 화면 크기가 바뀌거나 칸이 새로 보일 때 다시 맞춤 */
 (()=>{
   const SEL=['#ui-section .btn-item .control-name','#ui-section .btn-item .cost-label','#merge-mini-item-bar .mmi-name',
-             '.mrw-name','#view-daily .dg-label','.economy-item .small-count','.sk-used-on'].join(',');
+             '.mrw-name','#view-daily .dg-label','.economy-item .small-count','.sk-used-on','#menu-settings .mini-mode-row .mini-mode-choice'].join(',');
   const MIN_RATIO=.62, seen=new WeakSet(), queue=new Set(); let raf=0;
   function fit(el){
     el.style.removeProperty('font-size');
@@ -17669,5 +17669,23 @@ html body #app #ui-section .btn-item .cost-label,html body #app #ui-section .btn
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(scan,300));else setTimeout(scan,300);
 })();
 </script>
+<style id="mr-mini-mode-row">
+/* 설정 > 미니 모드: 버튼 3개를 같은 너비로 한 줄 정렬 (2026-10-15) */
+#app #menu-settings .setting-row.mini-mode-row{display:flex;flex-direction:column;align-items:stretch;gap:12px;}
+html body #app #menu-settings .setting-row.mini-mode-row>*{flex:none!important;min-height:0!important;height:auto!important;}
+html body #app #menu-settings .mini-mode-row .mini-mode-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,3.4vw,14px)!important;width:100%;flex-wrap:nowrap!important;padding:0 clamp(4px,1.6vw,8px);box-sizing:border-box;}
+html body #app #menu-settings .mini-mode-row .mini-mode-choice{width:100%;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 6px!important;white-space:nowrap!important;line-height:1.15;text-align:center;overflow:hidden;word-break:keep-all;}
+html body #app #menu-settings .mini-mode-row .mini-mode-choice svg{flex:none;}
+/* 글자가 들어갈 자리: 양쪽 장식(◆) 안쪽으로 */
+html body #app #menu-settings .mini-mode-row .mini-mode-choice{padding-left:14px!important;padding-right:14px!important;}
+/* 좁은 화면: 아이콘 위, 글자 아래로 쌓아 긴 언어도 한 줄에 */
+/* 휴대폰 너비에서 단어가 긴 언어(독·러·프·스·포·이·폴)도 같은 방식 */
+@media (max-width:400px){
+html body #app #menu-settings .mini-mode-row .mini-mode-choice{flex-direction:column;gap:2px;min-height:52px!important;padding:6px 11px!important;white-space:normal!important;font-size:11.5px!important;}
+}
+@media (max-width:480px){
+html:lang(de) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(ru) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(fr) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(es) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(pt-BR) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(it) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(pl) body #app #menu-settings .mini-mode-row .mini-mode-choice{flex-direction:column;gap:2px;min-height:52px!important;padding:6px 11px!important;white-space:normal!important;font-size:12px!important;}
+}
+</style>
 </body>
 </html>
