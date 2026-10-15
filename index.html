@@ -3975,6 +3975,7 @@ window.MRBattleFX=(()=>{
   return {x:clamp((r.left+r.width*fx-bounds.left)/bounds.width,hero?.04:.2,hero?.86:.95),y:clamp((r.top+r.height*fy-bounds.top)/bounds.height,.12,.88),s:(tight?r.height:r.height*.8)};
  }
  function add(job){
+  if(window.__mrQuiet)return job.type==='hit'; // 뽑기 결과 창이 열려 있으면 새 전투 이펙트 안 만듦 (피격은 '재생함'으로 알려 예전 대체 이펙트도 막음)
   if(!ctx||!visible())return false;
   jobs.push({...job,elapsed:0});
   // Bound the work even when many merges complete together.
@@ -4742,9 +4743,20 @@ window.MRRunWalker=(()=>{
     // 2026-10-15: BGM은 처음 재생될 때(첫 입력·음소거 해제 포함) 1.5초 동안 서서히 커지며 시작 (페이드 인)
     const BGM_FADE_IN_MS=1500;
     let bgmFadeTimer=0;
+    // 뽑기 결과 창이 열려 있는 동안 BGM을 50%로 낮춤 (0.3초 동안 부드럽게) — 2026-10-16
+    let bgmDuck=1,bgmDuckTimer=0;
+    window.mrSetBgmDuck=function(target){
+        clearInterval(bgmDuckTimer);
+        const from=bgmDuck,t0=performance.now();
+        bgmDuckTimer=setInterval(()=>{
+            const k=Math.min(1,(performance.now()-t0)/300);bgmDuck=from+(target-from)*k;
+            if(bgmAudio&&!bgmAudio.paused&&!bgmFadeTimer)bgmAudio.volume=Math.max(0,Math.min(1,bgmTargetVolume()));
+            if(k>=1){clearInterval(bgmDuckTimer);bgmDuckTimer=0;}
+        },30);
+    };
     function bgmTargetVolume(){
         const volume=value=>Number.isFinite(Number(value))?Math.max(0,Math.min(1,Number(value)/100)):0;
-        return gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0;
+        return (gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0)*bgmDuck;
     }
     function stopBgmFade(){if(bgmFadeTimer){clearInterval(bgmFadeTimer);bgmFadeTimer=0;}}
     function startBgmFade(a){
@@ -4814,6 +4826,8 @@ window.MRRunWalker=(()=>{
         return sfxPool[name];
     }
     function playSfx(name, opts={}) {
+        // 뽑기 결과 창이 열려 있으면 게임 효과음은 끔 — 연출 소리(opts.reveal)와 버튼 소리만 (2026-10-16)
+        if(window.__mrQuiet&&!opts.reveal&&name!=='uiClick')return;
         if(!gameSettings?.sfx||Number(gameSettings.masterVolume)<=0||Number(gameSettings.sfxVolume)<=0) return;
         const now=performance.now(), minGap=Number(opts.minGap ?? (['ballDrop','merge','gold','uiClick'].includes(name)?70:0));
         if(minGap && now-(lastSfxAt[name]||0)<minGap) return;
@@ -10810,6 +10824,7 @@ function createSocialDataFoundation(assets, emojis) {
         if(mergeRingEffects.length)mergeRingRAF=requestAnimationFrame(tickMergeRing);else{mergeRingRAF=0;mergeRingLast=0;}
     }
     function playMergeRing(area,body,level){
+        if(window.__mrQuiet)return; // 뽑기 결과 창이 열려 있으면 머지 이펙트 생략
         if(!beadColorCache.size)warmBeadColors();
         if(mergeRingEffects.length>=24)mergeRingEffects.shift().el.remove();
         const el=document.createElement('canvas');el.className='merge-ring-fx';el.setAttribute('aria-hidden','true');
@@ -13506,7 +13521,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  if(!window.MRFX)window.MRFX={};
  const RANK={C:0,U:1,R:2,E:3,L:4};
  const T=s=>window.MRLocale?.t?.(s)||s;
- const sfx=(n,o)=>{try{window.playSfx?.(n,o||{});}catch(e){}};
+ const sfx=(n,o)=>{try{window.playSfx?.(n,{...(o||{}),reveal:true});}catch(e){}};
  const reduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
  let active=null;
  window.MRFX.reveal=function(opts={}){
@@ -13660,6 +13675,33 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  };
  // NEW dot clears when the collection / codex is opened.
  document.addEventListener('click',e=>{const n=e.target.closest?.('#nav-collection,#collection-subnav-codex');if(n)n.classList.remove('mrfx-has-new');},true);
+})();
+</script>
+<style id="mr-reveal-quiet-style">
+/* 2026-10-16: 뽑기 결과 창이 열려 있는 동안 게임 효과를 가림 (게임 진행·보상은 계속) */
+html.mr-reveal-quiet .mrfx-orb,html.mr-reveal-quiet .mr-frag-plus,html.mr-reveal-quiet .mr-frag-fly,html.mr-reveal-quiet #app .floating-text,
+html.mr-reveal-quiet #mr-battle-fx-canvas,html.mr-reveal-quiet .merge-ring-fx,html.mr-reveal-quiet .merge-sheet-fx,html.mr-reveal-quiet .merge-burst,
+html.mr-reveal-quiet .hit-effect-sprite{visibility:hidden!important;}
+</style>
+<script id="mr-reveal-quiet">
+// 뽑기 결과 창(MRFX.reveal)이 열려 있는 동안 '조용한 모드':
+//  게임은 계속 진행, 새 전투·머지 이펙트와 떠오르는 숫자는 숨김, 게임 효과음 끔(연출 소리만), BGM 50%
+(function(){
+ const isOpen=()=>!!document.querySelector('.mrfx-reveal:not(.mrfx-fly-card)');
+ let quiet=false;
+ function sync(){
+  const now=isOpen();if(now===quiet)return;quiet=now;
+  window.__mrQuiet=now;document.documentElement.classList.toggle('mr-reveal-quiet',now);
+  try{window.mrSetBgmDuck?.(now?.5:1);}catch(e){}
+ }
+ window.mrRevealQuietSync=sync;
+ const start=()=>{
+  const mo=new MutationObserver(sync);
+  mo.observe(document.body,{childList:true});
+  const app=document.getElementById('app');if(app)mo.observe(app,{childList:true});
+  sync();
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
 <style id="mr-daily-claim">
