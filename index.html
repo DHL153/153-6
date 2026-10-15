@@ -17098,6 +17098,50 @@ html.mr-uikit body #app #view-daily .dg-bonus.is-ready .dg-bonus-gift{box-shadow
 .mrw-detail .mrw-step:active{transform:translateY(1px);}
 .mrw-detail .mrw-step-count{font-size:12px;color:#93a3ba;font-variant-numeric:tabular-nums;}
 </style>
+<style id="mr-detail-fit">
+/* 2026-10-15: 캐릭터·배경 상세 창 — 화면 안에 꼭 맞게(위아래 끌기 없음, 그림 칸이 줄어듦) + 1+ UI(황동 테·남색 판·다이아 판 버튼) */
+.mrw-detail{padding:12px!important;touch-action:none;overscroll-behavior:contain;}
+.mrw-detail .mrw-box{overflow:hidden!important;max-height:100%!important;touch-action:none;}
+.mrw-detail:not(.mrw-image) .mrw-hero{flex:1 1 300px!important;height:auto!important;min-height:150px;max-height:320px;}
+.mrw-image .mrw-photo{flex:1 1 auto!important;min-height:0;display:flex;align-items:center;justify-content:center;}
+.mrw-image .mrw-photo img{max-height:100%!important;}
+.mrw-detail .mrw-body{flex:none;gap:11px!important;padding:14px 18px 16px!important;}
+.mrw-detail .mrw-heading{gap:2px!important;}
+.mrw-detail .mrw-title{font-size:12px!important;}
+.mrw-detail .mrw-nm{font-size:23px!important;}
+.mrw-detail dl>div{padding:7px 0!important;font-size:13px!important;}
+.mrw-detail .mrw-slot{min-height:42px!important;}
+.mrw-detail .mrw-step{padding:8px 12px!important;}
+.mrw-detail .mrw-step-row{padding-top:0!important;}
+@media(max-height:700px){.mrw-detail .mrw-body{gap:8px!important;padding:10px 16px 12px!important;}.mrw-detail .mrw-nm{font-size:20px!important;}.mrw-detail dl>div{padding:5px 0!important;}}
+/* ── UI: 황동 테 + 남색 판 ── */
+html.mr-uikit .mrw-detail .mrw-box{border:12px solid transparent!important;border-image:url("assets/ui/theme/ui_tab_rust.webp") 36 40 36 40 / 12px 13px / 0 stretch!important;border-radius:0!important;
+ background:linear-gradient(180deg,#182a46,#111d33)!important;background-clip:padding-box!important;box-shadow:0 22px 60px rgba(0,0,0,.6)!important;}
+html.mr-uikit .mrw-detail .mrw-box::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;
+ background:url("assets/ui/ornament/corner_bl.webp") left bottom/40px auto no-repeat,url("assets/ui/ornament/corner_br.webp") right bottom/40px auto no-repeat;}
+html.mr-uikit .mrw-detail .mrw-hero,html.mr-uikit .mrw-image .mrw-photo{border-radius:0!important;border-bottom:2px solid #c9a35a;box-shadow:0 1px 0 rgba(0,0,0,.6);}
+html.mr-uikit .mrw-detail dl{border-top-color:rgba(201,163,90,.25)!important;}
+html.mr-uikit .mrw-detail dl>div{border-bottom-color:rgba(201,163,90,.18)!important;}
+html.mr-uikit .mrw-detail dt{color:#9fb0c4!important;}
+html.mr-uikit .mrw-detail dd{color:#f3e6c8;}
+html.mr-uikit .mrw-detail .mrw-nav{background:rgba(17,29,51,.85)!important;border:2px solid #c9a35a!important;color:#f3e6c8!important;}
+html.mr-uikit .mrw-detail .mrw-page{border:1px solid rgba(201,163,90,.6);}
+html.mr-uikit .mrw-detail .mrw-x2{right:8px!important;top:8px!important;}
+/* 편성 칸 = 남색 다이아 판, 편성 중 = 산호 판 */
+html.mr-uikit .mrw-detail .mrw-slot,html.mr-uikit .mrw-detail .mrw-acts .mrw-main{border:1px solid transparent!important;border-radius:0!important;background:none!important;
+ border-image:url("assets/ui/ornament/plate_navy.webp") 32 64 32 64 fill / 10px 17px / 0 stretch!important;color:#f3e6c8!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit .mrw-detail .mrw-slot:hover:not(:disabled){filter:brightness(1.15);}
+html.mr-uikit .mrw-detail .mrw-slot:active:not(:disabled),html.mr-uikit .mrw-detail .mrw-acts .mrw-main:active{border-image-source:url("assets/ui/ornament/plate_navy_pressed.webp")!important;}
+html.mr-uikit .mrw-detail .mrw-slot.is-here,html.mr-uikit .mrw-detail .mrw-acts .mrw-main:not(:disabled){border-image-source:url("assets/ui/ornament/plate_coral.webp")!important;color:#fff!important;
+ text-shadow:0 1px 0 #7a2a14,1px 0 0 #7a2a14,-1px 0 0 #7a2a14,0 -1px 0 #7a2a14!important;}
+html.mr-uikit .mrw-detail .mrw-acts .mrw-main:disabled{opacity:.55;}
+html.mr-uikit .mrw-detail .mrw-slot.is-here{opacity:1!important;}
+/* 이전·다음 = 1번 버튼 */
+html.mr-uikit .mrw-detail .mrw-step{border:1px solid transparent!important;border-radius:0!important;background:none!important;
+ border-image:url("assets/ui/theme/ui_btn_rust.webp") 46 50 46 50 fill / 9px 10px / 0 stretch!important;color:#f3e6c8!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit .mrw-detail .mrw-step:active{border-image-source:url("assets/ui/theme/ui_btn_pressed_rust.webp")!important;}
+html.mr-uikit .mrw-detail .mrw-step b{color:#f1d58c!important;}
+</style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
 #mr-starter .mr-review-room{position:relative;overflow:hidden;}
