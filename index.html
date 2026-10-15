@@ -12415,7 +12415,7 @@ function createSocialDataFoundation(assets, emojis) {
 </script>
 <style id="mr-story-style">
 /* 2026-10-15: 스토리 8컷 만화 뷰어 — 게임 UI(1+ 남색·황동 + 손그림 장식)로 통일.
-   배경 = 로딩 화면과 같은 공방(어둡게) · 만화 = 황동 리벳 틀 + 풍차 문장 · 버튼 = 남색/산호 판 · 제목 = 남색 리본 */
+   배경 = 로딩 화면과 같은 공방(어둡게) · 만화 = 황동 리벳 틀 (위 풍차 문장은 2026-10-16 삭제) · 버튼 = 남색/산호 판 · 제목 = 남색 리본 */
 #mr-story{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;box-sizing:border-box;color:#f3e6c8;font-family:inherit;user-select:none;-webkit-user-select:none;isolation:isolate;
  background:#0c0a0b;opacity:0;transition:opacity .32s ease;}
 #mr-story::before{content:"";position:absolute;inset:-4%;z-index:-2;background:url(assets/art/backgrounds/merge/bg_merge_0005.png) center 40%/cover no-repeat;filter:saturate(.85);}
@@ -12455,8 +12455,6 @@ function createSocialDataFoundation(assets, emojis) {
 #mr-story .mr-story-frame{position:relative;flex:none;width:var(--story-w);height:calc((var(--story-w) - 18px) * 3 / 4 + 18px);}
 #mr-story .mr-story-frame::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border:solid transparent;border-width:27px 28px;
  border-image:url(assets/ui/theme/ui_frame_main.webp) 106 120 108 120 / 27px 28px / 0 stretch;filter:drop-shadow(0 10px 22px rgba(0,0,0,.7));}
-#mr-story .mr-story-frame::after{content:"";position:absolute;left:50%;top:-24px;z-index:4;width:150px;height:56px;transform:translateX(-50%);pointer-events:none;
- background:url(assets/ui/ornament/crest_windmill.webp) center bottom/contain no-repeat;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6));}
 #mr-story .mr-story-stage{position:absolute;inset:9px;overflow:hidden;background:#efe9dc;cursor:pointer;box-shadow:inset 0 0 18px rgba(60,40,10,.35);}
 #mr-story .mr-story-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:translateX(14px) scale(1.01);transition:opacity .28s ease,transform .28s ease;}
 #mr-story .mr-story-stage img.is-current{opacity:1;transform:none;}
@@ -12485,7 +12483,6 @@ function createSocialDataFoundation(assets, emojis) {
  #mr-story{padding:10px 10px 14px;gap:10px;--story-w:min(calc(100vw - 20px),calc((100dvh - 170px) * 4 / 3 + 12px));}
  #mr-story .mr-story-frame{height:calc((var(--story-w) - 12px) * 3 / 4 + 12px);}
  #mr-story .mr-story-frame::before{border-width:19px 20px;border-image-width:19px 20px;}
- #mr-story .mr-story-frame::after{width:112px;height:42px;top:-18px;}
  #mr-story .mr-story-stage{inset:6px;}
  #mr-story .mr-story-title{min-width:132px;height:38px;font-size:13px;padding:0 26px 5px;}
  #mr-story button{padding:0 18px;font-size:13px;}
