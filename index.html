@@ -16292,13 +16292,13 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
 <style id="mr-ui-kit-la-mancha">
 /* 2026-10-14: 라만차 UI 그림 세트 (assets/ui/theme/) — 9칸 나누기(border-image)로 버튼·탭·판·띠에 입힘. 끄기: 주소 뒤 ?theme=off */
 :root{
- --uk-btn:url("assets/ui/theme/ui_btn.webp") 46 50 46 50 fill;
- --uk-btn-p:url("assets/ui/theme/ui_btn_pressed.webp") 46 50 46 50 fill;
- --uk-pri:url("assets/ui/theme/ui_btn_primary.webp") 46 50 46 50 fill;
- --uk-pri-p:url("assets/ui/theme/ui_btn_primary_pressed.webp") 46 50 46 50 fill;
- --uk-tab:url("assets/ui/theme/ui_tab.webp") 36 40 36 40 fill;
- --uk-tab-on:url("assets/ui/theme/ui_tab_active.webp") 30 36 30 36 fill;
- --uk-panel:url("assets/ui/theme/ui_panel.webp") 62 fill;
+ --uk-btn:url("assets/ui/theme/ui_btn_rust.webp") 46 50 46 50 fill;
+ --uk-btn-p:url("assets/ui/theme/ui_btn_pressed_rust.webp") 46 50 46 50 fill;
+ --uk-pri:url("assets/ui/theme/ui_btn_primary_rust.webp") 46 50 46 50 fill;
+ --uk-pri-p:url("assets/ui/theme/ui_btn_primary_pressed_rust.webp") 46 50 46 50 fill;
+ --uk-tab:url("assets/ui/theme/ui_tab_rust.webp") 36 40 36 40 fill;
+ --uk-tab-on:url("assets/ui/theme/ui_tab_active_rust.webp") 30 36 30 36 fill;
+ --uk-panel:url("assets/ui/theme/ui_tab_rust.webp") 36 40 36 40 fill; /* 2026-10-15: 장식 판(ui_panel.webp) → 로컬/STEAM 스위치와 같은 얇은 황동 테 */
  --uk-bar-top:url("assets/ui/theme/ui_bar_top.webp") 14 24 30 24 fill;
  --uk-bar-bot:url("assets/ui/theme/ui_bar_bottom.webp") 30 24 14 24 fill;
  --uk-plate:url("assets/ui/theme/ui_plate.webp");
@@ -16742,6 +16742,46 @@ html.mr-uikit body #app #view-daily .dg-back{border-width:1px!important;border-i
 /* 진행 막대: 판 위에서도 보이게 어두운 홈 + 얇은 황동 테 */
 html.mr-uikit body #app #view-daily .dg-total-bar,html.mr-uikit body #app #view-daily .dg-record-bar,html.mr-uikit body #app #view-daily .dg-bar{background:#070d16!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.8),0 0 0 1px rgba(201,162,74,.45)!important;}
 html.mr-uikit body #app #view-daily .dg-back:active{border-image:var(--uk-btn-p) / 8px 9px 8px 9px / 0 stretch!important;}
+</style>
+<style id="mr-ui-kit-switch-frame">
+/* 2026-10-15: 판·카드도 로컬/STEAM 스위치와 같은 얇은 황동 테(ui_tab_rust) — 테 두께를 스위치(9·11px)에 맞춤.
+   버튼·탭 그림은 살짝 녹슨 버전(*_rust.webp, tools/rustify_ui_buttons.py로 생성). 되돌리기: 이 블록 삭제 + :root 변수의 _rust 제거 */
+html.mr-uikit body #app .panel,
+html.mr-uikit body #app #view-shop .btn-gacha,
+html.mr-uikit body #app #view-daily .dg-total,html.mr-uikit body #app #view-daily .dg-bonus{border-image-width:9px 11px 9px 11px!important;}
+html.mr-uikit body #app .collection-power-card,
+html.mr-uikit body #app #view-daily .dg-mission,html.mr-uikit body #app #view-daily .dg-record{border-image-width:8px 10px 8px 10px!important;}
+html.mr-uikit body .mr-dialog-box{border-image-width:11px 13px 11px 13px!important;padding:20px 20px 18px!important;}
+</style>
+<style id="mr-ui-kit-menu-social">
+/* 2026-10-15: 메뉴(기록·설정·조작)·소셜·전투 일시정지에도 라만차 UI 그림 세트
+   큰 칸 = 스위치와 같은 얇은 황동 테 / 기간·미니 모드 고르기 = 버튼(켜짐은 켜진 탭) / 실행 버튼 = 녹슨 버튼 / 강조(방 만들기) = 강조 버튼 */
+html.mr-uikit body #app .score-hero-card,html.mr-uikit body #app .rank-card,html.mr-uikit body #app .settings-group,html.mr-uikit body #app .info-note,
+html.mr-uikit body #app .social-card,
+html.mr-uikit body #app .period-btn,html.mr-uikit body #app .mini-mode-choice,html.mr-uikit body #app .setting-action,html.mr-uikit body #app .setting-select,
+html.mr-uikit body #app .mr-rebind-reset,html.mr-uikit body #app .social-btn,html.mr-uikit body #app .social-input,html.mr-uikit body #app #battle-pause-btn{
+ border-style:solid!important;border-color:transparent!important;border-radius:0!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;}
+/* 큰 칸 */
+html.mr-uikit body #app .score-hero-card,html.mr-uikit body #app .settings-group,html.mr-uikit body #app .social-card{
+ border-width:1px!important;border-image:var(--uk-panel) / 9px 11px 9px 11px / 0 stretch!important;box-shadow:0 5px 12px rgba(0,0,0,.5)!important;}
+html.mr-uikit body #app .rank-card,html.mr-uikit body #app .info-note{border-width:1px!important;border-image:var(--uk-tab) / 8px 10px 8px 10px / 0 stretch!important;}
+html.mr-uikit body #app .rank-card.me{box-shadow:0 0 12px rgba(241,190,90,.25)!important;}
+/* 고르기 버튼 (보통 / 켜짐) */
+html.mr-uikit body #app .period-btn,html.mr-uikit body #app .mini-mode-choice{border-width:1px!important;border-image:var(--uk-btn) / 8px 9px 8px 9px / 0 stretch!important;color:var(--uk-cream)!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit body #app .period-btn.active,html.mr-uikit body #app .mini-mode-choice.active{border-image:var(--uk-tab-on) / 8px 10px 8px 10px / 0 stretch!important;color:#fff!important;text-shadow:0 1px 2px #001b2c;}
+html.mr-uikit body #app .period-btn.active *,html.mr-uikit body #app .mini-mode-choice.active *{color:#fff!important;}
+/* 실행 버튼 */
+html.mr-uikit body #app .setting-action,html.mr-uikit body #app .mr-rebind-reset,html.mr-uikit body #app .social-btn,html.mr-uikit body #app #battle-pause-btn{
+ border-width:1px!important;border-image:var(--uk-btn) / 9px 10px 9px 10px / 0 stretch!important;color:var(--uk-cream)!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit body #app .setting-action:active,html.mr-uikit body #app .mr-rebind-reset:active,html.mr-uikit body #app .social-btn:active,html.mr-uikit body #app #battle-pause-btn:active{border-image:var(--uk-btn-p) / 9px 10px 9px 10px / 0 stretch!important;}
+html.mr-uikit body #app #battle-pause-btn{border-image-width:7px 8px 7px 8px!important;}
+html.mr-uikit body #app .setting-action.danger{color:#ffb4a8!important;}
+html.mr-uikit body #app .social-btn.primary{border-image:var(--uk-pri) / 10px 11px 10px 11px / 0 stretch!important;color:#fff!important;text-shadow:0 1px 2px #5a2400,0 0 6px #7a3300;}
+html.mr-uikit body #app .social-btn.primary:active{border-image:var(--uk-pri-p) / 10px 11px 10px 11px / 0 stretch!important;}
+html.mr-uikit body #app .social-btn:disabled,html.mr-uikit body #app .setting-action:disabled{filter:grayscale(.8) brightness(.75);}
+/* 입력칸 · 고르기 상자 = 어두운 탭 판 */
+html.mr-uikit body #app .social-input,html.mr-uikit body #app .setting-select{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;color:var(--uk-cream)!important;}
+html.mr-uikit body #app .setting-select option{background:#14223a;color:var(--uk-cream);}
 </style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
