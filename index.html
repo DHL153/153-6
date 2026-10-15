@@ -16783,6 +16783,11 @@ html.mr-uikit body #app .social-btn:disabled,html.mr-uikit body #app .setting-ac
 html.mr-uikit body #app .social-input,html.mr-uikit body #app .setting-select{border-width:1px!important;border-image:var(--uk-tab) / 8px 9px 8px 9px / 0 stretch!important;color:var(--uk-cream)!important;}
 html.mr-uikit body #app .setting-select option{background:#14223a;color:var(--uk-cream);}
 </style>
+<style id="mr-ui-kit-topbar-thin">
+/* 2026-10-15: 위 점수줄 = 시안 B (옆 기둥·리벳 띠 없이 위아래 가는 황동 선 + 어두운 남색 판). 예전 두꺼운 띠(ui_bar_top)로 되돌리려면 이 블록 삭제 */
+html.mr-uikit body #app div#top-bar#top-bar{border-image:none!important;border-width:0!important;background:linear-gradient(180deg,#1a2a44,#111c30)!important;
+ box-shadow:inset 0 2px 0 #b8893a,inset 0 3px 0 rgba(0,0,0,.5),inset 0 -2px 0 #b8893a,inset 0 -3px 0 rgba(0,0,0,.5),0 3px 6px rgba(0,0,0,.5)!important;}
+</style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
 #mr-starter .mr-review-room{position:relative;overflow:hidden;}
