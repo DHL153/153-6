@@ -4710,17 +4710,37 @@ window.MRRunWalker=(()=>{
         }
         return bgmAudio;
     }
+    // 2026-10-15: BGM은 처음 재생될 때(첫 입력·음소거 해제 포함) 1.5초 동안 서서히 커지며 시작 (페이드 인)
+    const BGM_FADE_IN_MS=1500;
+    let bgmFadeTimer=0;
+    function bgmTargetVolume(){
+        const volume=value=>Number.isFinite(Number(value))?Math.max(0,Math.min(1,Number(value)/100)):0;
+        return gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0;
+    }
+    function stopBgmFade(){if(bgmFadeTimer){clearInterval(bgmFadeTimer);bgmFadeTimer=0;}}
+    function startBgmFade(a){
+        stopBgmFade();
+        const t0=performance.now();
+        a.volume=0;
+        // 매 틱마다 현재 설정값을 다시 읽어서, 페이드 중에 볼륨을 바꿔도 튀지 않고 그 값으로 이어짐
+        bgmFadeTimer=setInterval(()=>{
+            const k=Math.min(1,(performance.now()-t0)/BGM_FADE_IN_MS);
+            a.volume=Math.max(0,Math.min(1,bgmTargetVolume()*k*k)); // 귀에 자연스럽게: 처음엔 천천히, 뒤로 갈수록 빠르게
+            if(k>=1)stopBgmFade();
+        },30);
+    }
     function syncBgm(){
         stopMutedSfx();
         if(!audioUnlocked)return;
         const a=getBgmAudio();
-        const volume=value=>Number.isFinite(Number(value))?Math.max(0,Math.min(1,Number(value)/100)):0;
-        a.volume=gameSettings.bgm?volume(gameSettings.masterVolume)*volume(gameSettings.bgmVolume):0;
-        if(a.volume===0){a.pause();return;}
-        if(!a.paused||bgmPlayPending)return;
+        const target=bgmTargetVolume();
+        if(target===0){stopBgmFade();a.volume=0;a.pause();return;}
+        if(!a.paused){if(!bgmFadeTimer)a.volume=target;return;}
+        if(bgmPlayPending)return;
         bgmPlayPending=true;
+        a.volume=0;
         try{
-            Promise.resolve(a.play()).catch(error=>{
+            Promise.resolve(a.play()).then(()=>startBgmFade(a)).catch(error=>{
                 if(error?.name!=='NotAllowedError'&&error?.name!=='AbortError')console.warn('BGM playback:',error);
             }).finally(()=>{bgmPlayPending=false;});
         }catch(error){bgmPlayPending=false;console.warn('BGM playback:',error);}
