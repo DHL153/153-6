@@ -22,7 +22,8 @@
       "portrait": "assets/art/characters/char_0001.png",
       "defaultOwned": true,
       "gachaEnabled": true,
-      "linkedCharacter": "char_0001"
+      "linkedCharacter": "char_0001",
+      "world": "rust"
     },
     {
       "id": "battle_char_0002",
@@ -45,7 +46,8 @@
       "portrait": "assets/art/characters/char_0002.png",
       "defaultOwned": false,
       "gachaEnabled": true,
-      "linkedCharacter": "char_0002"
+      "linkedCharacter": "char_0002",
+      "world": "rust"
     },
     {
       "id": "battle_char_0003",
@@ -68,7 +70,8 @@
       "portrait": "assets/art/characters/char_0003.png",
       "defaultOwned": false,
       "gachaEnabled": true,
-      "linkedCharacter": "char_0003"
+      "linkedCharacter": "char_0003",
+      "world": "rust"
     },
     {
       "id": "battle_char_0004",
@@ -91,7 +94,8 @@
       "portrait": "assets/art/characters/char_0004.png",
       "defaultOwned": false,
       "gachaEnabled": true,
-      "linkedCharacter": "char_0004"
+      "linkedCharacter": "char_0004",
+      "world": "rust"
     },
     {
       "id": "battle_char_0005",
@@ -114,7 +118,8 @@
       "portrait": "assets/art/characters/char_0005.png",
       "defaultOwned": false,
       "gachaEnabled": true,
-      "linkedCharacter": "char_0005"
+      "linkedCharacter": "char_0005",
+      "world": "rust"
     }
   ]
 }

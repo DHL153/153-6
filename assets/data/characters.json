@@ -9,7 +9,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0001.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0002",
@@ -19,7 +20,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0002.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0003",
@@ -29,7 +31,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0003.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0004",
@@ -39,7 +42,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0004.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0005",
@@ -49,7 +53,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0005.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0006",
@@ -59,7 +64,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0006.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0007",
@@ -69,7 +75,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0007.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0008",
@@ -79,7 +86,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0008.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0009",
@@ -89,7 +97,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0009.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0010",
@@ -99,7 +108,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0010.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "rust"
     },
     {
       "id": "char_0011",
@@ -109,7 +119,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0011.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0012",
@@ -119,7 +130,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0012.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0013",
@@ -129,7 +141,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0013.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0014",
@@ -139,7 +152,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0014.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0015",
@@ -149,7 +163,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0015.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0016",
@@ -159,7 +174,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0016.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0017",
@@ -169,7 +185,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0017.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0018",
@@ -179,7 +196,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0018.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0019",
@@ -189,7 +207,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0019.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0020",
@@ -199,7 +218,8 @@
       "tier": "R",
       "path": "assets/art/characters/char_0020.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "neon"
     },
     {
       "id": "char_0021",
@@ -209,7 +229,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0021.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0022",
@@ -219,7 +240,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0022.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0023",
@@ -229,7 +251,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0023.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0024",
@@ -239,7 +262,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0024.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0025",
@@ -249,7 +273,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0025.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0026",
@@ -259,7 +284,8 @@
       "tier": "E",
       "path": "assets/art/characters/char_0026.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0027",
@@ -269,7 +295,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0027.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0028",
@@ -279,7 +306,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0028.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0029",
@@ -289,7 +317,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0029.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     },
     {
       "id": "char_0030",
@@ -299,7 +328,8 @@
       "tier": "U",
       "path": "assets/art/characters/char_0030.png",
       "defaultOwned": false,
-      "gachaEnabled": true
+      "gachaEnabled": true,
+      "world": "skyarc"
     }
   ]
 }

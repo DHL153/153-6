@@ -11,7 +11,8 @@
       "defaultOwned": true,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_battle_0002",
@@ -23,7 +24,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_battle_0003",
@@ -35,7 +37,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_battle_0004",
@@ -47,7 +50,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0001",
@@ -59,7 +63,8 @@
       "defaultOwned": true,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0002",
@@ -71,7 +76,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0003",
@@ -83,7 +89,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0004",
@@ -95,7 +102,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0005",
@@ -107,7 +115,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0006",
@@ -119,7 +128,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0007",
@@ -131,7 +141,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0008",
@@ -143,7 +154,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0009",
@@ -155,7 +167,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0010",
@@ -167,7 +180,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_lobby_0011",
@@ -179,7 +193,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0012",
@@ -191,7 +206,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0013",
@@ -203,7 +219,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0014",
@@ -215,7 +232,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0015",
@@ -227,7 +245,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0016",
@@ -239,7 +258,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0017",
@@ -251,7 +271,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0018",
@@ -263,7 +284,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0019",
@@ -275,7 +297,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0020",
@@ -287,7 +310,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_lobby_0021",
@@ -299,7 +323,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0022",
@@ -311,7 +336,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0023",
@@ -323,7 +349,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0024",
@@ -335,7 +362,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0025",
@@ -347,7 +375,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0026",
@@ -359,7 +388,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0027",
@@ -371,7 +401,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0028",
@@ -383,7 +414,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0029",
@@ -395,7 +427,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_lobby_0030",
@@ -407,7 +440,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_merge_0001",
@@ -419,7 +453,8 @@
       "defaultOwned": true,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_merge_0002",
@@ -431,7 +466,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_merge_0003",
@@ -443,7 +479,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_merge_0004",
@@ -455,7 +492,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_merge_0005",
@@ -467,7 +505,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "rust"
     },
     {
       "id": "bg_merge_0006",
@@ -479,7 +518,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_merge_0007",
@@ -491,7 +531,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_merge_0008",
@@ -503,7 +544,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_merge_0009",
@@ -515,7 +557,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_merge_0010",
@@ -527,7 +570,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "neon"
     },
     {
       "id": "bg_merge_0011",
@@ -539,7 +583,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_merge_0012",
@@ -551,7 +596,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_merge_0013",
@@ -563,7 +609,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_merge_0014",
@@ -575,7 +622,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     },
     {
       "id": "bg_merge_0015",
@@ -587,7 +635,8 @@
       "defaultOwned": false,
       "gachaEnabled": true,
       "focusX": 50,
-      "focusY": 50
+      "focusY": 50,
+      "world": "skyarc"
     }
   ]
 }
