@@ -155,15 +155,6 @@
       "defaultLevel": null
     },
     {
-      "id": "bead_0018",
-      "name": "",
-      "tier": "R",
-      "path": "assets/art/beads/bead_0018.png",
-      "smile": "assets/art/beads/bead_0018_smile.png",
-      "defaultOwned": false,
-      "defaultLevel": null
-    },
-    {
       "id": "bead_0020",
       "name": "",
       "tier": "R",
