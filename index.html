@@ -3347,7 +3347,8 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
   bladeAngle=(bladeAngle+spd*dt/1000)%360;
   if(blades){blades.style.transform='rotate('+bladeAngle.toFixed(2)+'deg)';blades.style.filter=p>.55?'blur('+((p-.55)*2.2).toFixed(2)+'px)':'';}
   if(stage)stage.style.setProperty('--glow',(.25+.75*p).toFixed(3));
-  if(!entering&&screen.style.display!=='none'&&t>=nextSpawn){spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.6);}
+  if(!entering&&screen.style.display!=='none'&&screen.dataset.phase!=='logo'&&t>=nextSpawn){// 첫 실행 로고 단계는 구슬 없이 로고·날개만 (2026-10-15)
+spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.6);}
   requestAnimationFrame(portalLoop);
  }
  if(!reduceMotion)requestAnimationFrame(portalLoop);
@@ -10975,7 +10976,9 @@ function createSocialDataFoundation(assets, emojis) {
         if(startupLanguageChosen())return waitForStartupLanguage();
         const screen=document.getElementById('game-startup-screen');
         if(screen){screen.style.display='flex';screen.dataset.phase='logo';}
-        const hold=new Promise(r=>setTimeout(r,matchMedia('(prefers-reduced-motion:reduce)').matches?300:1400));
+        // 로고는 1.8초 멈춤(구슬 없이 날개만). 그동안 만화 그림과 BGM 파일을 미리 받아 둔다 — 첫 클릭 뒤 BGM이 늦게 나오던 문제
+        const hold=new Promise(r=>setTimeout(r,matchMedia('(prefers-reduced-motion:reduce)').matches?300:1800));
+        try{getBgmAudio().load();}catch(e){}
         if(window.MRStory){
             await Promise.all([hold,Promise.race([window.MRStory.preload(),new Promise(r=>setTimeout(r,8000))])]);
             try{await window.MRStory.play({mode:'first'});}catch(e){console.warn('Story intro:',e);}
@@ -12556,6 +12559,8 @@ function createSocialDataFoundation(assets, emojis) {
    const prev=()=>show(idx-1,-1);
    function onKey(e){
     if(e.ctrlKey||e.metaKey||e.altKey)return;
+    // 아래에서 stopPropagation 하므로 window의 소리 잠금 해제(keydown)가 안 불림 → 여기서 직접 풀어 줌
+    try{if(typeof unlockGameAudio==='function')unlockGameAudio();}catch(err){}
     const c=e.code;
     if(c==='ArrowRight'||c==='Space'||c==='Enter'||c==='NumpadEnter'||c==='KeyD'){e.preventDefault();e.stopPropagation();next();}
     else if(c==='ArrowLeft'||c==='Backspace'||c==='KeyA'){e.preventDefault();e.stopPropagation();prev();}
