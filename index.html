@@ -6452,12 +6452,13 @@ window.MRRunWalker=(()=>{
         {category:'character', prefix:'character_emoji_',  count:0},   // 전투 캐릭터 이모지 (추가 예정)
         {category:'animal',    prefix:'myroom_animal_',    count:10},
         {category:'plant',     prefix:'myroom_plant_',     count:10},
-        {category:'food',      prefix:'myroom_food_',      count:10},
+        {category:'food',      prefix:'myroom_food_',      count:10, removed:[5,6,7,8]},   // 2026-10-16: 3D 각도(위에서 본 접시·상자) 4종 삭제
         {category:'decor',     prefix:'myroom_decor_',     count:10},
-        {category:'game',      prefix:'myroom_game_',      count:10}
+        {category:'game',      prefix:'myroom_game_',      count:10, removed:[4,7]}        // 2026-10-16: 3D 각도(보물상자·마법서) 2종 삭제
     ];
-    const EMOJI_CATALOG = EMOJI_SETS.flatMap(set=>Array.from({length:set.count},(_,i)=>{
-        const id=set.prefix+String(i+1).padStart(4,'0');
+    // removed: 삭제한 번호. 그 번호는 다시 쓰지 않고(세이브 보호) 목록에서만 뺀다 — 은퇴 ID는 RETIRED_IDS에도 추가
+    const EMOJI_CATALOG = EMOJI_SETS.flatMap(set=>Array.from({length:set.count},(_,i)=>i+1).filter(n=>!(set.removed||[]).includes(n)).map(n=>{
+        const id=set.prefix+String(n).padStart(4,'0');
         return {id,symbol:id,tier:'C',category:set.category,path:EMOJI_ART_DIR+id+'.png'};
     })).map((e,referenceOrder)=>({...e,referenceOrder}));
     const EMOJI_META_BY_SYMBOL = Object.fromEntries(EMOJI_CATALOG.map(e=>[e.symbol,e]));
@@ -7139,7 +7140,9 @@ function createSocialDataFoundation(assets, emojis) {
         'bead_0018','bead_0019','bead_0021','bead_0022',
         // 2026-10-14 PR #83: 전투 배경을 하늘·땅 30종으로 교체하며 0031~0032 삭제 (0001~0030은 새 그림으로 다시 사용)
         //   빠뜨려서 예전 세이브가 통째로 거부되고 새로고침마다 시작 선택창이 뜨던 문제 수정
-        'bg_battle_0031','bg_battle_0032'
+        'bg_battle_0031','bg_battle_0032',
+        // 2026-10-16: 3D 각도가 마이룸과 어울리지 않는 이모지 6종 삭제 (피자·스파게티·초콜릿 상자·통닭·보물상자·마법서)
+        'myroom_food_0005','myroom_food_0006','myroom_food_0007','myroom_food_0008','myroom_game_0004','myroom_game_0007'
     ]);
     // 2026-10-07: 유니코드 이모지 카탈로그(emoji_0002~1278, reference_*) 전체를 이미지 이모지로 교체하며 은퇴
     const RETIRED_ID_PATTERNS=[/^emoji_\d{4}$/,/^reference_(face|object|travel)_\d+$/,/^myroom_(furniture|face)_\d{4}$/]; // 2026-10-14: 가구·얼굴 꾸미기 이모지 삭제
