@@ -3456,9 +3456,12 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
    <b id="daily-earned" data-no-i18n>0</b><span id="daily-earned-max" class="dg-total-max" data-no-i18n>/ 185</span>
    <div class="dg-total-bar" aria-hidden="true"><i id="daily-earned-bar"></i></div>
   </section>
-  <div class="dg-missions" id="daily-mission-cards"></div>
-  <div class="dg-bonus" id="daily-all-clear"></div>
-  <div class="dg-records" id="daily-record-cards"></div>
+  <section class="dg-sec dg-sec-grow"><h2 class="dg-sec-h" data-i18n="daily.sec.missions">오늘의 미션</h2>
+  <div class="dg-missions" id="daily-mission-cards"></div></section>
+  <section class="dg-sec"><h2 class="dg-sec-h" data-i18n="daily.sec.bonus">3개 모두 달성 보너스</h2>
+  <div class="dg-bonus" id="daily-all-clear"></div></section>
+  <section class="dg-sec"><h2 class="dg-sec-h" data-i18n="daily.sec.records">최고 기록 갱신 보상</h2>
+  <div class="dg-records" id="daily-record-cards"></div></section>
  </div>
 </div>
 
@@ -11665,6 +11668,48 @@ function createSocialDataFoundation(assets, emojis) {
 
 <script id="mr-i18n-keys" type="application/json">
 {
+ "daily.sec.missions": {
+   "ko": "오늘의 미션",
+   "en": "Today's missions",
+   "ja": "今日のミッション",
+   "zh-CN": "今日任务",
+   "zh-TW": "今日任務",
+   "es": "Misiones de hoy",
+   "pt-BR": "Missões de hoje",
+   "fr": "Missions du jour",
+   "ru": "Задания на сегодня",
+   "it": "Missioni di oggi",
+   "pl": "Dzisiejsze misje",
+   "de": "Heutige Missionen"
+ },
+ "daily.sec.bonus": {
+   "ko": "3개 모두 달성 보너스",
+   "en": "Clear-all-3 bonus",
+   "ja": "3つすべて達成ボーナス",
+   "zh-CN": "完成全部3项奖励",
+   "zh-TW": "完成全部3項獎勵",
+   "es": "Bonus por completar las 3",
+   "pt-BR": "Bônus por completar as 3",
+   "fr": "Bonus des 3 missions",
+   "ru": "Бонус за все 3",
+   "it": "Bonus per tutte e 3",
+   "pl": "Bonus za wszystkie 3",
+   "de": "Bonus für alle 3"
+ },
+ "daily.sec.records": {
+   "ko": "최고 기록 갱신 보상",
+   "en": "New best score rewards",
+   "ja": "最高記録更新の報酬",
+   "zh-CN": "刷新最高纪录奖励",
+   "zh-TW": "刷新最高紀錄獎勵",
+   "es": "Recompensas por nuevo récord",
+   "pt-BR": "Recompensas por novo recorde",
+   "fr": "Récompenses de nouveau record",
+   "ru": "Награды за новый рекорд",
+   "it": "Ricompense per nuovo record",
+   "pl": "Nagrody za nowy rekord",
+   "de": "Belohnungen für neue Bestwerte"
+ },
  "daily.title": {
   "ko": "오늘의 목표",
   "en": "Today's goals",
@@ -17213,6 +17258,21 @@ html.mr-uikit body #app #view-shop #daily-shop-link{border-image:url("assets/ui/
 <style id="mr-cutin-no-line">
 /* 2026-10-14: 컷인 때 전투 화면 위·아래에 생기던 민트색 줄(컷인 상자 테두리) 제거 */
 html body #app #skill-cinematic,html body #app #battle-stage #skill-cinematic.on,html body #app #battle-stage[data-team-skill="on"] #skill-cinematic{border-top-color:transparent!important;border-bottom-color:transparent!important;border-top-width:0!important;border-bottom-width:0!important;}
+</style>
+<style id="mr-daily-sections">
+/* 2026-10-15: 오늘의 목표 B안 — 구역마다 작은 제목(황동 선) + 넉넉한 간격, 화면 높이를 채워 한 페이지에 보이게.
+   미션 구역이 남는 높이를 받아 가운데로, 구역 사이의 예전 구분선은 제목 선으로 대신 */
+#app #view-daily .dg-page{flex:1 0 auto;width:100%;box-sizing:border-box;min-height:100%;}
+html.mr-uikit body #app #view-daily .dg-page{gap:22px!important;padding:14px 14px 20px!important;}
+#app #view-daily .dg-sec{display:flex;flex-direction:column;gap:10px;min-width:0;}
+#app #view-daily .dg-sec-grow{flex:1;justify-content:center;}
+#app #view-daily .dg-sec-h{display:flex;align-items:center;gap:8px;margin:0;font-size:12px;line-height:1.3;font-weight:800;letter-spacing:.06em;color:#d8b86e;}
+#app #view-daily .dg-sec-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(201,163,90,.45),rgba(201,163,90,0));}
+html.mr-uikit body #app #view-daily .dg-bonus,html.mr-uikit body #app #view-daily .dg-records{border-top:0!important;padding-top:4px!important;}
+html.mr-uikit body #app #view-daily .dg-ring{width:68px!important;height:68px!important;}
+html.mr-uikit body #app #view-daily .dg-mission{padding:10px 2px 8px!important;gap:7px!important;}
+/* 짧은 화면(작은 휴대폰): 간격·원을 줄여 한 페이지 유지 */
+@media(max-height:700px){html.mr-uikit body #app #view-daily .dg-page{gap:10px!important;padding:10px 12px 12px!important;}#app #view-daily .dg-sec{gap:6px;}#app #view-daily .dg-sec-h{font-size:11px;}html.mr-uikit body #app #view-daily .dg-ring{width:48px!important;height:48px!important;}html.mr-uikit body #app #view-daily .dg-mission{padding:6px 2px 4px!important;gap:4px!important;}html.mr-uikit body #app #view-daily .dg-pip{width:26px!important;height:26px!important;}html.mr-uikit body #app #view-daily .dg-bonus{padding-top:0!important;padding-bottom:0!important;}}
 </style>
 </body>
 </html>
