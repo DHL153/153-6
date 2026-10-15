@@ -10870,6 +10870,29 @@ function createSocialDataFoundation(assets, emojis) {
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountMergeRingTest);else setTimeout(mountMergeRingTest,0);
 
+    // 구슬 PNG의 보이는 부분 가로/세로 비율을 한 번 재서 기억 (납작한 그림 보정용)
+    (function(){
+        const cache=new Map();
+        window.mrBeadAspect=function(src){
+            if(cache.has(src))return cache.get(src)||1;
+            cache.set(src,0);
+            const im=new Image();
+            im.onload=()=>{
+                let a=1;
+                try{
+                    const n=128,c=document.createElement('canvas');c.width=c.height=n;
+                    const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,n,n);
+                    const d=x.getImageData(0,0,n,n).data;let l=n,t=n,r=-1,b=-1;
+                    for(let y=0;y<n;y++)for(let i=0;i<n;i++)if(d[(y*n+i)*4+3]>40){if(i<l)l=i;if(i>r)r=i;if(y<t)t=y;if(y>b)b=y;}
+                    if(r>l&&b>t){const w=r-l+1,h=b-t+1;a=w/h;if(!(a>1.01&&a<1.15))a=1;}
+                }catch(_){a=1;}
+                cache.set(src,a);
+                if(a!==1&&typeof refreshMergeBeadSkins==='function')refreshMergeBeadSkins();
+            };
+            im.src=src;
+            return 1;
+        };
+    })();
     window.getBodyRenderOptions = function(level) {
         const skinSrc = equippedSkins[level];
         if (skinSrc) {
@@ -10881,7 +10904,9 @@ function createSocialDataFoundation(assets, emojis) {
         // Matter.js 충돌 반경은 그대로라 게임 밸런스에는 영향이 없습니다.
         const SMALL_BALL_RENDER_BOOST = level <= 1 ? 1.035 : 1.0;
         const scale = ((LEVELS[level].radius * 2) / 256) * BALL_VISUAL_SCALE * SMALL_BALL_RENDER_BOOST;
-            return { fillStyle: 'transparent', sprite: { texture: skinSrc, xScale: scale, yScale: scale } };
+            // 그림이 살짝 납작한(가로>세로) 구슬은 세로만 늘려 둥글게 → 위아래 빈틈 제거
+            const asp = window.mrBeadAspect ? window.mrBeadAspect(skinSrc) : 1;
+            return { fillStyle: 'transparent', sprite: { texture: skinSrc, xScale: scale, yScale: scale * asp } };
         }
         return { fillStyle: LEVELS[level].color };
     };
