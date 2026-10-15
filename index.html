@@ -16305,10 +16305,10 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
 <style id="mr-ui-kit-la-mancha">
 /* 2026-10-14: 라만차 UI 그림 세트 (assets/ui/theme/) — 9칸 나누기(border-image)로 버튼·탭·판·띠에 입힘. 끄기: 주소 뒤 ?theme=off */
 :root{
- /* 2026-10-15: 메이플풍 밝은 캐주얼 UI 세트(assets/ui/maple/)로 교체 — 버튼=파랑, 강조=초록, 켜짐=주황, 판=나무 테+어두운 속, 작은 칩·입력칸=나무 슬롯.
+ /* 2026-10-15: 메이플풍 밝은 캐주얼 UI 세트(assets/ui/maple/)로 교체 — 버튼=크림, 강조=초록, 켜짐=주황, 판=나무 테+어두운 속, 작은 칩·입력칸=나무 슬롯.
     예전 황동 세트로 되돌리려면 git에서 이 :root 변수와 아래 maple 블록을 되돌리면 됨 (assets/ui/theme/ 그림은 남겨 둠) */
- --uk-btn:url("assets/ui/maple/buttons/btn_blue.webp") 38 44 38 44 fill;
- --uk-btn-p:url("assets/ui/maple/buttons/btn_blue_pressed.webp") 38 44 38 44 fill;
+ --uk-btn:url("assets/ui/maple/buttons/btn_cream.webp") 38 44 38 44 fill; /* 2026-10-15: 파랑 → 크림 (DHL 선택) */
+ --uk-btn-p:url("assets/ui/maple/buttons/btn_cream_pressed.webp") 38 44 38 44 fill;
  --uk-pri:url("assets/ui/maple/buttons/btn_green.webp") 36 40 36 40 fill;
  --uk-pri-p:url("assets/ui/maple/buttons/btn_green_pressed.webp") 36 40 36 40 fill;
  --uk-tab:url("assets/ui/maple/slots/slot_1_dark.webp") 32 fill;
@@ -16823,21 +16823,19 @@ html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="10"],html.
 </style>
 <style id="mr-ui-kit-maple">
 /* 2026-10-15: 메이플풍 UI 세트 마감 — 글씨 대비 · 판 두께. 그림은 :root 변수(--uk-*)에서 바뀜 */
-/* 파랑 버튼: 크림 글씨 + 남색 테두리 그림자 */
+/* 크림 버튼: 진한 갈색 글씨, 그림자 없음 (아이콘·작은 글씨도 같은 색) */
 html.mr-uikit body #app .brand-actions button,html.mr-uikit body #app #view-battle #ui-section .btn-item,html.mr-uikit body #app #merge-mini-item-bar .merge-mini-item-btn,
 html.mr-uikit body .mr-dialog-actions button,html.mr-uikit body .mr-starter-foot button,html.mr-uikit body #app .collection-tab,html.mr-uikit body #app .codex-source-btn,html.mr-uikit body #app .codex-tier-btn,
 html.mr-uikit body #app #view-shop #daily-shop-link,html.mr-uikit body #app #view-shop .action-btn-sub,html.mr-uikit body #app #view-shop .craft-filter-btn,html.mr-uikit body #app #view-shop .economy-tab,
 html.mr-uikit body #app #view-daily .dg-back,html.mr-uikit body #app .period-btn,html.mr-uikit body #app .mini-mode-choice,html.mr-uikit body #app .setting-action,html.mr-uikit body #app .social-btn{
- color:#fffaf0!important;text-shadow:0 1px 0 #0b3a66,1px 0 0 #0b3a66,-1px 0 0 #0b3a66,0 -1px 0 #0b3a66!important;}
+ color:#4a2a10!important;text-shadow:none!important;}
+html.mr-uikit body #app .brand-actions button *,html.mr-uikit body #app #view-battle #ui-section .btn-item *,html.mr-uikit body #app #merge-mini-item-bar .merge-mini-item-btn *,html.mr-uikit body .mr-dialog-actions button *,html.mr-uikit body .mr-starter-foot button *,html.mr-uikit body #app .collection-tab *,html.mr-uikit body #app .codex-source-btn *,html.mr-uikit body #app .codex-tier-btn *,html.mr-uikit body #app #view-shop #daily-shop-link *,html.mr-uikit body #app #view-shop .action-btn-sub *,html.mr-uikit body #app #view-shop .craft-filter-btn *,html.mr-uikit body #app #view-shop .economy-tab *,html.mr-uikit body #app #view-daily .dg-back *,html.mr-uikit body #app .period-btn *,html.mr-uikit body #app .mini-mode-choice *,html.mr-uikit body #app .setting-action *,html.mr-uikit body #app .social-btn *{color:#4a2a10!important;text-shadow:none!important;}
+html.mr-uikit body #app .mr-rebind-reset,html.mr-uikit body #app #battle-pause-btn,html.mr-uikit body #app .mr-rebind-reset *,html.mr-uikit body #app #battle-pause-btn *{color:#4a2a10!important;text-shadow:none!important;}
 /* 초록 강조 버튼 */
-html.mr-uikit body .mr-dialog-actions button:last-child,html.mr-uikit body .mr-starter-foot button:last-child,html.mr-uikit body #game-startup-screen button,
-html.mr-uikit body #app #view-shop .action-btn-main,html.mr-uikit body #app .social-btn.primary{
+html.mr-uikit body .mr-dialog-actions button:last-child,html.mr-uikit body .mr-starter-foot button:last-child,html.mr-uikit body #game-startup-screen button,html.mr-uikit body #app #view-shop .action-btn-main,html.mr-uikit body #app .social-btn.primary,html.mr-uikit body .mr-dialog-actions button:last-child *,html.mr-uikit body .mr-starter-foot button:last-child *,html.mr-uikit body #game-startup-screen button *,html.mr-uikit body #app #view-shop .action-btn-main *,html.mr-uikit body #app .social-btn.primary *{
  color:#fff!important;text-shadow:0 1px 0 #1d5208,1px 0 0 #1d5208,-1px 0 0 #1d5208,0 -1px 0 #1d5208!important;}
 /* 주황 켜짐 (탭·아래 메뉴·칩) */
-html.mr-uikit body #app .subnav-btn.active,html.mr-uikit body #app #bottom-nav .nav-item.active,html.mr-uikit body #app #bottom-nav .nav-item.active *,
-html.mr-uikit body #app .collection-tab.active,html.mr-uikit body #app .collection-tab.active *,html.mr-uikit body #app .codex-source-btn.active,html.mr-uikit body #app .codex-source-btn.active *,
-html.mr-uikit body #app .codex-tier-btn.active,html.mr-uikit body #app .codex-tier-btn.active *,html.mr-uikit body #app #view-shop .smt-thumb,html.mr-uikit body #app #view-shop .craft-filter-btn.active,
-html.mr-uikit body #app #view-shop .economy-tab.active,html.mr-uikit body #app .period-btn.active,html.mr-uikit body #app .mini-mode-choice.active{
+html.mr-uikit body #app .subnav-btn.active,html.mr-uikit body #app #bottom-nav .nav-item.active,html.mr-uikit body #app #bottom-nav .nav-item.active *,html.mr-uikit body #app .collection-tab.active,html.mr-uikit body #app .collection-tab.active *,html.mr-uikit body #app .codex-source-btn.active,html.mr-uikit body #app .codex-source-btn.active *,html.mr-uikit body #app .codex-tier-btn.active,html.mr-uikit body #app .codex-tier-btn.active *,html.mr-uikit body #app #view-shop .smt-thumb,html.mr-uikit body #app #view-shop .craft-filter-btn.active,html.mr-uikit body #app #view-shop .economy-tab.active,html.mr-uikit body #app .period-btn.active,html.mr-uikit body #app .mini-mode-choice.active,html.mr-uikit body #app .subnav-btn.active *,html.mr-uikit body #app #view-shop .smt-thumb *,html.mr-uikit body #app #view-shop .craft-filter-btn.active *,html.mr-uikit body #app #view-shop .economy-tab.active *,html.mr-uikit body #app .period-btn.active *,html.mr-uikit body #app .mini-mode-choice.active *{
  color:#fff!important;text-shadow:0 1px 0 #7a3a00,1px 0 0 #7a3a00,-1px 0 0 #7a3a00,0 -1px 0 #7a3a00!important;}
 html.mr-uikit body #app .subnav-btn.active::after{top:-12px!important;width:22px!important;height:22px!important;}
 /* 판: 나무 테가 보이도록 조금 두껍게 (얇은 황동 테 때보다) */
