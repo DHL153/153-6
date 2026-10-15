@@ -7756,7 +7756,7 @@ function createSocialDataFoundation(assets, emojis) {
                 if(totalInTier >= 10) { targetTier = tier; break; }
             }
         }
-        if(!targetTier) { showFloatingText("여유 있는 등급(10개 이상)이 없습니다.", 210, 300, "#ff7675"); return; }
+        if(!targetTier) { showFloatingText(window.mrNoTierMsg?window.mrNoTierMsg():"여유 있는 등급(10개 이상)이 없습니다.", 210, 300, "#ff7675"); return; }
         
         let needed = 10 - globalCraftSlots.length;
         const validItems = craftables.filter(item => item.tier === targetTier);
@@ -14049,7 +14049,7 @@ html body #app #view-shop .gacha-btn-container > #btn-daily-free:disabled{backgr
     const slotted=new Set(slots),first=inv.editions.find(x=>x.itemId===slots[0]);
     let tier=first?.tier;
     if(!tier)tier=CRAFT_TIERS.find(t=>inv.editions.filter(x=>x.tier===t).length>=C.CRAFT_COUNT);
-    if(!tier){float('여유 있는 등급(10개 이상)이 없습니다.');return;}
+    if(!tier){float(window.mrNoTierMsg?window.mrNoTierMsg():'여유 있는 등급(10개 이상)이 없습니다.');return;}
     craftTier=tier;
     // 여러 개 가진 것부터 채운다 (마지막 1개는 최대한 남김)
     const gs=groups(tier,slotted).sort((a,b)=>b.ids.length-a.ids.length);
@@ -17274,5 +17274,18 @@ html.mr-uikit body #app #view-daily .dg-mission{padding:10px 2px 8px!important;g
 /* 짧은 화면(작은 휴대폰): 간격·원을 줄여 한 페이지 유지 */
 @media(max-height:700px){html.mr-uikit body #app #view-daily .dg-page{gap:10px!important;padding:10px 12px 12px!important;}#app #view-daily .dg-sec{gap:6px;}#app #view-daily .dg-sec-h{font-size:11px;}html.mr-uikit body #app #view-daily .dg-ring{width:48px!important;height:48px!important;}html.mr-uikit body #app #view-daily .dg-mission{padding:6px 2px 4px!important;gap:4px!important;}html.mr-uikit body #app #view-daily .dg-pip{width:26px!important;height:26px!important;}html.mr-uikit body #app #view-daily .dg-bonus{padding-top:0!important;padding-bottom:0!important;}}
 </style>
+<script id="mr-notier-msg">
+// 2026-10-15: "여유 있는 등급(10개 이상)이 없습니다." 안내가 길어서 두 줄로 — 언어별로 둘째 줄이 시작하는 말
+window.mrNoTierMsg=function(){
+ const key='여유 있는 등급(10개 이상)이 없습니다.';
+ const SECOND={ko:'없습니다.',en:'10 available',fr:'10 objets',it:'10 oggetti',de:'10 verfügbare',es:'10 objetos',ru:'с 10',pt:'10 itens','pt-BR':'10 itens','zh-CN':'拥有','zh-TW':'擁有',ja:'10個',pl:'10 dostępnych'};
+ let lang='ko';try{lang=gameSettings.language||document.documentElement.lang||'ko';}catch(e){}
+ let full=key;try{full=window.MRLocale?.t?.(key)||key;}catch(e){}
+ const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+ const sec=SECOND[lang]||SECOND[String(lang).split('-')[0]];const i=sec?full.lastIndexOf(sec):-1;
+ const html=i>0?esc(full.slice(0,i).trim())+'<br>'+esc(full.slice(i)):esc(full);
+ return '<span data-no-i18n>'+html+'</span>';
+};
+</script>
 </body>
 </html>
