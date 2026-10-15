@@ -4269,10 +4269,9 @@ window.MRWorld=(()=>{
      ${room?`<div><dt>마이룸 짝</dt><dd><span>${esc(room.name||'')}</span> · ${esc(room.tier||'')}${ctx.roomOwned?.(room)?'':' · <span>미보유</span>'}</dd></div>`:''}
      <div><dt>보유</dt><dd>${ctx.owned?'×'+Math.max(1,ctx.count||0):'미보유'}</dd></div></dl>
     <div class="mrw-slots${ctx.owned?'':' none'}" role="group" aria-label="편성">${slotBtns}</div>
-    <div class="mrw-acts"><button type="button" class="mrw-close">닫기</button></div></div></div>`;
+    <div class="mrw-acts"></div></div></div>`;
   const onKey=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeDetail();}};
   el.addEventListener('click',e=>{if(e.target===el)closeDetail();});
-  el.querySelector('.mrw-close').onclick=closeDetail;
   el.querySelectorAll('.mrw-slot[data-slot]').forEach(btn=>btn.onclick=()=>{const i=Number(btn.dataset.slot);closeDetail();ctx.assignTo?.(i);});
   const imgs=[...el.querySelectorAll('.mrw-hero img')];imgs.forEach((im,i)=>fitBody(im,slides[i].body));
   // 2026-10-12: 화면에 붙은 뒤 실제 칸 크기로 다시 맞춤 — 캐릭터를 가운데에, 위·아래가 잘리지 않게
@@ -4283,10 +4282,26 @@ window.MRWorld=(()=>{
   imgs.forEach(im=>im.addEventListener('click',()=>go(1)));
   const onArrow=e=>{if(e.key==='ArrowRight'){go(1);}else if(e.key==='ArrowLeft'){go(-1);}};
   el.addEventListener('keydown',onArrow);
-  mount(el,ctx.returnFocus,onKey,el.querySelector('.mrw-slot:not(:disabled)')||el.querySelector('.mrw-close'));
+  mount(el,ctx.returnFocus,onKey,el.querySelector('.mrw-slot:not(:disabled)')||el.querySelector('.mrw-x2'));
+ }
+ // 2026-10-15: 아래 '닫기' 대신 오른쪽 위 X, 아래에는 같은 목록의 이전·다음 항목으로 넘기는 버튼 (캐릭터·전투 배경·머지 배경 모두)
+ function addNav(el,returnFocus){
+  const box=el.querySelector('.mrw-box');if(!box)return;
+  const x=document.createElement('button');x.type='button';x.className='mrw-x2';x.setAttribute('aria-label','닫기');x.title='닫기';x.onclick=closeDetail;box.appendChild(x);
+  const card=returnFocus?.closest?.('.inv-item'),grid=card?.parentElement;if(!card||!grid)return;
+  const list=[...grid.querySelectorAll(':scope > .inv-item[role="button"]')],i=list.indexOf(card);if(i<0||list.length<2)return;
+  const nameOf=c=>{const im=c.querySelector('.mrw-nm,.mrw-name,.name,.item-name');const t=(im?.textContent||'').trim();return t||String(c.getAttribute('aria-label')||'').split(' · ')[0].trim();};
+  const prev=list[(i-1+list.length)%list.length],next=list[(i+1)%list.length];
+  const nav=document.createElement('div');nav.className='mrw-step-row';
+  nav.innerHTML=`<button type="button" class="mrw-step prev" aria-label="이전"><b>‹</b><span data-no-i18n>${esc(nameOf(prev))}</span></button><span class="mrw-step-count" data-no-i18n>${i+1} / ${list.length}</span><button type="button" class="mrw-step next" aria-label="다음"><span data-no-i18n>${esc(nameOf(next))}</span><b>›</b></button>`;
+  const go=t=>{if(!t?.isConnected)return;closeDetail();t.click();};
+  nav.querySelector('.prev').onclick=()=>go(prev);nav.querySelector('.next').onclick=()=>go(next);
+  (el.querySelector('.mrw-acts')||box).before(nav);
+  el.addEventListener('keydown',e=>{if(e.key==='PageUp'||(el.classList.contains('mrw-image')&&e.key==='ArrowLeft')){e.preventDefault();go(prev);}else if(e.key==='PageDown'||(el.classList.contains('mrw-image')&&e.key==='ArrowRight')){e.preventDefault();go(next);}});
  }
  function mount(el,returnFocus,onKey,focusEl){
   const host=document.getElementById('app')||document.body;
+  addNav(el,returnFocus);
   host.appendChild(el);document.addEventListener('keydown',onKey,true);
   openBox={el,returnFocus,onKey};
   try{window.MRLocale?.refresh?.(el);}catch(e){}
@@ -4300,12 +4315,11 @@ window.MRWorld=(()=>{
   el.innerHTML=`<div class="mrw-box" role="dialog" aria-modal="true" aria-label="${esc(ctx.kind)}">
    <div class="mrw-photo"><img src="${esc(encodeURI(ctx.src))}" alt="" draggable="false"><span class="tier-label tier-${esc(ctx.tier)} mrw-tier">${esc(ctx.tier)}</span></div>
    <div class="mrw-body"><div class="mrw-heading"><span class="mrw-title"><span>${esc(ctx.kind)}</span></span></div>
-    <div class="mrw-acts"><button type="button" class="mrw-close">닫기</button><button type="button" class="mrw-main" ${!ctx.owned||ctx.applied?'disabled':''}><span>${!ctx.owned?'미보유':ctx.applied?'적용 중':'적용하기'}</span></button></div></div></div>`;
+    <div class="mrw-acts"><button type="button" class="mrw-main" ${!ctx.owned||ctx.applied?'disabled':''}><span>${!ctx.owned?'미보유':ctx.applied?'적용 중':'적용하기'}</span></button></div></div></div>`;
   const onKey=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeDetail();}};
   el.addEventListener('click',e=>{if(e.target===el)closeDetail();});
-  el.querySelector('.mrw-close').onclick=closeDetail;
   el.querySelector('.mrw-main').onclick=()=>{closeDetail();ctx.apply?.();};
-  mount(el,ctx.returnFocus,onKey,el.querySelector('.mrw-main:not(:disabled)')||el.querySelector('.mrw-close'));
+  mount(el,ctx.returnFocus,onKey,el.querySelector('.mrw-main:not(:disabled)')||el.querySelector('.mrw-x2'));
  }
  return {WORLDS,ROOM_BODY,ofAsset,keyOf,byMeta,roomOf,emblem,filterBar,openDetail,openImage,closeDetail};
 })();
@@ -5753,6 +5767,10 @@ window.MRRunWalker=(()=>{
         list.innerHTML=`<div class="rank-card me"><div><div class="rank-main">🏆 나의 ${label} 최고 기록</div><div class="rank-sub">${best?`총 머지 ${Number(best.merges||0).toLocaleString(typeof gameLocale==="function"?gameLocale():undefined)} · 최대 연속 머지 ${Number(best.maxChain||0).toLocaleString(typeof gameLocale==="function"?gameLocale():undefined)}`:'아직 종료된 판이 없습니다.'}</div></div><div class="rank-score">${best?formatCompactNumber(best.score):'—'}</div></div>` +
           lifetimeHtml +
           `<div class="info-note" style="margin-bottom:10px;">현재 판은 <b>${formatCompactNumber(runScore)}</b>점입니다. 게임 오버 후 ${label} 최고 기록과 비교됩니다.</div>`;
+        // 2026-10-15: 최고 기록·누적 기록·현재 판 안내를 카드 하나로 묶음 (글자는 그대로 두어 번역 유지)
+        const card=list.querySelector('.rank-card.me');
+        if(card){const head=document.createElement('div');head.className='rec-head';while(card.firstChild)head.appendChild(card.firstChild);card.appendChild(head);card.classList.add('rec-one');card.dataset.period=leaderboardPeriod;
+            list.querySelectorAll(':scope > .lifetime-record-grid, :scope > .info-note').forEach(el=>{el.classList.add('rec-part');el.removeAttribute('style');card.appendChild(el);});}
     }
     function renderRunStats(){
         const el=document.getElementById('run-stats-content'); if(!el)return;
@@ -17021,6 +17039,64 @@ html.mr-uikit.ui-t6 body #app .inv-item.tier-box-U::after{background-image:url("
 html.mr-uikit.ui-t6 body #app .inv-item.tier-box-R::after{background-image:url("assets/ui/ornament/badge_r.webp");}
 html.mr-uikit.ui-t6 body #app .inv-item.tier-box-E::after{background-image:url("assets/ui/ornament/badge_e.webp");}
 html.mr-uikit.ui-t6 body #app .inv-item.tier-box-L::after{background-image:url("assets/ui/ornament/badge_l.webp");width:26px;height:25px;}
+</style>
+<style id="mr-ui-polish-2026-10-15">
+/* 2026-10-15 화면 다듬기 (DHL 피드백) */
+/* ── 1. 기록: 최고 기록·누적·현재 판 안내를 카드 하나로, 흰 배경 제거, 고른 기간을 산호 판으로 또렷하게 ── */
+#menu-stats #leaderboard-list + .info-note{display:none!important;}
+html body #app .rank-card.rec-one{flex-direction:column!important;align-items:stretch!important;gap:0!important;padding:14px 16px!important;}
+#app .rec-one .rec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+html.mr-uikit body #app .rank-card.rec-one .rec-part,#app .rec-one .rec-part{margin:12px 0 0!important;padding:11px 0 0!important;border:0!important;border-image:none!important;background:none!important;box-shadow:none!important;border-top:1px solid rgba(201,163,90,.28)!important;border-radius:0!important;}
+#app .rec-one .lifetime-record-grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;}
+#app .rec-one .lifetime-record-card{display:grid!important;grid-template-columns:28px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;}
+#app#app .rec-one .lifetime-record-value{font-size:16px!important;white-space:nowrap;}
+#app .rec-one .lifetime-record-card{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;}
+#app .rec-one .lifetime-record-icon{background:none!important;box-shadow:none!important;}
+#app#app .rec-one .lifetime-record-label{color:#e8dcc0!important;font-size:11px!important;}
+#app#app .rec-one .lifetime-record-sub{color:#8fa3b6!important;font-size:9px!important;}
+#app#app .rec-one .lifetime-record-value{color:#f3e39a!important;background:none!important;}
+#app .period-tabs{gap:8px!important;}
+html.mr-uikit body #app .period-btn:not(.active){opacity:.72;}
+html.mr-uikit.ui-t6 body #app .period-btn{padding:9px 10px!important;min-height:38px;border-image-width:9px 15px!important;}
+html.mr-uikit.ui-t6 body #app .period-btn.active{border-image:url("assets/ui/ornament/plate_coral.webp") 32 64 32 64 fill / 9px 15px / 0 stretch!important;color:#fff!important;opacity:1;
+ text-shadow:0 1px 0 #7a2a14,1px 0 0 #7a2a14,-1px 0 0 #7a2a14,0 -1px 0 #7a2a14!important;filter:drop-shadow(0 0 6px rgba(232,103,74,.45));}
+/* ── 2. 다이아 판 버튼: 글씨가 양끝 다이아·테에 붙지 않게 넉넉하게 ── */
+html.mr-uikit.ui-t6 body #app #view-shop #daily-shop-link,html.mr-uikit.ui-t6 body #app #view-shop .action-btn-main,html.mr-uikit.ui-t6 body #app #view-shop .action-btn-sub,html.mr-uikit.ui-t6 body #app .mini-mode-choice,html.mr-uikit.ui-t6 body #app .mr-rebind-reset,html.mr-uikit.ui-t6 body #app .setting-action,html.mr-uikit.ui-t6 body #app .social-btn,html.mr-uikit.ui-t6 body #app .social-btn.primary,html.mr-uikit.ui-t6 body #game-startup-screen button,html.mr-uikit.ui-t6 body .mr-dialog-actions button,html.mr-uikit.ui-t6 body .mr-dialog-actions button:last-child,html.mr-uikit.ui-t6 body .mr-starter-foot button,html.mr-uikit.ui-t6 body .mr-starter-foot button:last-child{min-height:40px;padding:9px 22px!important;border-image-width:10px 18px!important;}
+#app .mini-mode-actions{gap:12px!important;flex-wrap:wrap;}
+html.mr-uikit body #app .mini-mode-choice{min-height:40px!important;padding:8px 16px!important;font-size:13px!important;}
+.mr-dialog-actions{gap:14px!important;}
+html.mr-uikit.ui-t6 body #app #view-daily .dg-back{border-image:url("assets/ui/theme/ui_btn_rust.webp") 46 50 46 50 fill / 8px 9px 8px 9px / 0 stretch!important;}
+/* ── 3. 오늘의 목표: 반복되는 테를 없애고 구역은 얇은 선으로만 — 위 합계 판 하나만 테 ── */
+html.mr-uikit body #app #view-daily .dg-mission,html.mr-uikit body #app #view-daily .dg-record,html.mr-uikit body #app #view-daily .dg-bonus{border-image:none!important;background:none!important;box-shadow:none!important;border:0!important;border-radius:0!important;}
+html.mr-uikit body #app #view-daily .dg-chip{border-image:none!important;border:0!important;background:rgba(241,213,140,.10)!important;border-radius:999px!important;padding:3px 9px 3px 6px!important;}
+#app #view-daily .dg-missions{gap:4px!important;}
+#app #view-daily .dg-mission{padding:6px 2px 4px!important;gap:5px!important;}
+html.mr-uikit body #app #view-daily .dg-mission.is-ready .dg-ring{filter:drop-shadow(0 0 8px rgba(241,190,90,.85));}
+html.mr-uikit body #app #view-daily .dg-bonus,html.mr-uikit body #app #view-daily .dg-records{border-top:1px solid rgba(201,163,90,.25)!important;padding-top:14px!important;}
+html.mr-uikit body #app #view-daily .dg-bonus{padding-bottom:4px!important;}
+html.mr-uikit body #app #view-daily .dg-bonus.is-ready .dg-bonus-gift{box-shadow:0 0 12px rgba(241,190,90,.7);}
+#app #view-daily .dg-records{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;}
+#app #view-daily .dg-record{padding:4px 2px!important;align-items:center!important;gap:6px!important;}
+#app #view-daily .dg-record-top{flex-direction:column!important;gap:5px!important;}
+#app #view-daily .dg-record-ic,#app #view-daily .dg-record-num{display:none!important;}
+#app #view-daily .dg-record-name{text-align:center;font-size:12px!important;}
+#app #view-daily .dg-record.is-done .dg-record-name{color:#a6ecd2!important;}
+#app #view-daily .dg-record.is-done .dg-record-name::before{content:"✓ ";}
+#app #view-daily .dg-record .dg-bar{width:84%;}
+/* ── 4. 상세 창: 오른쪽 위 X 닫기, 아래에 같은 목록의 이전·다음 ── */
+.mrw-detail .mrw-x2{position:absolute;right:10px;top:10px;width:40px;height:40px;border:0;padding:0;background:url("assets/ui/ornament/btn_close.webp") center/contain no-repeat;cursor:pointer;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));}
+.mrw-detail .mrw-x2:active{transform:scale(.92);}
+.mrw-detail .mrw-x2:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:50%;}
+.mrw-detail .mrw-tier{right:58px!important;}
+.mrw-detail .mrw-acts:empty{display:none!important;}
+.mrw-detail.mrw-image .mrw-acts{grid-template-columns:1fr!important;}
+.mrw-detail .mrw-step-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding-top:6px;}
+.mrw-detail .mrw-step{display:flex;align-items:center;gap:6px;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--mrw-c,#c9a35a) 45%,#2a3b55);background:rgba(8,12,20,.35);color:inherit;font:inherit;font-weight:800;font-size:13px;cursor:pointer;}
+.mrw-detail .mrw-step span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mrw-detail .mrw-step.next{justify-content:flex-end;}
+.mrw-detail .mrw-step b{font-size:20px;line-height:1;color:var(--mrw-c,#c9a35a);}
+.mrw-detail .mrw-step:active{transform:translateY(1px);}
+.mrw-detail .mrw-step-count{font-size:12px;color:#93a3ba;font-variant-numeric:tabular-nums;}
 </style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
