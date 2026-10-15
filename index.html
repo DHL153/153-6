@@ -17287,5 +17287,48 @@ window.mrNoTierMsg=function(){
  return '<span data-no-i18n>'+html+'</span>';
 };
 </script>
+<style id="mr-text-wrap">
+/* 2026-10-15: 줄바꿈 정리 (12개 언어)
+   - 한국어: 글자 사이가 아니라 띄어쓰기에서만 줄을 바꿈 ("자동 채 / 우기" -> "자동 / 채우기").
+     한 단어가 칸보다 길 때만 예외로 단어 안에서 나눔 (기존 overflow-wrap 규칙)
+   - 다른 언어의 긴 단어는 아래 MRFitText가 글자를 살짝 줄여 한 줄에 맞춤
+   - 프리미엄 뽑기 아래 정보 칩: 좁은 화면에서 잘리지 않고 다음 줄로 */
+html:lang(ko) body{word-break:keep-all;}
+html body #app #view-shop .btn-gacha .cost-row{flex-wrap:wrap!important;justify-content:center!important;row-gap:4px!important;}
+/* 글자 맞춤 대상은 칸 너비를 넘지 않게 (넘치면 MRFitText가 글자를 줄임) */
+html body #app #ui-section .btn-item .cost-label,html body #app #ui-section .btn-item .control-name,html body #app .economy-item .small-count{max-width:100%;box-sizing:border-box;overflow:hidden;white-space:nowrap;}
+</style>
+<script id="mr-fit-text">
+/* 2026-10-15: 좁은 칸에 들어가는 짧은 글자(전투 버튼 이름·가격, 카드 이름, 오늘의 미션 이름)가
+   칸보다 길면 잘리지 않게 글자 크기를 조금씩 줄여 맞춤 (원래 크기의 62%까지). 칸이 넉넉하면 원래 크기 그대로.
+   언어를 바꾸거나 화면 크기가 바뀌거나 칸이 새로 보일 때 다시 맞춤 */
+(()=>{
+  const SEL=['#ui-section .btn-item .control-name','#ui-section .btn-item .cost-label','#merge-mini-item-bar .mmi-name',
+             '.mrw-name','#view-daily .dg-label','.economy-item .small-count','.sk-used-on'].join(',');
+  const MIN_RATIO=.62, seen=new WeakSet(), queue=new Set(); let raf=0;
+  function fit(el){
+    el.style.removeProperty('font-size');
+    const w=el.clientWidth; if(!w) return;                       // 숨은 칸은 보일 때 다시 맞춤
+    if(el.scrollWidth<=w+1) return;
+    const base=parseFloat(getComputedStyle(el).fontSize)||12; let fs=base;
+    for(let i=0;i<24&&el.scrollWidth>el.clientWidth+1&&fs>base*MIN_RATIO;i++){fs-=.5;el.style.setProperty('font-size',fs+'px','important');}
+  }
+  function flush(){raf=0;const list=[...queue];queue.clear();list.forEach(fit);}
+  function want(el){queue.add(el);if(!raf)raf=requestAnimationFrame(flush);}
+  const ro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>want(e.target))):null;
+  const mo=new MutationObserver(ms=>ms.forEach(m=>{const el=m.target.nodeType===1?m.target.closest(SEL):m.target.parentElement?.closest(SEL);if(el)want(el);}));
+  function scan(){
+    document.querySelectorAll(SEL).forEach(el=>{
+      if(!seen.has(el)){seen.add(el);ro?.observe(el);mo.observe(el,{characterData:true,childList:true,subtree:true});}
+      want(el);
+    });
+  }
+  window.MRFitText={scan,fit};
+  new MutationObserver(scan).observe(document.documentElement,{attributes:true,attributeFilter:['lang']}); // 언어 바뀜
+  document.addEventListener('click',()=>setTimeout(scan,60),true);                                        // 화면·탭 바뀜(카드 새로 그림)
+  window.addEventListener('resize',()=>setTimeout(scan,60));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(scan,300));else setTimeout(scan,300);
+})();
+</script>
 </body>
 </html>
