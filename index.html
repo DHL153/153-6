@@ -17687,5 +17687,42 @@ html body #app #menu-settings .mini-mode-row .mini-mode-choice{flex-direction:co
 html:lang(de) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(ru) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(fr) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(es) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(pt-BR) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(it) body #app #menu-settings .mini-mode-row .mini-mode-choice,html:lang(pl) body #app #menu-settings .mini-mode-row .mini-mode-choice{flex-direction:column;gap:2px;min-height:52px!important;padding:6px 11px!important;white-space:normal!important;font-size:12px!important;}
 }
 </style>
+<style id="mr-gameover-uikit">
+/* 2026-10-15: 게임 오버 창에도 라만차 UI 그림 세트 (대화창과 같은 판 + 모서리 장식 + 리본 + 강조 버튼) */
+html.mr-uikit body #overlay-gameover .go-panel{background:transparent!important;border-style:solid!important;border-color:transparent!important;border-radius:0!important;
+ border-width:1px!important;border-image:var(--uk-panel) / 11px 13px 11px 13px / 0 stretch!important;box-shadow:0 10px 30px rgba(0,0,0,.6)!important;
+ width:min(350px,100%);padding:44px 22px 22px!important;gap:12px;}
+html.mr-uikit body #overlay-gameover .go-panel::after{content:"";position:absolute;inset:3px;left:3px;right:3px;top:3px;height:auto;border-radius:0;opacity:1;pointer-events:none;z-index:2;
+ background:url("assets/ui/ornament/corner_tl.webp") left top/46px auto no-repeat,url("assets/ui/ornament/corner_tr.webp") right top/45px auto no-repeat,
+ url("assets/ui/ornament/corner_bl.webp") left bottom/45px auto no-repeat,url("assets/ui/ornament/corner_br.webp") right bottom/45px auto no-repeat;}
+html.mr-uikit:not(.ui-t6) body #overlay-gameover .go-panel::after{content:none;}
+/* 리본 제목 */
+html.mr-uikit body #overlay-gameover .go-ribbon{top:-24px;min-width:230px;height:58px;justify-content:center;padding:0 46px 10px!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:url("assets/ui/ornament/ribbon_coral.webp") center/100% 100% no-repeat!important;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));}
+html.mr-uikit body #overlay-gameover.record-celebration .go-ribbon{background-image:url("assets/ui/ornament/ribbon_cream.webp")!important;box-shadow:none!important;}
+html.mr-uikit body #overlay-gameover #go-gameover-title{font-size:18px!important;font-weight:900!important;color:#fff!important;text-shadow:0 1px 0 #7a2a14,1px 0 0 #7a2a14,-1px 0 0 #7a2a14,0 -1px 0 #7a2a14,0 2px 3px rgba(0,0,0,.4)!important;}
+html.mr-uikit body #overlay-gameover.record-celebration #go-gameover-title{color:#5a3208!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important;}
+html.mr-uikit body #overlay-gameover #go-icon{color:#fff;filter:drop-shadow(0 1px 0 #7a2a14);}
+html.mr-uikit body #overlay-gameover.record-celebration #go-icon{color:#5a3208;filter:none;}
+html.mr-uikit body #overlay-gameover #go-icon svg{width:18px;height:18px;}
+/* 점수 칸 · 기록 칩: 설정 화면 칸과 같은 어두운 홈 */
+html.mr-uikit body #overlay-gameover .go-score-box,html.mr-uikit body #overlay-gameover .go-stat{background:transparent!important;border-style:solid!important;border-color:transparent!important;border-radius:0!important;
+ border-width:1px!important;border-image:var(--uk-tab) / 8px 10px 8px 10px / 0 stretch!important;box-shadow:none!important;}
+html.mr-uikit body #overlay-gameover .go-score-box{padding:14px 10px 12px!important;}
+html.mr-uikit body #overlay-gameover .go-stats{gap:8px;}
+html.mr-uikit body #overlay-gameover .go-stat{padding:9px 4px!important;}
+html.mr-uikit body #overlay-gameover .go-score-label,html.mr-uikit body #overlay-gameover .go-stat-label{color:#c9b996!important;}
+html.mr-uikit body #overlay-gameover .go-score-value{color:#f1d58c!important;text-shadow:0 2px 0 #4a2a08,0 0 14px rgba(241,213,140,.35)!important;}
+html.mr-uikit body #overlay-gameover .go-stat b{color:var(--uk-cream,#f6ead2)!important;text-shadow:0 1px 2px #000;}
+html.mr-uikit body #overlay-gameover #go-restart-message{color:#e8dcc2!important;text-shadow:0 1px 2px #000;}
+/* 재시작 = 강조 버튼 (시작 화면 '다음'과 같은 그림) */
+html.mr-uikit body #overlay-gameover .go-restart-btn{background:transparent!important;border-style:solid!important;border-color:transparent!important;border-radius:0!important;box-shadow:none!important;
+ border-width:1px!important;border-image:var(--uk-pri) / 10px 11px 10px 11px / 0 stretch!important;min-height:50px;
+ color:#fff!important;font-size:16px!important;text-shadow:0 1px 0 #7a2a14,1px 0 0 #7a2a14,-1px 0 0 #7a2a14,0 -1px 0 #7a2a14!important;filter:drop-shadow(0 0 6px rgba(232,103,74,.45));}
+html.mr-uikit.ui-t6 body #overlay-gameover .go-restart-btn{border-image-width:12px 22px!important;}
+html.mr-uikit body #overlay-gameover .go-restart-btn *{color:#fff!important;}
+html.mr-uikit body #overlay-gameover.go-done .go-restart-btn:active{border-image:var(--uk-pri-p) / 10px 11px 10px 11px / 0 stretch!important;box-shadow:none!important;transform:translateY(2px)!important;}
+html.mr-uikit.ui-t6 body #overlay-gameover.go-done .go-restart-btn:active{border-image-width:12px 22px!important;}
+</style>
 </body>
 </html>
