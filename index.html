@@ -10342,6 +10342,8 @@ function createSocialDataFoundation(assets, emojis) {
     }
 
     const FINISH_CUTSCENE_MS=1800;
+    // 보스 연출 미리보기(▶)에서 실제 처치 컷신을 같이 보여 주기 위한 호출 — 화면 연출만, 게임 진행·보상 영향 없음
+    window.mrPreviewFinishCut=()=>{try{playVictoryPose('boss');}catch(e){}};
     function playVictoryPose(reason='normal'){
         if(!battleTeamEntries().length){setBattleHeroState('idle');return;}
         const hold = reason==='boss' ? 1850 : 850;
@@ -10858,8 +10860,8 @@ function createSocialDataFoundation(assets, emojis) {
         const box=document.getElementById('merge-box');if(!box||document.getElementById('mr-merge-ring-test'))return;
         const bar=document.createElement('div');bar.id='mr-merge-ring-test';bar.setAttribute('data-no-i18n','');
         bar.innerHTML='<span>링</span><button type="button" data-v="dash">1</button><button type="button" data-v="solid">2</button>'+
-            '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span>';
-        const bossMode=()=>{try{return localStorage.getItem('mr-boss-fx-test')==='A'?'A':'B';}catch(_){return 'B';}};
+            '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-b="C" title="컷신 먼저 → 풍차 폭발·바람 → 다음 하늘">C</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span>';
+        const bossMode=()=>{try{const v=localStorage.getItem('mr-boss-fx-test');return v==='A'||v==='C'?v:'B';}catch(_){return 'B';}};
         const sync=()=>{bar.querySelectorAll('button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===mergeRingVariant()));
             bar.querySelectorAll('button[data-b]').forEach(b=>b.classList.toggle('on',b.dataset.b===bossMode()));};
         bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
@@ -16787,7 +16789,7 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
   window.MR_RUN_FRAME_MS=window.MR_RUN_FRAME_MS||RUN_FRAME_MS;
   const FAR_FOLLOW=.08, FAR_BOOST=.3;                         // 땅이 빨라진 만큼 먼 풍경 비율은 낮춤 (체감 속도 유지)
   const $=id=>document.getElementById(id);
-  let cur=0, world='', timer=0;
+  let cur=0, world='', timer=0, pending=null;
 
   function worldOf(src){
     const n=Number((String(src||'').match(/bg_battle_(\d{4})/)||[])[1])||1;
@@ -16831,7 +16833,12 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
   }
   window.MRBattleSky={
     // n = 이번 판에서 잡은 보스 수 → 하늘 0~4 순환. 처치 컷신이 시작된 뒤 바뀌도록 살짝 늦춤
-    setStage(n,instant){clearTimeout(timer);if(instant)apply(n);else timer=setTimeout(()=>apply(n),350);},
+    // 시안 C(window.mrSkyHold): 풍차 폭발(release) 때까지 기다림 — 혹시 폭발이 안 오면 4초 뒤 그냥 바꿈
+    setStage(n,instant){clearTimeout(timer);pending=null;
+      if(instant)apply(n);
+      else if(window.mrSkyHold?.()){pending=n;timer=setTimeout(()=>{const p=pending;pending=null;if(p!=null)apply(p);},4000);}
+      else timer=setTimeout(()=>apply(n),350);},
+    release(){if(pending==null)return;const p=pending;pending=null;clearTimeout(timer);timer=setTimeout(()=>apply(p),350);},
     // 2026-10-16: 보스 처치 바람 — 풍차 포털의 큰 바람이 하늘을 왼쪽에서 오른쪽으로 쓸고 지나가며 다음 하늘로 넘김
     //  (하늘 바뀜 0.35초 뒤 시작 · 이 동안 하늘 전환을 1.8초 → 0.9초로 빠르게 해서 바람과 함께 바뀌게)
     windSweep(c){
@@ -17047,8 +17054,8 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(now-lastWind>HOLD)wind*=Math.exp(-dt/DECAY);
   if(charging){
    // 시안 B: 보스가 있는 동안 강하게 돎 — 바닥 속도가 10초에 걸쳐 300 → 700도/초까지 올라감
-   let alive=true;try{alive=typeof bossActive==='undefined'||!!bossActive||now-chargeAt<chargeMin;}catch(e){}
-   if(!alive){stopCharge();}else wind=Math.max(wind,300+Math.min(1,(now-chargeAt)/10000)*400);
+   let alive=true;try{alive=typeof bossActive==='undefined'||!!bossActive||now-chargeAt<chargeMin||now<holdUntil;}catch(e){}
+   if(!alive){stopCharge();}else wind=Math.max(wind,now<holdUntil?700:300+Math.min(1,(now-chargeAt)/10000)*400);  // C: 컷신 동안 최대 충전으로 버팀
    if(charging&&now>=nextFuel){nextFuel=now+380+Math.random()*220;fuel();}
   }
   if(wind<.5)wind=0;
@@ -17081,12 +17088,17 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  }
  // ---- 시안 A/B (임시 비교): A = 처치 때만 큰 바람(지금) / B = 등장 때 충전 → 처치 때 포털 폭발 ----
  const MODE_KEY='mr-boss-fx-test';
- const bossMode=()=>{try{return localStorage.getItem(MODE_KEY)==='A'?'A':'B';}catch(e){return 'B';}};
+ const bossMode=()=>{try{const v=localStorage.getItem(MODE_KEY);return v==='A'||v==='C'?v:'B';}catch(e){return 'B';}};
+ // 시안 C: 컷신(1.8초) 먼저 → 컷신 끝 흰 번쩍임에 맞춰 풍차 폭발 → 바람이 하늘을 쓸며 다음 하늘
+ const C_BURST_MS=1450;   // 컷신 끝 번쩍임이 가장 밝은 때 (1.8초 × 78% + 조금)
+ let holdUntil=0;
+ // 전투 하늘: C일 때는 처치 순간에 바로 바꾸지 않고 풍차 폭발 때까지 기다림 (MRBattleSky.setStage가 물어봄)
+ window.mrSkyHold=()=>bossMode()==='C'&&!reduce();
  let charging=false,chargeAt=0,chargeMin=0,nextFuel=0;
  const BEADS=Array.from({length:12},(_,i)=>'assets/art/beads/bead_'+String(i+1).padStart(4,'0')+'.png');
  function worldColors(){let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(e){}return WORLD_COLORS[key]||WORLD_COLORS.rust;}
  function startCharge(minMs){
-  if(!shown()||quiet()||bossMode()!=='B')return;
+  if(!shown()||quiet()||bossMode()==='A')return;
   colors(worldColors());charging=true;chargeAt=performance.now();chargeMin=minMs||0;nextFuel=chargeAt;
   crest.classList.add('charging');pulse(.18);addWind(300,BOSS_CAP);kick();
  }
@@ -17132,19 +17144,32 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(!shown()||quiet())return;
   let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(e){}
   colors(WORLD_COLORS[key]||WORLD_COLORS.rust);
-  if(bossMode()==='B'){
-   // 시안 B: 충전된 힘이 한 번에 터짐 — 가장 빠른 회전 + 번쩍 + 충격파 고리 2개 + 큰 흔들림
+  if(bossMode()!=='A'){
+   // 시안 B·C: 충전된 힘이 한 번에 터짐 — 가장 빠른 회전 + 번쩍 + 충격파 고리 2개 + 큰 흔들림
    stopCharge();addWind(2000,2600);sparkle(4,'boss');burst();pulse(.4);shake(true);
   }else{
    addWind(1150,BOSS_CAP);sparkle(4,'boss');pulse(.28);shake();
   }
  };
  window.mrCrestBossStart=startCharge;
- // 시안 미리보기: 실제 보스 없이 연출만 (A: 바로 처치 / B: 3.5초 충전 후 처치). 게임 진행·보상에는 영향 없음
+ // 보스 처치 순간 (모드별 순서)
+ //  A: 바로 큰 바람 + 하늘 쓸기 / B: 바로 폭발 → 0.18초 뒤 하늘 쓸기 / C: 컷신 동안 최대 충전 → 1.45초 폭발 + 하늘 쓸기 + 다음 하늘
+ function onBossKilled(){
+  const m=bossMode(),c=worldColors(),sweep=()=>{try{if(!window.__mrQuiet&&!reduce())window.MRBattleSky?.windSweep?.(c);}catch(e){}};
+  if(m==='C'){
+   if(shown()&&!quiet()){holdUntil=performance.now()+C_BURST_MS;if(!charging)startCharge();}
+   setTimeout(()=>{holdUntil=0;try{window.mrCrestBoss();}catch(e){}sweep();try{window.MRBattleSky?.release?.();}catch(e){}},C_BURST_MS);
+   return;
+  }
+  try{window.mrCrestBoss();}catch(e){}
+  if(m==='B'&&shown())setTimeout(sweep,180);else sweep();
+ }
+ // 시안 미리보기: 실제 보스 없이 연출만 (A: 바로 처치 / B·C: 3.5초 충전 후 처치) + 실제 처치 컷신. 게임 진행·보상에는 영향 없음
  window.mrBossFxPreview=function(){
-  const doKill=()=>{window.mrCrestBoss();const c=worldColors();const sw=()=>window.MRBattleSky?.windSweep?.(c);if(bossMode()==='B')setTimeout(sw,180);else sw();
-   try{window.MRBattleSky?.setStage((window.MRBattleSky.stage()+1)%5);}catch(e){}};
-  if(bossMode()==='B'){startCharge(3600);setTimeout(doKill,3500);}else doKill();
+  const doKill=()=>{
+   try{window.MRBattleSky?.setStage((window.MRBattleSky.stage()+1)%5);}catch(e){}
+   window.mrPreviewFinishCut?.();onBossKilled();};
+  if(bossMode()!=='A'){startCharge(3600);setTimeout(doKill,3500);}else doKill();
  };
  function gust(){
   if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');}
@@ -17160,8 +17185,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(fx&&typeof fx.bossDown==='function'&&!fx.bossDown.__crest){
    // 보스 처치: 문장 큰 바람 + 그 바람이 전투 하늘을 쓸고 지나가며 다음 하늘로 바뀜 (하늘 변화의 이유)
    const orig=fx.bossDown;fx.bossDown=function(){
-    try{window.mrCrestBoss();}catch(e){}
-    try{if(!window.__mrQuiet&&!reduce()){const c=worldColors();if(bossMode()==='B'&&shown())setTimeout(()=>window.MRBattleSky?.windSweep?.(c),180);else window.MRBattleSky?.windSweep?.(c);}}catch(e){}
+    try{onBossKilled();}catch(e){}
     return orig.apply(this,arguments);};fx.bossDown.__crest=true;
   }
  }
