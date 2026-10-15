@@ -3288,6 +3288,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 // and drives the progress bar, rotating tips and the fade-out.
 (function(){
  var screen=document.getElementById('game-startup-screen');if(!screen)return;
+ window.__mrBootT0=performance.now(); // 로고가 처음 보인 시각 (첫 실행 로고 3초 고정에 사용)
  var chosen=false,lang='ko';
  try{
   var saved=JSON.parse(localStorage.getItem('mergeRoll.settings.v8')||'{}');
@@ -3323,7 +3324,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
  var stage=screen.querySelector('.mr-logo-stage'),blades=screen.querySelector('.mr-logo-blades'),beadLayer=screen.querySelector('.mr-bead-layer');
  var reduceMotion=false;try{reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
  var BEADS=[];for(var bi=1;bi<=15;bi++)BEADS.push('assets/art/beads/bead_'+('000'+bi).slice(-4)+'.png');
- var bladeAngle=0,lastT=0,nextSpawn=0,entering=false;
+ var bladeAngle=0,lastT=0,nextSpawn=0,entering=false,bootT0=0;
  function portalProgress(){return entering?1:Math.max(0,Math.min(1,shown/100));}
  function spawnBead(p){
   if(!beadLayer||!stage||!beadLayer.animate)return;
@@ -3350,9 +3351,20 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
   var dt=lastT?Math.min(64,t-lastT):16;lastT=t;
   var p=portalProgress();
   var spd=entering?1600:(28+1100*Math.pow(p,1.6));// deg per second: slow at first, fast near the end
+  // 2026-10-16: 처음 켤 때 풍차가 '깨어나는' 느낌 — 0~1초: 바람을 받을 듯 말 듯 살짝 흔들림(제자리) → 1~2초: 천천히 돌기 시작해 평소 속도로
+  if(!bootT0)bootT0=t;
+  var age=(t-bootT0)/1000,wob=0;
+  //  첫 실행 로고(3초 고정): 0~1.2초 흔들림 → 1.2~2.4초 가속 → 2.4~3초 제 속도 + 로고 빛 밝아짐
+  //  다시 켤 때 로딩: 로딩을 늦추지 않게 짧게 (0~0.6초 흔들림 → 0.6~1.2초 가속)
+  var first=screen.dataset.phase==='logo',W1=first?1.2:.6,W2=first?2.4:1.2,glowUp=0;
+  if(!entering&&!reduceMotion&&age<W2){
+   if(age<W1){spd=0;var f=age/W1;wob=Math.sin(age*Math.PI*2*1.4)*(2+f*5)*(1-Math.max(0,f-.75)*4);}  // 2°→7° 흔들림, 끝에서 잦아들어 0
+   else{var k=(age-W1)/(W2-W1);spd*=k*k*(3-2*k);}                                                  // 부드럽게 속도가 붙음
+  }
+  if(first&&!entering&&age>=W2)glowUp=Math.min(1,(age-W2)/.6)*.35;
   bladeAngle=(bladeAngle+spd*dt/1000)%360;
-  if(blades){blades.style.transform='rotate('+bladeAngle.toFixed(2)+'deg)';blades.style.filter=p>.55?'blur('+((p-.55)*2.2).toFixed(2)+'px)':'';}
-  if(stage)stage.style.setProperty('--glow',(.25+.75*p).toFixed(3));
+  if(blades){blades.style.transform='rotate('+(bladeAngle+wob).toFixed(2)+'deg)';blades.style.filter=p>.55?'blur('+((p-.55)*2.2).toFixed(2)+'px)':'';}
+  if(stage)stage.style.setProperty('--glow',Math.min(1,.25+.75*p+glowUp).toFixed(3));
   if(!entering&&screen.style.display!=='none'&&screen.dataset.phase!=='logo'&&t>=nextSpawn){// 첫 실행 로고 단계는 구슬 없이 로고·날개만 (2026-10-15)
 spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.6);}
   requestAnimationFrame(portalLoop);
@@ -11220,7 +11232,9 @@ function createSocialDataFoundation(assets, emojis) {
         const screen=document.getElementById('game-startup-screen');
         if(screen){screen.style.display='flex';screen.dataset.phase='logo';}
         // 로고는 1.8초 멈춤(구슬 없이 날개만). 그동안 만화 그림과 BGM 파일을 미리 받아 둔다 — 첫 클릭 뒤 BGM이 늦게 나오던 문제
-        const hold=new Promise(r=>setTimeout(r,matchMedia('(prefers-reduced-motion:reduce)').matches?300:1800));
+        // 2026-10-16: 첫 실행 로고는 3초 고정 (로고가 처음 보인 시각부터) — 풍차가 깨어나 제 속도로 도는 것까지 보여 줌
+        const LOGO_MS=matchMedia('(prefers-reduced-motion:reduce)').matches?300:2750; // 만화 준비·전환 시간(약 0.25초)을 빼서 실제 로고 ≈ 3초
+        const hold=new Promise(r=>setTimeout(r,Math.max(0,LOGO_MS-(performance.now()-(window.__mrBootT0||performance.now())))));
         try{getBgmAudio().load();}catch(e){}
         if(window.MRStory){
             await Promise.all([hold,Promise.race([window.MRStory.preload(),new Promise(r=>setTimeout(r,8000))])]);
