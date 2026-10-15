@@ -13099,6 +13099,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
   clearTimeout(el._mrfxShake);el._mrfxShake=setTimeout(()=>el.classList.remove('mrfx-shake-s','mrfx-shake-l'),size==='l'?440:280);
  }
  function flash(el,color){
+  if(window.__mrQuiet)return; // 뽑기 결과 창 위로 번쩍임 안 띄움
   const r=visible(el);if(!r||reduce())return;
   const f=document.createElement('div');f.className='mrfx-flash';
   Object.assign(f.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',background:color||'rgba(255,255,255,.7)'});
@@ -13107,6 +13108,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  // Hit-stop: freeze physics for a few frames, then resume unless the game was paused meanwhile.
  let stopUntil=0;
  function hitStop(ms){
+  if(window.__mrQuiet)return;
   const r=window.gameRunner;if(!r||!r.enabled||reduce())return;
   const now=performance.now();if(now<stopUntil+220)return;
   stopUntil=now+ms;r.enabled=false;
@@ -13194,6 +13196,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  const tierOf=level=>level>=8?3:level>=5?2:1;
  const TIER_COLOR=['','#6fdadc','#b69afa','#f5c972'];
  function hitBurst(r,t){
+  if(window.__mrQuiet)return;
   // Skip during the boss WARNING overlay: the burst is a body-level fixed element and would draw over it.
   if(!r||warnUntil>performance.now())return;
   const el=document.createElement('div');el.className='mrfx-hitburst t'+t;
@@ -13254,6 +13257,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
  };
  // A3: finishing blow -> freeze beat, shards burst, punch zoom.
  MRFX.killFinish=function(enemyEl,level,shakeOn){
+  if(window.__mrQuiet)return; // 처치 파편·확대 생략
   try{
    const st=document.getElementById('battle-stage'),r=visible(enemyEl||document.getElementById('enemy'));
    if(!r||!visible(st)||reduce())return;
@@ -13316,6 +13320,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
   return shakeOn===false?o*.5:o;
  }
  MRFX.rush=function(chain,shakeOn){
+  if(window.__mrQuiet)return;
   try{
    if(reduce())return;
    setRush(rushTierOf(chain));
@@ -13737,7 +13742,10 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
 /* 2026-10-16: 뽑기 결과 창이 열려 있는 동안 게임 효과를 가림 (게임 진행·보상은 계속) */
 html.mr-reveal-quiet .mrfx-orb,html.mr-reveal-quiet .mr-frag-plus,html.mr-reveal-quiet .mr-frag-fly,html.mr-reveal-quiet #app .floating-text,
 html.mr-reveal-quiet #mr-battle-fx-canvas,html.mr-reveal-quiet .merge-ring-fx,html.mr-reveal-quiet .merge-sheet-fx,html.mr-reveal-quiet .merge-burst,
-html.mr-reveal-quiet .hit-effect-sprite{visibility:hidden!important;}
+html.mr-reveal-quiet .hit-effect-sprite,
+html.mr-reveal-quiet .mrfx-flash,html.mr-reveal-quiet .mrfx-hitburst,html.mr-reveal-quiet .mrfx-shard,
+html.mr-reveal-quiet #battle-chain-pop,html.mr-reveal-quiet #skill-cinematic,html.mr-reveal-quiet .mrfx-notice,html.mr-reveal-quiet .flying-enemy-art{visibility:hidden!important;}
+html.mr-reveal-quiet .mrfx-shake-s,html.mr-reveal-quiet .mrfx-shake-l{animation:none!important;}
 </style>
 <script id="mr-reveal-quiet">
 // 뽑기 결과 창(MRFX.reveal)이 열려 있는 동안 '조용한 모드':
