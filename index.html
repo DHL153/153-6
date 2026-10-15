@@ -10033,7 +10033,7 @@ function createSocialDataFoundation(assets, emojis) {
             document.getElementById('mini-multiplier')
         ].filter(Boolean);
         labels.forEach(el=>el.innerText='x'+cfg.val);
-        ['btn-mult','merge-mini-mult-btn'].forEach(id=>document.getElementById(id)?.classList.toggle('boost-on',cfg.val>1));
+        ['btn-mult','merge-mini-mult-btn'].forEach(id=>{const b=document.getElementById(id);if(!b)return;b.classList.toggle('boost-on',cfg.val>1);b.dataset.mult=String(cfg.val);}); // data-mult: 배수 단계별 음영(CSS mr-ui-kit-item-state)
 
         const costs=[
             document.getElementById('mult-cost'),
@@ -16787,6 +16787,24 @@ html.mr-uikit body #app .setting-select option{background:#14223a;color:var(--uk
 /* 2026-10-15: 위 점수줄 = 시안 B (옆 기둥·리벳 띠 없이 위아래 가는 황동 선 + 어두운 남색 판). 예전 두꺼운 띠(ui_bar_top)로 되돌리려면 이 블록 삭제 */
 html.mr-uikit body #app div#top-bar#top-bar{border-image:none!important;border-width:0!important;background:linear-gradient(180deg,#1a2a44,#111c30)!important;
  box-shadow:inset 0 2px 0 #b8893a,inset 0 3px 0 rgba(0,0,0,.5),inset 0 -2px 0 #b8893a,inset 0 -3px 0 rgba(0,0,0,.5),0 3px 6px rgba(0,0,0,.5)!important;}
+</style>
+<style id="mr-ui-kit-item-state">
+/* 2026-10-15: 머지 도구 켜짐 상태를 UI 그림 세트 위에서도 보이게
+   · 오토 ON = 켜진 탭 그림(청록 판) + 민트 빛  (예전 border 단축 속성이 그림 테를 지우던 문제 해결)
+   · 배수 x2 → x5 → x10 = 보라 음영이 단계마다 진해짐 (버튼 테는 그대로, 가운데 판 색만 바뀜) */
+html.mr-uikit body #app #view-battle #ui-section #btn-auto.active,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-auto-btn.active{border-width:1px!important;border-style:solid!important;border-color:transparent!important;border-radius:0!important;background:none!important;
+ border-image:var(--uk-tab-on) / 12px 13px 12px 13px / 0 stretch!important;box-shadow:0 0 0 1px rgba(124,227,209,.55),0 0 16px rgba(111,224,200,.55)!important;color:#e3fff6!important;}
+html.mr-uikit body #app #merge-mini-item-bar #merge-mini-auto-btn.active{border-image-width:9px 10px 9px 10px!important;}
+html.mr-uikit body #app #view-battle #ui-section #btn-auto.active .control-name,html.mr-uikit body #app #view-battle #ui-section #btn-auto.active .icon-main,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-auto-btn.active .mmi-name{color:#fff!important;text-shadow:0 0 6px rgba(111,224,200,.6),0 1px 2px #001b2c!important;}
+html.mr-uikit body #app #view-battle #ui-section #btn-auto.active .cost-label,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-auto-btn.active .mmi-cost{color:#7ce3d1!important;font-weight:900!important;}
+/* 배수: 버튼 그림은 그대로 두고 위에 보라 색조를 덮음(color 섞기 → 흰 글씨는 그대로 흼). x2 옅게 → x5 중간 → x10 진하게 */
+html.mr-uikit body #app #view-battle #ui-section #btn-mult.boost-on::after,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn.boost-on::after{content:""!important;position:absolute!important;inset:5px 6px!important;pointer-events:none!important;z-index:1!important;
+ background:linear-gradient(180deg,#8a4dff,#5a1fc4)!important;mix-blend-mode:color!important;opacity:var(--mult-tint,.4)!important;transition:opacity .2s;}
+html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="2"],html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn[data-mult="2"]{--mult-tint:.3;box-shadow:0 0 8px rgba(183,155,255,.25)!important;}
+html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="5"],html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn[data-mult="5"]{--mult-tint:.6;box-shadow:0 0 12px rgba(183,155,255,.42)!important;filter:brightness(.95);}
+html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="10"],html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn[data-mult="10"]{--mult-tint:1;box-shadow:0 0 16px rgba(196,140,255,.65)!important;filter:brightness(.9) saturate(1.2);}
+html.mr-uikit body #app #view-battle #ui-section #btn-mult.boost-on,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn.boost-on .cost-label,html.mr-uikit body #app #view-battle #ui-section #btn-mult.boost-on,html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn.boost-on .mmi-cost{color:#e2d4ff!important;}
+html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="10"],html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn[data-mult="10"] .control-name,html.mr-uikit body #app #view-battle #ui-section #btn-mult[data-mult="10"],html.mr-uikit body #app #merge-mini-item-bar #merge-mini-mult-btn[data-mult="10"] .mmi-name{color:#fff!important;text-shadow:0 0 6px rgba(200,150,255,.7),0 1px 2px #000!important;}
 </style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
