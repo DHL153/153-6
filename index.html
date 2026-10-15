@@ -10132,8 +10132,8 @@ function createSocialDataFoundation(assets, emojis) {
     }
 
     function stopBattleHeroRunLoop(){
-        clearInterval(battleHeroRunTimer);battleHeroRunTimer=null;
-        document.querySelectorAll('#battle-stage .battle-team-hero').forEach(el=>el.classList.remove('running'));
+        clearInterval(battleHeroRunTimer);cancelAnimationFrame(battleHeroRunTimer);battleHeroRunTimer=null;
+        document.querySelectorAll('#battle-stage .battle-team-hero').forEach(el=>{el.classList.remove('running');el.style.removeProperty('--mr-bob');});
     }
     function getCurrentBattleHeroAssets(){return getBattleHeroAssets(activeBattleTeam[0]??battleCharacter);}
     function applyBattleHeroImage(src,fallback,el=heroEl){
@@ -10150,12 +10150,14 @@ function createSocialDataFoundation(assets, emojis) {
     }
     function startBattleHeroRunLoop(){
         if(!heroEl)return;stopBattleHeroRunLoop();battleHeroRunFrame=0;
+        setTimeout(()=>document.getElementById('battle-stage')?.classList.add('mr-legs'),2000); // 달리기 그림이 없거나 늦으면 2초 뒤 땅 출발
         const members=battleTeamEntries().map(entry=>({...entry,assets:getBattleHeroAssets(entry.id),el:battleTeamElement(entry.slot)}));
         const pushFrame=()=>{
             if(globalPause||isGameOver||battleHeroState!=='idle')return;
             for(const {slot,assets,el} of members){
                 const frames=(assets.runFrames||[]).filter(Boolean),src=frames.length?frames[(battleHeroRunFrame+slot*2)%frames.length]:assets.idle;
                 if(frames.length)el?.classList.add('running');
+                if(frames.length>=4)document.getElementById('battle-stage')?.classList.add('mr-legs'); // 다리가 움직이기 시작하면 땅도 출발
                 applyBattleHeroImage(src,assets.idle,el);
             }
             battleHeroRunFrame++;
@@ -10163,10 +10165,22 @@ function createSocialDataFoundation(assets, emojis) {
         // Paint once even while navigation is paused, then freeze the shared loop.
         for(const {assets,el} of members)applyBattleHeroImage(assets.idle,assets.idle,el);
         pushFrame();
-        // Frame time 95ms, shortened by the chain rush (window.__mrHeroRunRate, max x1.4).
+        // 2026-10-15: 발 박자 = 땅 속도. 한 프레임 시간(MR_RUN_FRAME_MS)과 땅 이동 속도를 같은 보폭으로 계산(mr-battle-sky-js의 layout).
+        // setInterval 대신 requestAnimationFrame + 프레임 사이 살짝 위아래 흔들림(--mr-bob, 걸음 2번 = 6프레임)으로 부드럽게.
         if(members.some(x=>x.assets.runFrames?.length)){
+            members.forEach(({assets})=>(assets.runFrames||[]).forEach(src=>{if(!src)return;const im=new Image();im.src=src;im.decode?.().catch(()=>{});}));
             let acc=0,last=performance.now();
-            battleHeroRunTimer=setInterval(()=>{const now=performance.now();acc+=(now-last)*(window.__mrHeroRunRate||1);last=now;if(acc>=95){acc=Math.min(acc-95,95);pushFrame();}},24);
+            const tick=now=>{
+                const F=window.MR_RUN_FRAME_MS||120;
+                acc+=Math.min(100,now-last)*(window.__mrHeroRunRate||1);last=now;
+                if(acc>=F){acc=Math.min(acc-F,F);pushFrame();}
+                if(!globalPause&&!isGameOver&&battleHeroState==='idle'){
+                    const ph=((battleHeroRunFrame+acc/F)/3)*Math.PI*2;
+                    for(const {el,slot} of members){if(!el)continue;const h=el.clientHeight||100;el.style.setProperty('--mr-bob',(-Math.abs(Math.sin(ph+slot*.9))*h*.02).toFixed(2)+'px');}
+                }
+                battleHeroRunTimer=requestAnimationFrame(tick);
+            };
+            battleHeroRunTimer=requestAnimationFrame(tick);
         }
     }
     function stripSkillCinematicTextOnly(){
@@ -12741,9 +12755,9 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
   }catch(e){}
  };
  // A4: combo rush. Tuned for motion-sensitive players: modest speeds, no sudden jumps (ease up .3s / down .5s).
- //   chain 2-4: background x1.4, heroes run x1.15 | 5-9: x1.8 / x1.3 | 10+: x2.1 / x1.4
+ //   chain 2-4: x1.4 | 5-9: x1.8 | 10+: x2.1 (background and hero legs share the rate)
  //   While the rush is on, attacks no longer freeze the background (CSS: [data-rush] keeps it running).
- const RUSH_TIERS=[{bg:1,hero:1},{bg:1.4,hero:1.15},{bg:1.8,hero:1.3},{bg:2.1,hero:1.4}];
+ const RUSH_TIERS=[{bg:1,hero:1},{bg:1.4,hero:1.4},{bg:1.8,hero:1.8},{bg:2.1,hero:2.1}]; // 2026-10-15: 발 박자와 땅 속도를 같은 배율로 (미끄러짐 방지)
  let rushTimer=0,rushEndTimer=0;
  function panoramaAnimations(){
   const st=document.getElementById('battle-stage'),pano=document.getElementById('battle-panorama');if(!st||!st.getAnimations)return [];
@@ -16230,6 +16244,9 @@ html body #app .count .cnt-steam{display:inline-block;width:6px;height:6px;borde
 @media(prefers-reduced-motion:reduce){#battle-sky .sky-far,.mill-blades,.cel-portal,#battle-panorama{animation:none!important}}
 /* 전투 배경 썸네일(컬렉션·뽑기·시작 선택 등): 투명한 하늘 자리에 낮 하늘색을 깔아 줌 (2:1 그림이라 썸네일과 같은 칸에 맞음) */
 img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb_day.png') center/contain no-repeat}
+#app #battle-stage .hero.running:not(.attack):not(.skill):not(.victory){translate:0 var(--mr-bob,0px)} /* 2026-10-15: 달리는 동안 살짝 위아래 */
+#app #battle-stage:not(.mr-legs) #battle-panorama,#app #battle-stage:not(.mr-legs) #battle-sky-far{animation-play-state:paused!important} /* 시작할 때 다리와 땅이 같이 출발 */
+@media(prefers-reduced-motion:reduce){#app #battle-stage .hero.running{translate:none}}
 </style>
 <script id="mr-battle-sky-js">
 (()=>{
@@ -16241,8 +16258,9 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
     skyarc:{far:'far_skyarc.png',tower:'mill_skyarc_tower.png',blades:'mill_skyarc_blades.png',hub:.228}
   };
   const STAGES=5, GROUND_RATIO=2, FAR_RATIO=4, FAR_HEIGHT=.6;  // 실루엣 그림 2048x512 = 4:1, 전투 칸 높이의 60%
-  const BASE_LOOP_S=44;                                       // 예전 배경: 화면 2칸 이동 = 44초 → 같은 체감 속도
-  const FAR_FOLLOW=.15, FAR_BOOST=.3;
+  const RUN_FRAME_MS=120, STRIDE=.098;                        // 2026-10-15: 달리기 한 프레임 120ms(예전 95ms), 보폭 비율 — 둘이 땅 속도를 정함
+  window.MR_RUN_FRAME_MS=window.MR_RUN_FRAME_MS||RUN_FRAME_MS;
+  const FAR_FOLLOW=.08, FAR_BOOST=.3;                         // 땅이 빨라진 만큼 먼 풍경 비율은 낮춤 (체감 속도 유지)
   const $=id=>document.getElementById(id);
   let cur=0, world='', timer=0;
 
@@ -16263,7 +16281,10 @@ img[src*="backgrounds/battle/"]{background:url('assets/art/backgrounds/sky/thumb
     const st=$('battle-stage'), pano=$('battle-panorama'), far=$('battle-sky-far'); if(!st||!pano||!far)return;
     const w=st.clientWidth, h=st.clientHeight; if(!w||!h)return; // 숨겨진 화면은 건너뜀
     const gw=Math.max(1,Math.round(h*GROUND_RATIO)), fw=Math.max(1,Math.round(h*FAR_HEIGHT*FAR_RATIO));
-    const groundPx=w*2/BASE_LOOP_S;
+    // 2026-10-15: 땅 속도 = 캐릭터 보폭 ÷ 프레임 시간 → 발이 땅에서 미끄러지지 않음.
+    // 달리기 그림(512px)에서 디딘 발이 한 프레임에 뒤로 가는 거리 ≈ 그림 높이의 9.8% (STRIDE)
+    const hero=$('hero'), heroH=(hero&&hero.clientHeight)||Math.round(h*.76);
+    const groundPx=STRIDE*heroH/((window.MR_RUN_FRAME_MS||RUN_FRAME_MS)/1000);
     st.style.setProperty('--mr-ground-w',gw+'px');
     st.style.setProperty('--mr-ground-dur',(2*gw/groundPx).toFixed(2)+'s');
     st.style.setProperty('--mr-far-w',fw+'px');
