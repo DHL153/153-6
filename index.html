@@ -17121,7 +17121,8 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  const C_BURST_MS=1450;   // 컷신 끝 번쩍임이 가장 밝은 때 (1.8초 × 78% + 조금)
  let holdUntil=0;
  // 전투 하늘: C일 때는 처치 순간에 바로 바꾸지 않고 풍차 폭발 때까지 기다림 (MRBattleSky.setStage가 물어봄)
- window.mrSkyHold=()=>bossMode()==='C'&&!reduce();
+ // 2026-10-16 DHL 확정: 전투 배경(하늘)은 풍차 시안과 상관없이 항상 C 순서 — 컷신 먼저, 컷신 끝(1.45초)에 바람이 쓸며 다음 하늘
+ window.mrSkyHold=()=>!reduce();
  let charging=false,chargeAt=0,chargeMin=0,nextFuel=0;
  const BEADS=Array.from({length:12},(_,i)=>'assets/art/beads/bead_'+String(i+1).padStart(4,'0')+'.png');
  function worldColors(){let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(e){}return WORLD_COLORS[key]||WORLD_COLORS.rust;}
@@ -17184,13 +17185,15 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  //  A: 바로 큰 바람 + 하늘 쓸기 / B: 바로 폭발 → 0.18초 뒤 하늘 쓸기 / C: 컷신 동안 최대 충전 → 1.45초 폭발 + 하늘 쓸기 + 다음 하늘
  function onBossKilled(){
   const m=bossMode(),c=worldColors(),sweep=()=>{try{if(!window.__mrQuiet&&!reduce())window.MRBattleSky?.windSweep?.(c);}catch(e){}};
+  // 전투 하늘: 시안과 상관없이 항상 C — 컷신 끝 번쩍임(1.45초)에 바람이 하늘을 쓸고 다음 하늘로
+  setTimeout(()=>{sweep();try{window.MRBattleSky?.release?.();}catch(e){}},C_BURST_MS);
+  // 풍차: 시안별 (아직 비교 중 — A·B는 처치 순간, C는 컷신 동안 최대 충전으로 버티다 1.45초에 폭발)
   if(m==='C'){
    if(shown()&&!quiet()){holdUntil=performance.now()+C_BURST_MS;if(!charging)startCharge();}
-   setTimeout(()=>{holdUntil=0;try{window.mrCrestBoss();}catch(e){}sweep();try{window.MRBattleSky?.release?.();}catch(e){}},C_BURST_MS);
+   setTimeout(()=>{holdUntil=0;try{window.mrCrestBoss();}catch(e){}},C_BURST_MS);
    return;
   }
   try{window.mrCrestBoss();}catch(e){}
-  if(m==='B'&&shown())setTimeout(sweep,180);else sweep();
  }
  // 시안 미리보기: 실제 보스 없이 연출만 (A: 바로 처치 / B·C: 3.5초 충전 후 처치) + 실제 처치 컷신. 게임 진행·보상에는 영향 없음
  window.mrBossFxPreview=function(){
