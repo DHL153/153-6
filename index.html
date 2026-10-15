@@ -10874,27 +10874,40 @@ function createSocialDataFoundation(assets, emojis) {
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountMergeRingTest);else setTimeout(mountMergeRingTest,0);
 
-    // 구슬 PNG의 보이는 부분 가로/세로 비율을 한 번 재서 기억 (납작한 그림 보정용)
+    // 구슬 PNG마다 '몸통 반지름'(가로·세로 따로)을 한 번 재서 기억 → 충돌 원에 몸통이 꼭 맞게 그림
+    //  그림마다 투명 여백·테두리 장식 크기가 달라 생기던 빈틈/겹침을 없앰 (뾰족한 장식은 원 밖으로 살짝 나와도 됨)
+    //  잰 값: 여러 방향으로 바깥 끝을 재서 중앙값(장식 돌기 무시). 원본 픽셀 기준.
     (function(){
         const cache=new Map();
-        window.mrBeadAspect=function(src){
-            if(cache.has(src))return cache.get(src)||1;
-            cache.set(src,0);
+        window.mrBeadFit=function(src){
+            if(cache.has(src))return cache.get(src);
+            cache.set(src,null);
             const im=new Image();
             im.onload=()=>{
-                let a=1;
+                let fit=null;
                 try{
-                    const n=128,c=document.createElement('canvas');c.width=c.height=n;
+                    const W=im.naturalWidth,H=im.naturalHeight,n=128,c=document.createElement('canvas');c.width=c.height=n;
                     const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,n,n);
-                    const d=x.getImageData(0,0,n,n).data;let l=n,t=n,r=-1,b=-1;
+                    const d=x.getImageData(0,0,n,n).data,on=(px,py)=>px>=0&&py>=0&&px<n&&py<n&&d[(py*n+px)*4+3]>40;
+                    let l=n,t=n,r=-1,b=-1;
                     for(let y=0;y<n;y++)for(let i=0;i<n;i++)if(d[(y*n+i)*4+3]>40){if(i<l)l=i;if(i>r)r=i;if(y<t)t=y;if(y>b)b=y;}
-                    if(r>l&&b>t){const w=r-l+1,h=b-t+1;a=w/h;if(!(a>1.01&&a<1.15))a=1;}
-                }catch(_){a=1;}
-                cache.set(src,a);
-                if(a!==1&&typeof refreshMergeBeadSkins==='function')refreshMergeBeadSkins();
+                    if(r>l&&b>t){
+                        const cx=(l+r+1)/2,cy=(t+b+1)/2,hz=[],vt=[];
+                        for(let k=0;k<180;k++){
+                            const a=k/180*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a);let out=0;
+                            for(let rad=n*.2;rad<n*.72;rad+=.5)if(on(Math.floor(cx+rad*ca),Math.floor(cy+rad*sa)))out=rad;
+                            (Math.abs(ca)>=Math.abs(sa)?hz:vt).push(out+.5);
+                        }
+                        const med=a=>{a.sort((p,q)=>p-q);return a[a.length>>1];};
+                        const rx=med(hz)*W/n,ry=med(vt)*H/n;
+                        if(rx>W*.3&&ry>H*.3)fit={rx,ry};
+                    }
+                }catch(_){fit=null;}
+                cache.set(src,fit);
+                if(fit&&typeof refreshMergeBeadSkins==='function')refreshMergeBeadSkins();
             };
             im.src=src;
-            return 1;
+            return null;
         };
     })();
     window.getBodyRenderOptions = function(level) {
@@ -10903,14 +10916,19 @@ function createSocialDataFoundation(assets, emojis) {
             // PNG의 투명 여백만 아주 소폭 보정합니다.
         // Matter.js 충돌 원보다 그림이 커지면 인접 구슬을 침범하므로 8% 확대는 제거.
         const BALL_VISUAL_SCALE = 1.015;
+        const BEAD_FIT_SCALE = 1.0; // 몸통 반지름 = 충돌 반지름 (잰 뒤 적용)
         // 작은 LV는 원본 PNG가 256px 기준으로 크게 축소되면서 흐릿해질 수 있어
         // LV01~02만 시각 스케일을 아주 소폭 키우고, 이후 레벨은 기존 비율을 유지합니다.
         // Matter.js 충돌 반경은 그대로라 게임 밸런스에는 영향이 없습니다.
         const SMALL_BALL_RENDER_BOOST = level <= 1 ? 1.035 : 1.0;
         const scale = ((LEVELS[level].radius * 2) / 256) * BALL_VISUAL_SCALE * SMALL_BALL_RENDER_BOOST;
-            // 그림이 살짝 납작한(가로>세로) 구슬은 세로만 늘려 둥글게 → 위아래 빈틈 제거
-            const asp = window.mrBeadAspect ? window.mrBeadAspect(skinSrc) : 1;
-            return { fillStyle: 'transparent', sprite: { texture: skinSrc, xScale: scale, yScale: scale * asp } };
+            // 그림을 잰 뒤에는 몸통(가로·세로)이 충돌 원에 꼭 맞게 → 구슬 그림마다 다른 여백·납작함 보정
+            const fit = window.mrBeadFit ? window.mrBeadFit(skinSrc) : null;
+            if (fit) {
+                const R = LEVELS[level].radius * SMALL_BALL_RENDER_BOOST * BEAD_FIT_SCALE;
+                return { fillStyle: 'transparent', sprite: { texture: skinSrc, xScale: R / fit.rx, yScale: R / fit.ry } };
+            }
+            return { fillStyle: 'transparent', sprite: { texture: skinSrc, xScale: scale, yScale: scale } };
         }
         return { fillStyle: LEVELS[level].color };
     };
