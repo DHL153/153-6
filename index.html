@@ -3426,7 +3426,7 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
 <!-- MR_ART_EDITION -->
 <div id="app">
 <div id="daily-reward-toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<header id="game-brand"><div id="ui-theme-test" title="테스트: UI 세트 비교 (1 남색·2 메이플·3 다크)"><button type="button" data-t="1">1</button><button type="button" data-t="2">2</button><button type="button" data-t="3">3</button></div><div class="brand-lockup"><img class="mr-brand-logo" data-brand-logo alt="Merge &amp; Run: La Mancha"></div><div class="brand-actions"><button id="btn-test-unlock-all" class="test-unlock-btn" type="button" onclick="toggleTestUnlockAll()" title="테스트용: 모든 수집 리소스 보유 상태를 임시로 전환"><span class="unlock-line unlock-icon">🔒</span><span class="unlock-line">전체</span><span class="unlock-line">해금 OFF</span></button><button class="quiet-icon" onclick="MR.toggleSound()" id="quick-sound" title="소리 켜기 / 끄기" aria-label="소리 켜기 / 끄기"></button><button class="quiet-icon mini-shortcut" id="quick-mini-merge" onclick="setMiniMode(true,'merge')" title="머지 미니모드" aria-label="머지 미니모드"><span class="shortcut-label">머지</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-battle" onclick="setMiniMode(true,'battle')" title="전투 미니모드" aria-label="전투 미니모드"><span class="shortcut-label">전투</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-room" onclick="setMiniMode(true,'room')" title="마이룸 미니모드" aria-label="마이룸 미니모드"><span class="shortcut-label">마이룸</span></button></div></header><script id="mr-brand-init">
+<header id="game-brand"><div id="ui-theme-test" title="테스트: UI 세트 비교 (1 남색·2 메이플·3 다크·4 다듬은 남색+산호·5 다듬은 남색+청록)"><button type="button" data-t="1">1</button><button type="button" data-t="2">2</button><button type="button" data-t="3">3</button><button type="button" data-t="4">4</button><button type="button" data-t="5">5</button></div><div class="brand-lockup"><img class="mr-brand-logo" data-brand-logo alt="Merge &amp; Run: La Mancha"></div><div class="brand-actions"><button id="btn-test-unlock-all" class="test-unlock-btn" type="button" onclick="toggleTestUnlockAll()" title="테스트용: 모든 수집 리소스 보유 상태를 임시로 전환"><span class="unlock-line unlock-icon">🔒</span><span class="unlock-line">전체</span><span class="unlock-line">해금 OFF</span></button><button class="quiet-icon" onclick="MR.toggleSound()" id="quick-sound" title="소리 켜기 / 끄기" aria-label="소리 켜기 / 끄기"></button><button class="quiet-icon mini-shortcut" id="quick-mini-merge" onclick="setMiniMode(true,'merge')" title="머지 미니모드" aria-label="머지 미니모드"><span class="shortcut-label">머지</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-battle" onclick="setMiniMode(true,'battle')" title="전투 미니모드" aria-label="전투 미니모드"><span class="shortcut-label">전투</span></button><button class="quiet-icon mini-shortcut" id="quick-mini-room" onclick="setMiniMode(true,'room')" title="마이룸 미니모드" aria-label="마이룸 미니모드"><span class="shortcut-label">마이룸</span></button></div></header><script id="mr-brand-init">
 (()=>{
  const custom=new Image();custom.onload=()=>document.querySelectorAll('[data-brand-logo]').forEach(el=>el.src=custom.src);custom.src='assets/ui/merge-and-run-la-mancha-logo.webp';
 
@@ -16401,19 +16401,19 @@ html.uk-framed #mr-app-frame{display:block;}
  document.documentElement.classList.add('mr-uikit');
  // 2026-10-15 테스트: UI 세트 1·2·3 (위 왼쪽 버튼). 기본 2 = 메이플
  let T='2';try{T=localStorage.getItem('mr-ui-test-theme')||'2';}catch(e){}
- if(!/^[123]$/.test(T))T='2';
- const setT=(t)=>{const de=document.documentElement;de.classList.remove('ui-t1','ui-t2','ui-t3');de.classList.add('ui-t'+t);try{localStorage.setItem('mr-ui-test-theme',t);}catch(e){}
+ if(!/^[1-5]$/.test(T))T='2';
+ const setT=(t)=>{const de=document.documentElement;de.classList.remove('ui-t1','ui-t2','ui-t3','ui-t4','ui-t5');de.classList.add('ui-t'+t);try{localStorage.setItem('mr-ui-test-theme',t);}catch(e){}
   document.querySelectorAll('#ui-theme-test button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));};
  setT(T);
- const wire=()=>{document.querySelectorAll('#ui-theme-test button').forEach(b=>{b.addEventListener('click',(ev)=>{ev.stopPropagation();setT(b.dataset.t);});});setT((document.documentElement.className.match(/ui-t([123])/)||[0,'2'])[1]);};
+ const wire=()=>{document.querySelectorAll('#ui-theme-test button').forEach(b=>{b.addEventListener('click',(ev)=>{ev.stopPropagation();setT(b.dataset.t);});});setT((document.documentElement.className.match(/ui-t([1-5])/)||[0,'2'])[1]);};
  if(document.readyState==='loading')addEventListener('DOMContentLoaded',wire);else wire();
  // PC 바깥 틀: 틀 안쪽 구멍 + 8px 틈이 #app 둘레에 오도록 위치. 위아래 여유가 없으면 틀을 숨김
- const G=8,HOLE={1:{l:17,t:18,r:17,b:19},2:{l:16,t:20,r:16,b:17},3:{l:22,t:25,r:22,b:25}}; // 테스트 UI 세트별 틀 안쪽 구멍 (1 남색·2 메이플·3 다크)
+ const G=8,HOLE={1:{l:17,t:18,r:17,b:19},2:{l:16,t:20,r:16,b:17},3:{l:22,t:25,r:22,b:25},4:{l:17,t:18,r:17,b:19},5:{l:17,t:18,r:17,b:19}}; // 테스트 UI 세트별 틀 안쪽 구멍 (1 남색·2 메이플·3 다크)
  function place(){
   const app=document.getElementById('app');let fr=document.getElementById('mr-app-frame');
   if(!app)return;
   if(!fr){fr=document.createElement('div');fr.id='mr-app-frame';fr.setAttribute('aria-hidden','true');document.body.appendChild(fr);}
-  const t=(document.documentElement.className.match(/\bui-t([123])\b/)||[0,2])[1],h=HOLE[t],IN={l:h.l+G,t:h.t+G,r:h.r+G,b:h.b+G};
+  const t=(document.documentElement.className.match(/\bui-t([1-5])\b/)||[0,2])[1],h=HOLE[t],IN={l:h.l+G,t:h.t+G,r:h.r+G,b:h.b+G};
   const r=app.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
   const ok=vw>=700&&!document.body.classList.contains('mini-window')&&r.left>=IN.l+30&&r.top>=IN.t+4&&vh-r.bottom>=IN.b+4&&r.height>0;
   document.documentElement.classList.toggle('uk-framed',ok);
@@ -16882,8 +16882,8 @@ html.mr-uikit.ui-t2 body #app .setting-select option{background:#2a1e16!importan
 </style>
 <style id="mr-ui-theme-test">
 /* 2026-10-15 테스트: 위 왼쪽 1·2·3 버튼으로 UI 세트 비교. 1 = 예전 남색·황동 / 2 = 메이플(크림) / 3 = 다크(Ev Ganin풍 리소스). 선택은 브라우저에 저장 */
-#ui-theme-test{display:flex;gap:4px;margin-right:auto;align-items:center;}
-#ui-theme-test button{width:26px;height:26px;padding:0;border-radius:6px;border:1px solid #6b5a44;background:#1d1712;color:#d8c8a8;font:800 12px/1 system-ui,sans-serif;cursor:pointer;}
+#ui-theme-test{display:flex;gap:3px;margin-right:auto;align-items:center;flex:0 0 auto;padding-left:6px;}
+#ui-theme-test button{width:21px;height:24px;padding:0;border-radius:6px;border:1px solid #6b5a44;background:#1d1712;color:#d8c8a8;font:800 12px/1 system-ui,sans-serif;cursor:pointer;}
 #ui-theme-test button.on{background:#f1a43a;border-color:#ffd58a;color:#2a1600;}
 /* ---- 1: 예전 남색·황동 ---- */
 html.ui-t1{
@@ -16940,6 +16940,199 @@ html.mr-uikit.ui-t3 body #app #bottom-nav .nav-item{color:#cfc2aa!important;}
 html.mr-uikit.ui-t3 body #app #collection-subnav{box-shadow:inset 0 -2px 0 #55504a!important;}
 html.mr-uikit.ui-t3 body #app .setting-select option{background:#1d1a17!important;}
 
+</style>
+<style id="mr-ui-theme-refined">
+/* 2026-10-15 시안 4·5: "다듬은 남색·황동" — 그림 없이 코드만. 넓은 면은 테 없이 깔끔하게, 황동은 선으로만, 강조색 1개(4 산호 · 5 청록) */
+html.ui-t4{--rf-a:#e8674a;--rf-a-l:#ff9277;--rf-a-d:#a8402a;}
+html.ui-t5{--rf-a:#2fb3a2;--rf-a-l:#6fe0cf;--rf-a-d:#1b7b70;}
+html.ui-t4,html.ui-t5{--rf-navy:#14223a;--rf-navy-2:#1c2e4c;--rf-navy-3:#24395c;--rf-line:#2e4366;--rf-brass:#c9a35a;--rf-cream:#f3e6c8;--uk-plate:linear-gradient(180deg,#182844,#111c30);}
+/* 보통 버튼: 남색 + 아주 얇은 황동 테 + 살짝 입체 */
+html.mr-uikit.ui-t4 body #app .brand-actions button,
+html.mr-uikit.ui-t4 body #app #view-battle #ui-section .btn-item,
+html.mr-uikit.ui-t4 body #app #merge-mini-item-bar .merge-mini-item-btn,
+html.mr-uikit.ui-t4 body .mr-dialog-actions button,
+html.mr-uikit.ui-t4 body .mr-starter-foot button,
+html.mr-uikit.ui-t4 body #app .collection-tab,
+html.mr-uikit.ui-t4 body #app .codex-source-btn,
+html.mr-uikit.ui-t4 body #app .codex-tier-btn,
+html.mr-uikit.ui-t4 body #app #view-shop #daily-shop-link,
+html.mr-uikit.ui-t4 body #app #view-shop .action-btn-sub,
+html.mr-uikit.ui-t4 body #app #view-shop .craft-filter-btn,
+html.mr-uikit.ui-t4 body #app #view-shop .economy-tab,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-back,
+html.mr-uikit.ui-t4 body #app .period-btn,
+html.mr-uikit.ui-t4 body #app .mini-mode-choice,
+html.mr-uikit.ui-t4 body #app .setting-action,
+html.mr-uikit.ui-t4 body #app .mr-rebind-reset,
+html.mr-uikit.ui-t4 body #app .social-btn,
+html.mr-uikit.ui-t4 body #app #battle-pause-btn,
+html.mr-uikit.ui-t5 body #app .brand-actions button,
+html.mr-uikit.ui-t5 body #app #view-battle #ui-section .btn-item,
+html.mr-uikit.ui-t5 body #app #merge-mini-item-bar .merge-mini-item-btn,
+html.mr-uikit.ui-t5 body .mr-dialog-actions button,
+html.mr-uikit.ui-t5 body .mr-starter-foot button,
+html.mr-uikit.ui-t5 body #app .collection-tab,
+html.mr-uikit.ui-t5 body #app .codex-source-btn,
+html.mr-uikit.ui-t5 body #app .codex-tier-btn,
+html.mr-uikit.ui-t5 body #app #view-shop #daily-shop-link,
+html.mr-uikit.ui-t5 body #app #view-shop .action-btn-sub,
+html.mr-uikit.ui-t5 body #app #view-shop .craft-filter-btn,
+html.mr-uikit.ui-t5 body #app #view-shop .economy-tab,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-back,
+html.mr-uikit.ui-t5 body #app .period-btn,
+html.mr-uikit.ui-t5 body #app .mini-mode-choice,
+html.mr-uikit.ui-t5 body #app .setting-action,
+html.mr-uikit.ui-t5 body #app .mr-rebind-reset,
+html.mr-uikit.ui-t5 body #app .social-btn,
+html.mr-uikit.ui-t5 body #app #battle-pause-btn{border-image:none!important;background:linear-gradient(180deg,var(--rf-navy-3),#182a47)!important;border:1px solid rgba(201,163,90,.45)!important;border-radius:9px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 0 #0a1220,0 3px 8px rgba(0,0,0,.35)!important;color:var(--rf-cream)!important;text-shadow:0 1px 1px rgba(0,0,0,.6)!important;}
+/* 꺼진 탭·칩·입력칸: 더 조용하게 */
+html.mr-uikit.ui-t4 body #app .subnav-btn,
+html.mr-uikit.ui-t4 body #app #view-shop .cost,
+html.mr-uikit.ui-t4 body #app #view-shop .shop-mode-tabs,
+html.mr-uikit.ui-t4 body #app #view-shop .craft-slots-container,
+html.mr-uikit.ui-t4 body #app #view-shop .economy-item,
+html.mr-uikit.ui-t4 body #app #view-shop .economy-balance,
+html.mr-uikit.ui-t4 body #app #view-shop .selector-wallet,
+html.mr-uikit.ui-t4 body #app #view-shop .shop-help-note,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-chip,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-reset,
+html.mr-uikit.ui-t4 body #app .rank-card,
+html.mr-uikit.ui-t4 body #app .info-note,
+html.mr-uikit.ui-t4 body #app .social-input,
+html.mr-uikit.ui-t4 body #app .setting-select,
+html.mr-uikit.ui-t5 body #app .subnav-btn,
+html.mr-uikit.ui-t5 body #app #view-shop .cost,
+html.mr-uikit.ui-t5 body #app #view-shop .shop-mode-tabs,
+html.mr-uikit.ui-t5 body #app #view-shop .craft-slots-container,
+html.mr-uikit.ui-t5 body #app #view-shop .economy-item,
+html.mr-uikit.ui-t5 body #app #view-shop .economy-balance,
+html.mr-uikit.ui-t5 body #app #view-shop .selector-wallet,
+html.mr-uikit.ui-t5 body #app #view-shop .shop-help-note,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-chip,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-reset,
+html.mr-uikit.ui-t5 body #app .rank-card,
+html.mr-uikit.ui-t5 body #app .info-note,
+html.mr-uikit.ui-t5 body #app .social-input,
+html.mr-uikit.ui-t5 body #app .setting-select{border-image:none!important;background:linear-gradient(180deg,#132139,#0f1a2e)!important;border:1px solid var(--rf-line)!important;border-radius:9px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;}
+/* 판: 테 없이 남색 면 + 위쪽 황동 선 1줄 */
+html.mr-uikit.ui-t4 body #app .panel,
+html.mr-uikit.ui-t4 body #app .collection-power-card,
+html.mr-uikit.ui-t4 body .mr-dialog-box,
+html.mr-uikit.ui-t4 body #app #view-shop .btn-gacha,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-total,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-bonus,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-mission,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-record,
+html.mr-uikit.ui-t4 body #app .score-hero-card,
+html.mr-uikit.ui-t4 body #app .settings-group,
+html.mr-uikit.ui-t4 body #app .social-card,
+html.mr-uikit.ui-t5 body #app .panel,
+html.mr-uikit.ui-t5 body #app .collection-power-card,
+html.mr-uikit.ui-t5 body .mr-dialog-box,
+html.mr-uikit.ui-t5 body #app #view-shop .btn-gacha,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-total,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-bonus,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-mission,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-record,
+html.mr-uikit.ui-t5 body #app .score-hero-card,
+html.mr-uikit.ui-t5 body #app .settings-group,
+html.mr-uikit.ui-t5 body #app .social-card{border-image:none!important;background:linear-gradient(180deg,var(--rf-navy-2),var(--rf-navy) 70%)!important;border:1px solid var(--rf-line)!important;border-radius:14px!important;
+ box-shadow:inset 0 2px 0 var(--rf-brass),inset 0 3px 0 rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.45)!important;}
+/* 아래 메뉴 띠·전투 버튼줄: 위쪽 황동 선 1줄 */
+html.mr-uikit.ui-t4 body #app #bottom-nav,
+html.mr-uikit.ui-t4 body #app #view-battle #ui-section,
+html.mr-uikit.ui-t4 body #app #merge-mini-item-bar,
+html.mr-uikit.ui-t5 body #app #bottom-nav,
+html.mr-uikit.ui-t5 body #app #view-battle #ui-section,
+html.mr-uikit.ui-t5 body #app #merge-mini-item-bar{border-image:none!important;background:linear-gradient(180deg,#182844,#0f192c)!important;border:0!important;border-radius:0!important;box-shadow:inset 0 2px 0 var(--rf-brass),inset 0 3px 0 rgba(0,0,0,.4),0 -4px 10px rgba(0,0,0,.4)!important;}
+/* 강조 버튼 (확인·시작·구매): 강조색 하나 */
+html.mr-uikit.ui-t4 body .mr-dialog-actions button:last-child,
+html.mr-uikit.ui-t4 body .mr-starter-foot button:last-child,
+html.mr-uikit.ui-t4 body #game-startup-screen button,
+html.mr-uikit.ui-t4 body #app #view-shop .action-btn-main,
+html.mr-uikit.ui-t4 body #app .social-btn.primary,
+html.mr-uikit.ui-t5 body .mr-dialog-actions button:last-child,
+html.mr-uikit.ui-t5 body .mr-starter-foot button:last-child,
+html.mr-uikit.ui-t5 body #game-startup-screen button,
+html.mr-uikit.ui-t5 body #app #view-shop .action-btn-main,
+html.mr-uikit.ui-t5 body #app .social-btn.primary{border-image:none!important;background:linear-gradient(180deg,var(--rf-a-l),var(--rf-a) 55%,var(--rf-a-d))!important;border:1px solid var(--rf-a-d)!important;border-radius:9px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 0 rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.35)!important;color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.45)!important;}
+/* 켜짐: 황동 테 + 아래 강조색 밑줄 */
+html.mr-uikit.ui-t4 body #app .subnav-btn.active,
+html.mr-uikit.ui-t4 body #app .collection-tab.active,
+html.mr-uikit.ui-t4 body #app .codex-source-btn.active,
+html.mr-uikit.ui-t4 body #app .codex-tier-btn.active,
+html.mr-uikit.ui-t4 body #app #bottom-nav .nav-item.active,
+html.mr-uikit.ui-t4 body #app #view-shop .smt-thumb,
+html.mr-uikit.ui-t4 body #app #view-shop .craft-filter-btn.active,
+html.mr-uikit.ui-t4 body #app #view-shop .economy-tab.active,
+html.mr-uikit.ui-t4 body #app .period-btn.active,
+html.mr-uikit.ui-t4 body #app .mini-mode-choice.active,
+html.mr-uikit.ui-t4 body #app #view-battle #ui-section #btn-auto.active,
+html.mr-uikit.ui-t4 body #app #merge-mini-item-bar #merge-mini-auto-btn.active,
+html.mr-uikit.ui-t5 body #app .subnav-btn.active,
+html.mr-uikit.ui-t5 body #app .collection-tab.active,
+html.mr-uikit.ui-t5 body #app .codex-source-btn.active,
+html.mr-uikit.ui-t5 body #app .codex-tier-btn.active,
+html.mr-uikit.ui-t5 body #app #bottom-nav .nav-item.active,
+html.mr-uikit.ui-t5 body #app #view-shop .smt-thumb,
+html.mr-uikit.ui-t5 body #app #view-shop .craft-filter-btn.active,
+html.mr-uikit.ui-t5 body #app #view-shop .economy-tab.active,
+html.mr-uikit.ui-t5 body #app .period-btn.active,
+html.mr-uikit.ui-t5 body #app .mini-mode-choice.active,
+html.mr-uikit.ui-t5 body #app #view-battle #ui-section #btn-auto.active,
+html.mr-uikit.ui-t5 body #app #merge-mini-item-bar #merge-mini-auto-btn.active{border-image:none!important;background:linear-gradient(180deg,#2c4570,var(--rf-navy-2))!important;border:1px solid var(--rf-brass)!important;border-radius:9px!important;
+ box-shadow:inset 0 -3px 0 var(--rf-a),inset 0 1px 0 rgba(255,255,255,.12),0 2px 8px rgba(0,0,0,.35)!important;color:#fff!important;text-shadow:0 1px 1px rgba(0,0,0,.6)!important;}
+/* 누름: 살짝 들어감 */
+html.mr-uikit.ui-t4 body #app .brand-actions button:active,
+html.mr-uikit.ui-t4 body #app #view-battle #ui-section .btn-item:active,
+html.mr-uikit.ui-t4 body #app #merge-mini-item-bar .merge-mini-item-btn:active,
+html.mr-uikit.ui-t4 body .mr-dialog-actions button:active,
+html.mr-uikit.ui-t4 body .mr-starter-foot button:active,
+html.mr-uikit.ui-t4 body #app #view-shop #daily-shop-link:active,
+html.mr-uikit.ui-t4 body #app #view-shop .action-btn-sub:active,
+html.mr-uikit.ui-t4 body #app #view-daily .dg-back:active,
+html.mr-uikit.ui-t4 body #app .setting-action:active,
+html.mr-uikit.ui-t4 body #app .mr-rebind-reset:active,
+html.mr-uikit.ui-t4 body #app .social-btn:active,
+html.mr-uikit.ui-t4 body #app #battle-pause-btn:active,
+html.mr-uikit.ui-t5 body #app .brand-actions button:active,
+html.mr-uikit.ui-t5 body #app #view-battle #ui-section .btn-item:active,
+html.mr-uikit.ui-t5 body #app #merge-mini-item-bar .merge-mini-item-btn:active,
+html.mr-uikit.ui-t5 body .mr-dialog-actions button:active,
+html.mr-uikit.ui-t5 body .mr-starter-foot button:active,
+html.mr-uikit.ui-t5 body #app #view-shop #daily-shop-link:active,
+html.mr-uikit.ui-t5 body #app #view-shop .action-btn-sub:active,
+html.mr-uikit.ui-t5 body #app #view-daily .dg-back:active,
+html.mr-uikit.ui-t5 body #app .setting-action:active,
+html.mr-uikit.ui-t5 body #app .mr-rebind-reset:active,
+html.mr-uikit.ui-t5 body #app .social-btn:active,
+html.mr-uikit.ui-t5 body #app #battle-pause-btn:active,
+html.mr-uikit.ui-t4 body .mr-dialog-actions button:last-child:active,
+html.mr-uikit.ui-t4 body .mr-starter-foot button:last-child:active,
+html.mr-uikit.ui-t4 body #game-startup-screen button:active,
+html.mr-uikit.ui-t4 body #app #view-shop .action-btn-main:active,
+html.mr-uikit.ui-t4 body #app .social-btn.primary:active,
+html.mr-uikit.ui-t5 body .mr-dialog-actions button:last-child:active,
+html.mr-uikit.ui-t5 body .mr-starter-foot button:last-child:active,
+html.mr-uikit.ui-t5 body #game-startup-screen button:active,
+html.mr-uikit.ui-t5 body #app #view-shop .action-btn-main:active,
+html.mr-uikit.ui-t5 body #app .social-btn.primary:active{box-shadow:inset 0 2px 5px rgba(0,0,0,.55)!important;filter:brightness(.92);}
+/* 켜진 탭 위 장식·PC 바깥 틀은 1번(손그림) 그대로 재사용 */
+html.mr-uikit.ui-t4 body #app .subnav-btn.active::after,html.mr-uikit.ui-t5 body #app .subnav-btn.active::after{background-image:url("assets/ui/theme/ui_tab_windmill.webp")!important;}
+html.ui-t4 #mr-app-frame,html.ui-t5 #mr-app-frame{border-width:42px 48px 43px 48px;border-image:url("assets/ui/theme/ui_frame_main.webp") 106 120 108 120 / 42px 48px 43px 48px / 0 round;filter:none;}
+html.ui-t4 #mr-app-frame::after,html.ui-t5 #mr-app-frame::after{top:-57px;width:40px;height:34px;background-image:url("assets/ui/theme/ui_frame_windmill.webp");}
+/* 전투↔머지 사이: 얇은 황동 선 */
+html.mr-uikit.ui-t4 body #app #view-battle #mr-bm-divider::before,html.mr-uikit.ui-t5 body #app #view-battle #mr-bm-divider::before{background:linear-gradient(180deg,#0a1220 0 2px,var(--rf-brass) 2px 4px,#0a1220 4px 6px);height:6px;top:-3px;box-shadow:none;border:0;border-image:none;}
+/* 위 점수줄: 시안 B 모양, 남색 + 황동 선 */
+html.mr-uikit.ui-t4 body #app div#top-bar#top-bar,html.mr-uikit.ui-t5 body #app div#top-bar#top-bar{background:linear-gradient(180deg,#1a2a44,#111c30)!important;
+ box-shadow:inset 0 2px 0 var(--rf-brass),inset 0 3px 0 rgba(0,0,0,.5),inset 0 -2px 0 var(--rf-brass),inset 0 -3px 0 rgba(0,0,0,.5),0 3px 6px rgba(0,0,0,.5)!important;}
+html.mr-uikit.ui-t4 body #app .panel-title,html.mr-uikit.ui-t5 body #app .panel-title{color:#f1d58c!important;border-color:rgba(201,163,90,.35)!important;}
+html.mr-uikit.ui-t4 body .mr-dialog-box,html.mr-uikit.ui-t5 body .mr-dialog-box{padding:22px 20px 18px!important;}
+html.mr-uikit.ui-t4 body #app #bottom-nav .nav-item.active *,html.mr-uikit.ui-t5 body #app #bottom-nav .nav-item.active *{color:#fff!important;}
+html.mr-uikit.ui-t4 body #app #bottom-nav .nav-item,html.mr-uikit.ui-t5 body #app #bottom-nav .nav-item{border-radius:10px!important;}
+html.mr-uikit.ui-t4 body #app #collection-subnav,html.mr-uikit.ui-t5 body #app #collection-subnav{box-shadow:inset 0 -1px 0 var(--rf-line)!important;}
 </style>
 <style id="mr-starter-room-preview">
 /* 2026-10-14: 시작 선택 5/5 마이룸 미리보기 — 실제 마이룸과 같은 캐릭터 상자(가운데 기준) */
