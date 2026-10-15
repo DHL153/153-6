@@ -10874,8 +10874,14 @@ function createSocialDataFoundation(assets, emojis) {
                 const bgImg=new Image();bgImg.src=backgroundPath('lobby',bgIdx);
                 const place=()=>{
                     const W=view.clientWidth,H=view.clientHeight;if(!W||!H||!bgImg.naturalWidth)return;
-                    const k=Math.max(W/bgImg.naturalWidth,H/bgImg.naturalHeight),dh=bgImg.naturalHeight*k,oy=(H-dh)*.7;
-                    const f=window.MRFloors?.floorsOf?.(bgIdx)?.[0]||[88];const floorY=oy+dh*(f[0]+.8)/100;
+                    const k=Math.max(W/bgImg.naturalWidth,H/bgImg.naturalHeight),dh=bgImg.naturalHeight*k;
+                    const f=window.MRFloors?.floorsOf?.(bgIdx)?.[0]||[88];
+                    // 2026-10-15: 미리보기 칸이 가로로 넓으면(모바일) 배경 아래쪽이 잘려 1층 바닥선이 칸 밖으로 나가고 캐릭터 발이 잘렸음
+                    // → 기본은 아래 70% 기준, 바닥선이 칸 아래 6% 안쪽에 보이도록 필요한 만큼만 배경을 위로 올림
+                    const floorFrac=(f[0]+.8)/100;
+                    const oy=Math.max(H-dh,Math.min((H-dh)*.7,H*.94-dh*floorFrac));
+                    view.style.backgroundPosition=`50% ${oy.toFixed(1)}px`;
+                    const floorY=oy+dh*floorFrac;
                     const S=Math.min(roomChar.clientWidth,roomChar.clientHeight);if(!S)return;
                     const base=window.MRRoomFit?.BASE_FOOT??.92;
                     roomChar.style.left='50%';roomChar.style.top=(floorY-S*(base-.5))+'px';
