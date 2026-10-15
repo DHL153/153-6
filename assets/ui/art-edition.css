@@ -1,5 +1,5 @@
 /* A crisp navy frame, luminous scenery, and readable game controls. */
-:root{color-scheme:light;--ink:#172a44;--muted:#728096;--navy:#111c32;--navy-2:#1b2b47;--aqua:#65d7d4;--gold:#f4c775;--line:#d9e3ef;--paper:#f0f4f9;--violet:#bca6e0}
+:root{color-scheme:dark light;--ink:#172a44;--muted:#728096;--navy:#111c32;--navy-2:#1b2b47;--aqua:#65d7d4;--gold:#f4c775;--line:#d9e3ef;--paper:#f0f4f9;--violet:#bca6e0}
 *{font-family:Pretendard,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; -webkit-tap-highlight-color:transparent}
 body{background:#0a1327;background-image:radial-gradient(ellipse at 50% 45%,rgba(36,63,93,.6),rgba(7,14,30,.96)),url('../art/backgrounds/lobby/bg_lobby_0001.png');background-size:cover;background-position:center;color:var(--ink);touch-action:manipulation;min-height:100dvh}
 button{font:inherit;cursor:pointer;touch-action:manipulation;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
