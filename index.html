@@ -10857,9 +10857,14 @@ function createSocialDataFoundation(assets, emojis) {
     function mountMergeRingTest(){
         const box=document.getElementById('merge-box');if(!box||document.getElementById('mr-merge-ring-test'))return;
         const bar=document.createElement('div');bar.id='mr-merge-ring-test';bar.setAttribute('data-no-i18n','');
-        bar.innerHTML='<span>링</span><button type="button" data-v="dash">1</button><button type="button" data-v="solid">2</button>';
-        const sync=()=>bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===mergeRingVariant()));
-        bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();try{localStorage.setItem(MERGE_RING_KEY,b.dataset.v);}catch(_){}sync();});
+        bar.innerHTML='<span>링</span><button type="button" data-v="dash">1</button><button type="button" data-v="solid">2</button>'+
+            '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span>';
+        const bossMode=()=>{try{return localStorage.getItem('mr-boss-fx-test')==='A'?'A':'B';}catch(_){return 'B';}};
+        const sync=()=>{bar.querySelectorAll('button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===mergeRingVariant()));
+            bar.querySelectorAll('button[data-b]').forEach(b=>b.classList.toggle('on',b.dataset.b===bossMode()));};
+        bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
+            try{if(b.dataset.v)localStorage.setItem(MERGE_RING_KEY,b.dataset.v);if(b.dataset.b)localStorage.setItem('mr-boss-fx-test',b.dataset.b);}catch(_){}
+            if(b.dataset.p)window.mrBossFxPreview?.();sync();});
         ['pointerdown','mousedown','touchstart'].forEach(t=>bar.addEventListener(t,e=>e.stopPropagation(),{passive:true}));
         box.appendChild(bar);sync();
     }
@@ -16987,7 +16992,23 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
 @keyframes mrCrestGlowBig{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(2.6)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.2)}}
 @keyframes mrCrestSpark{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}35%{opacity:1;transform:translate(-50%,-50%) scale(1.5) rotate(45deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(90deg)}}
 @keyframes mrCrestSparkBig{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}30%{opacity:1;transform:translate(-50%,-50%) scale(2.4) rotate(45deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(140deg)}}
-@media(prefers-reduced-motion:reduce){#mr-crest .cr-glow,#mr-crest .cr-spark.on{animation:none!important;}#mr-crest .cr-aura{display:none;}}
+/* 2026-10-16 시안 B: 보스 등장 = 충전(세계관 색 맥동 + 구슬이 날아와 연료로) → 처치 = 포털 폭발(번쩍 + 충격파 고리) */
+#mr-crest .cr-charge{position:absolute;left:50%;top:50%;width:230%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.8);border-radius:50%;opacity:0;
+ background:radial-gradient(circle,color-mix(in srgb,var(--cc1) 70%,transparent) 0%,color-mix(in srgb,var(--cc2) 45%,transparent) 30%,transparent 64%);}
+#mr-crest.charging .cr-charge{animation:mrCrestCharge .9s ease-in-out infinite;}
+#mr-crest .cr-fuel{position:absolute;left:0;top:0;width:var(--fs,18px);height:var(--fs,18px);object-fit:contain;pointer-events:none;filter:drop-shadow(0 0 6px var(--cc2));z-index:5;}
+#mr-crest .cr-flash{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
+ background:radial-gradient(circle,#fff 0%,#fff 18%,var(--cc1) 34%,color-mix(in srgb,var(--cc2) 60%,transparent) 52%,transparent 70%);}
+#mr-crest .cr-shock{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
+ border:3px solid var(--cc1);box-shadow:0 0 14px var(--cc2),inset 0 0 10px var(--cc2);}
+#mr-crest.burst .cr-flash{animation:mrCrestFlash .9s cubic-bezier(.2,.7,.3,1) both;}
+#mr-crest.burst .cr-shock{animation:mrCrestShock 1s cubic-bezier(.15,.7,.3,1) both;}
+#mr-crest.burst .cr-shock.s2{animation-delay:.16s;}
+@keyframes mrCrestCharge{0%,100%{opacity:.45;transform:translate(-50%,-50%) scale(.85)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+@keyframes mrCrestFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}15%{opacity:1;transform:translate(-50%,-50%) scale(2.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(5)}}
+@keyframes mrCrestShock{0%{opacity:1;transform:translate(-50%,-50%) scale(.3)}100%{opacity:0;transform:translate(-50%,-50%) scale(6)}}
+#mr-boss-fx-test{display:flex;align-items:center;gap:4px;margin-left:6px;padding-left:6px;border-left:1px solid #6b5a44;}
+@media(prefers-reduced-motion:reduce){#mr-crest .cr-glow,#mr-crest .cr-spark.on,#mr-crest.charging .cr-charge,#mr-crest.burst .cr-flash,#mr-crest.burst .cr-shock{animation:none!important;}#mr-crest .cr-aura,#mr-crest .cr-fuel{display:none;}}
 </style>
 <script id="mr-crest-script">
 // PC 틀 위 풍차 문장 (1+ UI): 받침 + 날개(따로 돎). 게임과 연결된 '바람':
@@ -17006,7 +17027,8 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  function build(fr){
   crest=document.createElement('div');crest.id='mr-crest';crest.setAttribute('aria-hidden','true');
   crest.innerHTML='<img class="cr-base" src="assets/ui/ornament/crest_windmill_base.webp" alt="" draggable="false">'+
-   '<div class="cr-rotor"><i class="cr-aura"></i><i class="cr-glow"></i><img class="cr-blades" src="assets/ui/ornament/crest_windmill_blades.webp" alt="" draggable="false"></div>'+
+   '<div class="cr-rotor"><i class="cr-charge"></i><i class="cr-aura"></i><i class="cr-glow"></i><img class="cr-blades" src="assets/ui/ornament/crest_windmill_blades.webp" alt="" draggable="false"></div>'+
+   '<i class="cr-flash"></i><i class="cr-shock"></i><i class="cr-shock s2"></i>'+
    '<i class="cr-spark" style="left:30%;top:30%"></i><i class="cr-spark" style="left:70%;top:22%"></i><i class="cr-spark" style="left:62%;top:62%"></i><i class="cr-spark" style="left:38%;top:70%"></i>';
   fr.appendChild(crest);blades=crest.querySelector('.cr-blades');sparks=[...crest.querySelectorAll('.cr-spark')];
  }
@@ -17023,6 +17045,12 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   raf=0;if(!shown()||document.hidden)return;
   const dt=last?Math.min(100,now-last):16;last=now;
   if(now-lastWind>HOLD)wind*=Math.exp(-dt/DECAY);
+  if(charging){
+   // 시안 B: 보스가 있는 동안 강하게 돎 — 바닥 속도가 10초에 걸쳐 300 → 700도/초까지 올라감
+   let alive=true;try{alive=typeof bossActive==='undefined'||!!bossActive||now-chargeAt<chargeMin;}catch(e){}
+   if(!alive){stopCharge();}else wind=Math.max(wind,300+Math.min(1,(now-chargeAt)/10000)*400);
+   if(charging&&now>=nextFuel){nextFuel=now+380+Math.random()*220;fuel();}
+  }
   if(wind<.5)wind=0;
   if(!reduce())angle=(angle+(BASE+wind)*dt/1000)%360;
   blades.style.transform='rotate('+angle.toFixed(2)+'deg)';
@@ -17045,10 +17073,41 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   const rotor=crest&&crest.querySelector('.cr-rotor');if(!rotor||!rotor.animate||reduce())return;
   rotor.animate([{transform:'translate(-50%,-50%) scale(1)'},{transform:`translate(-50%,-50%) scale(${(1+k).toFixed(3)})`,offset:.35},{transform:'translate(-50%,-50%) scale(1)'}],{duration:260,easing:'ease-out'});
  }
- function shake(){
+ function shake(big){
   if(!crest||!crest.animate||reduce())return;
-  const f=[0,-4,4,-3,3,-2,2,0].map(x=>({transform:`translateX(-50%) translate(${x}px,${Math.abs(x)*-.4}px)`}));
-  crest.animate(f,{duration:520,easing:'ease-out'});
+  const m=big?2:1;
+  const f=[0,-4,4,-3,3,-2,2,0].map(x=>({transform:`translateX(-50%) translate(${x*m}px,${Math.abs(x)*-.4*m}px)`}));
+  crest.animate(f,{duration:big?700:520,easing:'ease-out'});
+ }
+ // ---- 시안 A/B (임시 비교): A = 처치 때만 큰 바람(지금) / B = 등장 때 충전 → 처치 때 포털 폭발 ----
+ const MODE_KEY='mr-boss-fx-test';
+ const bossMode=()=>{try{return localStorage.getItem(MODE_KEY)==='A'?'A':'B';}catch(e){return 'B';}};
+ let charging=false,chargeAt=0,chargeMin=0,nextFuel=0;
+ const BEADS=Array.from({length:12},(_,i)=>'assets/art/beads/bead_'+String(i+1).padStart(4,'0')+'.png');
+ function worldColors(){let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(e){}return WORLD_COLORS[key]||WORLD_COLORS.rust;}
+ function startCharge(minMs){
+  if(!shown()||quiet()||bossMode()!=='B')return;
+  colors(worldColors());charging=true;chargeAt=performance.now();chargeMin=minMs||0;nextFuel=chargeAt;
+  crest.classList.add('charging');pulse(.18);addWind(300,BOSS_CAP);kick();
+ }
+ function stopCharge(){charging=false;crest&&crest.classList.remove('charging');}
+ // 구슬이 사방에서 날아와 축으로 빨려 들어감 (로딩 화면의 '포털 연료'와 같은 그림)
+ function fuel(){
+  if(!crest||!crest.animate)return;
+  const W=crest.clientWidth||200,H=crest.clientHeight||70,hx=W*.4946,hy=H*.423;
+  const im=document.createElement('img');im.className='cr-fuel';im.alt='';im.src=BEADS[Math.floor(Math.random()*BEADS.length)];
+  const size=Math.round(W*(.07+Math.random()*.04));im.style.setProperty('--fs',size+'px');
+  const a=Math.PI*(1.05+Math.random()*.9),d=W*(.45+Math.random()*.25);   // 위쪽 반원에서 날아옴
+  const sx=hx+Math.cos(a)*d-size/2,sy=hy+Math.sin(a)*d*.8-size/2,ex=hx-size/2,ey=hy-size/2,sw=(Math.random()<.5?-1:1)*.6;
+  const mx=hx+Math.cos(a+sw)*d*.45-size/2,my=hy+Math.sin(a+sw)*d*.36-size/2;
+  crest.appendChild(im);
+  im.animate([{transform:`translate(${sx}px,${sy}px) scale(1)`,opacity:0},{transform:`translate(${sx}px,${sy}px) scale(1)`,opacity:1,offset:.12},
+   {transform:`translate(${mx}px,${my}px) scale(.8) rotate(200deg)`,opacity:1,offset:.6},{transform:`translate(${ex}px,${ey}px) scale(.15) rotate(420deg)`,opacity:0}],
+   {duration:900,easing:'cubic-bezier(.45,0,.85,.5)'}).onfinish=()=>{im.remove();addWind(40,BOSS_CAP);pulse(.05);};
+ }
+ function burst(){
+  crest.classList.remove('burst');void crest.offsetWidth;crest.classList.add('burst');
+  setTimeout(()=>crest&&crest.classList.remove('burst'),1300);
  }
  const quiet=()=>!!window.__mrQuiet||reduce();
  function colors(c){const [a,b]=c||['#ffe9a8','#ffc96a'];crest.style.setProperty('--cc1',a);crest.style.setProperty('--cc2',b);}
@@ -17073,7 +17132,19 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(!shown()||quiet())return;
   let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(e){}
   colors(WORLD_COLORS[key]||WORLD_COLORS.rust);
-  addWind(1150,BOSS_CAP);sparkle(4,'boss');pulse(.28);shake();
+  if(bossMode()==='B'){
+   // 시안 B: 충전된 힘이 한 번에 터짐 — 가장 빠른 회전 + 번쩍 + 충격파 고리 2개 + 큰 흔들림
+   stopCharge();addWind(2000,2600);sparkle(4,'boss');burst();pulse(.4);shake(true);
+  }else{
+   addWind(1150,BOSS_CAP);sparkle(4,'boss');pulse(.28);shake();
+  }
+ };
+ window.mrCrestBossStart=startCharge;
+ // 시안 미리보기: 실제 보스 없이 연출만 (A: 바로 처치 / B: 3.5초 충전 후 처치). 게임 진행·보상에는 영향 없음
+ window.mrBossFxPreview=function(){
+  const doKill=()=>{window.mrCrestBoss();const c=worldColors();const sw=()=>window.MRBattleSky?.windSweep?.(c);if(bossMode()==='B')setTimeout(sw,180);else sw();
+   try{window.MRBattleSky?.setStage((window.MRBattleSky.stage()+1)%5);}catch(e){}};
+  if(bossMode()==='B'){startCharge(3600);setTimeout(doKill,3500);}else doKill();
  };
  function gust(){
   if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');}
@@ -17083,11 +17154,14 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  window.mrCrestGust=()=>{colors();addWind(240,BOSS_CAP);sparkle(4,'gust');};
  function hookBoss(){
   const fx=window.MRFX;
+  if(fx&&typeof fx.bossWarning==='function'&&!fx.bossWarning.__crest){
+   const ow=fx.bossWarning;fx.bossWarning=function(){try{startCharge();}catch(e){}return ow.apply(this,arguments);};fx.bossWarning.__crest=true;
+  }
   if(fx&&typeof fx.bossDown==='function'&&!fx.bossDown.__crest){
    // 보스 처치: 문장 큰 바람 + 그 바람이 전투 하늘을 쓸고 지나가며 다음 하늘로 바뀜 (하늘 변화의 이유)
    const orig=fx.bossDown;fx.bossDown=function(){
     try{window.mrCrestBoss();}catch(e){}
-    try{if(!window.__mrQuiet&&!reduce()){let key='rust';try{key=window.MRWorld?.keyOf?.(backgroundPath('battle',bgConfig.battle))||key;}catch(_){}window.MRBattleSky?.windSweep?.(WORLD_COLORS[key]||WORLD_COLORS.rust);}}catch(e){}
+    try{if(!window.__mrQuiet&&!reduce()){const c=worldColors();if(bossMode()==='B'&&shown())setTimeout(()=>window.MRBattleSky?.windSweep?.(c),180);else window.MRBattleSky?.windSweep?.(c);}}catch(e){}
     return orig.apply(this,arguments);};fx.bossDown.__crest=true;
   }
  }
