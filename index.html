@@ -17640,7 +17640,7 @@ html body #app.mini-room-mode > .mrfx-notice{top:auto!important;bottom:12px!impo
   r.addEventListener('pointerdown',e=>{
    const img=e.target.closest?.('.mrm-char');if(!img)return;
    const rr=r.getBoundingClientRect();
-   press={img,x:e.clientX-rr.left,y:e.clientY-rr.top,long:false,timer:setTimeout(()=>{if(!press)return;press.long=true;walker?.say(img.dataset.walkKey||img.dataset.i);react(img);},LONG_MS)};
+   press={img,x:e.clientX-rr.left,y:e.clientY-rr.top,long:false,timer:setTimeout(()=>{if(!press)return;press.long=true;walker?.say(img.dataset.walkKey||img.dataset.i,'long');react(img);},LONG_MS)};
   });
   const end=e=>{
    if(!press)return;clearTimeout(press.timer);
@@ -18468,6 +18468,8 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 #battle-stage.mr-rig-on #battle-rig-canvas{display:block}
 #battle-stage .hero.mr-rig-hidden{visibility:hidden!important}
 .char-preview-character.mr-rig-hidden{opacity:0!important} /* 마이룸: 클릭 영역은 남기고 그림만 숨김 */
+/* 2026-10-16: 미니 마이룸·친구 방 방문도 같은 규칙 — 그림을 안 숨겨서 리그 캐릭터와 그림이 2명으로 겹쳐 보였음 */
+#mini-room .mrm-char.mr-rig-hidden,.visit-char.mr-rig-hidden{opacity:0!important}
 .mr-rig-room-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
 .mr-rig-still{position:absolute;pointer-events:none;display:none} /* 정지 그림 자리 위에 겹치는 리그 */
 img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대로 맡음, 클릭은 감싼 칸(도감 그림칸·카드)이 받음 */
