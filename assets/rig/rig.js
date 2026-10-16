@@ -314,7 +314,7 @@
       // gait feel (all optional in rig.json "gait"; defaults = the reference girl). See references/05_tuning.md
       this.setGait(opts.gait);
       this.t = 0; this.cyc = 0; this.A = 0; this.prevLVx = 0; this.facing = 1; this.turnT = 0; this.blinkT = 1.4; this.blinkAt = -9; this.odo = 0;
-      this.lean = new Spring(55, 11); this.cape = new Spring(34, 6.5); this.braid = new Spring(60, 7); this.weapon = new Spring(90, 9); this.headLag = new Spring(140, 16);
+      this.lean = new Spring(55, 11); this.cape = new Spring(34, 6.5); this.braid = new Spring(60, 7); this.pony = new Spring(38, 5); this.weapon = new Spring(90, 9); this.headLag = new Spring(140, 16);
       this.hem = Array.from({ length: (rig.def.parts.skirt?.mesh?.cols || 8) + 1 }, () => [new Spring(170, 13), new Spring(170, 13)]);
       this.prevHipY = 0; this.hipVy = 0; this.fist = false;
       this.act = null; this.events = []; this.trailPts = [[], []]; this.prevActX = 0; this.actV = 0;
@@ -630,10 +630,11 @@
       if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
       rig.swap.armL = this.fist ? rig.def.parts.armL.alt : null;
       // ---------- far arm + spear: the shaft is locked in the fist; the arm lifts it so the butt clears the ground ----------
-      b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) - leanA * .3;
+      const CS = rig.def.carrySwing ?? 1;   // 무기 팔을 달릴 때 뒤로 젖히는 양 (0 = 서 있을 때 각도 유지)
+      b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) * CS - leanA * .3;
       const wl = this.weapon.step(this.hipVy * .00016 - accel * .00006, dt);
-      const torsoTilt = b.torso.ar, want_ = I * br * .01 + A * -.06 + wl;    // spear world tilt (rad, 0 = as in the reference)
-      b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar, -.28, .28);   // wrist
+      const torsoTilt = b.torso.ar, want_ = I * br * .01 + A * (-.06 + (rig.def.runTilt || 0)) + wl;    // spear world tilt (rad, 0 = as in the reference)
+      const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar, -WR, WR);   // wrist
       b.weapon.ar = 0;
 
       // ---------- feet + legs ----------
@@ -703,6 +704,10 @@
       if (b.braid) { const bra = this.braid.step(clamp(lvx * .00022 + accel * .00006 - this.hipVy * .0012, -.12, .2), dt);
         b.braid.ar += clamp(bra, -.12, .2) * .5 + I * Math.sin(T * 1.6) * .02;
         rig.meshFx.braid = (u, v) => [-bra * 30 * v * v, -Math.abs(bra) * 5 * v] }
+
+      // ---------- ponytail (optional bone 'pony'): swings back with speed, bounces with each step ----------
+      if (b.pony && rig.def.ponySway) { const k = rig.def.ponySway, po = this.pony.step(clamp(lvx * .0005 + accel * .00012 - this.hipVy * .002, -.3, .45), dt);
+        b.pony.ar += po * .9 * k + I * Math.sin(T * 1.9) * .05 * k + A * Math.sin(TAU * psi) * .06 * k }
 
       // ---------- blink ----------
       // expression cross-fade (~70 ms) — only the face patch changes, hood and hair never do
