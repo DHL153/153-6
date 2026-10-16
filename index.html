@@ -3368,8 +3368,8 @@ html body #game-startup-screen.is-entering.is-leaving{transition:opacity .35s ea
    if(first){
     // 2026-10-16 첫 실행 로고(3초): 움직이려다 말고(1) → 움직이려다 말고(2, 조금 더 크게) → 바람을 타고 돌기 시작
     //  시도 = 앞으로 밀렸다가(0.3초) 힘이 빠져 살짝 뒤로 넘어가고(0.2초) 제자리로(0.15초)
-    if(age<1.85){spd=0;wob=attempt(age,.25,14)+attempt(age,1.05,26);}
-    else if(age<2.6){var k=(age-1.85)/.75;spd*=k<.6?Math.pow(k/.6,2)*2.1:2.1-(k-.6)/.4*1.1;} // 확 잡아채듯 2배 넘게 붙었다가 제 속도로
+    if(age<1.85){spd=0;wob=attempt(age,.25,7)+attempt(age,1.05,26);} // 1차는 살짝(7°), 2차는 크게(26°)
+    else if(age<2.6){var k=(age-1.85)/.75;spd*=k<.25?(1-Math.pow(1-k/.25,2))*3.4:3.4-2.4*Math.pow((k-.25)/.75,.8);} // 3차 '휭~': 0.2초 만에 3.4배로 확 돌았다가 제 속도로 풀림
     else glowUp=Math.min(1,(age-2.6)/.4)*.35;                                                // 마지막: 로고 빛이 살짝 밝아짐
    }else if(age<1.2){
     // 다시 켤 때 로딩: 로딩을 늦추지 않게 한 번만 짧게 '움찔' 후 가속
