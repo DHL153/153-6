@@ -104,3 +104,34 @@ Keep the costume, sword and proportions exactly as the original. LOCKED DESIGN: 
 Clean lines, no motion blur, no effects, no text, no guide lines, no watermark.
 ```
 **받으면 제가 할 일:** 리그에 겹쳐 팔꿈치 위치·칼 각도·두 손 간격을 재고 → 칼 각도별 손 그림(시트 H)만 추가로 주문합니다.
+
+---
+
+# 2차 주문 (2026-10-16) — 손 흔들기 인사
+
+## 시트 K-인사 — 키 포즈 1장
+**첨부:** `attach_alonso_reference.png` (B안 기준 그림)
+
+```
+Using the attached character exactly, draw ONE key pose of a friendly greeting wave, full-body, the SAME three-quarter angle as the attached image (facing right), same scale as the attached image, on a plain light background.
+His RIGHT hand (the near arm, closest to the viewer) still holds the greatsword exactly as in the attached image, the blade pointing down and back, tip on the ground.
+His LEFT arm (the far arm) is raised to wave: the upper arm goes out to the side and a little up, the elbow is bent, the forearm points up, and the OPEN LEFT hand is beside the head at ear height. The PALM faces the viewer, fingers relaxed and slightly spread, the THUMB on the viewer's LEFT side. 4 fingers + 1 thumb, fingerless brown leather glove.
+Happy face: eyes closed in arcs, big open grin. Both feet flat on the same ground line.
+Keep the costume, sword and proportions exactly as the original. LOCKED DESIGN: grey-silver spiky hair with a tan headband; red tattered scarf; olive-green tattered tunic with brown belt and pouch; dark olive trousers with rusty knee pads; brown boots with metal toe caps; rusty pauldrons on both shoulders; rusty metal bracers on both forearms; fingerless brown leather gloves; huge rusty jagged greatsword.
+Clean lines, no motion blur, no effects, no text, no guide lines, no watermark.
+```
+**확인할 것:** 흔드는 손이 손바닥(엄지가 화면 왼쪽)인지, 손가락 5개, 칼 쥔 손은 그대로인지.
+
+## 시트 W — 인사하는 팔 조각
+**첨부:** `attach_alonso_reference.png` + 시트 K-인사 결과 + `attach_alonso_forearm.png` (지금 뒷팔 팔뚝)
+
+```
+Pieces for a friendly WAVE with the character's LEFT arm (the far arm), exactly like the attached key pose, for 2D cut-out animation, the SAME angle and scale as the attached key pose.
+W1. LEFT upper arm with the torn olive tunic sleeve, shoulder to elbow, raised out to the side. Rounded shoulder end, rounded elbow end.
+W2. LEFT forearm + OPEN hand as ONE piece: the rusty metal bracer exactly like the attached forearm piece, straight wrist (NOT bent), PALM facing the viewer, fingers relaxed and slightly spread, THUMB on the viewer's LEFT side, fingerless brown leather glove. Rounded elbow end. Hand size identical to the hand in the key pose.
+W3. The same open LEFT hand alone with a short piece of wrist, cut at the wrist with a rounded end.
+Anatomy check: 4 fingers + 1 thumb, it is a LEFT hand seen from the palm side.
+STYLE LOCK: use the attached images as the exact reference: same line weight, colours, painted texture and proportions. Do not redesign anything.
+Solid flat magenta #FF00FF background. No shadows, no text, no labels, no numbers, no guide lines, no arrows, no watermark, no sparkle. Every piece separate with at least 40 px of background around it. Draw ONLY the listed pieces, nothing else.
+```
+**확인할 것:** W2·W3 엄지가 화면 왼쪽인지(반대면 손등이라 못 씀), 팔 보호대 모양, 손가락 5개.
