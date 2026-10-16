@@ -18742,12 +18742,14 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       if(m.mode==='battle'){e.box=measureRig(m.id,def,images);if(m.cut){e.anim.attack('guardLoop');e.anim.attack('gthrust');}else e.anim.attack('guardIn');} // 컷인: 나오자마자 찌르기
       measureArt(e.src).then(b=>{e.art=b;});
     }).catch(err=>{console.warn('[MRRig still]',err);});
-    // 클릭: 전투 그림은 찌르기. 도감 상세에서는 '다음 그림'으로 넘어가지 않게 막는다. 마이룸 그림은 원래 동작(넘기기·선택) + 시작 선택에선 짧은 반응
+    // 클릭: 전투 그림은 찌르기, 마이룸 그림은 짧은 반응. 도감 상세에서는 그림을 눌러도 다음 장으로 넘어가지 않음(화살표로만)
     e.onClick=ev=>{if(!e.anim||!enabled)return;
       if(e.mode==='battle'){stillAttack(e);if(img.closest('.mrw-hero'))ev.stopImmediatePropagation();}
-      else if(!img.closest('.mrw-hero')){const n=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];if(!e.anim.attack(n)){e.anim.act=null;e.anim.attack(n);}}};
+      else{const n=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];if(!e.anim.attack(n)){e.anim.act=null;e.anim.attack(n);}
+        if(img.closest('.mrw-hero'))ev.stopImmediatePropagation();}}; // 도감 1장(마이룸)도 누르면 반응(인사·폴짝·끄덕·움찔), 넘기기는 ‹ › 화살표로만
     e.clickEl=img.closest('.mrw-hero,.mr-starter-card,button')||img;
-    e.onClickWrap=ev=>{if(e.img.offsetParent&&!e.img.hidden)e.onClick(ev);};
+    e.onClickWrap=ev=>{const btn=ev.target?.closest?.('button,a,[role=button]');if(btn&&btn!==e.clickEl&&e.clickEl.contains(btn))return; // 칸 안의 화살표·버튼은 원래대로
+      if(e.img.offsetParent&&!e.img.hidden)e.onClick(ev);};
     e.clickEl.addEventListener('click',e.onClickWrap,true);
   }
   // 그림 숨김: 다른 화면의 CSS(예: 큰 미리보기 툴팁)가 더 강해도 이기도록 인라인 !important
