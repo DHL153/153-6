@@ -1,0 +1,57 @@
+<!doctype html><meta charset=utf-8><script src="rig.js"></script><script>
+// 추가 검사 4종 (2026-10-16 DHL 지적): 허리 이음매 / 손-자루 접촉 / 팔꿈치 방향 뒤집힘 / 팔뚝 그림 비틀림
+(async()=>{const rig=await CharacterRig.load("rig.json");
+const D=180/Math.PI,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a)),ang=v=>Math.atan2(v[1],v[0]),sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+const W=1100,H=1400,OX=500,OY=1300,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});
+const alphaMask=()=>{const d=g.getImageData(0,0,W,H).data,m=new Uint8Array(W*H);for(let i=0;i<W*H;i++)m[i]=d[i*4+3]>100?1:0;return m};
+const renderOnly=names=>{rig.drawOrder=names||null;const hp=rig._hemPath;rig._hemPath=()=>false;g.clearRect(0,0,W,H);rig.draw(g,OX,OY,1,1);rig._hemPath=hp;rig.drawOrder=null;return alphaMask()};
+// 1) 허리 이음매: 상체+치마만 그려서, 상체 아래쪽 가로 범위의 각 열에서 상체 픽셀과 치마 픽셀 사이에 빈 픽셀이 있으면 그 수를 셈
+function seam(){const T=renderOnly(['torso']),S=renderOnly(['skirt']),B=renderOnly(null);
+ let gap=0,cols=0,tb=-1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(T[y*W+x])tb=Math.max(tb,y);
+ for(let x=0;x<W;x++){let tl=-1,st=-1;for(let y=0;y<H;y++){if(T[y*W+x])tl=y;if(st<0&&S[y*W+x])st=y}
+  if(tl<0||st<0||tl<tb-60||st<=tl||st>tl+80)continue;cols++;for(let y=tl;y<st;y++)if(!B[y*W+x])gap++}
+ return {gapPx:gap,cols}}
+// 2) 손-자루 접촉: 보이는 주먹/손 조각의 중심에서 자루 중심선까지 거리 (자루 굵기의 절반 + 여유 8 이내여야)
+const HANDS=Object.keys(rig.def.parts).filter(k=>/fist|hand/i.test(k)&&!/open|wave/i.test(k));
+function handShaft(){const b=rig.by;if(!b.weapon||(rig.alpha.weapon??1)<.5)return null;const w=rig.images.weapon;
+ const p1=rig.partPoint('weapon',w.width/2,0),p2=rig.partPoint('weapon',w.width/2,w.height),dx=p2[0]-p1[0],dy=p2[1]-p1[1],L=Math.hypot(dx,dy);
+ const sw=rig.def.metrics?.shaftWidth||40,out={};
+ for(const h of HANDS){const bn=Object.values(rig.by).find(x=>x.part===h||rig.swap[x.name]===h);if(!bn)continue;const nm=bn.name;if((rig.alpha[nm]??1)<.5)continue;
+  const p=rig.def.parts[rig.swap[nm]||h],im=rig.images[rig.swap[nm]||h];const gp=p.grip||p.shaft||[im.width/2,im.height/2];const c=rig.partPoint(nm,gp[0],gp[1]);
+  const d=Math.abs((c[0]-p1[0])*dy-(c[1]-p1[1])*dx)/L;out[nm]=d-(sw/2+8)}   // >0 = 자루에서 떨어짐(단위)
+ return out}
+// 3·4) 팔꿈치 각(부호) / 팔뚝 그림 비틀림: 그림의 긴 축을 알파에서 구해(PCA) 뼈 방향(팔꿈치→손목)과 비교, 대기 자세 값과의 차이
+function axisOf(im){const cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const x=cv.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,im.width,im.height).data;
+ let n=0,mx=0,my=0;for(let j=0;j<im.height;j+=2)for(let i=0;i<im.width;i+=2)if(d[(j*im.width+i)*4+3]>100){n++;mx+=i;my+=j}mx/=n;my/=n;let sxx=0,syy=0,sxy=0;
+ for(let j=0;j<im.height;j+=2)for(let i=0;i<im.width;i+=2)if(d[(j*im.width+i)*4+3]>100){sxx+=(i-mx)**2;syy+=(j-my)**2;sxy+=(i-mx)*(j-my)}
+ const th=.5*Math.atan2(2*sxy,sxx-syy);return [Math.cos(th),Math.sin(th)]}
+const AX={};for(const k of ['foreF','armL'])if(rig.def.parts[k])AX[k]=axisOf(rig.images[k]);
+function foreTwist(){const out={};for(const k of ['foreF','armL']){const b=rig.by[k];if(!b||(rig.alpha[k]??1)<.5)continue;const a=AX[k],m=b.m;const dv=[m[0]*a[0]+m[2]*a[1],m[1]*a[0]+m[3]*a[1]];
+  const e=rig.point(k);let w;if(k==='foreF')w=rig.by.fistF?rig.point('fistF'):rig.by.handL?rig.point('handL'):null;else{const pn=rig.def.parts[rig.swap.armL||'armL'];w=rig.by.fistN?rig.point('fistN'):pn.wrist?rig.partPoint('armL',...pn.wrist):(rig.alpha.handR>.5?rig.point('handR'):null)}if(!w)continue;
+  let dlt=wrap(ang(dv)-ang(sub(w,e)))*D;dlt=((dlt%180)+270)%180-90;out[k]=dlt}return out}   // 축 방향 부호 무시(±90 안으로 접음)
+function elbows(){const P=n=>rig.point(n),r={};const rel=(u,v)=>wrap(ang(v)-ang(u))*D;
+ if(rig.by.foreF){const s=P('armF'),e=P('foreF'),w=rig.by.fistF?P('fistF'):P('handL');r.F=rel(sub(e,s),sub(w,e))}
+ if(rig.by.armL){const pn=rig.def.parts[rig.swap.armL||'armL'],s=P('armU'),e=P('armL'),w=rig.by.fistN?P('fistN'):rig.alpha.handR>.5?P('handR'):pn.wrist?rig.partPoint('armL',...pn.wrist):null;if(w)r.N=rel(sub(e,s),sub(w,e))}return r}
+// 5) 천 물리: skirt/cape 메시 각 칸의 넓이비(변형 후/원래)·접힘(음수)·변 늘어남 비율. 과한 찌그러짐 = 넓이비 <0.55 또는 >1.6, 변 비율 >1.5
+function cloth(){const out={};for(const pn of ['skirt','cape']){const part=rig.def.parts[pn],fx=rig.meshFx[pn];if(!part||!part.mesh||!fx)continue;
+ const {cols,rows}=part.mesh,im=rig.images[pn],W=im.width,H=im.height,[px,py]=part.pivot,k=part.scale||1,n=cols+1;const P=[];
+ for(let j=0;j<=rows;j++)for(let i=0;i<=cols;i++){const X=i/cols*W,Y=j/rows*H;const o=fx(i/cols,j/rows,(X-px)*k,(Y-py)*k)||[0,0];P.push([X+o[0]/k,Y+o[1]/k])}
+ const A0=(W/cols)*(H/rows);let amin=1e9,amax=0,emax=0,fold=0;
+ for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const a=P[j*n+i],b=P[j*n+i+1],c=P[(j+1)*n+i+1],d=P[(j+1)*n+i];
+  const ar=.5*((b[0]-a[0])*(c[1]-a[1])-(c[0]-a[0])*(b[1]-a[1]))+.5*((c[0]-a[0])*(d[1]-a[1])-(d[0]-a[0])*(c[1]-a[1]));
+  if(ar<=0)fold++;const r=ar/A0;amin=Math.min(amin,r);amax=Math.max(amax,r);
+  emax=Math.max(emax,Math.hypot(b[0]-a[0],b[1]-a[1])/(W/cols),Math.hypot(d[0]-a[0],d[1]-a[1])/(H/rows))}
+ out[pn]={amin:+amin.toFixed(2),amax:+amax.toFixed(2),emax:+emax.toFixed(2),fold}}return out}
+const SC={idle:t=>({vx:0}),run:t=>({vx:t<.3?0:620}),runStop:t=>({vx:t>.2&&t<1.6?620:0}),thrust:t=>({vx:0,atk:t>.3&&t<.32}),runThrust:t=>({vx:t<1.2?620:0,atk:t>1.2&&t<1.22}),chain:t=>({vx:0,atk:(t>.3&&t<.32)||(t>.86&&t<.88)})};
+window.audit=()=>{const R={};
+ for(const [name,f] of Object.entries(SC)){const an=new RunAnimator(rig);let v=0;const dt=1/120;const r=R[name]={seamMax:0,handMax:{},elbow:{},twist:{},twist0:null,cloth:{}};
+  for(let i=0;i<120*3;i++){const t=i*dt,s=f(t);const tgt=an.busy?0:s.vx;v+=(tgt-v)*(1-Math.exp(-(an.busy?16:tgt?4.2:6.5)*dt));if(s.atk)an.attack(rig.def.ui&&rig.def.ui.attack||'thrust');an.update(dt,{vx:v});rig.compute();
+   if(i%6===0){const sm=seam();r.seamMax=Math.max(r.seamMax,sm.gapPx)}
+   const cl=cloth();for(const pn in cl){const c=r.cloth[pn]||(r.cloth[pn]={amin:9,amax:0,emax:0,fold:0});c.amin=Math.min(c.amin,cl[pn].amin);c.amax=Math.max(c.amax,cl[pn].amax);c.emax=Math.max(c.emax,cl[pn].emax);c.fold=Math.max(c.fold,cl[pn].fold)}
+   const hs=handShaft();if(hs){if(!r.grip){r.grip={};for(const k in hs)r.grip[k]=hs[k]<=(rig.def.metrics?.shaftWidth||40)}for(const k in hs)if(r.grip[k])r.handMax[k]=Math.max(r.handMax[k]??-1e9,hs[k])}
+   const el=elbows();for(const k in el){const e=r.elbow[k]||(r.elbow[k]=[1e9,-1e9]);e[0]=Math.min(e[0],el[k]);e[1]=Math.max(e[1],el[k])}
+   const tw=foreTwist();if(!r.twist0)r.twist0=tw;for(const k in tw){let d=tw[k]-r.twist0[k];d=Math.abs(((d%180)+270)%180-90);r.twist[k]=Math.max(r.twist[k]??0,d)}}
+  delete r.twist0;delete r.grip;for(const k in r.handMax)r.handMax[k]=+r.handMax[k].toFixed(1);for(const k in r.twist)r.twist[k]=+r.twist[k].toFixed(1);for(const k in r.elbow)r.elbow[k]=r.elbow[k].map(x=>+x.toFixed(1))}
+ return R};
+window.rig=rig;window.ready=1})();
+</script>
