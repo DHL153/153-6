@@ -10810,17 +10810,18 @@ function createSocialDataFoundation(assets, emojis) {
     // ================= [ 머지 링 이펙트 · 2026-10-16 DHL 시트 ] =================
     // 흰색 링(4×4, 16칸)을 합쳐진 구슬 색으로 물들여 재생. 크기 = 구슬 지름 × 1.8 칸 (링이 칸의 55%→84%로 커짐 → 구슬의 약 1.0→1.5배)
     // 예전 5×5 폭발 시트(playMergeSheet)는 코드·그림 보존, 호출만 중단.
-    // 비교용(임시): 머지 판 왼쪽 위 '링 1·2' 버튼 — 1 = 끊긴 외곽선, 2 = 이어진 외곽선. 하나로 정하면 버튼과 다른 시트를 지움
+    // 2026-10-16 DHL 확정: 머지 이펙트 A안(링 1 = 끊긴 외곽선). 링 2(이어진 외곽선)는 개발 모드(?dev=1) 테스트 바에서만 — 추후 이펙트 조정용
     const MERGE_RING_SHEETS={dash:'assets/art/effects/merge/fx_merge_ring_dash_0001.png',solid:'assets/art/effects/merge/fx_merge_ring_solid_0001.png'};
     const MERGE_RING_KEY='mr-merge-ring-test';
     const mergeRingImages={};
-    for(const [k,src] of Object.entries(MERGE_RING_SHEETS)){const im=new Image();im.decoding='async';im.src=src;mergeRingImages[k]=im;}
+    const mrDev=()=>{try{return document.documentElement.classList.contains('mr-dev')||localStorage.getItem('mr-dev')==='1';}catch(e){return false;}}; // 개발 모드 스크립트보다 먼저 실행되므로 저장값도 확인
+    for(const [k,src] of Object.entries(MERGE_RING_SHEETS)){if(k!=='dash'&&!mrDev())continue;const im=new Image();im.decoding='async';im.src=src;mergeRingImages[k]=im;}
     // 2026-10-16: R등급 구슬 전용 머지 이펙트 — 황동 톱니 고리 + 빛줄기 + 금속 불꽃 (4×4, 금빛 그대로, 구슬 색은 살짝만)
     const MERGE_R_BURST=new Image();MERGE_R_BURST.decoding='async';MERGE_R_BURST.src='assets/art/effects/merge/fx_merge_r_burst_0001.webp';
     const MERGE_R_CELL=2.0, MERGE_R_DURATION=600;
     function isRareBeadLevel(level){try{const sk=equippedSkins&&equippedSkins[level];return !!sk&&SKINS_TIER_MAP[sk]==='R';}catch(e){return false;}}
     window.mrIsRareBeadLevel=isRareBeadLevel;
-    function mergeRingVariant(){try{return localStorage.getItem(MERGE_RING_KEY)==='solid'?'solid':'dash';}catch(e){return 'dash';}}
+    function mergeRingVariant(){try{return mrDev()&&mergeRingImages.solid&&localStorage.getItem(MERGE_RING_KEY)==='solid'?'solid':'dash';}catch(e){return 'dash';}} // 일반 플레이는 항상 A(dash)
     const MERGE_RING_DURATION=480, MERGE_RING_CELL=1.8;
     // 구슬 대표색: 구슬 그림에서 채도 높은 픽셀 위주로 평균 (그림을 못 읽으면 따뜻한 흰색)
     const beadColorCache=new Map();
@@ -10897,13 +10898,13 @@ function createSocialDataFoundation(assets, emojis) {
         drawMergeRing(fx);area.appendChild(el);mergeRingEffects.push(fx);
         if(!mergeRingRAF){mergeRingLast=performance.now();mergeRingRAF=requestAnimationFrame(tickMergeRing);}
     }
-    // 임시 비교 버튼 (링 1 끊긴선 / 링 2 이어진선)
+    // 개발 모드(?dev=1) 전용 테스트 바: 링 1(확정)·2 / 보스 풍차 A·B·C(C 확정)·▶ 미리보기 — 일반 플레이에서는 CSS로 숨김, 값도 무시
     function mountMergeRingTest(){
         const box=document.getElementById('merge-box');if(!box||document.getElementById('mr-merge-ring-test'))return;
         const bar=document.createElement('div');bar.id='mr-merge-ring-test';bar.setAttribute('data-no-i18n','');
         bar.innerHTML='<span>링</span><button type="button" data-v="dash">1</button><button type="button" data-v="solid">2</button>'+
             '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-b="C" title="컷신 먼저 → 풍차 폭발·바람 → 다음 하늘">C</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span>';
-        const bossMode=()=>{try{const v=localStorage.getItem('mr-boss-fx-test');return v==='A'||v==='C'?v:'B';}catch(_){return 'B';}};
+        const bossMode=()=>{try{const v=localStorage.getItem('mr-boss-fx-test');return v==='A'||v==='B'?v:'C';}catch(_){return 'C';}};
         const sync=()=>{bar.querySelectorAll('button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===mergeRingVariant()));
             bar.querySelectorAll('button[data-b]').forEach(b=>b.classList.toggle('on',b.dataset.b===bossMode()));};
         bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
@@ -17185,9 +17186,10 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   const f=[0,-4,4,-3,3,-2,2,0].map(x=>({transform:`translateX(-50%) translate(${x*m}px,${Math.abs(x)*-.4*m}px)`}));
   crest.animate(f,{duration:big?700:520,easing:'ease-out'});
  }
- // ---- 시안 A/B (임시 비교): A = 처치 때만 큰 바람(지금) / B = 등장 때 충전 → 처치 때 포털 폭발 ----
+ // ---- 보스 풍차 연출: 2026-10-16 DHL 확정 C안 (보스 등장 때 충전 → 컷신 끝 1.45초에 폭발 + 바람이 하늘을 쓸며 다음 하늘) ----
+ //  A(처치 때만 큰 바람)·B(처치 순간 폭발)는 개발 모드(?dev=1) 테스트 바에서만 고를 수 있음 — 추후 연출 조정용
  const MODE_KEY='mr-boss-fx-test';
- const bossMode=()=>{try{const v=localStorage.getItem(MODE_KEY);return v==='A'||v==='C'?v:'B';}catch(e){return 'B';}};
+ const bossMode=()=>{try{if(!(document.documentElement.classList.contains('mr-dev')||localStorage.getItem('mr-dev')==='1'))return 'C';const v=localStorage.getItem(MODE_KEY);return v==='A'||v==='B'?v:'C';}catch(e){return 'C';}};
  // 시안 C: 컷신(1.8초) 먼저 → 컷신 끝 흰 번쩍임에 맞춰 풍차 폭발 → 바람이 하늘을 쓸며 다음 하늘
  const C_BURST_MS=1450;   // 컷신 끝 번쩍임이 가장 밝은 때 (1.8초 × 78% + 조금)
  let holdUntil=0;
@@ -17259,7 +17261,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   const m=bossMode(),c=worldColors(),sweep=()=>{try{if(!window.__mrQuiet&&!reduce())window.MRBattleSky?.windSweep?.(c);}catch(e){}};
   // 전투 하늘: 시안과 상관없이 항상 C — 컷신 끝 번쩍임(1.45초)에 바람이 하늘을 쓸고 다음 하늘로
   setTimeout(()=>{sweep();try{window.MRBattleSky?.release?.();}catch(e){}},C_BURST_MS);
-  // 풍차: 시안별 (아직 비교 중 — A·B는 처치 순간, C는 컷신 동안 최대 충전으로 버티다 1.45초에 폭발)
+  // 풍차: C(확정)는 컷신 동안 최대 충전으로 버티다 1.45초에 폭발 / 개발 모드의 A·B는 처치 순간
   if(m==='C'){
    if(shown()&&!quiet()){holdUntil=performance.now()+C_BURST_MS;if(!charging)startCharge();}
    setTimeout(()=>{holdUntil=0;try{window.mrCrestBoss();}catch(e){}},C_BURST_MS);
@@ -17267,7 +17269,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   }
   try{window.mrCrestBoss();}catch(e){}
  }
- // 시안 미리보기: 실제 보스 없이 연출만 (A: 바로 처치 / B·C: 3.5초 충전 후 처치) + 실제 처치 컷신. 게임 진행·보상에는 영향 없음
+ // 연출 미리보기(개발 모드 ▶): 실제 보스 없이 연출만 (A: 바로 처치 / B·C: 3.5초 충전 후 처치) + 실제 처치 컷신. 게임 진행·보상에는 영향 없음
  window.mrBossFxPreview=function(){
   const doKill=()=>{
    try{window.MRBattleSky?.setStage((window.MRBattleSky.stage()+1)%5);}catch(e){}
