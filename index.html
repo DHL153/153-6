@@ -3841,7 +3841,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 <div class="setting-row"><div><div class="setting-name">투명도</div><div class="setting-desc">게임 창의 표시 투명도</div></div><div class="setting-control"><input class="setting-range" id="setting-opacity" type="range" min="55" max="100" step="5" oninput="setGameSettingValue('opacity',Number(this.value))"><span class="setting-value" id="setting-opacity-value">100%</span></div></div>
 <div class="setting-row"><div><div class="setting-name">프레임 제한</div><div class="setting-desc">30 FPS · ECO</div></div><div class="setting-control"><select class="setting-select" id="setting-fps" onchange="setGameSettingValue('fpsLimit',Number(this.value))"><option value="30">30 FPS</option><option value="60">60 FPS</option></select></div></div>
 <div class="setting-row"><div><div class="setting-name">화면 흔들림</div><div class="setting-desc">높은 레벨 머지 시 화면 임팩트</div></div><button class="toggle-switch on" id="setting-shake" onclick="toggleGameSetting('screenShake')">ON</button></div>
-<div class="setting-row"><div><div class="setting-name">리깅 캐릭터 테스트 <span class="setting-support">시험</span></div><div class="setting-desc">주 전투 캐릭터를 리깅 시안(쇠스랑 소녀)으로 표시</div></div><button class="toggle-switch" id="setting-rig" onclick="toggleGameSetting('rigTest')">OFF</button></div>
+<div class="setting-row"><div><div class="setting-name">리깅 캐릭터</div><div class="setting-desc">리깅된 캐릭터(니콜)를 전투·마이룸에서 부드럽게 움직임</div></div><button class="toggle-switch on" id="setting-rig" onclick="toggleGameSetting('rigChars')">ON</button></div>
 </div>
 
 <div class="settings-group"><div class="settings-title">🎮 플레이</div>
@@ -4782,7 +4782,7 @@ window.MRRunWalker=(()=>{
     let leaderboardPeriod = 'weekly';
     let localRuns = [];
     const DEFAULT_GAME_SETTINGS = {
-        miniMode:false, miniModeType:'merge', miniRoom:false, melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true, rigTest:false,
+        miniMode:false, miniModeType:'merge', miniRoom:false, melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true, rigChars:true,
         alwaysOnTop:false, windowSize:'default', rememberWindowPosition:true, snapToCorner:true,
         opacity:100, fpsLimit:60,
         autoDrop:false, autoStart:false, backgroundProgress:true,
@@ -5531,10 +5531,10 @@ window.MRRunWalker=(()=>{
           ['setting-shake','screenShake'],['setting-melody','melodyMerge'],['setting-danger','dangerAutoPause'],['setting-ss','ssEffect'],
           ['setting-always-top','alwaysOnTop'],['setting-remember-pos','rememberWindowPosition'],['setting-snap','snapToCorner'],
           ['setting-auto-drop','autoDrop'],['setting-auto-start','autoStart'],['setting-background','backgroundProgress'],
-          ['setting-notify-gacha','notifyGacha'],['setting-notify-danger','notifyDanger'],['setting-rig','rigTest']
+          ['setting-notify-gacha','notifyGacha'],['setting-notify-danger','notifyDanger'],['setting-rig','rigChars']
         ];
         toggleMap.forEach(([id,key])=>{ const b=document.getElementById(id); if(b){ b.classList.toggle('on',!!gameSettings[key]); b.innerText=gameSettings[key]?'ON':'OFF'; }});
-        window.MRRig?.setEnabled(!!gameSettings.rigTest); // 2026-10-16: 리깅 캐릭터 테스트 (mr-rig-js)
+        window.MRRig?.setEnabled(gameSettings.rigChars!==false); // 2026-10-16: 리깅 캐릭터 (mr-rig-js)
 
         const miniType=gameSettings.miniModeType==='battle'?'battle':'merge';
         const mergeMiniBtn=document.getElementById('setting-mini-merge');
@@ -9450,7 +9450,7 @@ function createSocialDataFoundation(assets, emojis) {
             }
         });
         // 2026-10-16: 리깅 캐릭터(mr-rig-js)에 발 위치·몸 높이 전달 — 그림 캐릭터와 같은 땅 선, 같은 키
-        window.MRRig?.layout({stage,W,H,ground,bodyH:visibleHeight||H*BATTLE_FIGHTER_HEIGHT,members:members.map(m=>({slot:m.slot,id:m.id,el:m.el,footX:W*positions[m.index]/100}))});
+        window.MRRig?.layout({stage,W,H,ground,bodyH:visibleHeight||H*BATTLE_FIGHTER_HEIGHT,members:members.map(m=>({slot:m.slot,id:m.id,el:m.el,footX:W*positions[m.index]/100,imageH:(m.bounds&&visibleHeight>0)?visibleHeight/m.bounds.h:0}))});
         if(!battleStageResizeObserver&&typeof ResizeObserver==='function'){
             let lastSize='';
             battleStageResizeObserver=new ResizeObserver(()=>{const size=stage.clientWidth+'x'+stage.clientHeight;if(size===lastSize)return;lastSize=size;relayout();});
@@ -18460,7 +18460,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
  body.mini-window #app.mini-mode.mini-room-mode{width:min(100vw,var(--mrm-app-w,320px))!important;height:var(--mrm-app-h,520px)!important;max-height:100dvh;}
 }
 </style>
-<!-- 2026-10-16: 리깅 캐릭터 (팀원 리그 데이터 테스트). 데이터: assets/rig/<id>/rig.json + parts/, 재생: assets/rig/rig.js.
+<!-- 2026-10-16: 리깅 캐릭터 (8번 니콜 정식 적용). 데이터: assets/rig/<id>/rig.json + parts/, 재생: assets/rig/rig.js. 설정 > 화면 > 리깅 캐릭터(기본 ON)로 끌 수 있음.
      설정 > 🎮 플레이 > "리깅 캐릭터 테스트"를 켜면 전투 주 캐릭터(슬롯 0) 그림 대신 캔버스에 리그를 그린다. 경제·판정은 그대로, 화면만. -->
 <style id="mr-rig-css">
 #battle-rig-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;display:none}
@@ -18475,11 +18475,11 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 <script id="mr-rig-js">
 (()=>{
   const RIG_DIR='assets/rig/';
-  // 전투 캐릭터 번호(1~30) → 리그 id. 비어 있으면 그림 프레임 그대로. 테스트 토글이 켜지면 슬롯 0은 무조건 TEST_RIG.
-  const REGISTRY={};
-  const TEST_RIG='rust-fork-girl';
+  // 캐릭터 번호(1~30, 전투·마이룸 같은 번호) → 리그 id. 등록된 번호는 전투·마이룸·친구 방문에서 그림 대신 리그로 그린다. 정지 그림(도감·카드·컷인)은 기존 PNG 그대로
+  const REGISTRY={8:'rust-fork-girl'}; // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
+  const BODY_PX=290/512;                  // 전투 그림 규칙(normalize_battle_chars.py): 512 그림에서 머리~발 290px
   const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
-  let enabled=false,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
+  let enabled=null,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
   const rigs={};          // id → Promise<{rig,anim}> (같은 캐릭터 여러 명이면 def·images 공유)
   const live=new Map();   // slot → {id,footX,footY,scale,rig,anim}
   const $=id=>document.getElementById(id);
@@ -18493,7 +18493,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
       .then(pairs=>{const images=Object.fromEntries(pairs);return {def,images};});
     return rigs[id];
   }
-  function rigIdFor(slot,charId){ if(slot===0&&enabled)return TEST_RIG; return REGISTRY[Number(charId)+1]||null; }
+  function rigIdFor(slot,charId){ return enabled?REGISTRY[Number(charId)+1]||null:null; }
   function ensureCanvas(stage){
     if(canvas&&canvas.isConnected)return canvas;
     canvas=document.createElement('canvas');canvas.id='battle-rig-canvas';canvas.setAttribute('aria-hidden','true');
@@ -18508,7 +18508,8 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
       const id=rigIdFor(m.slot,m.id);
       if(!id){m.el?.classList.remove('mr-rig-hidden');continue;}
       seen.add(m.slot);
-      const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.footX=m.footX;entry.footY=next.H-next.ground;entry.bodyH=next.bodyH;
+      const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.footX=m.footX;entry.footY=next.H-next.ground;
+      entry.bodyH=m.imageH>0?m.imageH*BODY_PX:next.bodyH; // 그림 캐릭터와 같은 몸 크기
       // 배율은 배치할 때마다 다시 계산 (휴대폰처럼 처음 배치 뒤 전투 칸 크기가 바뀌면 옛 배율로 거대하게 그려졌음 — 2026-10-16 수정)
       if(entry.rig)entry.scale=entry.bodyH/(entry.rig.def.metrics?.bodyHeight||718);
       live.set(m.slot,entry);
@@ -18618,7 +18619,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
   const TAP_CYCLE=['wave','hop','nod','surprise'],LONG_PICK=['cute','cute2'];
   const roomLive=new Map(); // key → {id,rig,anim,host,canvas,last,tapIdx}
   let roomLongIdx=0;
-  function roomRigId(it){ if(enabled&&it.el?.classList.contains('selected-character'))return TEST_RIG; return REGISTRY[Number(it.num)]||null; }
+  function roomRigId(it){ return enabled?REGISTRY[Number(it.num)]||null:null; }
   function roomCanvas(host){
     let c=host.querySelector(':scope>.mr-rig-room-canvas');
     if(!c){c=document.createElement('canvas');c.className='mr-rig-room-canvas';c.setAttribute('aria-hidden','true');host.appendChild(c);}
@@ -18663,7 +18664,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
   }
   window.MRRig={setEnabled,layout,onState,roomPlace,roomReact,roomStop,registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
-  const sync=()=>{try{if(typeof gameSettings!=='undefined')setEnabled(!!gameSettings.rigTest);}catch(e){}};
+  const sync=()=>{try{setEnabled(typeof gameSettings==='undefined'||gameSettings.rigChars!==false);}catch(e){setEnabled(true);}};
   sync();addEventListener('load',sync);
 })();
 </script>
