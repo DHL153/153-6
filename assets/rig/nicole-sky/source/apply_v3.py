@@ -17,7 +17,8 @@ t = g['armTH']; P['armTH'] = dict(src=t['src'], pivot=t['shoulder'], scale=t['sc
 P['armF']['elbow'] = [round(45 + 48 / .55, 1), round(30 + 83.3 / .55, 1)]       # v2 뼈 길이 그대로 (먼 윗팔은 몸 뒤)
 P['torso'] = dict(src=g['torso3']['src'], pivot=g['torso3']['pivot'], scale=g['torso3']['scale'])
 P['pouch'] = dict(src=g['pouch3']['src'], pivot=g['pouch3']['pivot'], scale=g['pouch3']['scale'])
-P['weapon'].update(pivot=[g['weapon']['axisX'], g['weapon']['gripRow']])
+GSHIFT = float(os.environ.get('SKY_GSHIFT', '120'))   # 앞손이 쥐는 자리를 창 뒤끝 쪽으로 (리그 단위) = 두 손이 자루를 따라 내려감 (DHL 2026-10-16)
+P['weapon'].update(pivot=[g['weapon']['axisX'], round(g['weapon']['gripRow'] + GSHIFT / P['weapon']['scale'], 1)])
 B = {b['name']: b for b in d['bones']}
 B['armU']['part'] = 'armU3'; B['armL']['part'] = 'armL'; B['foreF']['part'] = 'foreF'
 B['weapon'].update(parent='root', pos=[0, 0], rot=0)
@@ -43,8 +44,8 @@ d['spearGrip'] = {
     'carry': {'x': 178.1, 'y': -132.0 - RAISE, 'a': round(math.radians(-30.96), 4)},
     'carryRun': {'x': 182.0, 'y': -126.0 - RAISE, 'a': round(math.radians(-24.0) - .28, 4)},     # K-달리기 24° (달릴 때 몸 숙임 .28 을 뺀 몸통 기준 각도)
     'tiltFollow': 1, 'maxWrist': .35,
-    'far': {'pieces': ['foreF', 'handF1', 'handF2'], 'sPref': 0, 'sSig': 25, 'sMin': -300, 'sMax': 25, 'dMax': 50},
-    'near': {'pieces': ['handN0', 'armL', 'handN2'], 'upper': 'armU3', 'sPref': -331, 'sSig': 70, 'sMin': -480, 'sMax': -90, 'restUp': 2.24, 'pauldronFollow': .35, 'dMin': float(os.environ.get('SKY_DMIN', '115'))},
+    'far': {'pieces': ['foreF', 'handF1', 'handF2'], 'sPref': float(os.environ.get('SKY_FPREF', '0')), 'sSig': 25, 'sMin': -300, 'sMax': 25, 'dMax': 50},
+    'near': {'pieces': ['handN0', 'armL', 'handN2'], 'upper': 'armU3', 'sPref': float(os.environ.get('SKY_NPREF', '-360')), 'sSig': float(os.environ.get('SKY_NSIG', '70')), 'sMin': -560, 'sMax': -90, 'restUp': 2.24, 'pauldronFollow': .35, 'dMin': float(os.environ.get('SKY_DMIN', '115'))},
     'th': {'piece': 'armTH'},
 }
 A_ = d['actions']['spearThrust']; A_['kind'] = 'spear'
@@ -53,7 +54,7 @@ A_['th'] = [[0, 0], [.19, 0, 'io'], [.24, 1], [.58, 1, 'io'], [.68, 0]]
 A_['gx'] = [[0, 178, 'io'], [.18, 160, 's'], [.3, 330, 'o'], [.42, 320, 'io'], [.62, 230, 'io'], [.8, 178]]
 A_['gy'] = [[0, -132 - RAISE, 'io'], [.18, -85 - RAISE * .6, 's'], [.3, -62 - RAISE * .4, 'o'], [.42, -64 - RAISE * .4, 'io'], [.62, -110 - RAISE * .8, 'io'], [.8, -132 - RAISE]]
 A_['sa'] = [[0, -0.54, 'io'], [.18, -.42, 's'], [.3, -.06, 'o'], [.42, -.08, 'io'], [.62, -.45, 'io'], [.8, -.54]]              # 찌른 순간 뒷팔 = TH 한 장
-A_['gap'] = [[0, 331, 'io'], [.18, 300, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [.72, 331]]
+A_['gap'] = [[0, 346, 'io'], [.18, 310, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [.72, 346]]
 d['hemLimit'] = {'up': .45, 'x': .6}
 d['skirtFollow'] = .5
 d['gait']['kneeLift'] = .95   # 다리 길이 실측(허벅지 111·정강이 122)에서 무릎 150° 넘지 않게 (1.12 → 무릎 155°)
