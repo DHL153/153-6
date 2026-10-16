@@ -11,7 +11,7 @@ assets/rig/
 ```
 
 - 게임 연결 코드는 `index.html` 맨 아래 `<script id="mr-rig-js">` (MRRig). `layoutBattleTeam`이 발 위치·몸 높이를 넘기고, `setBattleHeroState`가 공격·스킬·승리를 알린다.
-- 설정 > 🎮 플레이 > **리깅 캐릭터 테스트**를 켜면 전투 슬롯 0이 `rust-fork-girl`로 바뀐다(화면만, 경제·판정 그대로).
+- 설정 > 🖥️ 화면 > 화면 흔들림 아래 **리깅 캐릭터 테스트**를 켜면 전투 슬롯 0이 `rust-fork-girl`로 바뀐다(화면만, 경제·판정 그대로).
 - 정식 적용은 `MRRig.registry[전투 캐릭터 번호] = '<id>'` 로 등록한다 (지금은 비어 있음).
 - `rig.json`을 바꾸면 `rig.def.js`도 다시 만든다:
   `python3 -c "import json;d=json.load(open('assets/rig/<id>/rig.json'));open('assets/rig/<id>/rig.def.js','w').write('window.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS[\\'<id>\\']='+json.dumps(d,ensure_ascii=False,separators=(\\',\\',\\':\\'))+';')"`
