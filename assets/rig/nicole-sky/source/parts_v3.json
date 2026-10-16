@@ -1,0 +1,204 @@
+{
+ "handN0": {
+  "src": "parts/handN0.png",
+  "scale": 0.5,
+  "grip": [
+   181.1,
+   230.6
+  ],
+  "shaftDir": [
+   0.952,
+   -0.3062
+  ],
+  "stubCore": 29.5,
+  "stubBand": [
+   -26.7,
+   26.7
+  ],
+  "fistW": 108,
+  "elbow": [
+   64.0,
+   55.0
+  ]
+ },
+ "handN1": {
+  "src": "parts/handN1.png",
+  "scale": 0.5,
+  "grip": [
+   105.1,
+   237.1
+  ],
+  "shaftDir": [
+   1.0,
+   -0.0073
+  ],
+  "stubCore": 27.0,
+  "stubBand": [
+   -25.9,
+   25.9
+  ],
+  "fistW": 105,
+  "elbow": [
+   73.0,
+   55.0
+  ]
+ },
+ "handN2": {
+  "src": "parts/handN2.png",
+  "scale": 0.5,
+  "grip": [
+   158.5,
+   220.9
+  ],
+  "shaftDir": [
+   0.9079,
+   -0.4193
+  ],
+  "stubCore": 30.0,
+  "stubBand": [
+   -26.9,
+   26.9
+  ],
+  "fistW": 107,
+  "elbow": [
+   66.0,
+   50.0
+  ]
+ },
+ "armU3": {
+  "src": "parts/armU3.png",
+  "scale": 0.5,
+  "shoulder": [
+   55,
+   85
+  ],
+  "elbow": [
+   235,
+   185
+  ]
+ },
+ "handF0": {
+  "src": "parts/handF0.png",
+  "scale": 0.335,
+  "grip": [
+   299.2,
+   71.8
+  ],
+  "shaftDir": [
+   1.0,
+   0.0039
+  ],
+  "stubCore": 46.0,
+  "stubBand": [
+   -36.6,
+   36.6
+  ],
+  "fistW": 161,
+  "elbow": [
+   45.0,
+   160.0
+  ]
+ },
+ "handF1": {
+  "src": "parts/handF1.png",
+  "scale": 0.335,
+  "grip": [
+   297.4,
+   71.8
+  ],
+  "shaftDir": [
+   1.0,
+   0.0028
+  ],
+  "stubCore": 45.0,
+  "stubBand": [
+   -36.8,
+   36.8
+  ],
+  "fistW": 161,
+  "elbow": [
+   52.0,
+   170.0
+  ]
+ },
+ "handF2": {
+  "src": "parts/handF2.png",
+  "scale": 0.335,
+  "grip": [
+   300.4,
+   71.5
+  ],
+  "shaftDir": [
+   1.0,
+   0.007
+  ],
+  "stubCore": 46.0,
+  "stubBand": [
+   -36.5,
+   36.5
+  ],
+  "fistW": 162,
+  "elbow": [
+   60.0,
+   200.0
+  ]
+ },
+ "armTH": {
+  "src": "parts/armTH.png",
+  "scale": 0.3,
+  "grip": [
+   461.5,
+   377.8
+  ],
+  "shaftDir": [
+   0.9999,
+   -0.0104
+  ],
+  "stubCore": 44.0,
+  "stubBand": [
+   -42.9,
+   42.9
+  ],
+  "fistW": 179,
+  "shoulder": [
+   150.0,
+   165.0
+  ],
+  "elbow": [
+   185.0,
+   300.0
+  ]
+ },
+ "torso3": {
+  "src": "parts/torso3.png",
+  "scale": 0.29,
+  "pivot": [
+   383.9,
+   645.4
+  ]
+ },
+ "pouch3": {
+  "src": "parts/pouch3.png",
+  "scale": 0.29,
+  "pivot": [
+   383.9,
+   645.4
+  ]
+ },
+ "weapon": {
+  "axisX": 60.0,
+  "gripRow": 347.4,
+  "scale": 1.1166,
+  "woodRows": [
+   [
+    320,
+    366
+   ],
+   [
+    392,
+    805
+   ]
+  ],
+  "core": 15.9
+ }
+}

@@ -24,5 +24,5 @@ for n, r in R.items():
     els = ' / '.join(f"{k}:{e[0]:.0f}..{e[1]:.0f}" for k, e in el.items()); tws = ' / '.join(f"{k}:{v:.0f}°" for k, v in tw.items())
     cl=r.get('cloth',{});cbad=any(c['amin']<.25 or c['amax']>1.6 or c['emax']>2.1 or c['fold']>0 for c in cl.values());bad|=cbad;fail|=cbad
     cls=' '.join(f"{k}:넓이{c['amin']:.2f}~{c['amax']:.2f} 변{c['emax']:.2f}{' 접힘'+str(c['fold']) if c['fold'] else ''}" for k,c in cl.items())
-    print(f"{n:10s} {r['seamMax']:9d}  {hs:24s} {els:28s} {tws}{'  ← 뒤집힘' if flip else ''}{'  ✗' if bad else '  ✓'}\n{'':10s} 천: {cls}")
+    print(f"{n:10s} {r['seamMax']:6d}@{r.get('seamT','-')!s:5s}  {hs:24s} {els:28s} {tws}{'  ← 뒤집힘' if flip else ''}{'  ✗' if bad else '  ✓'}\n{'':10s} 천: {cls}")
 sys.exit(1 if fail else 0)

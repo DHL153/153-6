@@ -1,6 +1,6 @@
 {
  "name": "nicole-sky",
- "version": 2,
+ "version": 3,
  "units": "rig px (reference x2)",
  "refOrigin": [
   250.0,
@@ -34,12 +34,12 @@
    }
   },
   "torso": {
-   "src": "parts/torso.png",
+   "src": "parts/torso3.png",
    "pivot": [
-    192.8,
-    344.4
+    383.9,
+    645.4
    ],
-   "scale": 0.5408
+   "scale": 0.29
   },
   "head": {
    "src": "parts/head.png",
@@ -57,30 +57,6 @@
    ],
    "scale": 0.5684
   },
-  "armU": {
-   "src": "parts/armU.png",
-   "pivot": [
-    115.0,
-    30.0
-   ],
-   "scale": 0.55
-  },
-  "armL": {
-   "src": "parts/armL.png",
-   "pivot": [
-    45.0,
-    45.0
-   ],
-   "scale": 0.55
-  },
-  "fistN": {
-   "src": "parts/fistN.png",
-   "pivot": [
-    68.3,
-    53.6
-   ],
-   "scale": 0.55
-  },
   "pauldron": {
    "src": "parts/pauldron.png",
    "pivot": [
@@ -95,15 +71,11 @@
     45.0,
     30.0
    ],
-   "scale": 0.55
-  },
-  "foreF": {
-   "src": "parts/foreF.png",
-   "pivot": [
-    40.0,
-    40.0
-   ],
-   "scale": 0.55
+   "scale": 0.55,
+   "elbow": [
+    132.3,
+    181.5
+   ]
   },
   "fistF": {
    "src": "parts/fistF.png",
@@ -116,8 +88,8 @@
   "weapon": {
    "src": "parts/weapon.png",
    "pivot": [
-    79.1,
-    346.8
+    60.0,
+    347.4
    ],
    "scale": 1.1166,
    "tips": [
@@ -234,6 +206,190 @@
     239.4
    ],
    "scale": 0.65
+  },
+  "handN0": {
+   "src": "parts/handN0.png",
+   "pivot": [
+    64.0,
+    55.0
+   ],
+   "scale": 0.5,
+   "grip": [
+    181.1,
+    230.6
+   ],
+   "wrist": [
+    181.1,
+    230.6
+   ],
+   "shaftDir": [
+    0.952,
+    -0.3062
+   ],
+   "elbow": [
+    64.0,
+    55.0
+   ]
+  },
+  "armL": {
+   "src": "parts/handN1.png",
+   "pivot": [
+    73.0,
+    55.0
+   ],
+   "scale": 0.5,
+   "grip": [
+    105.1,
+    237.1
+   ],
+   "wrist": [
+    105.1,
+    237.1
+   ],
+   "shaftDir": [
+    1.0,
+    -0.0073
+   ],
+   "elbow": [
+    73.0,
+    55.0
+   ]
+  },
+  "handN2": {
+   "src": "parts/handN2.png",
+   "pivot": [
+    66.0,
+    50.0
+   ],
+   "scale": 0.5,
+   "grip": [
+    158.5,
+    220.9
+   ],
+   "wrist": [
+    158.5,
+    220.9
+   ],
+   "shaftDir": [
+    0.9079,
+    -0.4193
+   ],
+   "elbow": [
+    66.0,
+    50.0
+   ]
+  },
+  "armU3": {
+   "src": "parts/armU3.png",
+   "pivot": [
+    55,
+    85
+   ],
+   "elbow": [
+    235,
+    185
+   ],
+   "scale": 0.5
+  },
+  "foreF": {
+   "src": "parts/handF0.png",
+   "pivot": [
+    45.0,
+    160.0
+   ],
+   "scale": 0.335,
+   "grip": [
+    299.2,
+    71.8
+   ],
+   "wrist": [
+    299.2,
+    71.8
+   ],
+   "shaftDir": [
+    1.0,
+    0.0039
+   ],
+   "elbow": [
+    45.0,
+    160.0
+   ]
+  },
+  "handF1": {
+   "src": "parts/handF1.png",
+   "pivot": [
+    52.0,
+    170.0
+   ],
+   "scale": 0.335,
+   "grip": [
+    297.4,
+    71.8
+   ],
+   "wrist": [
+    297.4,
+    71.8
+   ],
+   "shaftDir": [
+    1.0,
+    0.0028
+   ],
+   "elbow": [
+    52.0,
+    170.0
+   ]
+  },
+  "handF2": {
+   "src": "parts/handF2.png",
+   "pivot": [
+    60.0,
+    200.0
+   ],
+   "scale": 0.335,
+   "grip": [
+    300.4,
+    71.5
+   ],
+   "wrist": [
+    300.4,
+    71.5
+   ],
+   "shaftDir": [
+    1.0,
+    0.007
+   ],
+   "elbow": [
+    60.0,
+    200.0
+   ]
+  },
+  "armTH": {
+   "src": "parts/armTH.png",
+   "pivot": [
+    150.0,
+    165.0
+   ],
+   "scale": 0.3,
+   "grip": [
+    461.5,
+    377.8
+   ],
+   "shaftDir": [
+    0.9999,
+    -0.0104
+   ],
+   "elbow": [
+    185.0,
+    300.0
+   ]
+  },
+  "pouch": {
+   "src": "parts/pouch3.png",
+   "pivot": [
+    383.9,
+    645.4
+   ],
+   "scale": 0.29
   }
  },
  "bones": [
@@ -272,6 +428,15 @@
    "part": "skirt"
   },
   {
+   "name": "pouch",
+   "parent": "torso",
+   "pos": [
+    0,
+    0
+   ],
+   "part": "pouch"
+  },
+  {
    "name": "cape",
    "parent": "torso",
    "pos": [
@@ -307,7 +472,7 @@
     -117.0
    ],
    "rot": 0.037,
-   "part": "armU"
+   "part": "armU3"
   },
   {
    "name": "armL",
@@ -318,16 +483,6 @@
    ],
    "rot": 0.2779,
    "part": "armL"
-  },
-  {
-   "name": "fistN",
-   "parent": "armL",
-   "pos": [
-    46.8,
-    90.8
-   ],
-   "rot": -0.623,
-   "part": "fistN"
   },
   {
    "name": "pauldron",
@@ -371,12 +526,12 @@
   },
   {
    "name": "weapon",
-   "parent": "fistF",
+   "parent": "root",
    "pos": [
-    19.7,
-    -2.2
+    0,
+    0
    ],
-   "rot": 1.6559,
+   "rot": 0,
    "part": "weapon"
   },
   {
@@ -388,6 +543,15 @@
    ],
    "rot": 0.1556,
    "part": "pauldronF"
+  },
+  {
+   "name": "armTH",
+   "parent": "torso",
+   "pos": [
+    -80,
+    -117
+   ],
+   "part": "armTH"
   }
  ],
  "legs": {
@@ -395,8 +559,8 @@
    0,
    20
   ],
-  "thigh": 120,
-  "shin": 118,
+  "thigh": 111,
+  "shin": 122,
   "thighImg": {
    "part": "thigh",
    "a": [
@@ -459,40 +623,26 @@
  "draw": [
   "cape",
   "armF",
-  "foreF",
   "pauldronF",
   "legFar",
   "legNear",
-  "skirt",
   "torso",
+  "skirt",
+  "pouch",
   "pony",
   "head",
   "weapon",
-  "fistF",
-  "armU",
-  "armL",
-  "fistN",
-  "pauldron"
- ],
- "drawSmash": [
-  "cape",
-  "armF",
   "foreF",
-  "pauldronF",
-  "legFar",
-  "legNear",
-  "skirt",
-  "torso",
-  "pony",
-  "head",
-  "weapon",
   "fistF",
   "armU",
   "armL",
-  "fistN",
-  "pauldron"
+  "pauldron",
+  "armTH"
  ],
- "hidden": [],
+ "hidden": [
+  "fistF",
+  "armTH"
+ ],
  "faces": {
   "effort": "face_effort",
   "shout": "face_shout",
@@ -516,7 +666,7 @@
   "lean": 0.28,
   "armSwing": 0.68,
   "elbowRun": 1.5,
-  "kneeLift": 1.12,
+  "kneeLift": 0.95,
   "heelKick": 1.08,
   "dropCap": 46
  },
@@ -526,23 +676,15 @@
   "heel": 1.1,
   "reach": 0.5
  },
- "twoHand": {
-  "gap": 336
- },
- "smashHand2": 336,
- "smashShoulder": [
-  0,
-  0
- ],
  "cutHold": 0.42,
  "ui": {
   "attack": "spearThrust",
   "touch": "hop"
  },
- "note": "28번 니콜 스카이. 먼 팔 = 창 앞손(몸 뒤), 가까운 팔 = 창 뒷손(몸 앞). 평소에도 두 손으로 창을 듦(twoHand)",
+ "note": "28번 니콜 스카이 v3 (2026-10-16). 창 먼저 + 두 손은 자루를 따라 미끄러지며 시트 그림 그대로 쥠(spearGrip). 뒷손=N 시트 3각도, 앞손=F 시트 3각도, 찌른 순간 뒷팔=TH 한 장. 상체=T(허리 아래 늘림)+주머니는 치마 위.",
  "actions": {
   "spearThrust": {
-   "kind": "smash",
+   "kind": "spear",
    "dur": 0.8,
    "hitAt": 0.3,
    "cancelAt": 0.54,
@@ -589,7 +731,7 @@
     ],
     [
      0.62,
-     -0.35,
+     -0.45,
      "io"
     ],
     [
@@ -600,12 +742,12 @@
    "gx": [
     [
      0,
-     189,
+     178,
      "io"
     ],
     [
      0.18,
-     120,
+     160,
      "s"
     ],
     [
@@ -620,23 +762,23 @@
     ],
     [
      0.62,
-     220,
+     230,
      "io"
     ],
     [
      0.8,
-     189
+     178
     ]
    ],
    "gy": [
     [
      0,
-     -115,
+     -132,
      "io"
     ],
     [
      0.18,
-     -70,
+     -85,
      "s"
     ],
     [
@@ -651,18 +793,12 @@
     ],
     [
      0.62,
-     -100,
+     -110,
      "io"
     ],
     [
      0.8,
-     -115
-    ]
-   ],
-   "sh": [
-    [
-     0,
-     0
+     -132
     ]
    ],
    "hipX": [
@@ -959,6 +1095,56 @@
      0.76,
      null
     ]
+   ],
+   "th": [
+    [
+     0,
+     0
+    ],
+    [
+     0.19,
+     0,
+     "io"
+    ],
+    [
+     0.24,
+     1
+    ],
+    [
+     0.58,
+     1,
+     "io"
+    ],
+    [
+     0.68,
+     0
+    ]
+   ],
+   "gap": [
+    [
+     0,
+     331,
+     "io"
+    ],
+    [
+     0.18,
+     300,
+     "s"
+    ],
+    [
+     0.3,
+     230,
+     "o"
+    ],
+    [
+     0.5,
+     230,
+     "io"
+    ],
+    [
+     0.72,
+     331
+    ]
    ]
   }
  },
@@ -967,5 +1153,54 @@
    "happy",
    "grimace"
   ]
- }
+ },
+ "spearGrip": {
+  "carry": {
+   "x": 178.1,
+   "y": -132.0,
+   "a": -0.5404
+  },
+  "carryRun": {
+   "x": 182.0,
+   "y": -126.0,
+   "a": -0.6989
+  },
+  "tiltFollow": 1,
+  "maxWrist": 0.35,
+  "far": {
+   "pieces": [
+    "foreF",
+    "handF1",
+    "handF2"
+   ],
+   "sPref": 0,
+   "sSig": 25,
+   "sMin": -300,
+   "sMax": 25,
+   "dMax": 50
+  },
+  "near": {
+   "pieces": [
+    "handN0",
+    "armL",
+    "handN2"
+   ],
+   "upper": "armU3",
+   "sPref": -331,
+   "sSig": 70,
+   "sMin": -480,
+   "sMax": -90,
+   "restUp": 2.24,
+   "pauldronFollow": 0.35,
+   "dMin": 115
+  },
+  "th": {
+   "piece": "armTH"
+  }
+ },
+ "hemLimit": {
+  "up": 0.45,
+  "x": 0.6
+ },
+ "skirtFollow": 0.5
 }

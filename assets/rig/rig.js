@@ -386,6 +386,7 @@
           f.step = null;
           const fp = (ph + (side === "far" ? .5 : 0)) % 1, [fx, lift, ang, stance] = this._foot(fp, S);
           const gx = rest + fx * A, gl = lift * A, ga = ang * A;
+          if (f.settled) { f.settled = false; f.off = f.x - gx; f.planted = f.lift < .01 && gl < .5; if (f.planted) f.lockW = this.odo + f.x }   // 멈춤 발걸음 → 다시 달리기: 발 위치가 끊기지 않게 이어받음 (방향 바꿀 때 한 프레임 튐 수정)
           if ((stance && gl === 0) || (f.planted && gl < .5)) {   // a foot still touching the ground stays locked until it really lifts (no toe drag)
             if (!f.planted) { f.planted = true; f.lockW = this.odo + gx + f.off }
             const lx = f.lockW - this.odo; f.off = lx - gx;
@@ -402,7 +403,7 @@
             f.x = lerp(st.x0, rest, e); f.lift = lerp(st.l0, 0, e) + Math.sin(Math.PI * st.t) * st.h; f.ang = lerp(st.a0, 0, e) - Math.sin(Math.PI * st.t) * .12;
             if (st.t >= 1) { f.step = null; f.lift = 0; f.ang = 0 } }
           else { f.lift = 0; f.ang = damp(f.ang, 0, 14, dt) }
-          f.planted = f.lift === 0; if (f.planted) f.lockW = this.odo + f.x; f.off = f.x - rest;
+          f.planted = f.lift === 0; if (f.planted) f.lockW = this.odo + f.x; f.off = f.x - rest; f.settled = true;
         }
       }
     }
@@ -534,6 +535,89 @@
       if (b.fistN) { const EN = apply(b.armL.m, 0, 0), tL = Math.atan2(H2[1] - EN[1], H2[0] - EN[0]) - Math.atan2(b.fistN.pos[1], b.fistN.pos[0]);
         b.armL.ar += wrapA(tL - wAng(b.armL.m)) * w; rig.compute() }
     }
+    /* ---- 창 먼저, 두 손은 자루를 따라 (rig.def.spearGrip, 니콜 스카이 v3 — 2026-10-16) ----
+       팔 = 윗팔(어깨→팔꿈치) + 팔뚝·주먹 한 장(시트 그림, 그림 속 자루 방향이 정해져 있음).
+       그림을 자루 각도에 맞춰 돌리고(손목 꺾임 = 추가 회전 δ, |δ| ≤ maxWrist), 자루 위 위치 s는 |어깨→팔꿈치| = 윗팔 길이를
+       만족하는 2차식의 근으로 정한다 → 주먹은 항상 자루 중심선 위, 팔꿈치는 굽힘 범위 안쪽 해만 고른다.
+       후보 = 그림 3장 × δ × 근 2개, 비용 = 선호 위치·손목 꺾임·이전 프레임과의 차이(튐 방지)·그림 바꿈. */
+    _gripArm(cfg, S, Lu, A, U, st, tDown) {
+      const P = this.rig.def.parts, maxW = this.rig.def.spearGrip.maxWrist || .35, aU = Math.atan2(U[1], U[0]);
+      let best = null; const rej = this.gripRej = { disc: 0, s: 0, bend: 0, sh: 0, bendV: [] };
+      for (let i = 0; i < cfg.pieces.length; i++) {
+        const p = P[cfg.pieces[i]], k = p.scale, sd = Math.atan2(p.shaftDir[1], p.shaftDir[0]), eg = [(p.pivot[0] - p.grip[0]) * k, (p.pivot[1] - p.grip[1]) * k];
+        for (let dd = -maxW; dd <= maxW + 1e-6; dd += maxW / 10) {
+          const rho = aU - sd + dd, c = Math.cos(rho), s_ = Math.sin(rho), o = [c * eg[0] - s_ * eg[1], s_ * eg[0] + c * eg[1]];
+          const V = [A[0] + o[0] - S[0], A[1] + o[1] - S[1]], vu = V[0] * U[0] + V[1] * U[1], disc = vu * vu - (V[0] * V[0] + V[1] * V[1] - Lu * Lu);
+          if (disc < 0) { rej.disc++; continue }
+          for (let ri = 0; ri < 2; ri++) { const s = ri ? -vu + Math.sqrt(disc) : -vu - Math.sqrt(disc);
+            if (s < cfg.sMin || s > cfg.sMax) { rej.s++; continue }
+            const G = [A[0] + U[0] * s, A[1] + U[1] * s], E = [G[0] + o[0], G[1] + o[1]];
+            const up = Math.atan2(E[1] - S[1], E[0] - S[0]), fo = Math.atan2(G[1] - E[1], G[0] - E[0]), bend = wrapA(fo - up);
+            if (bend < (cfg.bendMin ?? -2.53) || bend > (cfg.bendMax ?? 0)) { rej.bend++; if (rej.bendV.length < 6) rej.bendV.push(+(bend * 57.3).toFixed(0)); continue }                 // 팔꿈치: 굽는 쪽(−)으로만, 145° 이내
+            const sh = wrapA(up - tDown); if (sh < -2.97 || sh > .96) { rej.sh++; continue }                       // 어깨 범위 (몸통 아래 방향 기준)
+            let cost = ((s - cfg.sPref) / (cfg.sSig || 60)) ** 2 + (dd / .17) ** 2 + (cfg.pieceCosts ? cfg.pieceCosts[i] : (cfg.prefPiece === i ? 0 : (cfg.pieceCost || .15)));
+            if (st.ok) cost += ((s - st.s) / 14) ** 2 + (i === st.i && ri !== st.r ? 25 : 0) + (i === st.i ? ((dd - st.d) / .05) ** 2 : (this.act ? 1.2 : 40) + (this.t - (st.swapT ?? -9) < .12 ? 30 : 0));   // 그림 바꿈: 액션 밖에서는 꼭 필요할 때만, 바꾼 뒤 0.12초는 다시 안 바꿈
+            if (!best || cost < best.cost) best = { cost, i, ri, s, d: dd, G, E, rho, up, bend };
+          }
+        }
+      }
+      if (best) { if (st.ok && st.i !== best.i) st.swapT = this.t; st.ok = true; st.i = best.i; st.r = best.ri; st.s = best.s; st.d = best.d } else { st.ok = false; this.gripMiss = (this.gripMiss || 0) + 1 }
+      return best;
+    }
+    _spearArms(D, at, T) {
+      const rig = this.rig, b = rig.by, P = rig.def.parts, SG = rig.def.spearGrip;
+      const isSpear = !!(D && D.kind === "spear"), w = isSpear ? this._tr("w") : 0, th = isSpear ? this._tr("th") : 0;
+      rig.drawOrder = null; rig.compute();
+      const tA = wAng(b.torso.m), C0 = SG.carry, C1 = SG.carryRun || SG.carry, cl = k => lerp(C0[k], C1[k], this.A);
+      const Ac = apply(b.torso.m, cl("x"), cl("y")), aC = cl("a") + tA * (SG.tiltFollow ?? .4) + (this.wl || 0);
+      let A = Ac, a = aC;
+      if (w > 0) { const Ak = apply(b.hip.m, this._tr("gx"), this._tr("gy")), aK = this._tr("sa") + this._tr("shake") * Math.sin(T * 95) * .03;
+        A = [lerp(Ac[0], Ak[0], w), lerp(Ac[1], Ak[1], w)]; a = aC + wrapA(aK - aC) * w }
+      let U = [Math.cos(a), Math.sin(a)];
+      const SN = [b.armU.m[4], b.armU.m[5]], SF = [b.armF.m[4], b.armF.m[5]], tDown = tA + Math.PI / 2;
+      // 찌른 순간: 가까운 팔은 한 장 그림(armTH, 어깨 갑옷 포함) — 자루 선을 그 주먹으로 끌어와 겹침
+      const TP = P[SG.th?.piece || "armTH"]; let thG = null, thRho = 0;
+      if (th > 0 && TP) { thRho = a - Math.atan2(TP.shaftDir[1], TP.shaftDir[0]); const c = Math.cos(thRho), s_ = Math.sin(thRho), k = TP.scale;
+        const v = [(TP.grip[0] - TP.pivot[0]) * k, (TP.grip[1] - TP.pivot[1]) * k]; thG = [SN[0] + c * v[0] - s_ * v[1], SN[1] + s_ * v[0] + c * v[1]];
+        const N = [-U[1], U[0]], off0 = (thG[0] - A[0]) * N[0] + (thG[1] - A[1]) * N[1], off = off0 * smooth(0, .3, th); this.thOff = off0; A = [A[0] + N[0] * off, A[1] + N[1] * off] }
+      // 팔이 창을 들고 있으니 창이 갈 수 있는 곳도 팔이 정한다: 자루 선이 뒷어깨에 dMin 보다 가까워지면 (뒷손 그림이 쥘 수 없음) 부드럽게 아래로 밀어냄
+      if (SG.near.dMin) { const N = [-U[1], U[0]], x = (SN[0] - A[0]) * N[0] + (SN[1] - A[1]) * N[1] + SG.near.dMin, k = .5 * (x + Math.sqrt(x * x + 64)) * (1 - smooth(0, .3, th));
+        A = [A[0] + N[0] * k, A[1] + N[1] * k]; this.spearPush = k }
+      // 앞손이 닿는 거리: 자루 선이 앞어깨에서 dMax 보다 멀어지면 (팔을 다 뻗어도 손목이 꺾임) 부드럽게 어깨 쪽으로 당김
+      if (SG.far.dMax) { const N = [-U[1], U[0]], d = (SF[0] - A[0]) * N[0] + (SF[1] - A[1]) * N[1], x = Math.abs(d) - SG.far.dMax, k = .5 * (x + Math.sqrt(x * x + 64)) * Math.sign(d) * (1 - w);   // 공격 키 동작은 키 포즈 그대로
+        A = [A[0] + N[0] * k, A[1] + N[1] * k] }
+      // 창
+      const rw = a + Math.PI / 2; b.weapon.wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), A[0], A[1]];
+      this.spearA = A; this.spearAng = a;
+      const place = (bone, part, rot, X) => { rig.swap[bone] = part === b[bone].part ? null : part; const c = Math.cos(rot), s_ = Math.sin(rot); b[bone].wm = [c, s_, -s_, c, X[0], X[1]] };
+      const upperRot = (p, S, E) => Math.atan2(E[1] - S[1], E[0] - S[0]) - Math.atan2(p.elbow[1] - p.pivot[1], p.elbow[0] - p.pivot[0]);
+      // 앞손 (먼 팔)
+      this.gripF = this.gripF || {}; this.gripN = this.gripN || {};
+      const pF = P.armF, LuF = Math.hypot(pF.elbow[0] - pF.pivot[0], pF.elbow[1] - pF.pivot[1]) * pF.scale;
+      const fF = this._gripArm(SG.far, SF, LuF, A, U, this.gripF, tDown);
+      if (fF) { place("armF", "armF", upperRot(pF, SF, fF.E), SF); place("foreF", SG.far.pieces[fF.i], fF.rho, fF.E); b.fistF.wm = [1, 0, 0, 1, fF.G[0], fF.G[1]]; this.handErr = fF.d }
+      // 뒷손 (가까운 팔)
+      const pU = P[SG.near.upper], LuN = Math.hypot(pU.elbow[0] - pU.pivot[0], pU.elbow[1] - pU.pivot[1]) * pU.scale;
+      const nearCfg = Object.assign({}, SG.near, { sPref: isSpear && D.gap ? -this._tr("gap") : SG.near.sPref });
+      let useTH = th >= .3 && thG, fN = null;
+      if (!useTH) { fN = this._gripArm(nearCfg, SN, LuN, A, U, this.gripN, tDown);
+        if (!fN && th > 0 && thG && this.wasTH) { useTH = true; this.gripMiss = Math.max(0, (this.gripMiss || 1) - 1) } }   // 찌른 팔에서 돌아오는 첫 순간 뒷손이 아직 못 닿으면 찌른 팔 그림을 한 프레임 더 (어긋남 < 1)
+      this.wasTH = !!useTH;
+      if (useTH) {
+        const k = TP.scale, c = Math.cos(thRho), s_ = Math.sin(thRho), ev = [(TP.elbow[0] - TP.pivot[0]) * k, (TP.elbow[1] - TP.pivot[1]) * k], E = [SN[0] + c * ev[0] - s_ * ev[1], SN[1] + s_ * ev[0] + c * ev[1]];
+        place("armU", SG.near.upper, upperRot(pU, SN, E), SN);
+        const pn = P[SG.near.pieces[1]]; place("armL", SG.near.pieces[1], Math.atan2(thG[1] - E[1], thG[0] - E[0]) - Math.atan2(pn.grip[1] - pn.pivot[1], pn.grip[0] - pn.pivot[0]), E);
+        b.armTH.wm = [c, s_, -s_, c, SN[0], SN[1]]; rig.alpha.armTH = 1; rig.alpha.armU = rig.alpha.armL = rig.alpha.pauldron = 0; this.gripN.ok = false; this.gripN.swapT = this.t;
+      } else {
+        rig.alpha.armTH = 0; rig.alpha.armU = rig.alpha.armL = rig.alpha.pauldron = 1;
+        if (fN) { place("armU", SG.near.upper, upperRot(pU, SN, fN.E), SN); place("armL", SG.near.pieces[fN.i], fN.rho, fN.E);
+          b.pauldron.ar = wrapA(fN.up - (SG.near.restUp ?? 2.24)) * (SG.near.pauldronFollow ?? .35); this.rearErr = fN.d; this.nearS = fN.s }
+      }
+      rig.alpha.fistF = 0; rig.alpha.weapon = rig.alpha.armF = rig.alpha.foreF = 1;
+      rig.compute();
+      const act = this.act;
+      if (isSpear && act && !act.hit && at >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+    }
     _waveArms(D, t, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
       const w = this._tr('w'), amp = this._tr('wAmp'), wa = this._tr('weapon');
@@ -619,6 +703,7 @@
       if (act) { const lean = this._tr('lean'), brt = this._tr('breath'); twist = this._tr('twist');
         b.hip.ax += ax_; b.hip.ay += this._tr('hipY'); b.torso.ar += lean; b.head.ar += this._tr('head') - lean * .35; b.skirt.ar -= lean * .3;
         b.torso.asy += brt * .022; b.torso.asx -= Math.abs(twist) * .03; b.head.ay -= brt * 5 }
+      if (rig.def.skirtFollow) b.skirt.ar += (b.torso.ar - I * br * .012) * rig.def.skirtFollow;   // 허리(골반)가 상체를 따라 기울어 치마 위 끝이 상체 밑단에서 떨어지지 않게 (opt-in)
 
       // ---------- near arm (opposite to the near leg) ----------
       const swing = Math.cos(TAU * (ph + (rig.def.armPhase || 0)));   // armPhase .5: 자유 팔이 화면 뒤쪽 팔인 캐릭터(알론소) — 같은 쪽 팔다리가 함께 나가지 않게                                 // +1 when the near foot strikes in front
@@ -649,12 +734,13 @@
           need = Math.max(need, nd_) }
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
         if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
-      if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
+      if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
+      else if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
       else if (act && D.kind === "wave") this._waveArms(D, at, T);
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
-      if (!act && rig.def.twoHand) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
+      if (!act && rig.def.twoHand && !rig.def.spearGrip) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
       for (const side of ["near", "far"]) {
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]);
@@ -691,8 +777,13 @@
         this.hem[i][0].step(tx, dt); this.hem[i][1].step(ty, dt);
       }
       const hem = this.hem, flare = A * (.02 + Math.max(0, -bob) * .03);
+      // 천은 뒤집히지 않는다: 밑단이 치마 길이의 45% 넘게 올라가거나 앞뒤로 60% 넘게 밀리면 부드럽게 멈춤 (메시 칸 접힘 방지, 2026-10-16)
+      const skH = (rig.images.skirt?.height || 300) * (skP?.scale || 1), HL = rig.def.hemLimit || {}, lyU = skH * (HL.up ?? .45), lx = skH * (HL.x ?? .6);
+      const soft = (x, L) => { const a = Math.abs(x), k = .7 * L; return a <= k ? x : Math.sign(x) * (k + (L - k) * Math.tanh((a - k) / (L - k))) };
+      this.hemC = this.hemC || []; for (let i = 0; i <= cols; i++) { const x = hem[i][0].x, y = hem[i][1].x; this.hemC[i] = rig.def.hemLimit ? [soft(x, lx), y < 0 ? soft(y, lyU) : y] : [x, y] }   // hemLimit 이 있는 캐릭터만 (8 니콜 원본 동작은 그대로)
+      const hc = this.hemC;
       rig.meshFx.skirt = (u, v, x, y) => { const w = v * v * (1.4 - .4 * v), f = u * cols, i = Math.min(cols - 1, Math.floor(f)), t = f - i;
-        const hx = lerp(hem[i][0].x, hem[i + 1][0].x, t), hy = lerp(hem[i][1].x, hem[i + 1][1].x, t); return [hx * w + x * flare * w, hy * w] };
+        const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w] };
 
       // ---------- cape: trails behind, flutters, lags the bounce ----------
       const capeA = this.cape.step(clamp(lvx * .0011 + accel * .00012, -.25, .9), dt);
