@@ -18420,5 +18420,22 @@ html.mr-uikit.uk-framed body{background:radial-gradient(70% 80% at 50% 45%,rgba(
  html.mr-uikit #mr-starter{padding:84px 40px 30px!important;}
 }
 </style>
+<style id="mr-mini-fix">
+/* 2026-10-16 미니 모드 3종 정리
+   1) 위 바 작은 버튼(일시정지·크게 보기): 30×28 칸에 맞게 테 두께를 줄이고 아이콘을 가운데로 (1차 UI 통일 때 테가 두꺼워 아이콘이 밀리던 문제)
+   2) 브라우저(휴대폰 포함)처럼 창을 줄일 수 없는 화면: 미니 화면을 화면 가운데에 두고 주변은 PC 바깥과 같은 풍차 기어실 배경 */
+html.mr-uikit body #app.mini-mode #mini-play-header button{border-width:5px 6px!important;border-image-width:5px 6px!important;padding:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;font-size:13px!important;}
+html.mr-uikit body #app.mini-mode #mini-play-header button svg{width:14px!important;height:14px!important;margin:0!important;}
+body.mini-window{align-items:center!important;justify-content:center!important;
+ background:radial-gradient(70% 80% at 50% 45%,rgba(10,14,24,.70) 0%,rgba(8,10,16,.90) 60%,rgba(5,6,10,.97) 100%),
+ url("assets/art/backgrounds/merge/bg_merge_0005.png") center 40%/cover no-repeat fixed,#0a0d14!important;}
+body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,0,.6),0 14px 40px rgba(0,0,0,.7)!important;}
+@media (max-width:600px){
+ body.mini-window #app.mini-mode.mini-battle-mode:not(.mini-room-mode){height:152px!important;}
+ body.mini-window #app.mini-mode.mini-merge-mode{height:min(580px,100dvh)!important;}
+ body.mini-window #app.mini-mode.mini-room-mode{width:min(100vw,var(--mrm-app-w,320px))!important;height:var(--mrm-app-h,520px)!important;max-height:100dvh;}
+}
+</style>
 </body>
 </html>
