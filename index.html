@@ -3841,6 +3841,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 <div class="setting-row"><div><div class="setting-name">투명도</div><div class="setting-desc">게임 창의 표시 투명도</div></div><div class="setting-control"><input class="setting-range" id="setting-opacity" type="range" min="55" max="100" step="5" oninput="setGameSettingValue('opacity',Number(this.value))"><span class="setting-value" id="setting-opacity-value">100%</span></div></div>
 <div class="setting-row"><div><div class="setting-name">프레임 제한</div><div class="setting-desc">30 FPS · ECO</div></div><div class="setting-control"><select class="setting-select" id="setting-fps" onchange="setGameSettingValue('fpsLimit',Number(this.value))"><option value="30">30 FPS</option><option value="60">60 FPS</option></select></div></div>
 <div class="setting-row"><div><div class="setting-name">화면 흔들림</div><div class="setting-desc">높은 레벨 머지 시 화면 임팩트</div></div><button class="toggle-switch on" id="setting-shake" onclick="toggleGameSetting('screenShake')">ON</button></div>
+<div class="setting-row"><div><div class="setting-name">리깅 캐릭터 테스트 <span class="setting-support">시험</span></div><div class="setting-desc">주 전투 캐릭터를 리깅 시안(쇠스랑 소녀)으로 표시</div></div><button class="toggle-switch" id="setting-rig" onclick="toggleGameSetting('rigTest')">OFF</button></div>
 </div>
 
 <div class="settings-group"><div class="settings-title">🎮 플레이</div>
@@ -4765,7 +4766,7 @@ window.MRRunWalker=(()=>{
     let leaderboardPeriod = 'weekly';
     let localRuns = [];
     const DEFAULT_GAME_SETTINGS = {
-        miniMode:false, miniModeType:'merge', miniRoom:false, melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true,
+        miniMode:false, miniModeType:'merge', miniRoom:false, melodyMerge:true, screenShake:true, dangerAutoPause:true, ssEffect:true, rigTest:false,
         alwaysOnTop:false, windowSize:'default', rememberWindowPosition:true, snapToCorner:true,
         opacity:100, fpsLimit:60,
         autoDrop:false, autoStart:false, backgroundProgress:true,
@@ -5514,9 +5515,10 @@ window.MRRunWalker=(()=>{
           ['setting-shake','screenShake'],['setting-melody','melodyMerge'],['setting-danger','dangerAutoPause'],['setting-ss','ssEffect'],
           ['setting-always-top','alwaysOnTop'],['setting-remember-pos','rememberWindowPosition'],['setting-snap','snapToCorner'],
           ['setting-auto-drop','autoDrop'],['setting-auto-start','autoStart'],['setting-background','backgroundProgress'],
-          ['setting-notify-gacha','notifyGacha'],['setting-notify-danger','notifyDanger']
+          ['setting-notify-gacha','notifyGacha'],['setting-notify-danger','notifyDanger'],['setting-rig','rigTest']
         ];
         toggleMap.forEach(([id,key])=>{ const b=document.getElementById(id); if(b){ b.classList.toggle('on',!!gameSettings[key]); b.innerText=gameSettings[key]?'ON':'OFF'; }});
+        window.MRRig?.setEnabled(!!gameSettings.rigTest); // 2026-10-16: 리깅 캐릭터 테스트 (mr-rig-js)
 
         const miniType=gameSettings.miniModeType==='battle'?'battle':'merge';
         const mergeMiniBtn=document.getElementById('setting-mini-merge');
@@ -9431,6 +9433,8 @@ function createSocialDataFoundation(assets, emojis) {
                 el.style.setProperty('--team-pose-scale',String(adj.scale||1));
             }
         });
+        // 2026-10-16: 리깅 캐릭터(mr-rig-js)에 발 위치·몸 높이 전달 — 그림 캐릭터와 같은 땅 선, 같은 키
+        window.MRRig?.layout({stage,W,H,ground,bodyH:visibleHeight||H*BATTLE_FIGHTER_HEIGHT,members:members.map(m=>({slot:m.slot,id:m.id,el:m.el,footX:W*positions[m.index]/100}))});
         if(!battleStageResizeObserver&&typeof ResizeObserver==='function'){
             let lastSize='';
             battleStageResizeObserver=new ResizeObserver(()=>{const size=stage.clientWidth+'x'+stage.clientHeight;if(size===lastSize)return;lastSize=size;relayout();});
@@ -10350,6 +10354,7 @@ function createSocialDataFoundation(assets, emojis) {
             const pose=next==='victory'?'victory':next==='attack'&&slot===attackerSlot?'attack':'idle';
             if(pose!=='idle')el.classList.add(pose);applyBattleHeroImage(assets[pose]||assets.idle,assets.idle,el);
         }
+        window.MRRig?.onState(next,attackerSlot); // 2026-10-16: 리깅 캐릭터 동작(찌르기·표정)
         if(next==='idle')startBattleHeroRunLoop();
         else if(next==='skill')startBattleTeamSkill(activeSkillPresentation);
         if(duration>0)battleHeroStateTimer=scheduleBattleVisual(()=>{battleHeroStateTimer=null;setBattleHeroState('idle');},duration);
@@ -18439,5 +18444,115 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
  body.mini-window #app.mini-mode.mini-room-mode{width:min(100vw,var(--mrm-app-w,320px))!important;height:var(--mrm-app-h,520px)!important;max-height:100dvh;}
 }
 </style>
+<!-- 2026-10-16: 리깅 캐릭터 (팀원 리그 데이터 테스트). 데이터: assets/rig/<id>/rig.json + parts/, 재생: assets/rig/rig.js.
+     설정 > 🎮 플레이 > "리깅 캐릭터 테스트"를 켜면 전투 주 캐릭터(슬롯 0) 그림 대신 캔버스에 리그를 그린다. 경제·판정은 그대로, 화면만. -->
+<style id="mr-rig-css">
+#battle-rig-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;display:none}
+#battle-stage.mr-rig-on #battle-rig-canvas{display:block}
+#battle-stage .hero.mr-rig-hidden{visibility:hidden!important}
+#battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
+</style>
+<script src="assets/rig/rig.js"></script>
+<script src="assets/rig/rust-fork-girl/rig.def.js"></script>
+<script id="mr-rig-js">
+(()=>{
+  const RIG_DIR='assets/rig/';
+  // 전투 캐릭터 번호(1~30) → 리그 id. 비어 있으면 그림 프레임 그대로. 테스트 토글이 켜지면 슬롯 0은 무조건 TEST_RIG.
+  const REGISTRY={};
+  const TEST_RIG='rust-fork-girl';
+  const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
+  let enabled=false,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
+  const rigs={};          // id → Promise<{rig,anim}> (같은 캐릭터 여러 명이면 def·images 공유)
+  const live=new Map();   // slot → {id,footX,footY,scale,rig,anim}
+  const $=id=>document.getElementById(id);
+
+  function loadRig(id){
+    if(rigs[id])return rigs[id];
+    const def=window.MR_RIG_DEFS?.[id];
+    if(!def||!window.CharacterRig)return rigs[id]=Promise.reject(new Error('rig def missing: '+id));
+    const base=RIG_DIR+id+'/';
+    rigs[id]=Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=base+p.src+(def.version?'?v='+def.version:'');})))
+      .then(pairs=>{const images=Object.fromEntries(pairs);return {def,images};});
+    return rigs[id];
+  }
+  function rigIdFor(slot,charId){ if(slot===0&&enabled)return TEST_RIG; return REGISTRY[Number(charId)+1]||null; }
+  function ensureCanvas(stage){
+    if(canvas&&canvas.isConnected)return canvas;
+    canvas=document.createElement('canvas');canvas.id='battle-rig-canvas';canvas.setAttribute('aria-hidden','true');
+    stage.appendChild(canvas);ctx=canvas.getContext('2d');return canvas;
+  }
+  // layoutBattleTeam이 부른다: 발 위치(footX, 땅 선)와 몸 높이(머리~발, px)
+  function layout(next){
+    info=next;const stage=next.stage;if(!stage)return;
+    const seen=new Set();
+    for(const m of next.members){
+      const id=rigIdFor(m.slot,m.id);
+      if(!id){m.el?.classList.remove('mr-rig-hidden');continue;}
+      seen.add(m.slot);
+      const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.footX=m.footX;entry.footY=next.H-next.ground;entry.bodyH=next.bodyH;
+      live.set(m.slot,entry);
+      loadRig(id).then(({def,images})=>{
+        if(live.get(m.slot)!==entry)return;
+        if(!entry.rig||entry.rig.def!==def){entry.rig=new CharacterRig(def,images);entry.anim=new RunAnimator(entry.rig,{runSpeed:620});entry.anim.facing=1;}
+        entry.scale=entry.bodyH/(def.metrics?.bodyHeight||718);
+        m.el?.classList.add('mr-rig-hidden');
+      }).catch(e=>{console.warn('[MRRig]',e);live.delete(m.slot);m.el?.classList.remove('mr-rig-hidden');});
+    }
+    for(const [slot,e] of live)if(!seen.has(slot)){e.el?.classList.remove('mr-rig-hidden');live.delete(slot);}
+    stage.classList.toggle('mr-rig-on',live.size>0);
+    if(live.size){ensureCanvas(stage);start();}else stop();
+  }
+  // setBattleHeroState가 부른다: 공격(슬롯 지정)·스킬·승리·대기
+  function onState(state,attackerSlot){
+    for(const [slot,e] of live){
+      if(!e.anim)continue;
+      if(state==='attack'&&slot===attackerSlot)e.anim.attack('thrust',{speed:ATTACK_SPEED});
+      else if(state==='skill'){e.anim.attack('thrust',{speed:ATTACK_SPEED*.8});e.anim.setExpression('shout');}
+      else if(state==='victory')e.anim.setExpression('happy');
+      else if(state==='idle')e.anim.setExpression(null);
+    }
+  }
+  // 땅 속도(px/s) = 타일 2칸 ÷ 한 바퀴 시간 (mr-battle-sky-js의 layout과 같은 식)
+  function groundPx(stage){
+    const cs=getComputedStyle(stage),gw=parseFloat(cs.getPropertyValue('--mr-ground-w'))||290,dur=parseFloat(cs.getPropertyValue('--mr-ground-dur'))||24;
+    return (2*gw/dur)*(window.__mrHeroRunRate||1);
+  }
+  function tick(now){
+    raf=requestAnimationFrame(tick);
+    const stage=info?.stage;if(!stage||!canvas)return;
+    let dt=Math.min(.05,(now-last)/1000);last=now;
+    const W=stage.clientWidth,H=stage.clientHeight;if(!W||!H)return;
+    const dpr=Math.min(2,devicePixelRatio||1);
+    if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);}
+    const paused=document.hidden||stage.classList.contains('simulation-paused')||document.getElementById('app')?.classList.contains('game-over');
+    if(paused)dt=0;
+    const moving=stage.classList.contains('mr-legs')&&!paused;
+    const gpx=moving?groundPx(stage):0;
+    let busy=false;
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(const e of live.values()){
+      if(!e.anim)continue;
+      const vx=(e.anim.busy?0:gpx)/e.scale;         // 리그 단위/초 — 배경 px/s ÷ 배율이면 발이 땅에 붙는다
+      e.anim.update(dt,{vx,facing:1});
+      busy=busy||e.anim.busy;
+      // 타격 순간 이벤트는 게임이 이미 자체 연출을 내므로 여기서는 쓰지 않는다 (e.anim.events)
+      e.rig.draw(ctx,e.footX*dpr,e.footY*dpr,e.scale*dpr,e.anim.facingScale);
+    }
+    if(busy!==wasBusy){wasBusy=busy;stage.classList.toggle('mr-rig-busy',busy);}
+  }
+  function start(){if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}}
+  function stop(){cancelAnimationFrame(raf);raf=0;if(ctx&&canvas)ctx.clearRect(0,0,canvas.width,canvas.height);info?.stage?.classList.remove('mr-rig-busy');wasBusy=false;}
+  function setEnabled(v){
+    v=!!v;if(v===enabled)return;enabled=v;
+    const stage=$('battle-stage');
+    if(!enabled){for(const e of live.values())e.el?.classList.remove('mr-rig-hidden');live.clear();stage?.classList.remove('mr-rig-on');stop();}
+    if(typeof layoutBattleTeam==='function'&&stage&&typeof activeBattleTeam!=='undefined')try{layoutBattleTeam(stage,activeBattleTeam);}catch(e){}
+  }
+  window.MRRig={setEnabled,layout,onState,registry:REGISTRY,get enabled(){return enabled},get live(){return live}};
+  // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
+  const sync=()=>{try{if(typeof gameSettings!=='undefined')setEnabled(!!gameSettings.rigTest);}catch(e){}};
+  sync();addEventListener('load',sync);
+})();
+</script>
 </body>
 </html>
