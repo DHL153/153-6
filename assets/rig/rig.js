@@ -774,8 +774,8 @@
           tx += front * (kneeFwd * .8 + reach * .3) - back * heelBack * .35;
           ty -= front * kneeUp * H_.knee + back * heelUp * H_.heel + front * reach * H_.reach * A;
           // lunge: a foot planted far in front drags the front hem up the shin (cloth drapes from the waist over the knee)
-          const lunge = actW * clamp((P.ankle[0] - skPivot[0] + 30) * 1.1, 0, 115), fr2 = smooth(.4, .95, u);
-          ty -= fr2 * lunge; tx += fr2 * lunge * .35;
+          const lunge = actW * clamp((rig.def.hemLungeRel ? P.ankle[0] - this.hipX[side] - 10 : P.ankle[0] - skPivot[0] + 30) * 1.1, 0, 115), fr2 = smooth(.4, .95, u);   // hemLungeRel: 발이 제자리보다 앞으로 나갈 때만 (스카이: 앞발이 원래 앞쪽에 서 있음)
+          const LK = H_.lungeK ?? 1; ty -= fr2 * lunge * LK; tx += fr2 * lunge * .35 * (H_.lungeX ?? 1) * LK;
         }
         this.hem[i][0].step(tx, dt); this.hem[i][1].step(ty, dt);
       }

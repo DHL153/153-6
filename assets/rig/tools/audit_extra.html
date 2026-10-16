@@ -6,7 +6,7 @@ const W=1100,H=1400,OX=500,OY=1300,c=document.createElement('canvas');c.width=W;
 const alphaMask=()=>{const d=g.getImageData(0,0,W,H).data,m=new Uint8Array(W*H);for(let i=0;i<W*H;i++)m[i]=d[i*4+3]>100?1:0;return m};
 const renderOnly=names=>{rig.drawOrder=names||null;const hp=rig._hemPath;rig._hemPath=()=>false;g.clearRect(0,0,W,H);rig.draw(g,OX,OY,1,1);rig._hemPath=hp;rig.drawOrder=null;return alphaMask()};
 // 1) 허리 이음매: 상체+치마만 그려서, 상체 아래쪽 가로 범위의 각 열에서 상체 픽셀과 치마 픽셀 사이에 빈 픽셀이 있으면 그 수를 셈
-function seam(){const T=renderOnly(['torso']),S=renderOnly(['skirt']),B=renderOnly(null);
+function seam(){const T=renderOnly(rig.by.torsoUnder?['torso','torsoUnder']:['torso']),S=renderOnly(['skirt']),B=renderOnly(null);
  let gap=0,cols=0,tb=-1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(T[y*W+x])tb=Math.max(tb,y);
  for(let x=0;x<W;x++){let tl=-1,st=-1;for(let y=0;y<H;y++){if(T[y*W+x])tl=y;if(st<0&&S[y*W+x])st=y}
   if(tl<0||st<0||tl<tb-60||st<=tl||st>tl+80)continue;cols++;for(let y=tl;y<st;y++)if(!B[y*W+x])gap++}

@@ -24,8 +24,8 @@
   "cape": {
    "src": "parts/cape.png",
    "pivot": [
-    400,
-    12
+    345.0,
+    14
    ],
    "scale": 1.0,
    "mesh": {
@@ -34,7 +34,7 @@
    }
   },
   "torso": {
-   "src": "parts/torso3.png",
+   "src": "parts/torsoC.png",
    "pivot": [
     383.9,
     645.4
@@ -383,6 +383,14 @@
     300.0
    ]
   },
+  "torsoFull": {
+   "src": "parts/torso3.png",
+   "pivot": [
+    383.9,
+    645.4
+   ],
+   "scale": 0.29
+  },
   "pouch": {
    "src": "parts/pouch3.png",
    "pivot": [
@@ -435,11 +443,20 @@
    "part": "torso"
   },
   {
+   "name": "torsoUnder",
+   "parent": "torso",
+   "pos": [
+    0,
+    0
+   ],
+   "part": "torsoFull"
+  },
+  {
    "name": "skirt",
    "parent": "hip",
    "pos": [
     7.0,
-    1.0
+    -11.0
    ],
    "part": "skirt"
   },
@@ -456,8 +473,8 @@
    "name": "cape",
    "parent": "torso",
    "pos": [
-    -50.0,
-    -117.0
+    -30.0,
+    -150.0
    ],
    "part": "cape"
   },
@@ -642,8 +659,9 @@
   "pauldronF",
   "legFar",
   "legNear",
-  "torso",
+  "torsoUnder",
   "skirt",
+  "torso",
   "pouch",
   "pony",
   "head",
@@ -691,7 +709,9 @@
   "lift": 34,
   "knee": 1.6,
   "heel": 1.1,
-  "reach": 0.5
+  "reach": 0.5,
+  "lungeK": 0.6,
+  "lungeX": 0.4
  },
  "cutHold": 0.42,
  "ui": {
@@ -1231,6 +1251,7 @@
   "x": 0.6
  },
  "skirtFollow": 0.5,
+ "hemLungeRel": true,
  "blinkFaces": {
   "half": "blink_half",
   "closed": "blink_closed"

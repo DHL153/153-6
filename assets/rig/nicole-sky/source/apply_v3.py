@@ -16,6 +16,17 @@ P['foreF'] = hand('foreF', 'handF0'); P['handF1'] = hand('handF1', 'handF1'); P[
 t = g['armTH']; P['armTH'] = dict(src=t['src'], pivot=t['shoulder'], scale=t['scale'], grip=t['grip'], shaftDir=t['shaftDir'], elbow=t['elbow'])
 P['armF']['elbow'] = [round(45 + 48 / .55, 1), round(30 + 83.3 / .55, 1)]       # v2 뼈 길이 그대로 (먼 윗팔은 몸 뒤)
 P['torso'] = dict(src=g['torso3']['src'], pivot=g['torso3']['pivot'], scale=g['torso3']['scale'])
+# 허리 (DHL 2026-10-16 "상체·하체가 붙어 있지 않음"): 원본엔 치마 남색 허리띠가 안 보이고 벨트 바로 아래서 치마 판이 시작.
+#  → 상체를 치마 위에 그리고, 상체는 벨트 아래 TCUT px에서 자름(T 시트의 늘린 튜닉이 앞치마처럼 보이지 않게), 치마는 SKUP만큼 올려 허리띠를 벨트 뒤로 숨김
+TCUT = int(os.environ.get('SKY_TCUT', '676')); SKUP = float(os.environ.get('SKY_SKUP', '12'))
+import numpy as _np
+from PIL import Image as _Im
+_t = _np.asarray(_Im.open(os.path.join(HERE, '..', 'parts', 'torso3.png')).convert('RGBA')).copy()
+_keep = _np.asarray(_Im.open(os.path.join(HERE, '..', 'parts', 'pouch3.png')).convert('RGBA'))[..., 3] > 0   # 주머니 자리는 남김 (주머니는 따로 치마 위에 다시 그림)
+_rows = _np.arange(_t.shape[0])[:, None]; _fade = _np.clip((TCUT + 6 - _rows) / 6, 0, 1)
+_t[..., 3] = (_t[..., 3] * _np.where(_keep, 1, _fade)).astype(_np.uint8)
+_Im.fromarray(_t, 'RGBA').save(os.path.join(HERE, '..', 'parts', 'torsoC.png')); P['torso']['src'] = 'parts/torsoC.png'
+P['torsoFull'] = dict(src=g['torso3']['src'], pivot=g['torso3']['pivot'], scale=g['torso3']['scale'])
 P['pouch'] = dict(src=g['pouch3']['src'], pivot=g['pouch3']['pivot'], scale=g['pouch3']['scale'])
 GSHIFT = float(os.environ.get('SKY_GSHIFT', '120'))   # 앞손이 쥐는 자리를 창 뒤끝 쪽으로 (리그 단위) = 두 손이 자루를 따라 내려감 (DHL 2026-10-16)
 P['weapon'].update(pivot=[g['weapon']['axisX'], round(g['weapon']['gripRow'] + GSHIFT / P['weapon']['scale'], 1)])
@@ -26,6 +37,7 @@ del B['fistN']
 bones = [b for b in d['bones'] if b['name'] != 'fistN']
 bones.insert([b['name'] for b in bones].index('cape'), dict(name='pouch', parent='torso', pos=[0, 0], part='pouch'))
 bones.append(dict(name='armTH', parent='torso', pos=[-80, -117], part='armTH'))
+bones.insert([b['name'] for b in bones].index('torso') + 1, dict(name='torsoUnder', parent='torso', pos=[0, 0], part='torsoFull'))   # 늘린 튜닉 전체를 치마 밑에 한 번 더 (몸을 숙여도 벨트 옆 빈틈 없음)
 d['bones'] = bones
 d['hidden'] = ['fistF', 'armTH']
 # 찌른 팔(TH): 원본 그림에서 자루가 팔뚝 앞을 지나므로 팔은 창 뒤, 주먹만 창 앞 (v3.1)
@@ -34,7 +46,7 @@ from PIL import Image as _I
 from measure import masks as _masks
 _a, _al, _br, _sk = _masks(os.path.join(HERE, '..', 'parts', 'armTH.png')); _ys, _xs = np.nonzero(_sk)
 d['overlays'] = {'armTHfist': {'bone': 'armTH', 'rect': [int(_xs.min()) - 10, int(_ys.min()) - 12, int(np.ptp(_xs)) + 24, int(np.ptp(_ys)) + 26]}}
-d['draw'] = ['cape', 'armF', 'pauldronF', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'pony', 'head', 'armTH', 'weapon', 'foreF', 'fistF', 'armU', 'armL', 'pauldron', 'armTHfist']
+d['draw'] = ['cape', 'armF', 'pauldronF', 'legFar', 'legNear'] + ['torsoUnder', 'skirt', 'torso'] + ['pouch', 'pony', 'head', 'armTH', 'weapon', 'foreF', 'fistF', 'armU', 'armL', 'pauldron', 'armTHfist']
 d.pop('drawSmash', None); d.pop('twoHand', None); d.pop('smashHand2', None); d.pop('smashShoulder', None)
 # 다리: L 시트 측정 (엉덩이 관절 높이 기준 배율) 허벅지 111 · 정강이 122
 d['legs']['thigh'] = 111; d['legs']['shin'] = 122
@@ -56,7 +68,15 @@ A_['gy'] = [[0, -132 - RAISE, 'io'], [.18, -85 - RAISE * .6, 's'], [.3, -62 - RA
 A_['sa'] = [[0, -0.54, 'io'], [.18, -.42, 's'], [.3, -.06, 'o'], [.42, -.08, 'io'], [.62, -.45, 'io'], [.8, -.54]]              # 찌른 순간 뒷팔 = TH 한 장
 A_['gap'] = [[0, 346, 'io'], [.18, 310, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [.72, 346]]
 d['hemLimit'] = {'up': .45, 'x': .6}
-d['skirtFollow'] = .5
+d['skirtFollow'] = float(os.environ.get('SKY_SF', '.5'))
+for _b in d['bones']:
+    if _b['name'] == 'skirt': _b['pos'] = [_b['pos'][0], _b['pos'][1] - SKUP]
+d['hemLungeRel'] = True
+d['hemRun'].update(lungeK=float(os.environ.get('SKY_LK', '.6')), lungeX=.4)   # 앞발이 나가도 앞자락이 얇게 늘어난 쐐기가 되지 않게   # 2026-10-16 DHL: 준비 자세에서 치마 앞자락이 뾰족하게 들리던 문제
+# 망토: 단추 달린 위 띠(그림 x≈240~350, y≈0~30)가 목 뒤에 붙도록 — 기준점을 띠 오른쪽 끝으로, 뼈는 목 뒤 (DHL: 망토가 떠 있음)
+P['cape']['pivot'] = [float(os.environ.get('SKY_CPX', '345')), 14]
+for _b in d['bones']:
+    if _b['name'] == 'cape': _b['pos'] = [float(os.environ.get('SKY_CBX', '-30')), float(os.environ.get('SKY_CBY', '-150'))]
 d['gait']['kneeLift'] = .95   # 다리 길이 실측(허벅지 111·정강이 122)에서 무릎 150° 넘지 않게 (1.12 → 무릎 155°)
 # 눈 깜빡임: B-깜빡임 시트(DHL) → build_blink.py 로 만든 얼굴 패치. 기준 머리 좌표 원점에서 head pivot 기준으로 변환
 _br = json.load(open(os.path.join(HERE, 'blink_report.json'))); _hp = P['head']['pivot']
