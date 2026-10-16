@@ -517,16 +517,22 @@
       const E = apply(b.foreF.m, 0, 0), tF = Math.atan2(Wt[1] - E[1], Wt[0] - E[0]) - Math.atan2(b.fistF.pos[1], b.fistF.pos[0]);
       b.foreF.ar += wrapA(tF - wAng(b.foreF.m)) * w; rig.compute();
       b.fistF.ar += wrapA(phiF - wAng(b.fistF.m)) * w; b.weapon.ar = 0; rig.compute();
-      // 뒷손: 손잡이에서 칼자루 끝 쪽으로 한 주먹 아래를 쥠
-      const g2 = rig.def.smashHand2 || 46, G2 = apply(b.weapon.m, 0, 0), H2 = [G2[0] - ux * g2, G2[1] - uy * g2];
-      const SN = apply(b.armU.m, 0, 0), N1 = Math.hypot(...b.armL.pos), N2 = b.fistN ? Math.hypot(...b.fistN.pos) : 80;
-      const [nLow] = solve2(SN, H2, N1, N2);
-      const tU = Math.atan2(nLow[1] - SN[1], nLow[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]);
-      b.armU.ar += wrapA(tU - wAng(b.armU.m)) * w; rig.compute();
-      if (b.fistN) { const EN = apply(b.armL.m, 0, 0), tL = Math.atan2(H2[1] - EN[1], H2[0] - EN[0]) - Math.atan2(b.fistN.pos[1], b.fistN.pos[0]);
-        b.armL.ar += wrapA(tL - wAng(b.armL.m)) * w; }
+      this._nearToShaft(w, rig.def.smashHand2 || 46, ux, uy);
       b.pauldron.ar = b.armU.ar * .3; b.pauldron.ax = b.armU.ax; b.pauldron.ay = b.armU.ay;
       if (!act.hit && t >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+    }
+    /** 가까운(자유) 팔을 무기 자루 위 한 점에 붙임: 손잡이(weapon 뼈 원점)에서 칼끝 반대쪽으로 gap만큼. 두 관절 IK */
+    _nearToShaft(w, gap, ux, uy) {
+      const rig = this.rig, b = rig.by; rig.compute();
+      if (ux === undefined) { const wp = rig.def.parts.weapon, tm = wp.tips ? [(wp.tips[0][0] + wp.tips[1][0]) / 2, (wp.tips[0][1] + wp.tips[1][1]) / 2] : [wp.pivot[0], 0];
+        const T0 = rig.partPoint("weapon", tm[0], tm[1]), G0 = apply(b.weapon.m, 0, 0), l = Math.hypot(T0[0] - G0[0], T0[1] - G0[1]) || 1; ux = (T0[0] - G0[0]) / l; uy = (T0[1] - G0[1]) / l }
+      const G2 = apply(b.weapon.m, 0, 0), H2 = [G2[0] - ux * gap, G2[1] - uy * gap];
+      const SN = apply(b.armU.m, 0, 0), N1 = Math.hypot(...b.armL.pos), N2 = b.fistN ? Math.hypot(...b.fistN.pos) : 80;
+      const sol = solve2(SN, H2, N1, N2), e = rig.def.nearElbowUp ? sol[1] : sol[0];
+      const tU = Math.atan2(e[1] - SN[1], e[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]);
+      b.armU.ar += wrapA(tU - wAng(b.armU.m)) * w; rig.compute();
+      if (b.fistN) { const EN = apply(b.armL.m, 0, 0), tL = Math.atan2(H2[1] - EN[1], H2[0] - EN[0]) - Math.atan2(b.fistN.pos[1], b.fistN.pos[0]);
+        b.armL.ar += wrapA(tL - wAng(b.armL.m)) * w; rig.compute() }
     }
     _waveArms(D, t, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
@@ -646,6 +652,7 @@
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
+      if (!act && rig.def.twoHand) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
       for (const side of ["near", "far"]) {
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]);

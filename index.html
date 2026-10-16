@@ -18476,11 +18476,12 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
 <script src="assets/rig/rig.js"></script>
 <script src="assets/rig/rust-fork-girl/rig.def.js"></script>
 <script src="assets/rig/alonso-rust/rig.def.js"></script>
+<script src="assets/rig/nicole-sky/rig.def.js"></script>
 <script id="mr-rig-js">
 (()=>{
   const RIG_DIR='assets/rig/';
   // 캐릭터 번호(1~30, 전투·마이룸 같은 번호) → 리그 id. 등록된 번호는 전투·마이룸·친구 방문에서 그림 대신 리그로 그린다. 정지 그림(도감·카드·컷인)은 기존 PNG 그대로
-  const REGISTRY={1:'alonso-rust',8:'rust-fork-girl'}; // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
+  const REGISTRY={1:'alonso-rust',8:'rust-fork-girl',28:'nicole-sky'}; // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
   const BODY_PX=290/512;                  // 전투 그림 규칙(normalize_battle_chars.py): 512 그림에서 머리~발 290px
   const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
   let enabled=null,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
@@ -18753,7 +18754,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     const src=img.getAttribute('src')||'',cut=img.classList.contains('team-cut-in');if(!src||(!cut&&img.closest(STILL_SKIP)))return null;
     for(const n in REGISTRY){const p=String(n).padStart(4,'0');
       if(src.includes(`characters/char_${p}.png`)&&!src.includes('battle_'))return {mode:'room',id:REGISTRY[n],num:+n};
-      if(src.includes(`battle_char_${p}_Idle`))return {mode:'battle',id:REGISTRY[n],num:+n,cut};}
+      if(src.toLowerCase().includes(`battle_char_${p}_idle`))return {mode:'battle',id:REGISTRY[n],num:+n,cut};} // 파일 이름 대소문자 섞임(28번은 _idle)
     return null;
   }
   // 그림이 실제로 보이는 사각형(object-fit 반영) → {left,top,D(원본 1px당 화면 px)}
@@ -18814,7 +18815,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       if(!act)a.attack(N.loop);
       else if(act.name===N.in||act.name===N.loop){if(act.t>N.B)act.t-=N.B-N.A;}
       else if(act.name===N.hit&&act.t+dt*(act.speed||1)>=act.def.dur-.02)a.attack(N.loop);
-      if(N.other&&e.cut&&act&&act.name===N.hit&&act.t>.62)act.t=.62; // 내려찍기 컷인: 내리친 자세 유지
+      {const hold=e.rig.def.cutHold||.62;if(N.other&&e.cut&&act&&act.name===N.hit&&act.t>hold)act.t=hold;} // 컷인: 공격한 자세 유지 (캐릭터별 cutHold)
     }
     a.update(dt,{vx:0,facing:1});
     const f=imgFrame(img,r),def=e.rig.def;let s,fx,fy;
