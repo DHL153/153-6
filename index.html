@@ -4469,9 +4469,16 @@ window.MRRunWalker=(()=>{
    return s;
   }
   function startIdle(s){s.mode='idle';s.idleLeft=CFG.idleMin+Math.random()*(CFG.idleMax-CFG.idleMin);}
-  function place(it,s,paused){
+  function place(it,s,paused,t){
    const el=it.el,d=dims(el,it.num,it.scale);if(!d.S||!d.fit)return;
    const fr=frames[it.num],cur=el.getAttribute('src')||'';
+   // 2026-10-16 리깅 캐릭터(MRRig): 그림 대신 캔버스에 그린다. img는 투명하게 두고 자리(클릭 영역)만 유지
+   if(window.MRRig?.roomPlace?.(it,s,paused,d,t)){
+    const room=el.dataset.roomSrc;if(room&&fr?.list.includes(cur))el.src=room;
+    el.style.left=(s.x-s.dir*(d.cx-.5)*d.S*d.sc*d.n).toFixed(1)+'px';
+    el.style.transform=d.fit.transform(el,it.num,d.sc,0,s.dir);
+    return;
+   }
    if(!paused&&s.mode==='run'&&fr&&fr.ok){
     if(!fr.list.includes(cur))el.dataset.roomSrc=cur; // 마이룸 그림 주소 기억 (멈출 때 되돌림)
     const nR=d.n*d.span/(BF-BT)*(RUN_FIX[it.num]||1),ty=d.sc*d.S*((d.base-.5)-nR*(BF-.5)); // 발끝은 그대로, 크기만 보정
@@ -4486,7 +4493,7 @@ window.MRRunWalker=(()=>{
   }
   function start(){active=true;states.clear();items().forEach(it=>loadFrames(it.num));try{opt.onStart?.();}catch(e){}}
   function stop(){
-   active=false;hoverKey=null;states.clear();removeSpeech();
+   active=false;hoverKey=null;states.clear();removeSpeech();window.MRRig?.roomStop?.(opt.zone);
    items().forEach(it=>{const el=it.el,room=el.dataset.roomSrc;if(room&&frames[it.num]?.list.includes(el.getAttribute('src')||''))el.src=room;});
    try{opt.onStop?.();}catch(e){}
   }
@@ -4515,8 +4522,8 @@ window.MRRunWalker=(()=>{
       s.frameT+=dt;if(s.frameT>=1/CFG.fps){s.frameT=0;s.frame=(s.frame+1)%6;}
      }
     }
-    s.x=Math.min(maxX,Math.max(minX,s.x));
-    place(it,s,paused);
+    s.x=Math.min(maxX,Math.max(minX,s.x));s.spd=(maxX-minX)/CFG.crossSec; // px/s (리그 달리기 속도용)
+    place(it,s,paused,t);
    });
    if(speech)positionSpeech();
   }
@@ -4532,9 +4539,12 @@ window.MRRunWalker=(()=>{
    speech.el.style.top=Math.max(bh+8,headY-4).toFixed(1)+'px';
    speech.el.style.setProperty('--rs-tail',Math.min(bw-16,Math.max(16,bodyX-x+bw/2)).toFixed(1)+'px');
   }
-  function say(key){
+  let suppressTapUntil=0;
+  function say(key,kind='tap'){
+   if(kind==='tap'&&performance.now()<suppressTapUntil)return; // 길게 누른 뒤 따라오는 클릭은 무시
    const it=find(key),host=it?.el?.offsetParent;if(!it||!host)return;
    const s=states.get(String(key));if(s)s.speechUntil=performance.now()+CFG.speechMs;
+   window.MRRig?.roomReact?.(String(key),kind); // 2026-10-16 리깅 캐릭터 반응 (짧게: 여러 종류 돌아가며 / 길게: 귀여운 반응)
    let inf=null;try{inf=opt.info?.(key);}catch(e){}inf=inf||info(it.num);
    const list=REACTIONS.length?REACTIONS:[{text:'♥',color:'#ff477e'}];
    let i=Math.floor(Math.random()*list.length);if(list.length>1&&i===lastReaction)i=(i+1)%list.length;lastReaction=i;
@@ -4553,6 +4563,12 @@ window.MRRunWalker=(()=>{
    z.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=e.target?.closest?.('[data-walk-key]');hoverKey=el?el.dataset.walkKey:null;});
    z.addEventListener('pointerleave',()=>{hoverKey=null;});
    if(opt.clickToSay)z.addEventListener('click',e=>{const el=e.target?.closest?.('[data-walk-key]');if(el)say(el.dataset.walkKey);});
+   // 2026-10-16 길게 누르기(0.45초) → 'long' 반응. 이후 0.4초 안의 짧은 탭 처리는 무시
+   let press=null,longFired=false;
+   z.addEventListener('pointerdown',e=>{const el=e.target?.closest?.('[data-walk-key]');if(!el||!active)return;clearTimeout(press);longFired=false;
+    const key=el.dataset.walkKey;press=setTimeout(()=>{press=null;longFired=true;suppressTapUntil=performance.now()+60000;say(key,'long');},450);}); // 손을 뗄 때까지 짧은 탭 막음
+   const endPress=()=>{clearTimeout(press);press=null;if(longFired){longFired=false;suppressTapUntil=performance.now()+400;}}; // 손을 뗄 때 따라오는 클릭(짧은 탭)은 무시
+   z.addEventListener('pointerup',endPress);z.addEventListener('pointercancel',endPress);z.addEventListener('pointerleave',endPress);
   }
   raf=requestAnimationFrame(tick);
   return {say,isActive:()=>active,destroy(){dead=true;cancelAnimationFrame(raf);removeSpeech();if(active)stop();}};
@@ -18450,6 +18466,8 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 #battle-rig-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;display:none}
 #battle-stage.mr-rig-on #battle-rig-canvas{display:block}
 #battle-stage .hero.mr-rig-hidden{visibility:hidden!important}
+.char-preview-character.mr-rig-hidden{opacity:0!important} /* 마이룸: 클릭 영역은 남기고 그림만 숨김 */
+.mr-rig-room-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
 #battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
 </style>
 <script src="assets/rig/rig.js"></script>
@@ -18553,10 +18571,97 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
   function setEnabled(v){
     v=!!v;if(v===enabled)return;enabled=v;
     const stage=$('battle-stage');
-    if(!enabled){for(const e of live.values())e.el?.classList.remove('mr-rig-hidden');live.clear();stage?.classList.remove('mr-rig-on');stop();}
+    if(!enabled){for(const e of live.values())e.el?.classList.remove('mr-rig-hidden');live.clear();stage?.classList.remove('mr-rig-on');stop();roomStop();}
     if(typeof layoutBattleTeam==='function'&&stage&&typeof activeBattleTeam!=='undefined')try{layoutBattleTeam(stage,activeBattleTeam);}catch(e){}
   }
-  window.MRRig={setEnabled,layout,onState,registry:REGISTRY,get enabled(){return enabled},get live(){return live},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
+  // ================= 마이룸 (MRRunWalker가 매 프레임 roomPlace를 부른다) =================
+  // 반응 동작: 팔 그림이 바뀌지 않는 몸 동작은 kind:"wave"에 w·wAmp를 0으로 두면 팔은 평소대로, 몸·표정 트랙만 쓴다 (07_runtime.md 3장)
+  const NOARM={w:[[0,0]],wAmp:[[0,0]],weapon:[[0,1]]};
+  const REACT={
+    hop:  {kind:"wave",plant:false,dur:1.05,cancelAt:.9,...NOARM,                                  // 폴짝 두 번
+      hipY:[[0,0,"io"],[.12,16,"o"],[.22,-120,"io"],[.40,-110,"i"],[.50,12,"io"],[.58,0,"io"],[.66,-95,"io"],[.80,-86,"i"],[.90,10,"io"],[1.05,0]],
+      nearLift:[[0,0],[.18,0,"o"],[.24,44,"io"],[.44,44,"i"],[.50,0],[.62,0,"o"],[.68,36,"io"],[.82,36,"i"],[.90,0]],
+      farLift: [[0,0],[.18,0,"o"],[.24,44,"io"],[.44,44,"i"],[.50,0],[.62,0,"o"],[.68,36,"io"],[.82,36,"i"],[.90,0]],
+      lean:[[0,0,"io"],[.22,-.06,"io"],[.5,.02,"io"],[.66,-.05,"io"],[1.0,0]],
+      head:[[0,0,"io"],[.22,-.08,"io"],[.5,.03,"io"],[.66,-.07,"io"],[1.0,0]],
+      face:[[0,"happy"],[.95,null]]},
+    nod:  {kind:"wave",plant:true,dur:.95,cancelAt:.8,...NOARM,                                   // 끄덕끄덕
+      head:[[0,0,"io"],[.14,.26,"io"],[.30,-.04,"io"],[.44,.24,"io"],[.62,0,"io"],[.95,0]],
+      hipY:[[0,0,"io"],[.14,5,"io"],[.30,0,"io"],[.44,5,"io"],[.62,0]],
+      lean:[[0,0,"io"],[.14,.05,"io"],[.62,0]],
+      breath:[[0,0,"io"],[.3,.6,"io"],[.9,0]],
+      face:[[0,"happy"],[.85,null]]},
+    surprise:{kind:"wave",plant:true,dur:.9,cancelAt:.75,...NOARM,                                // 움찔! 뒤로 젖혔다가 편안
+      hipY:[[0,0,"o"],[.08,-16,"io"],[.22,4,"io"],[.36,0]],
+      lean:[[0,0,"o"],[.08,-.16,"io"],[.34,-.10,"io"],[.9,0]],
+      head:[[0,0,"o"],[.08,-.14,"io"],[.34,-.06,"io"],[.9,0]],
+      breath:[[0,0,"o"],[.08,1,"io"],[.5,.2,"io"],[.9,0]],
+      face:[[0,"grimace"],[.36,"relaxed"],[.8,null]]},
+    cute: {kind:"wave",plant:false,dur:2.0,cancelAt:1.8,...NOARM,                                  // 길게: 수줍게 몸 살랑살랑 + 마지막 폴짝
+      lean:[[0,0,"io"],[.3,-.13,"io"],[.7,.11,"io"],[1.1,-.13,"io"],[1.45,.06,"io"],[1.7,-.04,"io"],[2.0,0]],
+      head:[[0,0,"io"],[.3,.18,"io"],[.7,-.15,"io"],[1.1,.18,"io"],[1.45,-.08,"io"],[1.7,.03,"io"],[2.0,0]],
+      twist:[[0,0,"io"],[.3,.5,"io"],[.7,-.5,"io"],[1.1,.5,"io"],[1.45,0]],
+      hipY:[[0,0,"io"],[.3,8,"io"],[.7,8,"io"],[1.1,8,"io"],[1.45,10,"o"],[1.55,-105,"io"],[1.72,-96,"i"],[1.82,8,"io"],[2.0,0]],
+      nearLift:[[0,0],[1.5,0,"o"],[1.56,28,"io"],[1.74,28,"i"],[1.82,0]],
+      farLift: [[0,0],[1.5,0,"o"],[1.56,28,"io"],[1.74,28,"i"],[1.82,0]],
+      breath:[[0,0,"io"],[.5,.5,"io"],[1.2,.5,"io"],[2.0,0]],
+      face:[[0,"happy"],[1.9,null]]},
+    cute2:{kind:"wave",plant:false,dur:1.9,cancelAt:1.7,...NOARM,                                  // 길게: 기뻐서 폴짝폴짝 세 번 + 고개 갸웃
+      hipY:[[0,0,"o"],[.10,14,"o"],[.20,-125,"io"],[.36,-112,"i"],[.46,12,"o"],[.56,-112,"io"],[.72,-100,"i"],[.82,12,"o"],[.92,-104,"io"],[1.08,-92,"i"],[1.18,12,"io"],[1.32,0,"io"],[1.9,0]],
+      nearLift:[[0,0],[.16,0,"o"],[.22,46,"io"],[.40,46,"i"],[.46,0],[.52,0,"o"],[.58,42,"io"],[.76,42,"i"],[.82,0],[.88,0,"o"],[.94,42,"io"],[1.12,42,"i"],[1.18,0]],
+      farLift: [[0,0],[.16,0,"o"],[.22,46,"io"],[.40,46,"i"],[.46,0],[.52,0,"o"],[.58,42,"io"],[.76,42,"i"],[.82,0],[.88,0,"o"],[.94,42,"io"],[1.12,42,"i"],[1.18,0]],
+      lean:[[0,0,"io"],[.2,-.07,"io"],[1.18,-.05,"io"],[1.4,.04,"io"],[1.9,0]],
+      head:[[0,0,"io"],[.2,-.10,"io"],[1.18,-.08,"io"],[1.4,.20,"io"],[1.75,.16,"io"],[1.9,0]],
+      face:[[0,"happy"],[1.85,null]]}
+  };
+  if(window.RunAnimator?.ACTIONS)Object.assign(window.RunAnimator.ACTIONS,REACT);
+  const TAP_CYCLE=['wave','hop','nod','surprise'],LONG_PICK=['cute','cute2'];
+  const roomLive=new Map(); // key → {id,rig,anim,host,canvas,last,tapIdx}
+  let roomLongIdx=0;
+  function roomRigId(it){ if(enabled&&it.el?.classList.contains('selected-character'))return TEST_RIG; return REGISTRY[Number(it.num)]||null; }
+  function roomCanvas(host){
+    let c=host.querySelector(':scope>.mr-rig-room-canvas');
+    if(!c){c=document.createElement('canvas');c.className='mr-rig-room-canvas';c.setAttribute('aria-hidden','true');host.appendChild(c);}
+    return c;
+  }
+  // it: {key,el,num,scale}, s: {x,dir,mode,spd}, d: dims(몸 높이 bodyH, 칸 S, 배율 sc, 발 base), t: rAF 시각
+  function roomPlace(it,s,paused,d,t){
+    const id=roomRigId(it),key=String(it.key),el=it.el;
+    if(!id){const e=roomLive.get(key);if(e){e.el?.classList.remove('mr-rig-hidden');roomLive.delete(key);}return false;}
+    const host=el.offsetParent;if(!host)return false;
+    let e=roomLive.get(key);
+    if(!e){e={key,id,el,last:t,tapIdx:0};roomLive.set(key,e);
+      loadRig(id).then(({def,images})=>{if(roomLive.get(key)!==e)return;e.rig=new CharacterRig(def,images);e.anim=new RunAnimator(e.rig,{runSpeed:620});e.anim.facing=s.dir||1;})
+        .catch(err=>{console.warn('[MRRig room]',err);roomLive.delete(key);});}
+    e.el=el;e.host=host;
+    if(!e.anim)return false;               // 아직 로딩 중이면 그림 그대로
+    el.classList.add('mr-rig-hidden');
+    const W=host.clientWidth,H=host.clientHeight;if(!W||!H)return true;
+    const dpr=Math.min(2,devicePixelRatio||1),c=roomCanvas(host);
+    if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
+    const g=c.getContext('2d');
+    if(c._t!==t){c._t=t;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);} // 같은 칸의 첫 캐릭터가 지운다
+    const dt=Math.min(.05,Math.max(0,(t-e.last)/1000));e.last=t;
+    const bodyHeight=e.rig.def.metrics?.bodyHeight||718;
+    let scale=d.bodyH/bodyHeight;if(!(scale>0)||scale*bodyHeight>H*.95)scale=H*.5/bodyHeight;
+    const footX=s.x,footY=el.offsetTop+d.sc*d.S*(d.base-.5);
+    const run=!paused&&s.mode==='run'&&!e.anim.busy;
+    const vx=run?s.dir*(s.spd||0)/scale:0;
+    e.anim.update(dt,{vx,facing:s.dir||1});
+    e.rig.draw(g,footX*dpr,footY*dpr,scale*dpr,e.anim.facingScale);
+    return true;
+  }
+  function roomReact(key,kind){
+    const e=roomLive.get(String(key));if(!e?.anim)return;
+    let name;
+    if(kind==='long'){name=LONG_PICK[roomLongIdx++%LONG_PICK.length];}
+    else{name=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];}
+    if(!e.anim.attack(name)){e.anim.act=null;e.anim.attack(name);} // 진행 중이면 끊고 새 반응
+  }
+  function roomStop(zone){
+    for(const [key,e] of roomLive){if(!zone||zone.contains(e.el)){e.el?.classList.remove('mr-rig-hidden');const c=e.host?.querySelector(':scope>.mr-rig-room-canvas');if(c){const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);}roomLive.delete(key);}}
+  }
+  window.MRRig={setEnabled,layout,onState,roomPlace,roomReact,roomStop,registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{if(typeof gameSettings!=='undefined')setEnabled(!!gameSettings.rigTest);}catch(e){}};
   sync();addEventListener('load',sync);
