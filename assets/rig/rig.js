@@ -92,7 +92,10 @@
         else { set(ctx, M); ctx.drawImage(img, -part.pivot[0], -part.pivot[1]) }
         ctx.globalAlpha = 1;
         if (name === "head" && this.def.faces) this._drawFaces(ctx, mul(base, b.m));
-        if (this.def.blink && name === this.def.blink.bone && this.blink > 0) { set(ctx, M); this._drawBlink(ctx, part.pivot[0], part.pivot[1]) }
+        if (this.def.blinkFaces && name === "head" && this.blink > .15) {   // 그린 깜빡임 얼굴 (반쯤 → 감음 → 반쯤)
+          const bf = this.def.blinkFaces, pn2 = this.blink > .7 ? bf.closed : bf.half, p2 = this.def.parts[pn2], im2 = this.images[pn2];
+          if (im2) { const k2 = p2.scale || 1; set(ctx, mul(mul(base, b.m), [k2, 0, 0, k2, 0, 0])); ctx.drawImage(im2, -p2.pivot[0], -p2.pivot[1]) } }
+        else if (this.def.blink && name === this.def.blink.bone && this.blink > 0) { set(ctx, M); this._drawBlink(ctx, part.pivot[0], part.pivot[1]) }
         if (name === "weapon" && this.trail && this.drawTrail) this._drawTrail(ctx, base);   // off by default: effects are made by the game
       }
       if (this.debug) this._drawDebug(ctx, base);
@@ -809,7 +812,7 @@
       const faceSum = Object.values(this.faceW).reduce((a, v) => a + v, 0);
       if (act || faceSum > .2) { this.blinkT = Math.max(this.blinkT, .35); if (T - this.blinkAt > .02) this.blinkAt = -9 }   // eyes stay on the target / blink only on the base face
       this.blinkT -= dt; if (this.blinkT <= 0) { this.blinkT = 2.2 + Math.random() * 3; this.blinkAt = T }
-      const bt = T - this.blinkAt; rig.blink = bt < .14 ? Math.sin(bt / .14 * Math.PI) : 0;
+      const bd = rig.def.blinkFaces ? .17 : .14, bt = T - this.blinkAt; rig.blink = bt < bd ? Math.sin(bt / bd * Math.PI) : 0;
     }
   }
   RunAnimator.ACTIONS = ACTIONS; RunAnimator.EASE = EASE; RunAnimator.GAIT_DEFAULTS = GAIT_DEFAULTS; RunAnimator.GAIT_PRESETS = GAIT_PRESETS;

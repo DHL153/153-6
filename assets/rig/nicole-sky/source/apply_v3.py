@@ -58,6 +58,11 @@ A_['gap'] = [[0, 346, 'io'], [.18, 310, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [
 d['hemLimit'] = {'up': .45, 'x': .6}
 d['skirtFollow'] = .5
 d['gait']['kneeLift'] = .95   # 다리 길이 실측(허벅지 111·정강이 122)에서 무릎 150° 넘지 않게 (1.12 → 무릎 155°)
+# 눈 깜빡임: B-깜빡임 시트(DHL) → build_blink.py 로 만든 얼굴 패치. 기준 머리 좌표 원점에서 head pivot 기준으로 변환
+_br = json.load(open(os.path.join(HERE, 'blink_report.json'))); _hp = P['head']['pivot']
+for _n in ('half', 'closed'):
+    P['blink_' + _n] = dict(src=f'parts/blink_{_n}.png', pivot=[round(_hp[0] - _br[_n][0], 1), round(_hp[1] - _br[_n][1], 1)], scale=P['head']['scale'])
+d['blinkFaces'] = {'half': 'blink_half', 'closed': 'blink_closed'}
 d['version'] = 3
 d['note'] = '28번 니콜 스카이 v3 (2026-10-16). 창 먼저 + 두 손은 자루를 따라 미끄러지며 시트 그림 그대로 쥠(spearGrip). 뒷손=N 시트 3각도, 앞손=F 시트 3각도, 찌른 순간 뒷팔=TH 한 장. 상체=T(허리 아래 늘림)+주머니는 치마 위.'
 json.dump(d, open(RJ, 'w'), ensure_ascii=False, indent=1)
