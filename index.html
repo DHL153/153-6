@@ -18468,6 +18468,8 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 #battle-stage .hero.mr-rig-hidden{visibility:hidden!important}
 .char-preview-character.mr-rig-hidden{opacity:0!important} /* 마이룸: 클릭 영역은 남기고 그림만 숨김 */
 .mr-rig-room-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.mr-rig-still{position:absolute;pointer-events:none;display:none} /* 정지 그림 자리 위에 겹치는 리그 */
+img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대로 맡음 */
 #battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
 </style>
 <script src="assets/rig/rig.js"></script>
@@ -18662,7 +18664,129 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
   function roomStop(zone){
     for(const [key,e] of roomLive){if(!zone||zone.contains(e.el)){e.el?.classList.remove('mr-rig-hidden');const c=e.host?.querySelector(':scope>.mr-rig-room-canvas');if(c){const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);}roomLive.delete(key);}}
   }
-  window.MRRig={setEnabled,layout,onState,roomPlace,roomReact,roomStop,registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
+  // ================= 정지 그림 자리 (도감 상세·시작 선택·미리보기 등) — 2026-10-16 =================
+  // 등록된 번호의 마이룸 그림(char_NNNN.png)·전투 그림(battle_char_NNNN_Idle.png)이 크게 보이는 곳에서 그림 위에 리그를 겹쳐 그린다.
+  //  · 마이룸 그림 → 숨쉬듯 살짝 움직이는 대기 (리그 원본 그림과 1:1로 겹침: rig.json refOrigin·refScale·refLift)
+  //  · 전투 그림 → 공격 대기 자세(창을 겨눈 채 숨쉬기), 클릭하면 찌르기 → 다시 대기
+  //  · 화면에서 STILL_MIN_PX보다 작게 보이는 그림(썸네일·작은 칸)은 그림 그대로
+  const STILL_MIN_PX=80,STILL_SKIP='#battle-stage,#mini-battle-stage,#char-character-layer,.mrm-char,.mr-rig-hidden,.inv-item,.char-item-btn,.battle-char-card,.economy-item,.craft-slot'; // 도감·상점 목록 칸(작은 타일)은 그림 그대로
+  const EASE_=window.RunAnimator?.EASE||{io:t=>t*t*(3-2*t)};
+  const samp=(keys,t)=>{if(!keys)return 0;if(t<=keys[0][0])return keys[0][1];for(let i=0;i<keys.length-1;i++){const [t0,v0,e]=keys[i],[t1,v1]=keys[i+1];if(t<=t1)return typeof v0!=='number'?v0:v0+(v1-v0)*(EASE_[e||'io']||EASE_.io)((t-t0)/Math.max(1e-6,t1-t0));}return keys[keys.length-1][1];};
+  // 찌르기(thrust)에서 공격 대기·대기에서 찌르기 동작을 만든다 (팔·창 처리 = 찌르기 그대로, 시간만 다시 짬)
+  const STANCE_T=.18,LOOP_A=.3,LOOP_B=2.7; // 대기 자세 = 찌르기 준비 순간(.18초). 대기는 LOOP_A~LOOP_B 구간을 반복
+  const BODY_TR=['w','hipX','hipY','lean','head','breath','twist','ang','thF','nearW','gap','farDx','farLift','farAng','nearAng'];
+  function buildGuardActions(){
+    const T=window.RunAnimator?.ACTIONS?.thrust;if(!T||window.RunAnimator.ACTIONS.guardIn)return;
+    const g=k=>samp(T[k],STANCE_T),bob=(k,amp)=>[[LOOP_A,g(k),'io'],[(LOOP_A+LOOP_B)/2,g(k)+amp,'io'],[LOOP_B,g(k)]];
+    const steady={hipY:bob('hipY',6),breath:[[LOOP_A,0,'io'],[1.5,.7,'io'],[LOOP_B,0]],ang:bob('ang',-.04),head:bob('head',.03)};
+    const nearIn=[[0,0,'io'],[.03,0,'io'],[.15,-45]]; // 처음 .15초: 앞발이 반 걸음 뒤로 (엔진이 들어올 때 발 위치를 섞는 구간과 맞춤)
+    // guardIn: 평소 자세 → 준비 자세(찌르기 앞부분 그대로) → 숨쉬는 대기
+    const gi={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null]]};
+    // guardLoop: 이미 준비 자세에서 시작 (공격 뒤 복귀용)
+    const gl={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null]]};
+    for(const k of BODY_TR){if(!T[k])continue;
+      const pre=T[k].filter(x=>x[0]<STANCE_T);
+      gi[k]=(steady[k]?[...pre,[STANCE_T,g(k),'io'],...steady[k]]:[...pre,[STANCE_T,g(k)]]);
+      gl[k]=(steady[k]?[[0,g(k),'io'],...steady[k]]:[[0,g(k)]]);}
+    gi.nearDx=nearIn;gl.nearDx=nearIn;gi.nearLift=T.nearLift.filter(x=>x[0]<=.15);gl.nearLift=[[0,0]];
+    // gthrust: 준비 자세에서 바로 찌르고(.12초) 버틴 뒤 준비 자세로 돌아옴
+    const END=.66,gt={kind:T.kind,dur:END,hitAt:T.hitAt-STANCE_T,cancelAt:.42,face:[[0,'effort'],[.01,'shout'],[.22,'focus'],[.5,null]]};
+    for(const k of [...BODY_TR,'trail','shake']){if(!T[k])continue;
+      const mid=T[k].filter(x=>x[0]>STANCE_T&&x[0]<=.46).map(([t,v,e])=>[+(t-STANCE_T).toFixed(3),v,e]);
+      gt[k]=[[0,samp(T[k],STANCE_T),'io'],...mid,[END,k==='trail'||k==='shake'?0:samp(T[k],STANCE_T)]];}
+    gt.nearDx=[[0,0,'io'],[.03,0,'io'],[.15,-45],[END,-45]];gt.nearLift=[[0,0]];
+    Object.assign(window.RunAnimator.ACTIONS,{guardIn:gi,guardLoop:gl,gthrust:gt});
+  }
+  const stills=new Map(); // img → {mode,id,num,canvas,rig,anim,last,fit}
+  const artBox=new Map(); // src → Promise<{x,y,w,h,W,H}> (그림 속 불투명 영역, 원본 px)
+  function measureArt(src){
+    if(artBox.has(src))return artBox.get(src);
+    const p=new Promise(res=>{const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0);
+      const d=g.getImageData(0,0,c.width,c.height).data;let l=c.width,t=c.height,r=-1,b=-1;for(let y=0;y<c.height;y+=2)for(let x=0;x<c.width;x+=2)if(d[(y*c.width+x)*4+3]>40){if(x<l)l=x;if(x>r)r=x;if(y<t)t=y;if(y>b)b=y;}
+      res(r<0?null:{x:l,y:t,w:r-l,h:b-t,W:c.width,H:c.height});}catch(e){res(null);}};im.onerror=()=>res(null);im.src=src;});
+    artBox.set(src,p);return p;
+  }
+  const rigBox={}; // id → 대기 자세의 리그 그림 영역 (발 기준 리그 단위) — 전투 그림 칸에 맞출 때 가로 중심용
+  function measureRig(id,def,images){
+    if(rigBox[id])return rigBox[id];
+    const rig=new CharacterRig(def,images),an=new RunAnimator(rig,{runSpeed:620});an.attack('guardIn');for(let i=0;i<40;i++)an.update(1/60,{vx:0,facing:1});
+    const N=2400,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d',{willReadFrequently:true});rig.draw(g,N/2,N*.8,1,1);
+    const d=g.getImageData(0,0,N,N).data;let l=N,t=N,r=-1,b=-1;for(let y=0;y<N;y+=3)for(let x=0;x<N;x+=3)if(d[(y*N+x)*4+3]>40){if(x<l)l=x;if(x>r)r=x;if(y<t)t=y;if(y>b)b=y;}
+    return rigBox[id]=r<0?{cx:0,bottom:0,w:300,h:900}:{cx:(l+r)/2-N/2,bottom:b-N*.8,w:r-l,h:b-t};
+  }
+  function stillMatch(img){
+    const src=img.getAttribute('src')||'';if(!src||img.closest(STILL_SKIP))return null;
+    for(const n in REGISTRY){const p=String(n).padStart(4,'0');
+      if(src.includes(`characters/char_${p}.png`)&&!src.includes('battle_'))return {mode:'room',id:REGISTRY[n],num:+n};
+      if(src.includes(`battle_char_${p}_Idle`))return {mode:'battle',id:REGISTRY[n],num:+n};}
+    return null;
+  }
+  // 그림이 실제로 보이는 사각형(object-fit 반영) → {left,top,D(원본 1px당 화면 px)}
+  function imgFrame(img,r){
+    const nw=img.naturalWidth||512,nh=img.naturalHeight||512,fit=getComputedStyle(img).objectFit;
+    if(fit==='contain'||fit==='scale-down'){const D=Math.min(r.width/nw,r.height/nh);return {left:r.left+(r.width-nw*D)/2,top:r.top+(r.height-nh*D)/2,D};}
+    if(fit==='cover'){const D=Math.max(r.width/nw,r.height/nh);return {left:r.left+(r.width-nw*D)/2,top:r.top+(r.height-nh*D)/2,D};}
+    return {left:r.left,top:r.top,D:r.height/nh}; // fill·none(가로세로 비율 유지되는 경우)
+  }
+  function stillAttack(e){if(!e.anim)return;if(!e.anim.attack('gthrust')){e.anim.act=null;e.anim.attack('gthrust');}}
+  function mountStill(img,m){
+    const c=document.createElement('canvas');c.className='mr-rig-still';c.setAttribute('aria-hidden','true');img.after(c);
+    const e={...m,img,canvas:c,last:performance.now(),src:img.getAttribute('src'),tapIdx:0};stills.set(img,e);
+    loadRig(m.id).then(({def,images})=>{if(stills.get(img)!==e)return;buildGuardActions();
+      e.rig=new CharacterRig(def,images);e.anim=new RunAnimator(e.rig,{runSpeed:620});
+      if(m.mode==='battle'){e.box=measureRig(m.id,def,images);e.anim.attack('guardIn');}
+      measureArt(e.src).then(b=>{e.art=b;});
+    }).catch(err=>{console.warn('[MRRig still]',err);});
+    // 클릭: 전투 그림은 찌르기. 도감 상세에서는 '다음 그림'으로 넘어가지 않게 막는다. 마이룸 그림은 원래 동작(넘기기·선택) + 시작 선택에선 짧은 반응
+    e.onClick=ev=>{if(!e.anim||!enabled)return;
+      if(e.mode==='battle'){stillAttack(e);if(img.closest('.mrw-hero'))ev.stopImmediatePropagation();}
+      else if(!img.closest('.mrw-hero')){const n=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];if(!e.anim.attack(n)){e.anim.act=null;e.anim.attack(n);}}};
+    e.clickEl=img.closest('.mrw-hero,.mr-starter-card,button')||img;
+    e.onClickWrap=ev=>{if(e.img.offsetParent&&!e.img.hidden)e.onClick(ev);};
+    e.clickEl.addEventListener('click',e.onClickWrap,true);
+  }
+  // 그림 숨김: 다른 화면의 CSS(예: 큰 미리보기 툴팁)가 더 강해도 이기도록 인라인 !important
+  function setStillHidden(img,on){if(on===img.classList.contains('mr-rig-still-img'))return;img.classList.toggle('mr-rig-still-img',on);if(on)img.style.setProperty('opacity','0','important');else img.style.removeProperty('opacity');}
+  function unmountStill(img){const e=stills.get(img);if(!e)return;e.canvas.remove();setStillHidden(img,false);e.clickEl?.removeEventListener('click',e.onClickWrap,true);stills.delete(img);}
+  function scanStills(){
+    if(!enabled){for(const img of [...stills.keys()])unmountStill(img);return;}
+    for(const img of [...stills.keys()]){const e=stills.get(img);if(!img.isConnected||img.getAttribute('src')!==e.src||!stillMatch(img))unmountStill(img);}
+    const sel=Object.keys(REGISTRY).map(n=>{const p=String(n).padStart(4,'0');return `img[src*="char_${p}"]`;}).join(',');if(!sel)return;
+    document.querySelectorAll(sel).forEach(img=>{if(stills.has(img))return;const m=stillMatch(img);if(m)mountStill(img,m);});
+  }
+  function drawStill(e,t){
+    const img=e.img,c=e.canvas;
+    const show=e.anim&&img.offsetParent&&!img.hidden;const r=show?img.getBoundingClientRect():null;
+    const big=r&&r.height>=STILL_MIN_PX&&r.width>0&&(e.mode==='room'||e.art);
+    setStillHidden(img,!!big);
+    if(!big){c.style.display='none';return;}
+    const host=c.offsetParent||img.offsetParent;if(!host){c.style.display='none';return;}
+    c.style.display='block';
+    const hr=host.getBoundingClientRect(),pad=.35,cw=r.width*(1+2*pad),ch=r.height*(1+pad);
+    const L=r.left-r.width*pad,T=r.top-r.height*pad;
+    c.style.left=(L-hr.left-host.clientLeft+host.scrollLeft).toFixed(1)+'px';c.style.top=(T-hr.top-host.clientTop+host.scrollTop).toFixed(1)+'px';
+    c.style.width=cw.toFixed(1)+'px';c.style.height=ch.toFixed(1)+'px';
+    const zi=getComputedStyle(img).zIndex;c.style.zIndex=zi==='auto'?'1':zi;
+    const dpr=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(cw*dpr)||c.height!==Math.round(ch*dpr)){c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);}
+    const dt=Math.min(.05,Math.max(0,(t-e.last)/1000));e.last=t;
+    const a=e.anim,act=a.act;
+    if(e.mode==='battle'){ // 대기 반복·공격 뒤 복귀
+      if(!act)a.attack('guardLoop');
+      else if(act.name==='guardIn'||act.name==='guardLoop'){if(act.t>LOOP_B)act.t-=LOOP_B-LOOP_A;}
+      else if(act.name==='gthrust'&&act.t+dt*(act.speed||1)>=act.def.dur-.02)a.attack('guardLoop');
+    }
+    a.update(dt,{vx:0,facing:1});
+    const f=imgFrame(img,r),def=e.rig.def;let s,fx,fy;
+    if(e.mode==='room'){s=f.D/(def.refScale||2);fx=f.left+def.refOrigin[0]*f.D;fy=f.top+def.refOrigin[1]*f.D+(def.refLift||0)*s;}
+    else{const b=e.art,k=e.box; // 원본 전투 그림의 그림 영역 안에 대기 자세가 꼭 맞게 (가로 가운데·발 바닥 맞춤)
+      s=Math.min(b.w*f.D/k.w,b.h*f.D/k.h)*.96;fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;}
+    const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);
+    e.rig.draw(g,(fx-L)*dpr,(fy-T)*dpr,s*dpr,a.facingScale);
+  }
+  let stillRaf=0;
+  function stillTick(t){stillRaf=requestAnimationFrame(stillTick);if(document.hidden)return;for(const e of stills.values())drawStill(e,t);}
+  setInterval(scanStills,400);stillRaf=requestAnimationFrame(stillTick);
+  window.MRRig={setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{setEnabled(typeof gameSettings==='undefined'||gameSettings.rigChars!==false);}catch(e){setEnabled(true);}};
   sync();addEventListener('load',sync);
