@@ -62,8 +62,20 @@ def strip_shaft(fn, outname, k, extra):
     skinL = al & (hue > 8) & (hue < 42) & (sat > .18) & (sat < .78) & (mx > .55) & ~brown & nd.binary_dilation(skin, iterations=8)   # 그늘진 손가락 끝까지 (나무 밝은 결 제외)
     lbS, nS = nd.label(skinL); szS = np.array(nd.sum(skinL, lbS, range(1, nS + 1))); skinL = lbS == 1 + int(np.argmax(szS))
     fist = nd.binary_fill_holes(nd.binary_closing(skinL | skin, iterations=6))
-    keep = nd.binary_dilation(fist, iterations=2) | (nd.binary_dilation(fist, iterations=10) & ink) | armcol | (nd.binary_dilation(armcol, iterations=6) & ink)
-    A[..., 3] = np.where(band & ~keep, 0, A[..., 3])
+    # 자루 토막만 지운다 (v3.1): 자루 띠(테두리 포함) 안에서 팔·주먹 색이 아닌 것은 전부 지움.
+    #   팔 색 = 피부 · 은색/크림(채도 낮고 밝음) · 금색(노랑 계열 진함) · 남색. 나무색·나무 끝 밝은 결은 팔 색이 아님.
+    #   (이전 v3: 색으로 팔을 고르다 금색 그늘이 빠져 TH 팔뚝이 잘리고, 띠 가장자리 잉크 선이 남아 창이 휘어 보였음)
+    fistD = nd.binary_dilation(fist, iterations=2)
+    bandW = (sgn >= top - 10) & (sgn <= bot + 10)
+    silver = (sat < .22) & (mx > .42); gold = (hue >= 36) & (hue <= 62) & (sat > .35) & (mx > .45); navy = (hue >= 190) & (hue <= 270) & (mx > .12)
+    armc = al & (silver | gold | navy | fist) & ~brown
+    lbA, nA = nd.label(armc | fistD); szA = np.array(nd.sum(armc | fistD, lbA, range(1, nA + 1)))
+    armc = armc & np.isin(lbA, np.nonzero(szA >= szA.max() * .05)[0] + 1)            # 띠 속 작은 반짝임 조각은 팔 아님
+    protect = nd.binary_dilation(armc | fistD, iterations=2) | (ink & (nd.distance_transform_edt(~(armc | fistD)) <= 5))
+    A[..., 3] = np.where(bandW & ~protect, 0, A[..., 3])
+    # 남은 가는 선(두께 6px 이하) 정리: 굵은 몸통을 열고 다시 테두리만큼 되돌림
+    m0 = A[..., 3] > 20; body = nd.binary_dilation(nd.binary_opening(m0, iterations=3), iterations=4) & m0
+    A[..., 3] = np.where(body, A[..., 3], 0)
     m = A[..., 3] > 20; lb, n = nd.label(m); sz = np.array(nd.sum(m, lb, range(1, n + 1)))
     A[..., 3] = np.where(np.isin(lb, np.nonzero(sz >= sz.max() * .02)[0] + 1), A[..., 3], 0)
     ys, xs = np.nonzero(A[..., 3] > 0); x0, y0 = max(0, xs.min() - 4), max(0, ys.min() - 4)

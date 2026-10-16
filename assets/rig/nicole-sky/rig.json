@@ -631,13 +631,14 @@
   "pouch",
   "pony",
   "head",
+  "armTH",
   "weapon",
   "foreF",
   "fistF",
   "armU",
   "armL",
   "pauldron",
-  "armTH"
+  "armTHfist"
  ],
  "hidden": [
   "fistF",
@@ -1153,6 +1154,17 @@
    "happy",
    "grimace"
   ]
+ },
+ "overlays": {
+  "armTHfist": {
+   "bone": "armTH",
+   "rect": [
+    357,
+    273,
+    203,
+    174
+   ]
+  }
  },
  "spearGrip": {
   "carry": {

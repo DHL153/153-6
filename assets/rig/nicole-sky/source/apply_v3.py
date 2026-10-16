@@ -1,6 +1,7 @@
 """rig.json v2 → v3: 새 조각(parts_v3.json)과 '창 먼저 + 두 손 자루 위(spearGrip)' 설정을 넣는다.
 실행: cd source && python3 -I apply_v3.py   (v2 원본은 source/rig_v2.json 에 보관)"""
-import json, os, shutil, math
+import json, os, shutil, math, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 HERE = os.path.dirname(os.path.abspath(__file__)); RJ = os.path.join(HERE, '..', 'rig.json')
 if not os.path.exists(os.path.join(HERE, 'rig_v2.json')): shutil.copy(RJ, os.path.join(HERE, 'rig_v2.json'))
 d = json.load(open(os.path.join(HERE, 'rig_v2.json'))); g = json.load(open(os.path.join(HERE, 'parts_v3.json')))
@@ -26,7 +27,13 @@ bones.insert([b['name'] for b in bones].index('cape'), dict(name='pouch', parent
 bones.append(dict(name='armTH', parent='torso', pos=[-80, -117], part='armTH'))
 d['bones'] = bones
 d['hidden'] = ['fistF', 'armTH']
-d['draw'] = ['cape', 'armF', 'pauldronF', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'pony', 'head', 'weapon', 'foreF', 'fistF', 'armU', 'armL', 'pauldron', 'armTH']
+# 찌른 팔(TH): 원본 그림에서 자루가 팔뚝 앞을 지나므로 팔은 창 뒤, 주먹만 창 앞 (v3.1)
+import numpy as np
+from PIL import Image as _I
+from measure import masks as _masks
+_a, _al, _br, _sk = _masks(os.path.join(HERE, '..', 'parts', 'armTH.png')); _ys, _xs = np.nonzero(_sk)
+d['overlays'] = {'armTHfist': {'bone': 'armTH', 'rect': [int(_xs.min()) - 10, int(_ys.min()) - 12, int(np.ptp(_xs)) + 24, int(np.ptp(_ys)) + 26]}}
+d['draw'] = ['cape', 'armF', 'pauldronF', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'pony', 'head', 'armTH', 'weapon', 'foreF', 'fistF', 'armU', 'armL', 'pauldron', 'armTHfist']
 d.pop('drawSmash', None); d.pop('twoHand', None); d.pop('smashHand2', None); d.pop('smashShoulder', None)
 # 다리: L 시트 측정 (엉덩이 관절 높이 기준 배율) 허벅지 111 · 정강이 122
 d['legs']['thigh'] = 111; d['legs']['shin'] = 122
