@@ -18483,6 +18483,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
   }
   // layoutBattleTeam이 부른다: 발 위치(footX, 땅 선)와 몸 높이(머리~발, px)
   function layout(next){
+    if(!next.W||!next.H)return; // 숨겨진 화면(0×0)의 배치값은 무시
     info=next;const stage=next.stage;if(!stage)return;
     const seen=new Set();
     for(const m of next.members){
@@ -18490,6 +18491,8 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
       if(!id){m.el?.classList.remove('mr-rig-hidden');continue;}
       seen.add(m.slot);
       const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.footX=m.footX;entry.footY=next.H-next.ground;entry.bodyH=next.bodyH;
+      // 배율은 배치할 때마다 다시 계산 (휴대폰처럼 처음 배치 뒤 전투 칸 크기가 바뀌면 옛 배율로 거대하게 그려졌음 — 2026-10-16 수정)
+      if(entry.rig)entry.scale=entry.bodyH/(entry.rig.def.metrics?.bodyHeight||718);
       live.set(m.slot,entry);
       loadRig(id).then(({def,images})=>{
         if(live.get(m.slot)!==entry)return;
@@ -18532,11 +18535,16 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
     for(const e of live.values()){
       if(!e.anim)continue;
-      const vx=(e.anim.busy?0:gpx)/e.scale;         // 리그 단위/초 — 배경 px/s ÷ 배율이면 발이 땅에 붙는다
+      // 안전장치(2026-10-16 휴대폰에서 거대하게 그려진 문제): 몸 높이가 칸의 70%를 넘거나 발이 칸 밖이면 칸 기준으로 다시 맞춘다
+      const bodyHeight=e.rig.def.metrics?.bodyHeight||718,maxBody=H*.7;
+      let scale=e.scale,footX=e.footX,footY=e.footY;
+      if(!(scale>0)||scale*bodyHeight>maxBody)scale=(H*.52)/bodyHeight;
+      if(!(footX>=0&&footX<=W))footX=W*.3; if(!(footY>0&&footY<=H))footY=H*.86;
+      const vx=(e.anim.busy?0:gpx)/scale;         // 리그 단위/초 — 배경 px/s ÷ 배율이면 발이 땅에 붙는다
       e.anim.update(dt,{vx,facing:1});
       busy=busy||e.anim.busy;
       // 타격 순간 이벤트는 게임이 이미 자체 연출을 내므로 여기서는 쓰지 않는다 (e.anim.events)
-      e.rig.draw(ctx,e.footX*dpr,e.footY*dpr,e.scale*dpr,e.anim.facingScale);
+      e.rig.draw(ctx,footX*dpr,footY*dpr,scale*dpr,e.anim.facingScale);
     }
     if(busy!==wasBusy){wasBusy=busy;stage.classList.toggle('mr-rig-busy',busy);}
   }
@@ -18548,7 +18556,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
     if(!enabled){for(const e of live.values())e.el?.classList.remove('mr-rig-hidden');live.clear();stage?.classList.remove('mr-rig-on');stop();}
     if(typeof layoutBattleTeam==='function'&&stage&&typeof activeBattleTeam!=='undefined')try{layoutBattleTeam(stage,activeBattleTeam);}catch(e){}
   }
-  window.MRRig={setEnabled,layout,onState,registry:REGISTRY,get enabled(){return enabled},get live(){return live}};
+  window.MRRig={setEnabled,layout,onState,registry:REGISTRY,get enabled(){return enabled},get live(){return live},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{if(typeof gameSettings!=='undefined')setEnabled(!!gameSettings.rigTest);}catch(e){}};
   sync();addEventListener('load',sync);
