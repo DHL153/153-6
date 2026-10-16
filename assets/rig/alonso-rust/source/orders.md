@@ -32,10 +32,10 @@ Solid flat magenta #FF00FF background. No shadows, no ground shadow, no text, no
 ---
 
 ## 시트 1A — 상체 부위
-**첨부:** 시트 0 결과
+**첨부:** 시트 0 결과 (B안 `sheet0_reference.png`)
 
 ```
-Character parts sheet (upper body) for 2D cut-out animation of the attached character, three-quarter side view facing RIGHT, same scale as the attached image (the head the same size).
+Character parts sheet (upper body) for 2D cut-out animation of the attached character, the SAME three-quarter angle as the attached image (body facing right, turned slightly toward the viewer), same scale as the attached image (the head the same size).
  1. Head with the spiky hair and headband, neutral face, NO scarf.
  2. Torso only (chest to waist) with the tunic top, belt and pouch, no arms, no head, no scarf, nothing below the belt.
  3. The red scarf wrap around the neck alone (no tails).
@@ -56,10 +56,10 @@ Solid flat magenta #FF00FF background. No shadows, no text, no labels, no number
 ---
 
 ## 시트 1B — 하체·무기
-**첨부:** 시트 0 결과
+**첨부:** 시트 0 결과 (B안 `sheet0_reference.png`)
 
 ```
-Character parts sheet (lower body and weapon) for 2D cut-out animation of the attached character, three-quarter side view facing RIGHT, same scale as the attached image.
+Character parts sheet (lower body and weapon) for 2D cut-out animation of the attached character, the SAME three-quarter angle as the attached image (body facing right, turned slightly toward the viewer), same scale as the attached image.
  1. The tattered lower part of the tunic below the belt alone, hanging straight, same torn hem shape and colours as the original.
  2. Thigh (one), dark olive baggy trousers, hip to knee, rounded ends.
  3. Shin (one), trousers with the rusty riveted knee pad on top, knee to ankle, rounded ends, the boot NOT included.
@@ -75,10 +75,10 @@ Solid flat magenta #FF00FF background. No shadows, no text, no labels, no number
 ---
 
 ## 시트 2 — 표정 3×3
-**첨부:** 시트 0 결과
+**첨부:** 시트 0 결과 (B안 `sheet0_reference.png`)
 
 ```
-Expression sheet: the SAME head as the attached character (spiky hair, headband, face shape, size and position identical in every cell), 3 x 3 grid, three-quarter side view facing RIGHT. ONLY the eyes, eyebrows and mouth change. Hair spikes, headband and face outline must be pixel-identical in all 9 cells. No scarf.
+Expression sheet: the SAME head as the attached character (spiky hair, headband, face shape, size and position identical in every cell), 3 x 3 grid, the SAME head angle as the attached image (three-quarter, facing right). ONLY the eyes, eyebrows and mouth change. Hair spikes, headband and face outline must be pixel-identical in all 9 cells. No scarf.
 Row 1: neutral, effort (clenched teeth, frowning), battle shout (mouth wide open, teeth visible)
 Row 2: happy (eyes closed in arcs, big open grin), sad (small frown), angry (glaring, gritted teeth)
 Row 3: grimace (eyes squeezed shut, teeth clenched), focused (narrowed eyes, small closed mouth), relaxed (soft confident smile)
@@ -91,11 +91,11 @@ Solid flat magenta #FF00FF background. No text, no labels, no numbers, no grid l
 ---
 
 ## 시트 K-내려찍기 — 키 포즈 3장
-**첨부:** 시트 0 결과
+**첨부:** 시트 0 결과 (B안 `sheet0_reference.png`)
 *(키 포즈 = 동작의 가장 중요한 순간을 그린 그림. 직접 그려 주시면 그게 가장 정확합니다 — 니콜 때도 그랬어요)*
 
 ```
-Using the attached character exactly, draw 3 key poses of the move "overhead greatsword smash", full-body, three-quarter side view facing RIGHT, same scale as the attached image, side by side on one plain light background:
+Using the attached character exactly, draw 3 key poses of the move "overhead greatsword smash", full-body, the SAME three-quarter angle as the attached image (body facing right, turned slightly toward the viewer), same scale as the attached image, side by side on one plain light background:
  1. anticipation: the greatsword raised high behind the head, BOTH hands together on the grip above the head, elbows up, back slightly arched, weight on the back foot, front foot forward.
  2. impact: the sword swung forward and level in front at chest height, both arms extended forward-down, front knee bent, hips low, the back leg stretched.
  3. follow-through: the sword tip near the ground in front, torso bent forward, both knees bent, both hands still on the grip.
