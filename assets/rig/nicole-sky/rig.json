@@ -711,7 +711,9 @@
   "heel": 1.1,
   "reach": 0.5,
   "lungeK": 0.6,
-  "lungeX": 0.4
+  "lungeX": 0.4,
+  "kneeX": 0.45,
+  "actKnee": 0.35
  },
  "cutHold": 0.42,
  "ui": {
@@ -1250,8 +1252,9 @@
   "up": 0.45,
   "x": 0.6
  },
- "skirtFollow": 0.5,
+ "skirtFollow": 0.9,
  "hemLungeRel": true,
+ "skirtStretch": 0.07,
  "blinkFaces": {
   "half": "blink_half",
   "closed": "blink_closed"

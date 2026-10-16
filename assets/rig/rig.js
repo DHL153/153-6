@@ -771,8 +771,9 @@
         for (const side of ["near", "far"]) {
           const P = lp[side], kneeFwd = Math.max(0, P.knee[0] - skPivot[0] - 20), kneeUp = Math.max(0, restKneeY - P.knee[1]);
           const reach = Math.max(0, P.ankle[0] - skPivot[0] - 60), heelBack = Math.max(0, skPivot[0] - 40 - P.ankle[0]), heelUp = P.lift;
-          tx += front * (kneeFwd * .8 + reach * .3) - back * heelBack * .35;
-          ty -= front * kneeUp * H_.knee + back * heelUp * H_.heel + front * reach * H_.reach * A;
+          const ak = 1 - actW * (1 - (H_.actKnee ?? 1));   // 공격·준비 자세 중 무릎이 치마 앞자락을 미는 양 (캐릭터별)
+          tx += front * (kneeFwd * .8 * (H_.kneeX ?? 1) * ak + reach * .3) - back * heelBack * .35;
+          ty -= front * kneeUp * H_.knee * ak + back * heelUp * H_.heel + front * reach * H_.reach * A;
           // lunge: a foot planted far in front drags the front hem up the shin (cloth drapes from the waist over the knee)
           const lunge = actW * clamp((rig.def.hemLungeRel ? P.ankle[0] - this.hipX[side] - 10 : P.ankle[0] - skPivot[0] + 30) * 1.1, 0, 115), fr2 = smooth(.4, .95, u);   // hemLungeRel: 발이 제자리보다 앞으로 나갈 때만 (스카이: 앞발이 원래 앞쪽에 서 있음)
           const LK = H_.lungeK ?? 1; ty -= fr2 * lunge * LK; tx += fr2 * lunge * .35 * (H_.lungeX ?? 1) * LK;
@@ -786,7 +787,7 @@
       this.hemC = this.hemC || []; for (let i = 0; i <= cols; i++) { const x = hem[i][0].x, y = hem[i][1].x; this.hemC[i] = rig.def.hemLimit ? [soft(x, lx), y < 0 ? soft(y, lyU) : y] : [x, y] }   // hemLimit 이 있는 캐릭터만 (8 니콜 원본 동작은 그대로)
       const hc = this.hemC;
       rig.meshFx.skirt = (u, v, x, y) => { const w = v * v * (1.4 - .4 * v), f = u * cols, i = Math.min(cols - 1, Math.floor(f)), t = f - i;
-        const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w] };
+        const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w + y * (rig.def.skirtStretch || 0) * v] };   // skirtStretch: 치마 길이만 늘림 (허리띠를 벨트 뒤로 올린 만큼)
 
       // ---------- cape: trails behind, flutters, lags the bounce ----------
       const capeA = this.cape.step(clamp(lvx * .0011 + accel * .00012, -.25, .9), dt);

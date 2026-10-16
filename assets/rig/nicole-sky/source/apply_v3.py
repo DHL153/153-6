@@ -68,11 +68,12 @@ A_['gy'] = [[0, -132 - RAISE, 'io'], [.18, -85 - RAISE * .6, 's'], [.3, -62 - RA
 A_['sa'] = [[0, -0.54, 'io'], [.18, -.42, 's'], [.3, -.06, 'o'], [.42, -.08, 'io'], [.62, -.45, 'io'], [.8, -.54]]              # 찌른 순간 뒷팔 = TH 한 장
 A_['gap'] = [[0, 346, 'io'], [.18, 310, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [.72, 346]]
 d['hemLimit'] = {'up': .45, 'x': .6}
-d['skirtFollow'] = float(os.environ.get('SKY_SF', '.5'))
+d['skirtFollow'] = float(os.environ.get('SKY_SF', '.9'))   # DHL: 허리가 몸에 붙지 않고 떠 보임 → 치마 윗단이 상체 기울기를 거의 그대로 따라감
 for _b in d['bones']:
     if _b['name'] == 'skirt': _b['pos'] = [_b['pos'][0], _b['pos'][1] - SKUP]
 d['hemLungeRel'] = True
-d['hemRun'].update(lungeK=float(os.environ.get('SKY_LK', '.6')), lungeX=.4)   # 앞발이 나가도 앞자락이 얇게 늘어난 쐐기가 되지 않게   # 2026-10-16 DHL: 준비 자세에서 치마 앞자락이 뾰족하게 들리던 문제
+d['hemRun'].update(lungeK=float(os.environ.get('SKY_LK', '.6')), lungeX=.4, kneeX=.45, actKnee=.35)
+d['skirtStretch'] = float(os.environ.get('SKY_STR', '.07'))   # DHL: 치마가 더 내려와야 (올린 12 + 조금 더)   # 앞발이 나가도 앞자락이 얇게 늘어난 쐐기가 되지 않게   # 2026-10-16 DHL: 준비 자세에서 치마 앞자락이 뾰족하게 들리던 문제
 # 망토: 단추 달린 위 띠(그림 x≈240~350, y≈0~30)가 목 뒤에 붙도록 — 기준점을 띠 오른쪽 끝으로, 뼈는 목 뒤 (DHL: 망토가 떠 있음)
 P['cape']['pivot'] = [float(os.environ.get('SKY_CPX', '345')), 14]
 for _b in d['bones']:
