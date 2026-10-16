@@ -649,7 +649,8 @@
           need = Math.max(need, nd_) }
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
         if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
-      if (act && D.kind === "wave") this._waveArms(D, at, T);
+      if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
+      else if (act && D.kind === "wave") this._waveArms(D, at, T);
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
