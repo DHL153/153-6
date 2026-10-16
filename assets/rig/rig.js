@@ -274,6 +274,28 @@
       head:    [[0, 0, "io"], [.30, -.07], [1.45, -.07, "io"], [1.8, 0]],
       face:    [[0, null], [.05, "happy"], [1.80, null]] }
   };
+  /* smash (위에서 내려찍기, 대검·두 손) 1.0 s — 알론소 키 포즈 3장 기준 (2026-10-16)
+     0–.30 준비: 칼을 머리 위 뒤로, 뒷발에 체중 · .30–.42 내려침: 칼이 머리 위로 원을 그리며 앞 수평 · .42 hit
+     .42–.75 끌림: 칼끝이 앞 아래로, 몸이 따라 숙여짐 · .75–1.0 회수.
+     트랙: sa = 칼날 방향(화면 각도, 0 = 오른쪽·앞, π/2 = 아래; 시계 방향으로 증가), gx/gy = 손잡이 위치(골반 기준 리그 단위),
+          sh = 뒷어깨를 앞쪽으로 당기는 양(몸이 옆으로 돌아 두 손이 손잡이에서 만남) */
+  ACTIONS.smash = { kind: "smash", dur: 1.0, hitAt: .42, cancelAt: .8,
+    w:     [[0, 0, "o"], [.14, 1], [.84, 1, "io"], [1.0, 0]],
+    sa:    [[0, 2.64, "io"], [.30, 2.5, "i"], [.42, 6.28, "o"], [.55, 6.86, "io"], [.75, 6.9, "io"], [1.0, 8.92]],
+    gx:    [[0, -188, "io"], [.30, -120, "s"], [.36, -20, "i"], [.42, 95, "o"], [.55, 75, "io"], [.75, 70, "io"], [1.0, -188]],
+    gy:    [[0, -4, "io"], [.30, -470, "s"], [.36, -470, "i"], [.42, -175, "o"], [.55, -95, "io"], [.75, -90, "io"], [1.0, -4]],
+    sh:    [[0, 0, "io"], [.22, 1], [.80, 1, "io"], [1.0, 0]],
+    hipX:  [[0, 0, "io"], [.30, -22, "s"], [.42, 58], [.75, 52, "io"], [1.0, 0]],
+    hipY:  [[0, 0, "io"], [.30, -8, "s"], [.42, 34], [.60, 46, "io"], [.80, 40, "io"], [1.0, 0]],
+    lean:  [[0, 0, "io"], [.30, -.14, "s"], [.42, .22], [.62, .30, "io"], [.80, .26, "io"], [1.0, 0]],
+    head:  [[0, 0, "io"], [.30, .08, "s"], [.42, -.10], [.70, -.12, "io"], [1.0, 0]],
+    breath:[[0, 0, "io"], [.28, 1, "o"], [.42, -.5, "io"], [.70, -.3, "io"], [1.0, 0]],
+    farDx: [[0, 0, "io"], [.30, 0, "s"], [.42, 120], [.80, 120, "io"], [.96, 0]],
+    farLift:[[0, 0], [.30, 0, "io"], [.36, 28, "io"], [.42, 0], [.80, 0, "io"], [.88, 18, "io"], [.96, 0]],
+    nearDx:[[0, 0, "io"], [.08, 0, "io"], [.22, -30], [.80, -30, "io"], [.96, 0]],
+    nearLift:[[0, 0], [.08, 0, "io"], [.15, 14, "io"], [.22, 0], [.80, 0, "io"], [.88, 12, "io"], [.96, 0]],
+    shake: [[0, 0], [.42, 0, "lin"], [.43, 1], [.56, 0]],
+    face:  [[0, "effort"], [.36, "shout"], [.58, "focus"], [.86, null]] };
   const wAng = m => Math.atan2(m[1], m[0]);
   // two-bone IK in world space; returns both elbow solutions [lower, upper]
   function solve2(S, T, L1, L2) {
@@ -471,6 +493,41 @@
     /* wave: joint-space blends from the current pose (no IK → no elbow flips), world-angle targets:
        near upper arm points up-back beside the head, forearm vertical, the drawn open hand is mirrored so the thumb points
        forward (palm toward the viewer); forearm + hand are drawn in front of the head (rig.def.drawWave). */
+    /** 위에서 내려찍기: 칼날 각도(sa)와 손잡이 위치(gx,gy)를 키로, 칼 팔(armF→foreF→fistF)과 뒷팔(armU→armL→fistN)을 두 관절 IK로 */
+    _smashArms(D, t, T, act) {
+      const rig = this.rig, b = rig.by, P = rig.def.parts, w = this._tr('w');
+      rig.alpha.foreF = rig.alpha.fistF = rig.alpha.weapon = rig.alpha.armF = 1;
+      rig.drawOrder = rig.def.drawSmash || null;
+      // 뒷어깨를 앞으로 당김 (몸이 옆으로 돌아 두 손이 만남) — 어깨 갑옷도 따라감
+      const sh = this._tr('sh'), SS = rig.def.smashShoulder || [-120, -8];
+      b.armU.ax += SS[0] * sh; b.armU.ay += SS[1] * sh;
+      rig.compute();
+      const sa = this._tr('sa') + this._tr('shake') * Math.sin(T * 95) * .04, ux = Math.cos(sa), uy = Math.sin(sa);
+      const G = apply(b.hip.m, this._tr('gx'), this._tr('gy'));
+      // 칼날 방향(무기 그림의 손잡이→칼끝)이 sa가 되도록 손목(fistF) 세계 각도를 정함
+      const wp = P.weapon, tm = wp.tips ? [(wp.tips[0][0] + wp.tips[1][0]) / 2, (wp.tips[0][1] + wp.tips[1][1]) / 2] : [wp.pivot[0], 0];
+      const bl = Math.atan2(tm[1] - wp.pivot[1], tm[0] - wp.pivot[0]);               // 무기 뼈 기준 칼날 방향
+      const phiW = sa - bl, phiF = phiW - (b.weapon.rot || 0);
+      const c = Math.cos(phiF), s = Math.sin(phiF), wpos = b.weapon.pos;
+      const Wt = [G[0] - (c * wpos[0] - s * wpos[1]), G[1] - (s * wpos[0] + c * wpos[1])];    // 손목이 가야 할 곳
+      const SF = apply(b.armF.m, 0, 0), L1 = Math.hypot(...b.foreF.pos), L2 = Math.hypot(...b.fistF.pos);
+      const [eLow] = solve2(SF, Wt, L1, L2);
+      const tA = Math.atan2(eLow[1] - SF[1], eLow[0] - SF[0]) - Math.atan2(b.foreF.pos[1], b.foreF.pos[0]);
+      b.armF.ar += wrapA(tA - wAng(b.armF.m)) * w; rig.compute();
+      const E = apply(b.foreF.m, 0, 0), tF = Math.atan2(Wt[1] - E[1], Wt[0] - E[0]) - Math.atan2(b.fistF.pos[1], b.fistF.pos[0]);
+      b.foreF.ar += wrapA(tF - wAng(b.foreF.m)) * w; rig.compute();
+      b.fistF.ar += wrapA(phiF - wAng(b.fistF.m)) * w; b.weapon.ar = 0; rig.compute();
+      // 뒷손: 손잡이에서 칼자루 끝 쪽으로 한 주먹 아래를 쥠
+      const g2 = rig.def.smashHand2 || 46, G2 = apply(b.weapon.m, 0, 0), H2 = [G2[0] - ux * g2, G2[1] - uy * g2];
+      const SN = apply(b.armU.m, 0, 0), N1 = Math.hypot(...b.armL.pos), N2 = b.fistN ? Math.hypot(...b.fistN.pos) : 80;
+      const [nLow] = solve2(SN, H2, N1, N2);
+      const tU = Math.atan2(nLow[1] - SN[1], nLow[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]);
+      b.armU.ar += wrapA(tU - wAng(b.armU.m)) * w; rig.compute();
+      if (b.fistN) { const EN = apply(b.armL.m, 0, 0), tL = Math.atan2(H2[1] - EN[1], H2[0] - EN[0]) - Math.atan2(b.fistN.pos[1], b.fistN.pos[0]);
+        b.armL.ar += wrapA(tL - wAng(b.armL.m)) * w; }
+      b.pauldron.ar = b.armU.ar * .3; b.pauldron.ax = b.armU.ax; b.pauldron.ay = b.armU.ay;
+      if (!act.hit && t >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+    }
     _waveArms(D, t, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
       const w = this._tr('w'), amp = this._tr('wAmp'), wa = this._tr('weapon');
@@ -558,7 +615,7 @@
         b.torso.asy += brt * .022; b.torso.asx -= Math.abs(twist) * .03; b.head.ay -= brt * 5 }
 
       // ---------- near arm (opposite to the near leg) ----------
-      const swing = Math.cos(TAU * ph);                                 // +1 when the near foot strikes in front
+      const swing = Math.cos(TAU * (ph + (rig.def.armPhase || 0)));   // armPhase .5: 자유 팔이 화면 뒤쪽 팔인 캐릭터(알론소) — 같은 쪽 팔다리가 함께 나가지 않게                                 // +1 when the near foot strikes in front
       const fwd = -swing;                                               // near arm forward when the near leg is back
       b.armU.ar = I * br * .03 + A * (-G.armSwing * fwd + G.armBias);
       b.armL.ar = I * (br * .04 - .3) - A * (G.elbowRun + .3 * Math.max(0, fwd) - .14 * Math.max(0, -fwd));   // −.3: a hanging arm keeps ~10° elbow flexion
@@ -586,8 +643,9 @@
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
         if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
       if (act && D.kind === "wave") this._waveArms(D, at, T);
+      else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
-      else { this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
+      else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
       const lp = {};
       for (const side of ["near", "far"]) {
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]);

@@ -1,8 +1,7 @@
-# 알론소 (alonso-rust, 1번) — 지금: P4 입고 검수 (시트 0 합격)
-정해진 것: 엔진 웹(Canvas, assets/rig/rig.js) / 저장소 153-6 / gait 기본 / 공격 위에서 내려찍기 / 터치 공용 반응(인사·폴짝·끄덕·움찔) / 기준 그림 새로(3/4 옆모습, 마이룸 char_0001 교체 예정)
-LOCKED DESIGN: grey-silver spiky hair with tan headband; red tattered scarf; olive-green tattered tunic, brown belt+pouch; dark olive trousers with rusty knee pads; brown boots with metal toe caps; rusty pauldrons on both shoulders; rusty bracers on both forearms; huge rusty jagged greatsword
-받은 시트: 0 ✅(B안, 2026-10-16 — 손가락이 또렷함, DHL 선택) 1A ⏳ 1B ⏳ 2 ⏳ K-내려찍기 ⏳
-불합격·재주문: 0-A (앞쪽 주먹 손가락이 덩어리처럼 뭉개짐)
-위험: B는 몸이 정면 쪽으로 조금 열려 있어 달리기 때 다리가 옆으로 벌어져 보일 수 있음 → 다리는 1B 옆모습 조각으로, 리그 검수 때 확인
-남은 문제: 내려찍기 동작 엔진 코드(_smashArms) 새로 필요, 칼 각도별 손 시트 H는 키 포즈 측정 후
-다음 할 일: (DHL) 시트 1A·1B·2·K를 sheet0_reference.png 첨부로 주문 → (Claude) 검수
+# 알론소 (alonso-rust, 1번) — 지금: P8 검수 (v3, 게임 적용됨)
+정해진 것: 엔진 assets/rig/rig.js / gait 기본 / 공격 위에서 내려찍기(smash) / 터치 공용 반응(폴짝·끄덕·움찔 — 손 흔들기는 시트 W 받으면) / 기준 그림 B안(마이룸 char_0001 교체됨)
+구조: 대검 팔이 화면 앞(armF→foreF→fistF→weapon, 몸 앞에 그림), 주먹 팔이 뒤(armU→armL→fistN, 몸 뒤). armPhase .5로 팔 흔들기 박자 보정.
+받은 시트: 0 ✅(B) 1A ✅ 1B ✅ 2 ✅(표정 8종) K-내려찍기 ✅
+내려찍기: 엔진 ACTIONS.smash + _smashArms (칼날 각도 sa, 손잡이 위치 gx/gy를 키로, 두 팔 IK). 머리가 크고 팔이 짧아 준비 자세에서 손은 머리 뒤(drawSmash에서 머리를 맨 앞).
+남은 문제: 눈 깜빡임 없음 · 손 흔들기 인사 없음(시트 W 필요) · 준비 자세 칼 각도가 키 포즈 1보다 눕혀져 있음 · 뒷손 주먹이 손잡이를 쥔 모양이 아님(키 포즈에서 오려 쓰면 개선)
+다음 할 일: (DHL) 휴대폰에서 확인 → 느낌 피드백

@@ -4213,10 +4213,10 @@ window.MRBattleFX=(()=>{
 //  · 마이룸 배치: 키(머리 꼭대기~발끝)를 모든 캐릭터가 같게 맞추고, 발끝을 같은 높이에 둠 → 기본 크기가 고르게
 //  새 마이룸 그림을 넣으면 이 표만 고치면 된다.
 window.MRRoomFit=(()=>{
- const FACE={1:[0.68,0.44],2:[0.56,0.43],3:[0.59,0.56],4:[0.49,0.4],5:[0.49,0.38],6:[0.51,0.44],7:[0.57,0.5],8:[0.59,0.45],9:[0.58,0.46],10:[0.57,0.49],11:[0.47,0.47],12:[0.53,0.4],13:[0.71,0.34],14:[0.66,0.43],15:[0.59,0.36],16:[0.58,0.36],17:[0.54,0.52],18:[0.51,0.34],19:[0.49,0.38],20:[0.62,0.46],21:[0.7,0.44],22:[0.58,0.33],23:[0.7,0.44],24:[0.51,0.39],25:[0.54,0.37],26:[0.62,0.35],27:[0.575,0.54],28:[0.5,0.39],29:[0.58,0.35],30:[0.64,0.42]};
+ const FACE={1:[0.72,0.38],2:[0.56,0.43],3:[0.59,0.56],4:[0.49,0.4],5:[0.49,0.38],6:[0.51,0.44],7:[0.57,0.5],8:[0.59,0.45],9:[0.58,0.46],10:[0.57,0.49],11:[0.47,0.47],12:[0.53,0.4],13:[0.71,0.34],14:[0.66,0.43],15:[0.59,0.36],16:[0.58,0.36],17:[0.54,0.52],18:[0.51,0.34],19:[0.49,0.38],20:[0.62,0.46],21:[0.7,0.44],22:[0.58,0.33],23:[0.7,0.44],24:[0.51,0.39],25:[0.54,0.37],26:[0.62,0.35],27:[0.575,0.54],28:[0.5,0.39],29:[0.58,0.35],30:[0.64,0.42]};
  // TOP[번호] = 머리 꼭대기(머리카락·모자 포함, 무기 제외) 세로 위치
- const TOP={1:0.19,2:0.18,3:0.3,4:0.15,5:0.17,6:0.29,7:0.36,8:0.28,9:0.3,10:0.32,11:0.15,12:0.2,13:0.14,14:0.24,15:0.16,16:0.14,17:0.34,18:0.2,19:0.24,20:0.2,21:0.15,22:0.12,23:0.15,24:0.15,25:0.1,26:0.13,27:0.27,28:0.24,29:0.22,30:0.19};
- const FOOT={1:0.85,2:0.94,3:0.95,4:0.88,5:0.94,6:0.98,7:0.83,8:0.98,9:0.98,10:0.95,11:0.95,12:0.96,13:0.72,14:0.92,15:0.87,16:0.96,17:0.92,18:0.97,19:0.98,20:0.96,21:0.94,22:0.97,23:0.87,24:0.87,25:0.95,26:0.98,27:0.87,28:0.94,29:0.94,30:0.93};
+ const TOP={1:0.2,2:0.18,3:0.3,4:0.15,5:0.17,6:0.29,7:0.36,8:0.28,9:0.3,10:0.32,11:0.15,12:0.2,13:0.14,14:0.24,15:0.16,16:0.14,17:0.34,18:0.2,19:0.24,20:0.2,21:0.15,22:0.12,23:0.15,24:0.15,25:0.1,26:0.13,27:0.27,28:0.24,29:0.22,30:0.19};
+ const FOOT={1:0.935,2:0.94,3:0.95,4:0.88,5:0.94,6:0.98,7:0.83,8:0.98,9:0.98,10:0.95,11:0.95,12:0.96,13:0.72,14:0.92,15:0.87,16:0.96,17:0.92,18:0.97,19:0.98,20:0.96,21:0.94,22:0.97,23:0.87,24:0.87,25:0.95,26:0.98,27:0.87,28:0.94,29:0.94,30:0.93};
  const TARGET=0.72, BASE_FOOT=0.92, MIN=0.8, MAX=1.25; // TARGET = 30종 키의 중간값
  // 2026-10-13 마이룸 캐릭터 전체 크기: 기존의 70% (멈춤·달리기·친구 방문·말풍선 위치 모두 이 값을 따라감, 발끝 높이는 그대로)
  const SIZE=0.7;
@@ -18475,11 +18475,12 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
 </style>
 <script src="assets/rig/rig.js"></script>
 <script src="assets/rig/rust-fork-girl/rig.def.js"></script>
+<script src="assets/rig/alonso-rust/rig.def.js"></script>
 <script id="mr-rig-js">
 (()=>{
   const RIG_DIR='assets/rig/';
   // 캐릭터 번호(1~30, 전투·마이룸 같은 번호) → 리그 id. 등록된 번호는 전투·마이룸·친구 방문에서 그림 대신 리그로 그린다. 정지 그림(도감·카드·컷인)은 기존 PNG 그대로
-  const REGISTRY={8:'rust-fork-girl'}; // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
+  const REGISTRY={1:'alonso-rust',8:'rust-fork-girl'}; // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
   const BODY_PX=290/512;                  // 전투 그림 규칙(normalize_battle_chars.py): 512 그림에서 머리~발 290px
   const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
   let enabled=null,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
@@ -18531,8 +18532,9 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
   function onState(state,attackerSlot){
     for(const [slot,e] of live){
       if(!e.anim)continue;
-      if(state==='attack'&&slot===attackerSlot)e.anim.attack('thrust',{speed:ATTACK_SPEED});
-      else if(state==='skill'){e.anim.attack('thrust',{speed:ATTACK_SPEED*.8});e.anim.setExpression('shout');}
+      const atk=e.rig?.def?.ui?.attack||'thrust'; // 캐릭터별 공격 (니콜 찌르기, 알론소 내려찍기)
+      if(state==='attack'&&slot===attackerSlot)e.anim.attack(atk,{speed:ATTACK_SPEED});
+      else if(state==='skill'){e.anim.attack(atk,{speed:ATTACK_SPEED*.8});e.anim.setExpression('shout');}
       else if(state==='victory')e.anim.setExpression('happy');
       else if(state==='idle')e.anim.setExpression(null);
     }
@@ -18659,7 +18661,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     const e=roomLive.get(String(key));if(!e?.anim)return;
     let name;
     if(kind==='long'){name=LONG_PICK[roomLongIdx++%LONG_PICK.length];}
-    else{name=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];}
+    else{const cyc=e.rig?.def?.waveImg?TAP_CYCLE:TAP_CYCLE.filter(n=>n!=='wave');name=cyc[e.tapIdx++%cyc.length];}
     if(!e.anim.attack(name)){e.anim.act=null;e.anim.attack(name);} // 진행 중이면 끊고 새 반응
   }
   function roomStop(zone){
@@ -18766,15 +18768,16 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     const c=document.createElement('canvas');c.className='mr-rig-still';c.setAttribute('aria-hidden','true');img.after(c);
     const e={...m,img,canvas:c,last:performance.now(),src:img.getAttribute('src'),tapIdx:0};stills.set(img,e);
     loadRig(m.id).then(({def,images})=>{if(stills.get(img)!==e)return;buildGuardActions();buildReadyActions();
-      e.N=m.cut?{in:'guardIn',loop:'guardLoop',hit:'gthrust',A:LOOP_A,B:LOOP_B}:{in:'readyIn',loop:'readyLoop',hit:'rthrust',A:R_LOOP_A,B:R_LOOP_B}; // 컷인=찌른 자세 유지, 그 외=준비 자세
+      const atk=def.ui?.attack||'thrust';e.atk=atk;
+      e.N=atk!=='thrust'?{in:null,loop:null,hit:atk,A:0,B:0,other:true}:m.cut?{in:'guardIn',loop:'guardLoop',hit:'gthrust',A:LOOP_A,B:LOOP_B}:{in:'readyIn',loop:'readyLoop',hit:'rthrust',A:R_LOOP_A,B:R_LOOP_B}; // 컷인=찌른 자세 유지, 그 외=준비 자세 (찌르기 캐릭터)
       e.rig=new CharacterRig(def,images);e.anim=new RunAnimator(e.rig,{runSpeed:620});
-      if(m.mode==='battle'){e.box=measureRig(m.id,def,images,e.N.in);if(m.cut){e.anim.attack('guardLoop');e.anim.attack('gthrust');}else e.anim.attack('readyIn');} // 컷인: 나오자마자 찌르기
+      if(m.mode==='battle'){e.box=measureRig(m.id,def,images,e.N.in||'none');if(e.N.other){if(m.cut)e.anim.attack(atk,{speed:1.3});}else if(m.cut){e.anim.attack('guardLoop');e.anim.attack('gthrust');}else e.anim.attack('readyIn');} // 컷인: 나오자마자 공격
       measureArt(e.src).then(b=>{e.art=b;});
     }).catch(err=>{console.warn('[MRRig still]',err);});
     // 클릭: 전투 그림은 찌르기, 마이룸 그림은 짧은 반응. 도감 상세에서는 그림을 눌러도 다음 장으로 넘어가지 않음(화살표로만)
     e.onClick=ev=>{if(!e.anim||!enabled)return;
       if(e.mode==='battle'){stillAttack(e);if(img.closest('.mrw-hero'))ev.stopImmediatePropagation();}
-      else{const n=TAP_CYCLE[e.tapIdx++%TAP_CYCLE.length];if(!e.anim.attack(n)){e.anim.act=null;e.anim.attack(n);}
+      else{const cyc=e.rig?.def?.waveImg?TAP_CYCLE:TAP_CYCLE.filter(n=>n!=='wave');const n=cyc[e.tapIdx++%cyc.length];if(!e.anim.attack(n)){e.anim.act=null;e.anim.attack(n);}
         if(img.closest('.mrw-hero'))ev.stopImmediatePropagation();}}; // 도감 1장(마이룸)도 누르면 반응(인사·폴짝·끄덕·움찔), 넘기기는 ‹ › 화살표로만
     e.clickEl=img.closest('.mrw-hero,.mr-starter-card,button')||img;
     e.onClickWrap=ev=>{const btn=ev.target?.closest?.('button,a,[role=button]');if(btn&&btn!==e.clickEl&&e.clickEl.contains(btn))return; // 칸 안의 화살표·버튼은 원래대로
@@ -18811,6 +18814,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       if(!act)a.attack(N.loop);
       else if(act.name===N.in||act.name===N.loop){if(act.t>N.B)act.t-=N.B-N.A;}
       else if(act.name===N.hit&&act.t+dt*(act.speed||1)>=act.def.dur-.02)a.attack(N.loop);
+      if(N.other&&e.cut&&act&&act.name===N.hit&&act.t>.62)act.t=.62; // 내려찍기 컷인: 내리친 자세 유지
     }
     a.update(dt,{vx:0,facing:1});
     const f=imgFrame(img,r),def=e.rig.def;let s,fx,fy;
