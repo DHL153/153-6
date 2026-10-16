@@ -18395,5 +18395,24 @@ html.mr-uikit body #app#app#app #char-customize-btn{background:none!important;bo
  border-image:var(--uk-btn) / 8px 15px / 0 stretch!important;box-shadow:0 4px 10px rgba(0,0,0,.45)!important;color:#f3e6c8!important;text-shadow:0 1px 2px #000;padding:2px 6px!important;}
 html.mr-uikit body #app#app#app #char-customize-btn:active{border-image-source:url("assets/ui/ornament/plate_navy_pressed.webp")!important;}
 </style>
+<style id="mr-ui-unify-3">
+/* 2026-10-16 UI 통일 3차 (PC·상세 창) */
+/* 1) 상세 창 등급 표시: 작은 글자 → 금테 배지 (닫기 버튼과 같은 높이) */
+html.mr-uikit body .mrw-box .mrw-tier{top:12px!important;min-width:34px;height:34px;padding:0 6px!important;box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;
+ font-size:15px!important;font-weight:1000!important;border:2px solid #d8a64a!important;border-radius:7px!important;box-shadow:0 0 0 1px #3a2410,0 3px 6px rgba(0,0,0,.55)!important;}
+/* 2) 기록 기간 버튼: 고른 기간 = 켜진 탭(청록 판). 산호색은 '확인' 버튼 전용 */
+html.mr-uikit.ui-t6 body #app .period-btn.active{border-image:url("assets/ui/theme/ui_tab_active_rust.webp") 30 36 30 36 fill / 9px 12px / 0 stretch!important;color:#fff!important;
+ text-shadow:0 1px 2px #001b2c!important;opacity:1;}
+/* 3) PC 바깥 배경: 시작 화면과 같은 풍차 기어실 그림을 어둡게 */
+html.mr-uikit.uk-framed body{background:radial-gradient(70% 80% at 50% 45%,rgba(10,14,24,.70) 0%,rgba(8,10,16,.90) 60%,rgba(5,6,10,.97) 100%),
+ url("assets/art/backgrounds/merge/bg_merge_0005.png") center 40%/cover no-repeat fixed,#0a0d14!important;}
+/* 4) PC 시작 화면: 게임 화면과 같은 두께의 액자 + 위 풍차 문장 */
+@media (min-width:700px){
+ html.mr-uikit #mr-starter .mr-starter-shell::after{inset:-19px!important;border-width:42px 48px 43px 48px!important;border-image-width:42px 48px 43px 48px!important;}
+ html.mr-uikit #mr-starter .mr-starter-shell::before{content:"";position:absolute;left:50%;top:-74px;width:170px;height:60px;transform:translateX(-50%);z-index:6;pointer-events:none;
+  background:url("assets/ui/ornament/crest_windmill_v2.webp") center bottom/contain no-repeat;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55));}
+ html.mr-uikit #mr-starter{padding:84px 40px 30px!important;}
+}
+</style>
 </body>
 </html>
