@@ -9697,6 +9697,7 @@ function createSocialDataFoundation(assets, emojis) {
             img.style.setProperty('--cut-delay',delay+'ms');img.style.setProperty('--cut-time',Math.max(1,duration-delay)+'ms');
             applyBattleHeroImage(assets.skill,assets.idle,img);root.appendChild(img);portraits.set(slot,img);
         });
+        window.MRRig?.scanStills?.(); // 2026-10-16 리깅 캐릭터 컷인: 바로 찌르기
         root.classList.add('on');window.MRBattleFX?.skill(duration);
         playSfx('skillCharge',{gain:.35,minGap:150});
         const strike=({id,slot},index)=>{
@@ -18469,7 +18470,7 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 .char-preview-character.mr-rig-hidden{opacity:0!important} /* 마이룸: 클릭 영역은 남기고 그림만 숨김 */
 .mr-rig-room-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
 .mr-rig-still{position:absolute;pointer-events:none;display:none} /* 정지 그림 자리 위에 겹치는 리그 */
-img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대로 맡음 */
+img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대로 맡음, 클릭은 감싼 칸(도감 그림칸·카드)이 받음 */
 #battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
 </style>
 <script src="assets/rig/rig.js"></script>
@@ -18672,29 +18673,33 @@ img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대�
   const STILL_MIN_PX=80,STILL_SKIP='#battle-stage,#mini-battle-stage,#char-character-layer,.mrm-char,.mr-rig-hidden,.inv-item,.char-item-btn,.battle-char-card,.economy-item,.craft-slot'; // 도감·상점 목록 칸(작은 타일)은 그림 그대로
   const EASE_=window.RunAnimator?.EASE||{io:t=>t*t*(3-2*t)};
   const samp=(keys,t)=>{if(!keys)return 0;if(t<=keys[0][0])return keys[0][1];for(let i=0;i<keys.length-1;i++){const [t0,v0,e]=keys[i],[t1,v1]=keys[i+1];if(t<=t1)return typeof v0!=='number'?v0:v0+(v1-v0)*(EASE_[e||'io']||EASE_.io)((t-t0)/Math.max(1e-6,t1-t0));}return keys[keys.length-1][1];};
-  // 찌르기(thrust)에서 공격 대기·대기에서 찌르기 동작을 만든다 (팔·창 처리 = 찌르기 그대로, 시간만 다시 짬)
-  const STANCE_T=.18,LOOP_A=.3,LOOP_B=2.7; // 대기 자세 = 찌르기 준비 순간(.18초). 대기는 LOOP_A~LOOP_B 구간을 반복
-  const BODY_TR=['w','hipX','hipY','lean','head','breath','twist','ang','thF','nearW','gap','farDx','farLift','farAng','nearAng'];
+  // 찌르기(thrust)로 공격 대기·대기에서 찌르기를 만든다 (팔·창 처리 = 찌르기 그대로, 시간만 다시 짬)
+  //  대기 자세 = 원래 전투 그림처럼 몸을 낮추고 창을 수평으로 내민 찌르기 자세(.36초)에서 숨쉬기
+  //  클릭 = 창을 살짝 당겼다가(.14초) 다시 찌르고 대기 자세로 돌아옴. 발은 벌린 자리에 그대로
+  const STANCE_T=.36,WIND_T=.18,LOOP_A=.4,LOOP_B=2.8;
+  const BODY_TR=['w','hipX','hipY','lean','head','breath','twist','ang','thF','nearW','gap'];
   function buildGuardActions(){
     const T=window.RunAnimator?.ACTIONS?.thrust;if(!T||window.RunAnimator.ACTIONS.guardIn)return;
-    const g=k=>samp(T[k],STANCE_T),bob=(k,amp)=>[[LOOP_A,g(k),'io'],[(LOOP_A+LOOP_B)/2,g(k)+amp,'io'],[LOOP_B,g(k)]];
-    const steady={hipY:bob('hipY',6),breath:[[LOOP_A,0,'io'],[1.5,.7,'io'],[LOOP_B,0]],ang:bob('ang',-.04),head:bob('head',.03)};
-    const nearIn=[[0,0,'io'],[.03,0,'io'],[.15,-45]]; // 처음 .15초: 앞발이 반 걸음 뒤로 (엔진이 들어올 때 발 위치를 섞는 구간과 맞춤)
-    // guardIn: 평소 자세 → 준비 자세(찌르기 앞부분 그대로) → 숨쉬는 대기
-    const gi={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null]]};
-    // guardLoop: 이미 준비 자세에서 시작 (공격 뒤 복귀용)
-    const gl={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null]]};
-    for(const k of BODY_TR){if(!T[k])continue;
-      const pre=T[k].filter(x=>x[0]<STANCE_T);
-      gi[k]=(steady[k]?[...pre,[STANCE_T,g(k),'io'],...steady[k]]:[...pre,[STANCE_T,g(k)]]);
-      gl[k]=(steady[k]?[[0,g(k),'io'],...steady[k]]:[[0,g(k)]]);}
-    gi.nearDx=nearIn;gl.nearDx=nearIn;gi.nearLift=T.nearLift.filter(x=>x[0]<=.15);gl.nearLift=[[0,0]];
-    // gthrust: 준비 자세에서 바로 찌르고(.12초) 버틴 뒤 준비 자세로 돌아옴
-    const END=.66,gt={kind:T.kind,dur:END,hitAt:T.hitAt-STANCE_T,cancelAt:.42,face:[[0,'effort'],[.01,'shout'],[.22,'focus'],[.5,null]]};
+    const g=k=>samp(T[k],STANCE_T),mid=(LOOP_A+LOOP_B)/2;
+    const bob=(k,amp)=>[[LOOP_A,g(k),'io'],[mid,g(k)+amp,'io'],[LOOP_B,g(k)]];
+    const steady={hipY:bob('hipY',5),breath:[[LOOP_A,0,'io'],[mid,.7,'io'],[LOOP_B,0]],ang:bob('ang',-.03),head:bob('head',.025),lean:bob('lean',.015)};
+    const FAR=g('farDx'),stanceFeet=()=>({ // 엔진은 동작이 시작될 때 발을 원래 자리로 섞어 돌려놓으므로(앞발 .03~.15초, 뒷발 .17~.29초) 그만큼 보정해 발을 벌린 자리에 고정
+      nearDx:[[0,0,'io'],[.03,0,'io'],[.15,-45]],farDx:[[0,0,'io'],[.17,0,'io'],[.29,FAR]],
+      nearLift:[[0,0]],farLift:[[0,0]],nearAng:[[0,g('nearAng')]],farAng:[[0,g('farAng')]]});
+    // guardIn: 평소 자세 → 찌르기 앞부분 그대로 → 낮은 찌르기 자세로 숨쉬는 대기
+    const gi={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null],[.12,'effort'],[.5,null]]};
+    for(const k of [...BODY_TR,'farDx','farLift','farAng','nearDx','nearLift','nearAng']){if(!T[k])continue;
+      const pre=T[k].filter(x=>x[0]<STANCE_T);gi[k]=steady[k]?[...pre,[STANCE_T,g(k),'io'],...steady[k]]:[...pre,[STANCE_T,g(k)]];}
+    // guardLoop: 이미 찌르기 자세에서 시작 (공격 뒤 복귀용)
+    const gl={kind:T.kind,dur:1e6,cancelAt:0,face:[[0,null]],...stanceFeet()};
+    for(const k of BODY_TR){if(T[k])gl[k]=steady[k]?[[0,g(k),'io'],...steady[k]]:[[0,g(k)]];}
+    // gthrust: 당겼다가(.14) 찌르고(.26) 버틴 뒤(.40) 대기 자세로(.6)
+    const PULL=.14,SH=PULL-WIND_T,END=.6;
+    const gt={kind:T.kind,dur:END,hitAt:T.hitAt+SH,cancelAt:.42,face:[[0,'effort'],[PULL,'shout'],[.36,'focus'],[.52,null]],...stanceFeet()};
     for(const k of [...BODY_TR,'trail','shake']){if(!T[k])continue;
-      const mid=T[k].filter(x=>x[0]>STANCE_T&&x[0]<=.46).map(([t,v,e])=>[+(t-STANCE_T).toFixed(3),v,e]);
-      gt[k]=[[0,samp(T[k],STANCE_T),'io'],...mid,[END,k==='trail'||k==='shake'?0:samp(T[k],STANCE_T)]];}
-    gt.nearDx=[[0,0,'io'],[.03,0,'io'],[.15,-45],[END,-45]];gt.nearLift=[[0,0]];
+      const fx=k==='trail'||k==='shake',a=samp(T[k],STANCE_T),w=samp(T[k],WIND_T),e=(T[k].find(x=>Math.abs(x[0]-WIND_T)<1e-3)||[])[2]||'io';
+      const strike=T[k].filter(x=>x[0]>WIND_T&&x[0]<=.46).map(([t,v,ee])=>[+(t+SH).toFixed(3),v,ee]);
+      gt[k]=fx?[[0,0],...strike,[END,0]]:[[0,a,'io'],[PULL,a+(w-a)*.6,e],...strike,[END,a]];}
     Object.assign(window.RunAnimator.ACTIONS,{guardIn:gi,guardLoop:gl,gthrust:gt});
   }
   const stills=new Map(); // img → {mode,id,num,canvas,rig,anim,last,fit}
@@ -18715,10 +18720,10 @@ img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대�
     return rigBox[id]=r<0?{cx:0,bottom:0,w:300,h:900}:{cx:(l+r)/2-N/2,bottom:b-N*.8,w:r-l,h:b-t};
   }
   function stillMatch(img){
-    const src=img.getAttribute('src')||'';if(!src||img.closest(STILL_SKIP))return null;
+    const src=img.getAttribute('src')||'',cut=img.classList.contains('team-cut-in');if(!src||(!cut&&img.closest(STILL_SKIP)))return null;
     for(const n in REGISTRY){const p=String(n).padStart(4,'0');
       if(src.includes(`characters/char_${p}.png`)&&!src.includes('battle_'))return {mode:'room',id:REGISTRY[n],num:+n};
-      if(src.includes(`battle_char_${p}_Idle`))return {mode:'battle',id:REGISTRY[n],num:+n};}
+      if(src.includes(`battle_char_${p}_Idle`))return {mode:'battle',id:REGISTRY[n],num:+n,cut};}
     return null;
   }
   // 그림이 실제로 보이는 사각형(object-fit 반영) → {left,top,D(원본 1px당 화면 px)}
@@ -18734,7 +18739,7 @@ img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대�
     const e={...m,img,canvas:c,last:performance.now(),src:img.getAttribute('src'),tapIdx:0};stills.set(img,e);
     loadRig(m.id).then(({def,images})=>{if(stills.get(img)!==e)return;buildGuardActions();
       e.rig=new CharacterRig(def,images);e.anim=new RunAnimator(e.rig,{runSpeed:620});
-      if(m.mode==='battle'){e.box=measureRig(m.id,def,images);e.anim.attack('guardIn');}
+      if(m.mode==='battle'){e.box=measureRig(m.id,def,images);if(m.cut){e.anim.attack('guardLoop');e.anim.attack('gthrust');}else e.anim.attack('guardIn');} // 컷인: 나오자마자 찌르기
       measureArt(e.src).then(b=>{e.art=b;});
     }).catch(err=>{console.warn('[MRRig still]',err);});
     // 클릭: 전투 그림은 찌르기. 도감 상세에서는 '다음 그림'으로 넘어가지 않게 막는다. 마이룸 그림은 원래 동작(넘기기·선택) + 시작 선택에선 짧은 반응
@@ -18746,7 +18751,7 @@ img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대�
     e.clickEl.addEventListener('click',e.onClickWrap,true);
   }
   // 그림 숨김: 다른 화면의 CSS(예: 큰 미리보기 툴팁)가 더 강해도 이기도록 인라인 !important
-  function setStillHidden(img,on){if(on===img.classList.contains('mr-rig-still-img'))return;img.classList.toggle('mr-rig-still-img',on);if(on)img.style.setProperty('opacity','0','important');else img.style.removeProperty('opacity');}
+  function setStillHidden(img,on){if(on===img.classList.contains('mr-rig-still-img'))return;img.classList.toggle('mr-rig-still-img',on);if(on)img.style.setProperty('visibility','hidden','important');else img.style.removeProperty('visibility');}
   function unmountStill(img){const e=stills.get(img);if(!e)return;e.canvas.remove();setStillHidden(img,false);e.clickEl?.removeEventListener('click',e.onClickWrap,true);stills.delete(img);}
   function scanStills(){
     if(!enabled){for(const img of [...stills.keys()])unmountStill(img);return;}
@@ -18766,7 +18771,7 @@ img.mr-rig-still-img{opacity:0!important} /* 자리·클릭은 그림이 그대�
     const L=r.left-r.width*pad,T=r.top-r.height*pad;
     c.style.left=(L-hr.left-host.clientLeft+host.scrollLeft).toFixed(1)+'px';c.style.top=(T-hr.top-host.clientTop+host.scrollTop).toFixed(1)+'px';
     c.style.width=cw.toFixed(1)+'px';c.style.height=ch.toFixed(1)+'px';
-    const zi=getComputedStyle(img).zIndex;c.style.zIndex=zi==='auto'?'1':zi;
+    const cs=getComputedStyle(img),zi=cs.zIndex;c.style.zIndex=zi==='auto'?'1':zi;c.style.opacity=cs.opacity;c.style.filter=cs.filter==='none'?'':cs.filter;
     const dpr=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(cw*dpr)||c.height!==Math.round(ch*dpr)){c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr);}
     const dt=Math.min(.05,Math.max(0,(t-e.last)/1000));e.last=t;
     const a=e.anim,act=a.act;
