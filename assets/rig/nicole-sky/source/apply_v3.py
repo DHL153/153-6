@@ -38,19 +38,20 @@ d.pop('drawSmash', None); d.pop('twoHand', None); d.pop('smashHand2', None); d.p
 # 다리: L 시트 측정 (엉덩이 관절 높이 기준 배율) 허벅지 111 · 정강이 122
 d['legs']['thigh'] = 111; d['legs']['shin'] = 122
 # 창 먼저 + 두 손: 원본(마이룸) 앞손 쥔 점 = 몸통 기준 (178.1,-132.0), 각도 -30.96°; 손 간격 331 (원본 실측)
+RAISE = float(os.environ.get('SKY_RAISE', '40'))   # 창 들어 올림(몸통 기준 위로, 리그 단위) — DHL 요청 2026-10-16
 d['spearGrip'] = {
-    'carry': {'x': 178.1, 'y': -132.0, 'a': round(math.radians(-30.96), 4)},
-    'carryRun': {'x': 182.0, 'y': -126.0, 'a': round(math.radians(-24.0) - .28, 4)},     # K-달리기 24° (달릴 때 몸 숙임 .28 을 뺀 몸통 기준 각도)
+    'carry': {'x': 178.1, 'y': -132.0 - RAISE, 'a': round(math.radians(-30.96), 4)},
+    'carryRun': {'x': 182.0, 'y': -126.0 - RAISE, 'a': round(math.radians(-24.0) - .28, 4)},     # K-달리기 24° (달릴 때 몸 숙임 .28 을 뺀 몸통 기준 각도)
     'tiltFollow': 1, 'maxWrist': .35,
     'far': {'pieces': ['foreF', 'handF1', 'handF2'], 'sPref': 0, 'sSig': 25, 'sMin': -300, 'sMax': 25, 'dMax': 50},
-    'near': {'pieces': ['handN0', 'armL', 'handN2'], 'upper': 'armU3', 'sPref': -331, 'sSig': 70, 'sMin': -480, 'sMax': -90, 'restUp': 2.24, 'pauldronFollow': .35, 'dMin': 115},
+    'near': {'pieces': ['handN0', 'armL', 'handN2'], 'upper': 'armU3', 'sPref': -331, 'sSig': 70, 'sMin': -480, 'sMax': -90, 'restUp': 2.24, 'pauldronFollow': .35, 'dMin': float(os.environ.get('SKY_DMIN', '115'))},
     'th': {'piece': 'armTH'},
 }
 A_ = d['actions']['spearThrust']; A_['kind'] = 'spear'
 for k in ('sh',): A_.pop(k, None)
 A_['th'] = [[0, 0], [.19, 0, 'io'], [.24, 1], [.58, 1, 'io'], [.68, 0]]
 A_['gx'] = [[0, 178, 'io'], [.18, 160, 's'], [.3, 330, 'o'], [.42, 320, 'io'], [.62, 230, 'io'], [.8, 178]]
-A_['gy'] = [[0, -132, 'io'], [.18, -85, 's'], [.3, -62, 'o'], [.42, -64, 'io'], [.62, -110, 'io'], [.8, -132]]
+A_['gy'] = [[0, -132 - RAISE, 'io'], [.18, -85 - RAISE * .6, 's'], [.3, -62 - RAISE * .4, 'o'], [.42, -64 - RAISE * .4, 'io'], [.62, -110 - RAISE * .8, 'io'], [.8, -132 - RAISE]]
 A_['sa'] = [[0, -0.54, 'io'], [.18, -.42, 's'], [.3, -.06, 'o'], [.42, -.08, 'io'], [.62, -.45, 'io'], [.8, -.54]]              # 찌른 순간 뒷팔 = TH 한 장
 A_['gap'] = [[0, 331, 'io'], [.18, 300, 's'], [.3, 230, 'o'], [.5, 230, 'io'], [.72, 331]]
 d['hemLimit'] = {'up': .45, 'x': .6}
