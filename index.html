@@ -5582,8 +5582,9 @@ window.MRRunWalker=(()=>{
 
         if(!enabled){
             gameSettings.miniMode=false;gameSettings.miniRoom=false;
-            if(wasBattleMini && battleMiniPreviousAutoDrop!==null){
-                gameSettings.autoDrop=!!battleMiniPreviousAutoDrop;
+            // 전투 미니가 강제로 켠 오토는 나올 때 원래대로 (새로고침으로 원래 값을 잃었으면 끔)
+            if(wasBattleMini){
+                gameSettings.autoDrop=battleMiniPreviousAutoDrop===null?false:!!battleMiniPreviousAutoDrop;
                 battleMiniPreviousAutoDrop=null;
             }
             saveGameSettings(); applyGameSettings();
@@ -5594,8 +5595,9 @@ window.MRRunWalker=(()=>{
         if(nextType==='battle' && !wasBattleMini){
             battleMiniPreviousAutoDrop=!!gameSettings.autoDrop;
             gameSettings.autoDrop=true;
-        } else if(nextType==='merge' && wasBattleMini && battleMiniPreviousAutoDrop!==null){
-            gameSettings.autoDrop=!!battleMiniPreviousAutoDrop;
+        } else if(nextType==='merge'){
+            // 2026-10-16: 미니 머지는 오토 꺼진 상태로 시작 (전투 미니가 켠 오토가 넘어오던 문제, DHL 요청)
+            gameSettings.autoDrop=false;
             battleMiniPreviousAutoDrop=null;
         }
 
