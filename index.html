@@ -2824,7 +2824,7 @@ html.game-booting #app{visibility:hidden!important;}
 /* v04 overrides only the cinematic; formation and normal attacks remain v02. */
 #app #battle-stage[data-team-skill="on"] #skill-cinematic.on[data-cutscene-cast]{
  position:absolute!important;inset:0!important;z-index:20!important;overflow:hidden;pointer-events:none;
- background:rgba(0,0,0,.62)!important;animation:sdReveal var(--skill-duration,750ms) both!important;
+ background:radial-gradient(75% 95% at 50% 58%,rgba(46,49,56,.95) 0%,rgba(26,28,33,.96) 62%,rgba(16,17,21,.97) 100%)!important;animation:sdReveal var(--skill-duration,750ms) both!important; /* 2026-10-16: 검정 62%는 전투 배경색이 비쳐 진회색 거의 단색으로 (가운데만 살짝 밝게) */
 }
 #app #battle-stage[data-team-skill="on"] #skill-cinematic.on[data-cutscene-importance="finish"]{
  background:rgba(0,0,0,.68)!important;box-shadow:inset 0 0 24px #ffe4a025;
