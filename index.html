@@ -5494,7 +5494,7 @@ window.MRRunWalker=(()=>{
         const boardHeight=app.clientWidth*reference.ratio;
         const boardValue=boardHeight+'px';
         if(app.style.getPropertyValue('--mini-merge-board-height')!==boardValue)app.style.setProperty('--mini-merge-board-height',boardValue);
-        if(isMobileLayout()){app.style.removeProperty('--mini-merge-window-height');return;}
+        // 2026-10-16: 휴대폰도 같은 계산 — 높이를 580px로 고정하면 도구 줄 아래가 빈 칸으로 남아 다른 미니 모드와 달라 보였음
         const ids=['mini-play-header','merge-mini-item-bar'];
         const controls=ids.reduce((sum,id)=>sum+(document.getElementById(id)?.getBoundingClientRect().height||0),0);
         const border=app.offsetHeight-app.clientHeight;
@@ -18457,7 +18457,7 @@ body.mini-window{align-items:center!important;justify-content:center!important;
 body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,0,.6),0 14px 40px rgba(0,0,0,.7)!important;}
 @media (max-width:600px){
  body.mini-window #app.mini-mode.mini-battle-mode:not(.mini-room-mode){height:152px!important;}
- body.mini-window #app.mini-mode.mini-merge-mode{height:min(580px,100dvh)!important;}
+ body.mini-window #app.mini-mode.mini-merge-mode{height:min(var(--mini-merge-window-height,580px),100dvh)!important;}
  body.mini-window #app.mini-mode.mini-room-mode{width:min(100vw,var(--mrm-app-w,320px))!important;height:var(--mrm-app-h,520px)!important;max-height:100dvh;}
 }
 </style>
