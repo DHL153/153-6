@@ -1,0 +1,655 @@
+/*  CharacterRig + RunAnimator v4 — cut-out 2D rig for a side-scroller (no dependencies, Canvas2D).
+ *
+ *  const rig  = await CharacterRig.load("rig.json");   // loads parts/*.png next to rig.json
+ *  const anim = new RunAnimator(rig);
+ *  // every frame (dt in seconds):
+ *  anim.update(dt, { vx });                             // vx = horizontal speed in rig units/s (full run ≈ 620)
+ *  rig.draw(ctx, footX, footY, scale, anim.facingScale);
+ *
+ *  Gait model (per stride = two steps):
+ *   - each foot: stance 36% (planted and locked to the ground → no foot-skate, also while speeding up / slowing down),
+ *     swing 64% (toe-off → heel kicks up behind → knee drives forward with foot tucked → shin reaches → heel strike)
+ *   - both feet are off the ground twice per stride (flight phase) → that is what makes it a run, not a walk
+ *   - when the input stops, the airborne foot finishes its step and the trailing foot takes one small recovery step
+ *   - pelvis lowest just after each contact, highest in flight; legs solved with 2-bone IK (hip-knee-ankle)
+ *   - near arm swings opposite to the near leg with the elbow bent ~85°, hand closes into a fist while running;
+ *     shoulder guard rides on the upper arm; the spear is locked inside the far fist (fist + shaft share one bone)
+ *   - skirt hem is pushed by the knees / lifted by the kicking heel; cape, skirt, braid lag on springs
+ */
+(function (global) {
+  "use strict";
+  const TAU = Math.PI * 2, clamp = (v, a, b) => (v < a ? a : v > b ? b : v), lerp = (a, b, t) => a + (b - a) * t;
+  const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
+  const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+  const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t) };
+  const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+  const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+  const rotT = (x, y, a) => { const c = Math.cos(a), s = Math.sin(a); return [c, s, -s, c, x, y] };
+  const set = (ctx, M) => ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]);
+
+  class CharacterRig {
+    constructor(def, images) {
+      this.def = def; this.images = images;
+      this.bones = def.bones.map(b => ({ ...b, rot: b.rot || 0, ax: 0, ay: 0, ar: 0, asx: 1, asy: 1, m: [1, 0, 0, 1, 0, 0] }));
+      this.by = {}; for (const b of this.bones) this.by[b.name] = b;
+      this.meshFx = {}; this.legPose = null; this.blink = 0; this.debug = false; this.swap = {};
+      this.alpha = {}; for (const n of def.hidden || []) this.alpha[n] = 0;   // per-bone opacity (0 = not drawn)
+      this.face = {};                                                       // expression name → weight 0..1 (drawn over the head)
+      this.hemProfile = this._profile(images.skirt);
+    }
+    // lowest opaque pixel of the skirt image in each of 32 columns → the real hem curve (legs only show below it)
+    _profile(img) {
+      if (!img) return null; const N = 32, c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
+      const g = c.getContext("2d"); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data, out = [];
+      for (let i = 0; i <= N; i++) { const x = Math.min(c.width - 1, Math.round(i / N * (c.width - 1))); let y = -1;
+        for (let yy = c.height - 1; yy >= 0; yy--) if (d[(yy * c.width + x) * 4 + 3] > 128) { y = yy; break }
+        if (y >= 0) out.push([i / N, x, y]) }
+      return out;
+    }
+    _hemPath(ctx, base) { // device-space clip: everything below the (deformed) hem line
+      const b = this.by.skirt, part = this.def.parts.skirt, img = this.images.skirt; if (!b || !img || !this.hemProfile) return false;
+      const k = part.scale || 1, [px, py] = part.pivot, fx = this.meshFx.skirt, M = mul(base, b.m), pts = [];
+      for (const [u, x, y] of this.hemProfile) { const o = fx ? fx(u, y / img.height, (x - px) * k, (y - py) * k) : [0, 0]; pts.push(apply(M, (x - px) * k + o[0], (y - py) * k + o[1] - 6)) }
+      if (pts.length < 2) return false; const big = 1e5, L = pts[0], R = pts[pts.length - 1], dir = Math.sign(M[0]) || 1;
+      ctx.beginPath(); ctx.moveTo(L[0] - big * dir, L[1]); for (const p of pts) ctx.lineTo(p[0], p[1]);
+      ctx.lineTo(R[0] + big * dir, R[1]); ctx.lineTo(R[0] + big * dir, R[1] + big); ctx.lineTo(L[0] - big * dir, L[1] + big); ctx.closePath(); return true;
+    }
+    static async load(url) {
+      const def = await (await fetch(url)).json(), base = url.replace(/[^/]*$/, ""), images = {};
+      await Promise.all(Object.entries(def.parts).map(([k, p]) => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(images[k] = im); im.onerror = rej; im.src = base + p.src + (def.version ? "?v=" + def.version : "") })));
+      return new CharacterRig(def, images);
+    }
+    resetPose() { for (const b of this.bones) { b.ax = b.ay = b.ar = b.oy = 0; b.asx = b.asy = 1; b.wm = null } }
+    compute() {
+      for (const b of this.bones) {
+        const c = Math.cos(b.rot + b.ar), s = Math.sin(b.rot + b.ar);
+        const ox = b.oy ? -s * b.oy : 0, oy = b.oy ? c * b.oy : 0;   // b.oy = slide along the bone's own axis
+        const local = [c * b.asx, s * b.asx, -s * b.asy, c * b.asy, b.pos[0] + b.ax + ox, b.pos[1] + b.ay + oy];
+        b.m = b.wm ? b.wm : b.parent ? mul(this.by[b.parent].m, local) : local;   // wm = explicit root-space matrix (foreshortened limbs)
+      }
+    }
+    /** world (root-space) position of a point given in a bone's local rig units */
+    point(bone, x = 0, y = 0) { return apply(this.by[bone].m, x, y) }
+    /** root-space position of a pixel of a part image (uses the part's pivot/scale on its bone) */
+    partPoint(bone, px, py) { const b = this.by[bone], p = this.def.parts[this.swap[bone] || b.part], k = p.scale || 1; return apply(b.m, (px - p.pivot[0]) * k, (py - p.pivot[1]) * k) }
+    draw(ctx, x, y, scale, facing = 1) {
+      this.compute();
+      const base = [scale * facing, 0, 0, scale, x, y];
+      ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      for (const name of this.drawOrder || this.def.draw) {
+        if (name === "legFar" || name === "legNear") { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (this._hemPath(ctx, base)) ctx.clip();
+          this._drawLeg(ctx, mul(base, this.by.root.m), name === "legNear" ? "near" : "far"); ctx.restore(); continue }
+        // overlay = part of a bone's image drawn again on top (e.g. a sleeve cuff over the forearm that comes out of it)
+        const ov = this.def.overlays && this.def.overlays[name];
+        if (ov) { const ob = this.by[ov.bone], opn = this.swap[ov.bone] || ob.part, op_ = this.def.parts[opn], oimg = this.images[opn], oa = (this.alpha[ov.bone] ?? 1) * (this.alpha[name] ?? 1);
+          if (oimg && oa > .003) { const k = op_.scale || 1, M = mul(mul(base, ob.m), [k, 0, 0, k, 0, 0]); ctx.save(); set(ctx, M); const [rx, ry, rw, rh] = ov.rect;
+            ctx.beginPath(); ctx.rect(rx - op_.pivot[0], ry - op_.pivot[1], rw, rh); ctx.clip(); ctx.globalAlpha = oa; ctx.drawImage(oimg, -op_.pivot[0], -op_.pivot[1]); ctx.restore() }
+          continue }
+        const b = this.by[name], pn = this.swap[name] || b.part, part = this.def.parts[pn], img = this.images[pn]; if (!img) continue;
+        const op = this.alpha[name] ?? 1; if (op <= .003) continue; ctx.globalAlpha = op;
+        const k = part.scale || 1, M = mul(mul(base, b.m), [k, 0, 0, k, 0, 0]);
+        if (part.mesh) this._drawMesh(ctx, M, img, part, this.meshFx[pn]);
+        else { set(ctx, M); ctx.drawImage(img, -part.pivot[0], -part.pivot[1]) }
+        ctx.globalAlpha = 1;
+        if (name === "head" && this.def.faces) this._drawFaces(ctx, mul(base, b.m));
+        if (this.def.blink && name === this.def.blink.bone && this.blink > 0) { set(ctx, M); this._drawBlink(ctx, part.pivot[0], part.pivot[1]) }
+        if (name === "weapon" && this.trail && this.drawTrail) this._drawTrail(ctx, base);   // off by default: effects are made by the game
+      }
+      if (this.debug) this._drawDebug(ctx, base);
+      ctx.restore();
+    }
+    // expression = face-only patch (eyes, brows, mouth) laid over the base head; several can cross-fade
+    _drawFaces(ctx, HM) {
+      for (const n in this.face) { const w = this.face[n]; if (w <= .003) continue;
+        const pn = this.def.faces[n], p = this.def.parts[pn], img = this.images[pn]; if (!img) continue;
+        const k = p.scale || 1, M = mul(HM, [k, 0, 0, k, 0, 0]); set(ctx, M); ctx.globalAlpha = Math.min(1, w); ctx.drawImage(img, -p.pivot[0], -p.pivot[1]) }
+      ctx.globalAlpha = 1;
+    }
+    // speed streak behind each prong tip (root-space history points, newest last)
+    _drawTrail(ctx, base) {
+      const T = this.trail; if (!T || T.a <= .01) return; set(ctx, base);
+      for (const pts of T.pts) { const n = pts.length; if (n < 2) continue;
+        for (let i = 1; i < n; i++) { const p = pts[i - 1], q = pts[i], k0 = (i - 1) / (n - 1), k1 = i / (n - 1), dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l, w0 = 2 + 9 * k0, w1 = 2 + 9 * k1;
+          ctx.globalAlpha = T.a * .5 * k1; ctx.fillStyle = "#FFF1DC"; ctx.beginPath();
+          ctx.moveTo(p[0] + nx * w0, p[1] + ny * w0); ctx.lineTo(q[0] + nx * w1, q[1] + ny * w1); ctx.lineTo(q[0] - nx * w1, q[1] - ny * w1); ctx.lineTo(p[0] - nx * w0, p[1] - ny * w0); ctx.closePath(); ctx.fill() } }
+      ctx.globalAlpha = 1;
+    }
+    // map an image segment (joint a → joint b, in image px) onto a world segment (P → Q); w = thickness factor
+    _seg(R, a, b, P, Q, w) {
+      const ia = Math.atan2(b[1] - a[1], b[0] - a[0]), il = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const wa = Math.atan2(Q[1] - P[1], Q[0] - P[0]), wl = Math.hypot(Q[0] - P[0], Q[1] - P[1]), s = wl / il;
+      let M = mul(R, rotT(P[0], P[1], wa)); M = mul(M, [s, 0, 0, s * w, 0, 0]); M = mul(M, rotT(0, 0, -ia)); return mul(M, [1, 0, 0, 1, -a[0], -a[1]]);
+    }
+    // ---- legs: boot, shin (enters the boot behind its front rim), thigh — all hidden under the skirt except below the hem
+    _drawLeg(ctx, R, side) {
+      const L = this.def.legs, P = this.legPose && this.legPose[side]; if (!L || !P) return;
+      const S = L[side], dark = S.shade || 0, useF = dark && "filter" in ctx;
+      if (useF) ctx.filter = `brightness(${1 - dark})`;
+      const bd = L.boot, bp = this.def.parts[bd.part], kb = bp.scale || 1;
+      const Bk = mul(mul(R, rotT(P.ankle[0], P.ankle[1], P.foot)), [kb, 0, 0, kb, 0, 0]);
+      const boot = (n) => { const p = this.def.parts[n], im = this.images[n]; if (im) { set(ctx, Bk); ctx.drawImage(im, -p.pivot[0], -p.pivot[1]) } };
+      // boot inside/back rim → shin (enters the opening) → boot front (its rim line overlaps the shin) → thigh
+      if (bd.back) boot(bd.back);
+      const sh = L.shinImg; set(ctx, this._seg(R, sh.a, sh.b, P.knee, P.ankle, sh.w)); ctx.drawImage(this.images[sh.part], 0, 0);
+      boot(bd.part);
+      const th = L.thighImg; set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0);
+      if (useF) ctx.filter = "none";
+    }
+    // ---- textured triangle mesh: every grid cell = 2 triangles, each drawn with its own affine map (no strip seams)
+    _drawMesh(ctx, M, img, part, fx) {
+      const { cols, rows } = part.mesh, W = img.width, H = img.height, [px, py] = part.pivot, k = part.scale || 1, n = cols + 1;
+      const sx = new Float32Array(n * (rows + 1)), sy = new Float32Array(sx.length), dx = new Float32Array(sx.length), dy = new Float32Array(sx.length);
+      for (let j = 0; j <= rows; j++) for (let i = 0; i <= cols; i++) {
+        const id = j * n + i, X = i / cols * W, Y = j / rows * H; sx[id] = X; sy[id] = Y;
+        const o = fx ? fx(i / cols, j / rows, (X - px) * k, (Y - py) * k) : null;
+        dx[id] = X - px + (o ? o[0] / k : 0); dy[id] = Y - py + (o ? o[1] / k : 0);
+      }
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const a = j * n + i, b = a + 1, c = a + n + 1, d = a + n;
+        this._tri(ctx, M, img, sx, sy, dx, dy, a, b, c); this._tri(ctx, M, img, sx, sy, dx, dy, a, c, d);
+      }
+    }
+    _tri(ctx, M, img, sx, sy, dx, dy, i0, i1, i2) {
+      const s0x = sx[i0], s0y = sy[i0], s1x = sx[i1], s1y = sy[i1], s2x = sx[i2], s2y = sy[i2];
+      let d0x = dx[i0], d0y = dy[i0], d1x = dx[i1], d1y = dy[i1], d2x = dx[i2], d2y = dy[i2];
+      const den = (s1x - s0x) * (s2y - s0y) - (s2x - s0x) * (s1y - s0y); if (Math.abs(den) < 1e-6) return;
+      const a = ((d1x - d0x) * (s2y - s0y) - (d2x - d0x) * (s1y - s0y)) / den, b = ((d1y - d0y) * (s2y - s0y) - (d2y - d0y) * (s1y - s0y)) / den;
+      const c = ((d2x - d0x) * (s1x - s0x) - (d1x - d0x) * (s2x - s0x)) / den, d = ((d2y - d0y) * (s1x - s0x) - (d1y - d0y) * (s2x - s0x)) / den;
+      const e = d0x - a * s0x - c * s0y, f = d0y - b * s0x - d * s0y;
+      // grow the clip triangle ~1px so neighbouring triangles overlap (hides hairline seams)
+      const cx = (d0x + d1x + d2x) / 3, cy = (d0y + d1y + d2y) / 3, g = (x, y) => { const l = Math.hypot(x - cx, y - cy) || 1; return [x + (x - cx) / l * 1.1, y + (y - cy) / l * 1.1] };
+      [d0x, d0y] = g(d0x, d0y); [d1x, d1y] = g(d1x, d1y); [d2x, d2y] = g(d2x, d2y);
+      ctx.save(); set(ctx, M);
+      ctx.beginPath(); ctx.moveTo(d0x, d0y); ctx.lineTo(d1x, d1y); ctx.lineTo(d2x, d2y); ctx.closePath(); ctx.clip();
+      ctx.transform(a, b, c, d, e, f);
+      const x0 = Math.max(0, Math.floor(Math.min(s0x, s1x, s2x)) - 2), y0 = Math.max(0, Math.floor(Math.min(s0y, s1y, s2y)) - 2);
+      const x1 = Math.min(img.width, Math.ceil(Math.max(s0x, s1x, s2x)) + 2), y1 = Math.min(img.height, Math.ceil(Math.max(s0y, s1y, s2y)) + 2);
+      if (x1 > x0 && y1 > y0) ctx.drawImage(img, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+      ctx.restore();
+    }
+    // eyelid: skin slides down over the eye (clipped to the eye shape), lash line rides on its lower edge
+    _drawBlink(ctx, px, py) {
+      const { skin, line, eyes } = this.def.blink, k = clamp(this.blink, 0, 1);
+      for (const [ex, ey, rx, ry, lw] of eyes) {
+        const cx = ex - px, cy = ey - py, top = cy - ry, lid = top + ry * 2 * k * .9;
+        ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.clip();
+        ctx.fillStyle = skin; ctx.fillRect(cx - rx - 2, top - 2, rx * 2 + 4, lid - top + 2); ctx.restore();
+        if (k > .25) { ctx.save(); ctx.strokeStyle = line; ctx.lineWidth = lw || 4; ctx.lineCap = "round"; ctx.globalAlpha = smooth(.25, .6, k);
+          const w = rx * Math.sqrt(Math.max(0, 1 - Math.pow((lid - cy) / ry, 2))) + 1;
+          ctx.beginPath(); ctx.moveTo(cx - w, lid - 1); ctx.quadraticCurveTo(cx, lid + 4 * k, cx + w, lid - 1); ctx.stroke(); ctx.restore() }
+      }
+    }
+    _drawDebug(ctx, base) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineWidth = 2;
+      const dot = (p, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, TAU); ctx.fill() };
+      for (const b of this.bones) { const p = apply(mul(base, b.m), 0, 0);
+        if (b.parent) { const q = apply(mul(base, this.by[b.parent].m), 0, 0); ctx.strokeStyle = "rgba(62,224,176,.75)"; ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(p[0], p[1]); ctx.stroke() } dot(p, "#3EE0B0") }
+      if (this.legPose) for (const s of ["far", "near"]) { const P = this.legPose[s], R = mul(base, this.by.root.m), h = apply(R, ...P.hip), kn = apply(R, ...P.knee), an = apply(R, ...P.ankle);
+        ctx.strokeStyle = s === "near" ? "#FFB020" : "#C98A2A"; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(kn[0], kn[1]); ctx.lineTo(an[0], an[1]); ctx.stroke(); dot(h, "#FFB020"); dot(kn, "#FFB020"); dot(an, "#FFB020") }
+      const g = apply(base, 0, 0); ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.moveTo(g[0] - 400, g[1]); ctx.lineTo(g[0] + 400, g[1]); ctx.stroke();
+    }
+  }
+
+  class Spring { constructor(k, c) { this.k = k; this.c = c; this.x = 0; this.v = 0 }
+    step(target, dt) { const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n; for (let i = 0; i < n; i++) { this.v += (this.k * (target - this.x) - this.c * this.v) * h; this.x += this.v * h } return this.x } }
+
+  // Catmull-Rom through key points with explicit knot times (non-uniform keys), returns [x, y, angle]
+  function pathAt(keys, u) {
+    let i = 0; while (i < keys.length - 2 && u > keys[i + 1].t) i++;
+    const k0 = keys[Math.max(0, i - 1)], k1 = keys[i], k2 = keys[i + 1], k3 = keys[Math.min(keys.length - 1, i + 2)];
+    const t = clamp((u - k1.t) / (k2.t - k1.t), 0, 1), t2 = t * t, t3 = t2 * t;
+    const cr = (p0, p1, p2, p3) => .5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+    return [cr(k0.x, k1.x, k2.x, k3.x), cr(k0.y, k1.y, k2.y, k3.y), cr(k0.a, k1.a, k2.a, k3.a)];
+  }
+
+  // ---------- actions: keyframe tracks [time s, value, ease-to-next]; all additive offsets except grip/angle (root space) ----------
+  const EASE = { lin: t => t, io: t => t * t * (3 - 2 * t), o: t => 1 - (1 - t) * (1 - t), i: t => t * t, o3: t => 1 - Math.pow(1 - t, 3), o5: t => 1 - Math.pow(1 - t, 5),
+    // "strike": 20 ms-ish ease-in ramp, then a hard ease-out → explosive, but joint speed never jumps from 0 to max in one frame
+    s: t => { const r = .2, g = (t < r ? t * t / (2 * r) : t - r / 2) / (1 - r / 2); return 1 - Math.pow(1 - g, 3) } };
+  function track(keys, t) {
+    if (!keys) return 0; if (t <= keys[0][0]) return keys[0][1];
+    for (let i = 0; i < keys.length - 1; i++) { const [t0, v0, e] = keys[i], [t1, v1] = keys[i + 1];
+      if (t <= t1) return v0 + (v1 - v0) * (EASE[e || "io"])((t - t0) / Math.max(1e-6, t1 - t0)) }
+    return keys[keys.length - 1][1];
+  }
+  /* thrust (찌르기) v2, 0.80 s — side view, character faces +x. Times are seconds from the button press.
+     0.00–0.18 wind-up ("흡"): breathe in (shoulders rise), spear swings down to level and both hands draw it back to the hip,
+               rear foot steps back to load the back leg, hips sink, chest turns away (far shoulder back, near shoulder forward)
+     0.18–0.30 strike ("하앗!"): lead (far) foot lunges ~175 forward, hips drive forward/down, far shoulder drives through,
+               arms extend → tip travels ~330 units; rear heel peels up
+     0.30–0.42 impact: hit event at 0.30, the shaft kicks back a little and shudders, then settles
+     0.42–0.80 recovery ("후"): exhale, spear pulls back and stands up, lead foot then rear foot step home, weight settles with a small dip */
+  /* thrust (찌르기) v3, 0.80 s — side view, character faces +x. Key pose taken from a reference drawing:
+     deep lunge with both knees bent, pelvis low, torso fairly upright and leaning into the target, both elbows down under the
+     shaft, fists at chest height, shaft roughly level in front of the body.
+     0.00–0.18 wind-up ("흡"): inhale, hands draw the spear back to the rear hip (tip a little up), rear foot steps back, hips sink
+     0.18–0.30 strike ("하앗!"): lead foot lunges, pelvis drives forward and down, chest turns in, hands punch forward at chest height
+     0.30–0.42 impact: hit event at 0.30, small kick-back and shudder
+     0.42–0.80 recovery ("후"): exhale, spear stands back up, feet step home, weight settles */
+  // gait feel. Defaults = the reference girl (light chibi run). Presets were audited (0 joint violations, no foot slide).
+  const GAIT_DEFAULTS = { stance: .36, strideBase: 70, strideK: .2, hipBase: 8, bob: 13, lean: .2, leanBob: .025, waddle: 0, headBob: 0,
+    armSwing: .62, armBias: .14, elbowRun: 1.42, kneeLift: 1, heelKick: 1, dropCap: 30 };
+  const GAIT_PRESETS = {   // nimble 날렵 · heavy 무거움/뒤뚱 · bouncy 통통/경쾌 · sneak 살금살금 (sneak is for slow speeds ≤ 300)
+    nimble: {"stance": 0.31, "strideBase": 78, "strideK": 0.21, "hipBase": 5, "bob": 10, "lean": 0.28, "armSwing": 0.68, "elbowRun": 1.5, "kneeLift": 1.12, "heelKick": 1.08, "dropCap": 46},
+    heavy: {"stance": 0.44, "strideBase": 88, "strideK": 0.2, "hipBase": 14, "bob": 20, "lean": 0.08, "waddle": 0.07, "headBob": 4, "armSwing": 0.45, "elbowRun": 1.1, "kneeLift": 0.7, "heelKick": 0.55, "dropCap": 46},
+    bouncy: {"stance": 0.34, "hipBase": 10, "bob": 22, "headBob": 6, "kneeLift": 1.15, "armSwing": 0.7, "dropCap": 46},
+    sneak: {"stance": 0.52, "strideBase": 60, "strideK": 0.15, "hipBase": 22, "bob": 5, "lean": 0.32, "armSwing": 0.25, "kneeLift": 0.9, "heelKick": 0.6}
+  };
+  // steps per second = 2 · vx · stance / (strideBase + strideK · vx)
+  const ACTIONS = {
+    thrust: { dur: .80, hitAt: .30, cancelAt: .54,
+      w:       [[0, 0, "o"], [.10, 1], [.58, 1, "io"], [.80, 0]],
+      hipX:    [[0, 0, "io"], [.18, -26, "s"], [.30, 92], [.42, 88, "io"], [.70, 0]],
+      hipY:    [[0, 0, "io"], [.18, 30, "s"], [.30, 64], [.42, 62, "io"], [.70, -2, "io"], [.75, 6, "io"], [.80, 0]],
+      lean:    [[0, 0, "io"], [.18, -.10, "s"], [.30, .22], [.42, .20, "io"], [.70, 0]],
+      head:    [[0, 0, "io"], [.18, .06, "s"], [.30, -.12], [.42, -.10, "io"], [.70, 0]],
+      breath:  [[0, 0, "io"], [.16, 1, "o"], [.30, -.4, "io"], [.48, -.6, "io"], [.80, 0]],
+      twist:   [[0, 0, "io"], [.18, -.7, "s"], [.30, .7], [.42, .6, "io"], [.70, 0]],
+      // spear bone angle (0 = upright carry, π/2 = level, tip forward) and the lead upper-arm angle from straight down (+ = forward)
+      ang:     [[0, .05, "io"], [.18, 1.00, "s"], [.30, 1.40, "o"], [.33, 1.36, "io"], [.42, 1.39, "io"], [.62, 1.2, "io"], [.79, .35]],
+      thF:     [[0, .35, "io"], [.18, .22, "s"], [.30, .30, "o"], [.33, .26, "io"], [.42, .29, "io"], [.62, .30, "io"], [.79, .35]],
+      nearW:   [[0, 0, "io"], [.17, 1], [.54, 1, "io"], [.70, 0]],
+      gap:     [[0, 170, "io"], [.18, 165, "io"], [.30, 170, "io"], [.60, 170]],          // preferred distance rear fist → lead fist
+      farDx:   [[0, 0, "io"], [.18, 0, "s"], [.30, 190], [.46, 190, "io"], [.64, 0]],
+      farLift: [[0, 0], [.18, 0, "io"], [.24, 32, "io"], [.30, 0], [.46, 0, "io"], [.55, 24, "io"], [.64, 0]],
+      farAng:  [[0, 0], [.21, 0, "io"], [.27, -.24, "io"], [.33, 0]],
+      nearDx:  [[0, 0, "io"], [.03, 0, "io"], [.15, -45], [.62, -45, "io"], [.76, 0]],
+      nearLift:[[0, 0], [.03, 0, "io"], [.09, 16, "io"], [.15, 0], [.62, 0, "io"], [.69, 14, "io"], [.76, 0]],
+      nearAng: [[0, 0], [.21, 0, "io"], [.31, .2], [.44, .18, "io"], [.60, 0]],
+      trail:   [[0, 0], [.19, 0, "lin"], [.22, 1], [.34, 1, "lin"], [.41, 0]],
+      shake:   [[0, 0], [.30, 0, "lin"], [.31, 1], [.42, 0]],
+      face:    [[0, "effort"], [.19, "shout"], [.40, "focus"], [.62, "relaxed"], [.76, null]] },   // stays focused while still lunged; relaxes when the body starts to come back (L42)
+    /* wave (안녕~ 손 흔들기), 1.90 s — triggered by a touch.
+       0.00–0.12 the spear fades out (event "weaponHide"); the far arm lowers to hang relaxed at the side
+       0.05–0.34 the far (spear) arm rises: elbow bent and low, forearm up-forward, open hand beside the chin, palm to the viewer
+       0.34–1.40 three waves: the forearm swings ±15° about the elbow, the shoulder follows a little, the body bobs with each wave
+       1.40–1.62 the arm comes down; 1.62–1.76 the spear fades back in (event "weaponShow") into the carry pose
+       Feet stay planted. Face: happy (eyes closed in arcs, big smile). Works for any weapon because nothing is held while waving. */
+    wave: { kind: "wave", dur: 1.90, cancelAt: 1.76, plant: true,
+      w:       [[0, 0, "io"], [.34, 1, "o3"], [1.40, 1, "io"], [1.70, 0]],                // near arm raise
+      wAmp:    [[0, 0], [.30, 0, "io"], [.46, 1], [1.28, 1, "io"], [1.46, 0]],           // waving amplitude
+      weapon:  [[0, 1, "io"], [.12, 0], [1.62, 0, "io"], [1.76, 1]],                     // spear opacity
+      hipY:    [[0, 0, "io"], [.10, 9, "io"], [.28, -3, "io"], [.45, 0], [1.62, 0, "io"], [1.72, 5, "io"], [1.9, 0]],
+      lean:    [[0, 0, "io"], [.30, -.05], [1.45, -.05, "io"], [1.8, 0]],
+      head:    [[0, 0, "io"], [.30, -.07], [1.45, -.07, "io"], [1.8, 0]],
+      face:    [[0, null], [.05, "happy"], [1.80, null]] }
+  };
+  const wAng = m => Math.atan2(m[1], m[0]);
+  // two-bone IK in world space; returns both elbow solutions [lower, upper]
+  function solve2(S, T, L1, L2) {
+    let dx = T[0] - S[0], dy = T[1] - S[1], d0 = Math.hypot(dx, dy);
+    // soft reach: the arm eases into full extension instead of hitting the acos singularity (no one-frame elbow snap)
+    const Lm = (L1 + L2) * .985, ds = Lm * .9; if (d0 > ds) d0 = ds + (Lm - ds) * (1 - Math.exp(-(d0 - ds) / (Lm - ds)));
+    const d = clamp(d0, Math.abs(L1 - L2) + 1e-3, (L1 + L2) * .999), base = Math.atan2(dy, dx);
+    const al = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
+    const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1];
+    return e1[1] > e2[1] ? [e1, e2] : [e2, e1];
+  }
+
+  class RunAnimator {
+    constructor(rig, opts = {}) {
+      this.rig = rig; this.runSpeed = opts.runSpeed || 620;
+      // gait feel (all optional in rig.json "gait"; defaults = the reference girl). See references/05_tuning.md
+      this.setGait(opts.gait);
+      this.t = 0; this.cyc = 0; this.A = 0; this.prevLVx = 0; this.facing = 1; this.turnT = 0; this.blinkT = 1.4; this.blinkAt = -9; this.odo = 0;
+      this.lean = new Spring(55, 11); this.cape = new Spring(34, 6.5); this.braid = new Spring(60, 7); this.weapon = new Spring(90, 9); this.headLag = new Spring(140, 16);
+      this.hem = Array.from({ length: (rig.def.parts.skirt?.mesh?.cols || 8) + 1 }, () => [new Spring(170, 13), new Spring(170, 13)]);
+      this.prevHipY = 0; this.hipVy = 0; this.fist = false;
+      this.act = null; this.events = []; this.trailPts = [[], []]; this.prevActX = 0; this.actV = 0;
+      this.expr = null; this.faceW = {}; this.gripW = 0;
+      const L = rig.def.legs; this.L = L; const bp = rig.def.parts[L.boot.part]; this.kb = bp.scale || 1;
+      this.hipX = {}; this.ft = {};   // feet: actual pose (root space) + ground lock / settle-step state
+      for (const s of ["near", "far"]) { this.hipX[s] = rig.by.hip.pos[0] + L.hip[0] + L[s].x; this.ft[s] = { x: this.hipX[s], lift: 0, ang: 0, planted: true, lockW: 0, off: 0, step: null } }
+      for (const s of ["near", "far"]) this.ft[s].lockW = this.odo + this.ft[s].x;
+    }
+    /** start an action ("thrust"); returns false while another one is still committed */
+    /** touch greeting: hide weapon, smile and wave, weapon back. Returns false if another action is committed. */
+    wave() { return this.attack("wave") }
+    /** opts.speed: play the action faster (>1) or slower (<1) without re-keying it */
+    attack(name = "thrust", opts = {}) {
+      const def = (this.rig.def.actions && this.rig.def.actions[name]) || ACTIONS[name]; if (!def) return false;   // per-character actions in rig.json override the built-ins
+      if (this.act && this.act.t < this.act.def.cancelAt) return false;
+      const e = {}; for (const s of ["near", "far"]) { const f = this.ft[s]; e[s] = { x: f.x, lift: f.lift, ang: f.ang, lockW: this.odo + f.x } }
+      this.act = { name, def, t: 0, speed: opts.speed || 1, entry: e, hit: false, prev: this.act ? { def: this.act.def, t: this.act.t } : null }; return true;
+    }
+    get busy() { return !!this.act }
+    /** change the movement feel at runtime: gait = preset object (see GAIT_PRESETS / references/05_tuning.md); null = rig.json default */
+    setGait(gait) { this.G = Object.assign({}, GAIT_DEFAULTS, this.rig.def.gait || {}, typeof gait === "string" ? GAIT_PRESETS[gait] : gait || {}); this.stance = this.G.stance }
+    /** base expression when no action overrides it: null | "happy" | "sad" | "angry" | "focus" | "relaxed" | "effort" | "shout" | "grimace" */
+    setExpression(name) { this.expr = name && this.rig.def.faces && this.rig.def.faces[name] ? name : null }
+    // track value of the running action; when one action interrupts another, the old one keeps playing underneath and
+    // fades out over 0.1 s so no joint jumps on the chain frame (the feet capture their own entry pose instead)
+    _tr(name) { const a = this.act; if (!a) return 0; const v = track(a.def[name], a.t); if (!a.prev) return v;
+      return lerp(track(a.prev.def[name], a.prev.t), v, smooth(0, .1, a.t)) }
+    _faceAt(D, t) { if (!D || !D.face) return this.expr; let f = this.expr; for (const [k, n] of D.face) if (t >= k) f = n === null ? this.expr : n; return f }
+    /** root-space point between the two prong tips */
+    tip() { const p = this.rig.def.parts.weapon.tips; const a = this.rig.partPoint("weapon", ...p[0]), c = this.rig.partPoint("weapon", ...p[1]); return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2] }
+    get facingScale() { const k = this.turnT > 0 ? .72 + .28 * Math.abs(Math.cos((1 - this.turnT / .16) * Math.PI)) : 1; return this.facing * k }
+    _ik(H, A, soft = 0) { // two-bone IK, knee bends forward (+x)
+      const L1 = this.L.thigh, L2 = this.L.shin; let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
+      // soft IK for a foot in the air: near full extension the knee angle changes infinitely fast (acos singularity),
+      // which shows as a one-frame knee snap at toe-off. Ease the reach so the leg straightens smoothly (the foot lags a hair).
+      if (soft > 0) { const Lm = (L1 + L2) * .995, ds = (L1 + L2) * .975; if (d > ds) { const ds2 = ds + (Lm - ds) * (1 - Math.exp(-(d - ds) / (Lm - ds))), dd = lerp(d, ds2, soft);
+        A = [H[0] + dx / d * dd, H[1] + dy / d * dd]; dx = A[0] - H[0]; dy = A[1] - H[1]; d = dd } }
+      const dm = Math.min(d, (L1 + L2) * .999), base = Math.atan2(dy, dx), cosA = clamp((L1 * L1 + dm * dm - L2 * L2) / (2 * L1 * dm), -1, 1), al = Math.acos(cosA);
+      const k1 = [H[0] + Math.cos(base - al) * L1, H[1] + Math.sin(base - al) * L1], k2 = [H[0] + Math.cos(base + al) * L1, H[1] + Math.sin(base + al) * L1];
+      const knee = k1[0] > k2[0] ? k1 : k2, ankle = d > dm ? [H[0] + dx / d * (L1 + L2) * .999, H[1] + dy / d * (L1 + L2) * .999] : A;
+      return { hip: H, knee, ankle };
+    }
+    _ankleFor(gx, lift, ang) { // ankle height so the lowest sole point (heel / ball / toe tip) touches the ground
+      const c = Math.cos(ang), s = Math.sin(ang); let low = -1e9;
+      for (const [x, y] of this.L.boot.sole) low = Math.max(low, (x * s + y * c) * this.kb);
+      return [gx, -low - lift];
+    }
+    _foot(phase, S) { // phase 0..1 of this foot's stride; returns [x (rel. hip), lift, angle, inStance]
+      const st = this.stance, xc = .5 * S, xt = xc - S;   // foot lands half a stride ahead of the hip (no over-striding: knee stays ~15–20° bent at contact)
+      if (phase < st) { const u = phase / st; const ang = u < .16 ? lerp(-.22, 0, smooth(0, .16, u)) : u > .66 ? lerp(0, .7, smooth(.66, 1, u)) : 0; return [xc - S * u, 0, ang, true] }
+      const u = (phase - st) / (1 - st), g = this.G, H1 = (.3 * S + 24) * g.heelKick, H2 = (.42 * S + 30) * g.kneeLift, H3 = (.16 * S + 14) * g.kneeLift;
+      const keys = [{ t: -.2, x: xt + .2 * S, y: 0, a: .45 }, { t: 0, x: xt, y: 0, a: .7 }, { t: .26, x: xt - .28 * S, y: H1, a: 1.15 }, { t: .52, x: -.08 * S, y: H2, a: .5 },
+        { t: .8, x: xc + .2 * S, y: H3, a: -.12 }, { t: 1, x: xc, y: 0, a: -.22 }, { t: 1.2, x: xc - .2 * S, y: 0, a: -.1 }];
+      const [x, y, a] = pathAt(keys, u); return [x, Math.max(0, y), a, false];
+    }
+    // feet: running gait while moving; ground-locked during stance; settle steps when stopping
+    _feet(dt, sp, lvx, S, A) {
+      const moving = sp > 14 && A > .04 && !(this.act && this.act.def.plant), ph = this.cyc, act = this.act;
+      for (const side of ["near", "far"]) {
+        const f = this.ft[side], rest = this.hipX[side];
+        if (act && !act.def.plant) {   // action owns the feet: lead foot steps out and back, rear foot stays where it was planted
+          const D = act.def, t = act.t, E = act.entry[side], land = 1 - smooth(0, .1, t);
+          if (side === "far") { f.x = lerp(E.x, rest, smooth(.17, .29, t)) + track(D.farDx, t); f.lift = Math.max(track(D.farLift, t), E.lift * land); f.ang = track(D.farAng, t) + E.ang * land }
+          else { f.x = lerp(E.lockW - this.odo, rest, smooth(.03, .15, t)) + track(D.nearDx, t); f.lift = Math.max(track(D.nearLift, t), E.lift * land); f.ang = track(D.nearAng, t) + E.ang * land }
+          f.step = null; f.planted = f.lift < .01; if (f.planted) f.lockW = this.odo + f.x; f.off = 0; continue;
+        }
+        if (moving) {
+          f.step = null;
+          const fp = (ph + (side === "far" ? .5 : 0)) % 1, [fx, lift, ang, stance] = this._foot(fp, S);
+          const gx = rest + fx * A, gl = lift * A, ga = ang * A;
+          if ((stance && gl === 0) || (f.planted && gl < .5)) {   // a foot still touching the ground stays locked until it really lifts (no toe drag)
+            if (!f.planted) { f.planted = true; f.lockW = this.odo + gx + f.off }
+            const lx = f.lockW - this.odo; f.off = lx - gx;
+            if (Math.abs(f.off) > 85) { f.planted = false; f.off = clamp(f.off, -85, 85) } // never stretch a leg to keep a lock
+            f.x = gx + f.off;
+          } else { f.planted = false; f.off = damp(f.off, 0, 9, dt); f.x = gx + f.off }
+          f.lift = gl; f.ang = ga;
+        } else {
+          // settle: finish the airborne step, then a small recovery step for a foot left far from under the hip
+          const other = this.ft[side === "near" ? "far" : "near"];
+          if (!f.step && (f.lift > .5 || (Math.abs(f.x - rest) > 6 && !other.step && other.lift < .5)))
+            f.step = { t: 0, dur: f.lift > .5 ? .13 : .2, x0: f.x, l0: f.lift, a0: f.ang, h: f.lift > .5 ? 0 : clamp(Math.abs(f.x - rest) * .25, 8, 22) };
+          if (f.step) { const st = f.step; st.t = Math.min(1, st.t + dt / st.dur); const e = smooth(0, 1, st.t);
+            f.x = lerp(st.x0, rest, e); f.lift = lerp(st.l0, 0, e) + Math.sin(Math.PI * st.t) * st.h; f.ang = lerp(st.a0, 0, e) - Math.sin(Math.PI * st.t) * .12;
+            if (st.t >= 1) { f.step = null; f.lift = 0; f.ang = 0 } }
+          else { f.lift = 0; f.ang = damp(f.ang, 0, 14, dt) }
+          f.planted = f.lift === 0; if (f.planted) f.lockW = this.odo + f.x; f.off = f.x - rest;
+        }
+      }
+    }
+    // lead (far) hand carries the spear along the keyed path; rear (near) hand grips the shaft behind it — both solved with 2-bone IK
+    /* Two-hand spear work (side view, character faces +x) — v10, built on the user's key-pose drawing.
+       Mechanics: reach comes from the legs (lunge, pelvis low); both elbows stay under the shaft; fists at chest height.
+       Hands: each forearm + fist is ONE drawing (sheet F #3), so the wrist is exactly as drawn; the lead arm is forward
+       kinematics from two keyed values (upper-arm angle thF, spear angle ang); the rear fist searches along the shaft for the
+       spot where its arm closes with the elbow under the shaft and the drawing within ±25° of its drawn grip angle.
+       Depth: torso < shaft < lead forearm+fist < near shoulder guard < rear forearm+fist. Effects are left to the game. */
+    _actArms(D, t, T) {
+      const rig = this.rig, b = rig.by, P = rig.def.parts, w = this._tr('w');
+      rig.compute();
+      const SN = apply(b.armU.m, 0, 0), SF = apply(b.armF.m, 0, 0);
+      const a0 = wAng(b.weapon.m), G0 = apply(b.weapon.m, 0, 0);               // spear as carried (no action)
+      const aK = this._tr('ang') + this._tr('shake') * Math.sin(T * 95) * .025;  // keyed spear bone angle (0 upright, π/2 level)
+      const a = a0 + wrapA(aK - a0) * w, u = [Math.sin(a), -Math.cos(a)];
+      // ---- lead (left) arm: forearm + fist is ONE drawing (sheet F #3, wrist exactly as drawn), forward kinematics from the
+      //      keyed upper-arm angle: shoulder → elbow (upper arm) → fist on the shaft (along the drawing's own elbow→fist line)
+      const pA = wAng(b.torso.m), hl = P.handL, sL = hl.scale;
+      // Lead arm = the character's own forearm drawing (foreF, true size) + the key-pose fist (handL) at its end.
+      // FK with two keyed DOF (upper-arm angle thF, spear angle ang). The fist turns with the shaft; the forearm direction
+      // follows the fist's drawn wrist (toElbow) — bridged from the carry grip with a wrist bend of at most 29°.
+      const E0 = apply(b.foreF.m, 0, 0), C0 = apply(b.fistF.m, 0, 0);
+      const thRest = Math.atan2(E0[0] - SF[0], E0[1] - SF[1]), phiRest = Math.atan2(C0[1] - E0[1], C0[0] - E0[0]);
+      const sd = Math.atan2(hl.shaftDir[1], hl.shaftDir[0]), dirA = x => x - Math.PI / 2;
+      const r_c = wrapA(dirA(a0) - phiRest), r_g = wrapA(sd - Math.atan2(hl.toElbow[1], hl.toElbow[0]) - Math.PI);
+      const kk = clamp(Math.abs(wrapA(a - a0)) / (Math.PI / 2 * .75), 0, 1), dr = wrapA(r_g - r_c), sg = Math.sign(dr) || 1;
+      if (this.gripOn ? kk < .45 : kk > .55) this.gripOn = !this.gripOn;
+      const L1 = Math.hypot(...b.foreF.pos), th = thRest + wrapA(this._tr('thF') + pA - thRest) * w;
+      const E = [SF[0] + Math.sin(th) * L1, SF[1] + Math.cos(th) * L1];
+      b.armF.ar = Math.atan2(E[1] - SF[1], E[0] - SF[0]) - Math.atan2(b.foreF.pos[1], b.foreF.pos[0]) - pA - b.armF.rot;
+      for (let pass = 0; pass < 2; pass++) {
+        const r = this.gripOn ? r_g - sg * .44 * (1 - smooth(.5, 1, kk)) : r_c + sg * .5 * smooth(0, .5, kk), phi = dirA(a) - r;
+        this.handErr = this.gripOn ? wrapA(r - r_g) : 0;
+        rig.compute();
+        const cF = b.fistF.pos;
+        b.foreF.ar = phi - Math.atan2(cF[1], cF[0]) - wAng(b.armF.m) - b.foreF.rot;
+        rig.compute();
+        const need = wrapA(a - b.weapon.rot - wAng(b.foreF.m) - b.fistF.rot);
+        b.fistF.ar = need; this.wrist = b.fistF.rot + need;
+        if (!this.gripOn && Math.abs(this.wrist) > .58) { this.gripOn = true; continue }
+        break }
+      rig.compute();
+      let G;
+      if (this.gripOn) {   // grip centre = forearm end (wrist, 14 units inside the bandage) minus the fist's own wrist offset
+        const Wr = apply(b.fistF.m, 0, 0), rho = a - Math.PI / 2 - sd, c = Math.cos(rho), s2 = Math.sin(rho);
+        const fd = [Math.cos(wAng(b.foreF.m) + Math.atan2(b.fistF.pos[1], b.fistF.pos[0])), Math.sin(wAng(b.foreF.m) + Math.atan2(b.fistF.pos[1], b.fistF.pos[0]))];
+        const W = [Wr[0] - fd[0] * 14, Wr[1] - fd[1] * 14], wo = [(hl.wrist[0] - hl.pivot[0]) * sL, (hl.wrist[1] - hl.pivot[1]) * sL];
+        G = [W[0] - (c * wo[0] - s2 * wo[1]), W[1] - (s2 * wo[0] + c * wo[1])];
+      } else G = apply(b.weapon.m, 0, 0);
+      { const F = b.fistF.m, det = F[0] * F[3] - F[1] * F[2], ix = G[0] - F[4], iy = G[1] - F[5];
+        b.weapon.ax = (F[3] * ix - F[2] * iy) / det - b.weapon.pos[0]; b.weapon.ay = (-F[1] * ix + F[0] * iy) / det - b.weapon.pos[1];
+        b.weapon.ar = wrapA(a - wAng(F) - b.weapon.rot) }
+      // ---- rear (right) arm: forearm + fist is one key-pose drawing (handR) riding on the shaft; slide it along the shaft to the
+      //      spot where the upper arm (shoulder → cuff end) closes, elbow under the shaft, near the preferred hand spacing
+      const wn = this._tr('nearW');
+      this.rearErr = 0;
+      if (wn > 0) {
+        const hr = P.handR, sR = hr.scale, sdR = Math.atan2(hr.shaftDir[1], hr.shaftDir[0]), rhoR = a - Math.PI / 2 - sdR, cR = Math.cos(rhoR), sR2 = Math.sin(rhoR);
+        const eo = [(hr.elbow[0] - hr.pivot[0]) * sR, (hr.elbow[1] - hr.pivot[1]) * sR], off = [cR * eo[0] - sR2 * eo[1], sR2 * eo[0] + cR * eo[1]];
+        const lu = Math.hypot(...b.armL.pos), kPref = -(this._tr('gap') || 170);
+        const V = [G[0] + off[0] - SN[0], G[1] + off[1] - SN[1]], vu = V[0] * u[0] + V[1] * u[1], disc = vu * vu - (V[0] * V[0] + V[1] * V[1]) + lu * lu;
+        let k = disc >= 0 ? null : -vu;
+        if (disc >= 0) { let bc = 1e9; for (const rr of [-vu - Math.sqrt(disc), -vu + Math.sqrt(disc)]) { const c2 = Math.abs(rr - kPref) + (rr > -60 ? 1e4 : 0); if (c2 < bc) { bc = c2; k = rr } } }
+        this.rearK = k; this.rearReach = disc;
+        const GN = [G[0] + u[0] * k, G[1] + u[1] * k], EN = [GN[0] + off[0], GN[1] + off[1]];
+        b.handR.pos = [0, -k];
+        const on = wn > .9;
+        const base = b.armU.ar;
+        b.armU.ar = Math.atan2(EN[1] - SN[1], EN[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]) - pA - b.armU.rot;
+        if (!on) {   // reaching: upper arm swings toward the grip pose, the running fist's forearm aims along the drawn forearm
+          b.armU.ar = lerp(base, b.armU.ar, wn); rig.compute();
+          const pl2 = P.armLF, gv = [(pl2.grip[0] - pl2.pivot[0]), (pl2.grip[1] - pl2.pivot[1])], fa = Math.atan2(-off[1], -off[0]);
+          const tL = fa - Math.atan2(gv[1], gv[0]) - wAng(b.armU.m) - b.armL.rot; b.armL.ar = b.armL.ar + wrapA(tL - b.armL.ar) * wn; rig.swap.armL = P.armL.alt }
+        rig.alpha.handR = on ? 1 : 0; rig.alpha.armL = on ? 0 : 1;
+        b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax;
+      } else { rig.alpha.handR = 0; rig.alpha.armL = 1 }
+      rig.alpha.handL = this.gripOn ? 1 : 0; rig.alpha.fistF = this.gripOn ? 0 : 1;
+      rig.compute();
+      // hit event + speed trail
+      const act = this.act;
+      if (act && !act.hit && t >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+      const tr = this._tr('trail'), tips = P.weapon.tips;
+      tips.forEach((tp, i) => { const Q = this.trailPts[i]; Q.push(rig.partPoint("weapon", tp[0], tp[1])); if (Q.length > 7) Q.shift(); if (tr <= 0) Q.length = 0 });
+      rig.trail = tr > 0 ? { a: tr, pts: this.trailPts } : null;
+    }
+    /* wave: joint-space blends from the current pose (no IK → no elbow flips), world-angle targets:
+       near upper arm points up-back beside the head, forearm vertical, the drawn open hand is mirrored so the thumb points
+       forward (palm toward the viewer); forearm + hand are drawn in front of the head (rig.def.drawWave). */
+    _waveArms(D, t, T) {
+      const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
+      const w = this._tr('w'), amp = this._tr('wAmp'), wa = this._tr('weapon');
+      const ph = Math.sin((t - .34) * TAU * 2.6), ph2 = Math.sin((t - .34) * TAU * 2.6 - .9);   // hand lags the forearm a little
+      rig.swap.armL = null;
+      // Key pose (user drawing): the FAR (left) arm waves in front — upper arm hanging slightly forward, elbow deeply bent,
+      // forearm rising forward-up so the open hand is beside the chin, palm to the viewer; the near arm hangs relaxed.
+      // The spear hand rises as a fist, and once the spear is gone the forearm+open-hand drawing takes over.
+      const WI0 = rig.def.waveImg, ss = WI0.shoulderShift || [0, 0];
+      b.armF.ax += ss[0] * w; b.armF.ay += ss[1] * w; b.wSleeve.ax += ss[0] * w; b.wSleeve.ay += ss[1] * w;   // shoulder joint behind the chest front
+      const upW = 1.12 + ((WI0.up ?? .90) - 1.12) * w + amp * ph2 * .03, foreW = (WI0.fore0 ?? -1.08) + amp * ph * .21;    // world directions (rad, y down)
+      const tUF = upW - Math.atan2(b.foreF.pos[1], b.foreF.pos[0]) - pA - b.armF.rot;
+      b.armF.ar = b.armF.ar + wrapA(tUF - b.armF.ar) * w;
+      rig.compute();
+      const cF = b.fistF.pos, tFF = foreW - Math.atan2(cF[1], cF[0]) - wAng(b.armF.m) - b.foreF.rot;
+      b.foreF.ar = b.foreF.ar + wrapA(tFF - b.foreF.ar) * w;
+      b.fistF.ar = b.fistF.ar * (1 - w);
+      this.wrist = b.fistF.rot + b.fistF.ar;
+      const open = w > .45 && wa < .05;                                      // open arm only while the spear is away
+      // ---- open arm = sheet W: sleeve (upper arm) < bandaged forearm < sleeve cuff lip, open LEFT hand (palm to viewer) on top.
+      // Angles are world directions of each drawn segment; the hand flicks at the wrist a little behind the forearm.
+      const WI = rig.def.waveImg, ph3 = Math.sin((t - .34) * TAU * 2.6 - 1.3);
+      rig.compute();
+      // follow the (blended) arm exactly, so swapping drawings never changes a segment's direction
+      const sh = apply(b.armF.m, 0, 0), el = apply(b.foreF.m, 0, 0), fi = apply(b.fistF.m, 0, 0);
+      const upO = Math.atan2(el[1] - sh[1], el[0] - sh[0]), foreO = Math.atan2(fi[1] - el[1], fi[0] - el[0]);
+      const handO = foreO + WI.handRest * w + amp * ph3 * .16;
+      b.wSleeve.ar = upO - WI.upper - pA - (b.wSleeve.rot || 0); rig.compute();
+      b.wFore.ar = foreO - WI.fore - wAng(b.wSleeve.m) - (b.wFore.rot || 0); rig.compute();
+      // the open sleeve is longer than the fist-arm sleeve: slide the (hidden) shoulder so both elbows meet at the swap,
+      // then let it ease back to its own joint while the arm is up (no pop when the drawings change)
+      { const eF = apply(b.foreF.m, 0, 0), eW = apply(b.wFore.m, 0, 0), k = 1 - smooth(.45, .95, w), T_ = b.torso.m, det = T_[0] * T_[3] - T_[1] * T_[2];
+        const dx = (eF[0] - eW[0]) * k, dy = (eF[1] - eW[1]) * k;
+        b.wSleeve.ax += (T_[3] * dx - T_[2] * dy) / det; b.wSleeve.ay += (-T_[1] * dx + T_[0] * dy) / det; rig.compute();
+        b.wFore.ar = foreO - WI.fore - wAng(b.wSleeve.m) - (b.wFore.rot || 0); rig.compute() }
+      b.wHand.ar = handO - WI.hand - wAng(b.wFore.m) - (b.wHand.rot || 0);
+      this.waveWrist = wrapA(handO - foreO);                                 // wrist bend (audit)
+      const on = open ? 1 : 0;
+      rig.alpha.wSleeve = rig.alpha.wCuff = on;                              // (a faded sleeve leaves a floating forearm: worse than a clean swap)
+      rig.alpha.wFore = rig.alpha.wHand = on;
+      rig.alpha.armF = 1 - on; rig.alpha.foreF = rig.alpha.fistF = 1 - on;
+      // the body bobs a touch with each wave
+      b.hip.ay += amp * Math.max(0, ph) * 3;
+      rig.alpha.weapon = wa;
+      // far sleeve comes in front of the torso as the arm rises (cross-fade, no pop); the forearm leaves through the cuff
+      rig.drawOrder = rig.def.drawWave;                     // open hand in front of the hood edge, sleeve cuff over the forearm
+      const act = this.act;
+      if (act && !act.hidden && t >= .0) { act.hidden = true; this.events.push({ type: "weaponHide" }) }
+      if (act && !act.shown && t >= 1.62) { act.shown = true; this.events.push({ type: "weaponShow" }) }
+      rig.trail = null;
+      rig.compute();
+    }
+    update(dt, s = {}) {
+      dt = Math.min(dt, .05); this.t += dt; this.dt = dt;
+      const rig = this.rig, b = rig.by, L = this.L; rig.resetPose();
+      const vx = s.vx || 0, want = this.act ? this.facing : (s.facing || (Math.abs(vx) > 1 ? Math.sign(vx) : this.facing));
+      if (want !== this.facing) { this.facing = want; this.turnT = .16; this.prevLVx = -this.prevLVx; for (const k in this.ft) { const f = this.ft[k]; f.planted = false } }
+      this.turnT = Math.max(0, this.turnT - dt);
+      const lvx = vx * this.facing, sp = Math.abs(vx);
+      this.odo += lvx * dt; this.events.length = 0;
+      const act = this.act; if (act) { act.t += dt * (act.speed || 1); if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
+      const D = act && act.def, at = act ? act.t : 0;
+      this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? 14 : 8, dt);
+      const G = this.G, A = this.A, I = 1 - A, S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
+      if (!act) this.cyc = (this.cyc + dt * (sp * this.stance / S)) % 1;          // cadence chosen so the planted foot moves exactly with the ground
+      // body velocity from the action's hip drive (feeds cape / skirt / hem drag like real forward motion)
+      const ax_ = act ? this._tr('hipX') : 0; this.actV = damp(this.actV, (ax_ - this.prevActX) / Math.max(dt, 1e-4), 25, dt); this.prevActX = ax_;
+      const accel = (lvx - this.prevLVx) / Math.max(dt, 1e-4) + (act ? this.actV * 6 : 0); this.prevLVx = lvx;
+      const T = this.t, br = Math.sin(T * TAU / 2.9), ph = this.cyc, psi = (ph * 2) % 1;
+
+      // ---------- pelvis & spine ----------
+      const leanA = this.lean.step(act ? 0 : clamp(accel * .0003, -.2, .2), dt);
+      const bob = Math.cos(TAU * (psi - .12));                          // +1 lowest (just after contact), -1 highest (flight)
+      b.hip.ay = I * br * 4 + A * (G.hipBase + bob * G.bob);
+      b.torso.ar = I * br * .012 + A * (G.lean + G.leanBob * bob + G.waddle * Math.sin(TAU * psi)) + leanA;   // waddle: body rocks with each step
+      b.torso.asy = 1 + I * br * .013 - A * bob * .01; b.torso.asx = 1 - I * br * .006;
+      const hipY = b.hip.ay; this.hipVy = damp(this.hipVy, (hipY - this.prevHipY) / Math.max(dt, 1e-4), 20, dt); this.prevHipY = hipY;
+      const hl = this.headLag.step(this.hipVy * .006, dt);
+      b.head.ar = I * Math.sin(T * .8) * .025 - A * .15 - leanA * .6 + hl * .02;
+      b.head.ay = -I * br * 1.4 + hl * 2.5 + A * G.headBob * bob;
+      b.skirt.ar = -leanA * .25 - A * .03;
+      let twist = 0;
+      if (act) { const lean = this._tr('lean'), brt = this._tr('breath'); twist = this._tr('twist');
+        b.hip.ax += ax_; b.hip.ay += this._tr('hipY'); b.torso.ar += lean; b.head.ar += this._tr('head') - lean * .35; b.skirt.ar -= lean * .3;
+        b.torso.asy += brt * .022; b.torso.asx -= Math.abs(twist) * .03; b.head.ay -= brt * 5 }
+
+      // ---------- near arm (opposite to the near leg) ----------
+      const swing = Math.cos(TAU * ph);                                 // +1 when the near foot strikes in front
+      const fwd = -swing;                                               // near arm forward when the near leg is back
+      b.armU.ar = I * br * .03 + A * (-G.armSwing * fwd + G.armBias);
+      b.armL.ar = I * (br * .04 - .3) - A * (G.elbowRun + .3 * Math.max(0, fwd) - .14 * Math.max(0, -fwd));   // −.3: a hanging arm keeps ~10° elbow flexion
+      b.armU.ax = -twist * 12; b.armF.ax = twist * 15; b.armU.ay = b.armF.ay = act ? -this._tr('breath') * 4 : 0;   // shoulders follow the chest turn / breath
+      b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax; b.pauldron.ay = b.armU.ay;   // guard rides on the shoulder, turning with the upper arm
+      if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
+      rig.swap.armL = this.fist ? rig.def.parts.armL.alt : null;
+      // ---------- far arm + spear: the shaft is locked in the fist; the arm lifts it so the butt clears the ground ----------
+      b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) - leanA * .3;
+      const wl = this.weapon.step(this.hipVy * .00016 - accel * .00006, dt);
+      const torsoTilt = b.torso.ar, want_ = I * br * .01 + A * -.06 + wl;    // spear world tilt (rad, 0 = as in the reference)
+      b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar, -.28, .28);   // wrist
+      b.weapon.ar = 0;
+
+      // ---------- feet + legs ----------
+      this._feet(dt, sp, lvx, S, A);
+      rig.compute();
+      // a standing leg never locks fully straight (that is where IK snaps): if a planted foot would need more than ~16° short of
+      // full extension, the pelvis sinks instead (rises back slowly) — the body lowers, the knee stays soft
+      { const Lm = L.thigh + L.shin, dmax = Lm * .99; let need = 0;
+        for (const side of ["near", "far"]) { const f = this.ft[side], hard = 1 - smooth(0, 3, f.lift); if (hard <= 0) continue;   // same weight the soft IK hands over with
+          const H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
+          const nd_ = Math.hypot(dx, dy) > dmax ? hard * (dy - Math.sqrt(Math.max(0, dmax * dmax - dx * dx))) : 0;
+          need = Math.max(need, nd_) }
+        need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
+        if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
+      if (act && D.kind === "wave") this._waveArms(D, at, T);
+      else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
+      else { this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
+      const lp = {};
+      for (const side of ["near", "far"]) {
+        const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]);
+        // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
+        // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
+        const [r0, r1] = L.boot.ankleRange || [-9, 9];
+        const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
+        let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft);
+        for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
+          if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft) }
+        sol.foot = ang; sol.lift = f.lift; lp[side] = sol;
+      }
+      rig.legPose = lp;
+
+      // ---------- skirt: knees push the front of the hem, the kicking heel lifts the back ----------
+      const sk = b.skirt, skP = rig.def.parts.skirt;
+      const skPivot = apply(sk.m, 0, 0), restKneeY = apply(b.hip.m, 0, L.hip[1])[1] + L.thigh * .98;
+      const cols = this.hem.length - 1, drag = A * 26 + clamp(-accel * .008, -30, 30);
+      const actW = act ? this._tr('w') : 0;
+      for (let i = 0; i <= cols; i++) {
+        const u = i / cols, front = smooth(.45, 1, u), back = smooth(.6, 0, u);
+        // running: the whole hem rides up a little (air under the cloth) so the boots show at every step (L41)
+        const H_ = rig.def.hemRun || { lift: 0, knee: .9, heel: .55, reach: 0 };
+        let tx = -drag * (.6 + .4 * back), ty = A * bob * 5 - A * H_.lift * (.7 + .3 * Math.abs(bob));
+        for (const side of ["near", "far"]) {
+          const P = lp[side], kneeFwd = Math.max(0, P.knee[0] - skPivot[0] - 20), kneeUp = Math.max(0, restKneeY - P.knee[1]);
+          const reach = Math.max(0, P.ankle[0] - skPivot[0] - 60), heelBack = Math.max(0, skPivot[0] - 40 - P.ankle[0]), heelUp = P.lift;
+          tx += front * (kneeFwd * .8 + reach * .3) - back * heelBack * .35;
+          ty -= front * kneeUp * H_.knee + back * heelUp * H_.heel + front * reach * H_.reach * A;
+          // lunge: a foot planted far in front drags the front hem up the shin (cloth drapes from the waist over the knee)
+          const lunge = actW * clamp((P.ankle[0] - skPivot[0] + 30) * 1.1, 0, 115), fr2 = smooth(.4, .95, u);
+          ty -= fr2 * lunge; tx += fr2 * lunge * .35;
+        }
+        this.hem[i][0].step(tx, dt); this.hem[i][1].step(ty, dt);
+      }
+      const hem = this.hem, flare = A * (.02 + Math.max(0, -bob) * .03);
+      rig.meshFx.skirt = (u, v, x, y) => { const w = v * v * (1.4 - .4 * v), f = u * cols, i = Math.min(cols - 1, Math.floor(f)), t = f - i;
+        const hx = lerp(hem[i][0].x, hem[i + 1][0].x, t), hy = lerp(hem[i][1].x, hem[i + 1][1].x, t); return [hx * w + x * flare * w, hy * w] };
+
+      // ---------- cape: trails behind, flutters, lags the bounce ----------
+      const capeA = this.cape.step(clamp(lvx * .0011 + accel * .00012, -.25, .9), dt);
+      b.cape.ar = capeA * .22;
+      const wph = T * (2.4 + sp * .009), wamp = 5 + sp * .02;
+      rig.meshFx.cape = (u, v) => { const w = Math.pow(v, 1.25) * (.35 + .65 * (1 - u)); const wave = Math.sin(wph - v * 4.2 - (1 - u) * 2.4);
+        return [(-capeA * 85 + wave * wamp) * w, (-this.hipVy * .035 + wave * wamp * .45 - capeA * 30 * (1 - u)) * w] };
+
+      // ---------- braid (optional part): trails back a little, bounces with the steps ----------
+      if (b.braid) { const bra = this.braid.step(clamp(lvx * .00022 + accel * .00006 - this.hipVy * .0012, -.12, .2), dt);
+        b.braid.ar += clamp(bra, -.12, .2) * .5 + I * Math.sin(T * 1.6) * .02;
+        rig.meshFx.braid = (u, v) => [-bra * 30 * v * v, -Math.abs(bra) * 5 * v] }
+
+      // ---------- blink ----------
+      // expression cross-fade (~70 ms) — only the face patch changes, hood and hair never do
+      const fTarget = this._faceAt(D, at), faces = rig.def.faces || {};
+      for (const n in faces) this.faceW[n] = n === fTarget ? 1 : 0;   // one-frame switch: a cross-fade between two faces shows double eyes (ghosting)
+      rig.face = this.faceW;
+      const faceSum = Object.values(this.faceW).reduce((a, v) => a + v, 0);
+      if (act || faceSum > .2) { this.blinkT = Math.max(this.blinkT, .35); if (T - this.blinkAt > .02) this.blinkAt = -9 }   // eyes stay on the target / blink only on the base face
+      this.blinkT -= dt; if (this.blinkT <= 0) { this.blinkT = 2.2 + Math.random() * 3; this.blinkAt = T }
+      const bt = T - this.blinkAt; rig.blink = bt < .14 ? Math.sin(bt / .14 * Math.PI) : 0;
+    }
+  }
+  RunAnimator.ACTIONS = ACTIONS; RunAnimator.EASE = EASE; RunAnimator.GAIT_DEFAULTS = GAIT_DEFAULTS; RunAnimator.GAIT_PRESETS = GAIT_PRESETS;
+  global.CharacterRig = CharacterRig; global.RunAnimator = RunAnimator;
+})(typeof window !== "undefined" ? window : globalThis);

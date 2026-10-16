@@ -1,0 +1,694 @@
+{
+ "name": "rust-fork-girl",
+ "version": 15,
+ "units": "rig px (reference x2)",
+ "refOrigin": [
+  265,
+  500
+ ],
+ "refScale": 2.0,
+ "refLift": 18,
+ "parts": {
+  "cape": {
+   "src": "parts/cape.png",
+   "pivot": [
+    373.6,
+    -36.7
+   ],
+   "scale": 1.0,
+   "mesh": {
+    "cols": 7,
+    "rows": 7
+   }
+  },
+  "skirt": {
+   "src": "parts/skirt.png",
+   "pivot": [
+    290,
+    26
+   ],
+   "scale": 0.82,
+   "mesh": {
+    "cols": 8,
+    "rows": 9
+   }
+  },
+  "torso": {
+   "src": "parts/torso.png",
+   "pivot": [
+    95,
+    165
+   ],
+   "scale": 1.0
+  },
+  "head": {
+   "src": "parts/head.png",
+   "pivot": [
+    202.0,
+    254.0
+   ],
+   "scale": 1.0
+  },
+  "scarf": {
+   "src": "parts/scarf.png",
+   "pivot": [
+    12.3,
+    10.9
+   ],
+   "scale": 0.52
+  },
+  "pauldron": {
+   "src": "parts/pauldron.png",
+   "pivot": [
+    83.1,
+    74.5
+   ],
+   "scale": 0.92
+  },
+  "armU": {
+   "src": "parts/armU.png",
+   "pivot": [
+    74,
+    24
+   ],
+   "scale": 0.76
+  },
+  "armL": {
+   "src": "parts/armL.png",
+   "pivot": [
+    38,
+    12
+   ],
+   "scale": 0.8,
+   "alt": "armLF"
+  },
+  "armLF": {
+   "src": "parts/armLF.png",
+   "pivot": [
+    35,
+    12
+   ],
+   "scale": 0.8,
+   "grip": [
+    48,
+    165
+   ]
+  },
+  "armF": {
+   "src": "parts/armF.png",
+   "pivot": [
+    72.4,
+    76.9
+   ],
+   "scale": 1.0
+  },
+  "foreF": {
+   "src": "parts/foreF.png",
+   "pivot": [
+    85,
+    142
+   ],
+   "scale": 1.0
+  },
+  "fistF": {
+   "src": "parts/fistF.png",
+   "pivot": [
+    151,
+    125
+   ],
+   "scale": 1.0
+  },
+  "weapon": {
+   "src": "parts/weapon.png",
+   "pivot": [
+    96.8,
+    463.9
+   ],
+   "scale": 1.22,
+   "tips": [
+    [
+     77,
+     5
+    ],
+    [
+     129,
+     7
+    ]
+   ]
+  },
+  "thigh": {
+   "src": "parts/thigh.png",
+   "pivot": [
+    49,
+    48
+   ],
+   "scale": 1
+  },
+  "shin": {
+   "src": "parts/shin.png",
+   "pivot": [
+    60,
+    48
+   ],
+   "scale": 1
+  },
+  "boot": {
+   "src": "parts/boot.png",
+   "pivot": [
+    54,
+    80
+   ],
+   "scale": 0.65
+  },
+  "bootB": {
+   "src": "parts/bootB.png",
+   "pivot": [
+    54,
+    80
+   ],
+   "scale": 0.65
+  },
+  "face_effort": {
+   "src": "parts/face_effort.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_sad": {
+   "src": "parts/face_sad.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_angry": {
+   "src": "parts/face_angry.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_grimace": {
+   "src": "parts/face_grimace.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    42.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "face_relaxed": {
+   "src": "parts/face_relaxed.png",
+   "pivot": [
+    38.0,
+    148.0
+   ],
+   "scale": 1.0
+  },
+  "handL": {
+   "src": "parts/handL.png",
+   "pivot": [
+    50,
+    43
+   ],
+   "scale": 1.0,
+   "wrist": [
+    10,
+    81.5
+   ],
+   "toElbow": [
+    -0.69,
+    0.72
+   ],
+   "shaftDir": [
+    0.9903,
+    -0.1392
+   ],
+   "note": "left (front) fist + wrist bandage cut from the user key-pose drawing. pivot = shaft centre in the fist"
+  },
+  "handR": {
+   "src": "parts/handR.png",
+   "pivot": [
+    107,
+    34
+   ],
+   "scale": 1.05,
+   "elbow": [
+    6,
+    50
+   ],
+   "shaftDir": [
+    0.9903,
+    -0.1392
+   ],
+   "note": "right (back) bandaged forearm + fist cut from the user key-pose drawing (one piece, wrist as drawn). pivot = shaft centre in the fist, elbow = cuff end"
+  },
+  "waveSleeve": {
+   "src": "parts/waveSleeve.png",
+   "pivot": [
+    22.3,
+    70.2
+   ],
+   "scale": 1.0,
+   "elbow": [
+    53.3,
+    153.9
+   ],
+   "note": "sheet W (user): far LEFT upper arm, bell sleeve; elbow = where the forearm leaves the sleeve"
+  },
+  "waveFore": {
+   "src": "parts/waveFore.png",
+   "pivot": [
+    53.3,
+    153.9
+   ],
+   "scale": 1.0,
+   "wrist": [
+    89.1,
+    86.4
+   ],
+   "note": "sheet W: bandaged forearm, drawn in front of the sleeve; the sleeve cuff lip is drawn again over its end (overlay wCuff)"
+  },
+  "waveHandW": {
+   "src": "parts/waveHandW.png",
+   "pivot": [
+    43.9,
+    86.4
+   ],
+   "scale": 1.0,
+   "tip": [
+    44.6,
+    2.7
+   ],
+   "note": "sheet W3: open LEFT hand, palm to the viewer, thumb on the viewer's left; bandage stub feathered into the forearm"
+  }
+ },
+ "bones": [
+  {
+   "name": "root",
+   "parent": null,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "hip",
+   "parent": "root",
+   "pos": [
+    34.0,
+    -354.0
+   ]
+  },
+  {
+   "name": "skirt",
+   "parent": "hip",
+   "pos": [
+    12.5,
+    -28.7
+   ],
+   "rot": -0.0698,
+   "part": "skirt"
+  },
+  {
+   "name": "torso",
+   "parent": "hip",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "torso"
+  },
+  {
+   "name": "cape",
+   "parent": "torso",
+   "pos": [
+    -28.0,
+    -100.0
+   ],
+   "rot": 0.0873,
+   "part": "cape"
+  },
+  {
+   "name": "scarf",
+   "parent": "torso",
+   "pos": [
+    8.0,
+    -100.0
+   ],
+   "rot": -0.0873,
+   "part": "scarf"
+  },
+  {
+   "name": "armU",
+   "parent": "torso",
+   "pos": [
+    -82.0,
+    -60.0
+   ],
+   "rot": -0.2745,
+   "part": "armU"
+  },
+  {
+   "name": "armL",
+   "parent": "armU",
+   "pos": [
+    -33.4,
+    70.0
+   ],
+   "rot": 0.6202,
+   "part": "armL"
+  },
+  {
+   "name": "pauldron",
+   "parent": "torso",
+   "pos": [
+    -82.0,
+    -60.0
+   ],
+   "part": "pauldron"
+  },
+  {
+   "name": "head",
+   "parent": "torso",
+   "pos": [
+    19.5,
+    -120.0
+   ],
+   "part": "head"
+  },
+  {
+   "name": "armF",
+   "parent": "torso",
+   "pos": [
+    72.0,
+    -80.0
+   ],
+   "rot": -0.3491,
+   "part": "armF"
+  },
+  {
+   "name": "foreF",
+   "parent": "armF",
+   "pos": [
+    12.6,
+    65.0
+   ],
+   "part": "foreF"
+  },
+  {
+   "name": "fistF",
+   "parent": "foreF",
+   "pos": [
+    66.0,
+    -17.0
+   ],
+   "part": "fistF"
+  },
+  {
+   "name": "weapon",
+   "parent": "fistF",
+   "pos": [
+    24.1,
+    -20.0
+   ],
+   "rot": 0.4014,
+   "part": "weapon"
+  },
+  {
+   "name": "handL",
+   "parent": "weapon",
+   "pos": [
+    0,
+    0
+   ],
+   "rot": -1.4312,
+   "part": "handL"
+  },
+  {
+   "name": "handR",
+   "parent": "weapon",
+   "pos": [
+    0,
+    0
+   ],
+   "rot": -1.4312,
+   "part": "handR"
+  },
+  {
+   "name": "wSleeve",
+   "parent": "torso",
+   "pos": [
+    72.0,
+    -80.0
+   ],
+   "part": "waveSleeve"
+  },
+  {
+   "name": "wFore",
+   "parent": "wSleeve",
+   "pos": [
+    31.0,
+    83.7
+   ],
+   "part": "waveFore"
+  },
+  {
+   "name": "wHand",
+   "parent": "wFore",
+   "pos": [
+    35.8,
+    -67.5
+   ],
+   "part": "waveHandW"
+  }
+ ],
+ "legs": {
+  "hip": [
+   0,
+   54.0
+  ],
+  "thigh": 124,
+  "shin": 126,
+  "thighImg": {
+   "part": "thigh",
+   "a": [
+    49,
+    48
+   ],
+   "b": [
+    87,
+    157
+   ],
+   "w": 0.8
+  },
+  "shinImg": {
+   "part": "shin",
+   "a": [
+    60,
+    48
+   ],
+   "b": [
+    60,
+    175
+   ],
+   "w": 0.8
+  },
+  "boot": {
+   "part": "boot",
+   "back": "bootB",
+   "sole": [
+    [
+     -30,
+     48
+    ],
+    [
+     -24,
+     63
+    ],
+    [
+     58,
+     66
+    ],
+    [
+     104,
+     48
+    ]
+   ],
+   "ankleRange": [
+    -0.45,
+    0.4
+   ]
+  },
+  "near": {
+   "x": 24,
+   "shade": 0
+  },
+  "far": {
+   "x": -34,
+   "shade": 0.36
+  }
+ },
+ "draw": [
+  "cape",
+  "legFar",
+  "legNear",
+  "armF",
+  "torso",
+  "skirt",
+  "weapon",
+  "foreF",
+  "fistF",
+  "handL",
+  "scarf",
+  "armL",
+  "armU",
+  "pauldron",
+  "handR",
+  "head"
+ ],
+ "blink": {
+  "bone": "head",
+  "skin": "#D99B70",
+  "line": "#2A1812",
+  "eyes": [
+   [
+    201,
+    168,
+    25,
+    30,
+    4.5
+   ],
+   [
+    268,
+    168,
+    15.5,
+    27,
+    4
+   ]
+  ]
+ },
+ "faces": {
+  "effort": "face_effort",
+  "shout": "face_shout",
+  "happy": "face_happy",
+  "sad": "face_sad",
+  "angry": "face_angry",
+  "grimace": "face_grimace",
+  "focus": "face_focus",
+  "relaxed": "face_relaxed"
+ },
+ "faceInfo": {
+  "closedEyes": [
+   "happy",
+   "grimace"
+  ],
+  "note": "face-only patches cut from the expression sheet (sheet 2; called sheet C in the casebook) and aligned to the base head; hood, hair and face outline always come from the base head"
+ },
+ "hidden": [
+  "handL",
+  "handR",
+  "wSleeve",
+  "wFore",
+  "wHand",
+  "wCuff"
+ ],
+ "depth": {
+  "thrust": "torso < skirt < shaft < lead forearm < lead fist (handL) < scarf < near forearm < near upper arm < shoulder guard < rear forearm+fist (handR) < head",
+  "wave": "far upper sleeve (wSleeve, behind torso) < torso < skirt < ... < scarf < forearm (wFore) < cuff overlay (wCuff) < ... < head < open hand (wHand)"
+ },
+ "drawWave": [
+  "cape",
+  "legFar",
+  "legNear",
+  "armF",
+  "wSleeve",
+  "torso",
+  "skirt",
+  "weapon",
+  "foreF",
+  "fistF",
+  "handL",
+  "scarf",
+  "wFore",
+  "wCuff",
+  "armL",
+  "armU",
+  "pauldron",
+  "handR",
+  "head",
+  "wHand"
+ ],
+ "overlays": {
+  "wCuff": {
+   "bone": "wSleeve",
+   "rect": [
+    38,
+    149,
+    56,
+    29
+   ]
+  }
+ },
+ "waveImg": {
+  "upper": 1.2156,
+  "fore": -1.0834,
+  "hand": -1.5627,
+  "handRest": -0.357,
+  "shoulderShift": [
+   0,
+   24
+  ],
+  "note": "far shoulder: joint at the torso's far edge, a little below the hood; the sleeve is drawn BEHIND the torso so its round cap never shows (a visible cap outside the torso reads as a dislocated shoulder, L39/L43). Upper arm hangs near-vertical (up 1.15 rad), forearm rises from the elbow.",
+  "up": 1.15,
+  "fore0": -1.2
+ },
+ "hemRun": {
+  "lift": 30,
+  "knee": 1.6,
+  "heel": 1.1,
+  "reach": 0.5,
+  "note": "skirt hem while running: base lift, knee push-up, kicking-heel lift, forward reach lift (L41)"
+ },
+ "metrics": {
+  "bodyHeight": 718,
+  "heightWithWeapon": 997,
+  "note": "rig units. bodyHeight = head top to sole in the idle pose, weapon excluded; scale = screen px / bodyHeight",
+  "shaftWidth": 39,
+  "fistWidth": 65,
+  "forearmThickness": 45,
+  "fistToForearm": 1.45
+ },
+ "ui": {
+  "attack": "thrust",
+  "touch": "wave",
+  "note": "preview page buttons: attack button / J key, touch on the character / H key"
+ }
+}
