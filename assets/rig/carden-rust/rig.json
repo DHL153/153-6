@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "58deb59d",
+ "version": "7e1a19a9",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -304,6 +304,42 @@
     0
    ],
    "scale": 1
+  },
+  "waveSleeve": {
+   "src": "parts/waveSleeve.png",
+   "pivot": [
+    19.0,
+    2.0
+   ],
+   "scale": 2.05,
+   "elbow": [
+    19.0,
+    50.0
+   ]
+  },
+  "waveFore": {
+   "src": "parts/waveFore.png",
+   "pivot": [
+    17.0,
+    2.0
+   ],
+   "scale": 2.05,
+   "wrist": [
+    17.0,
+    52.0
+   ]
+  },
+  "waveHandW": {
+   "src": "parts/waveHandW.png",
+   "pivot": [
+    45.0,
+    84.0
+   ],
+   "scale": 2.05,
+   "tip": [
+    42.0,
+    2.0
+   ]
   }
  },
  "bones": [
@@ -497,6 +533,33 @@
    ],
    "rot": -1.5882,
    "part": "handR"
+  },
+  {
+   "name": "wSleeve",
+   "parent": "torso",
+   "pos": [
+    220.0,
+    -170.0
+   ],
+   "part": "waveSleeve"
+  },
+  {
+   "name": "wFore",
+   "parent": "wSleeve",
+   "pos": [
+    0.0,
+    98.4
+   ],
+   "part": "waveFore"
+  },
+  {
+   "name": "wHand",
+   "parent": "wFore",
+   "pos": [
+    0.0,
+    102.5
+   ],
+   "part": "waveHandW"
   }
  ],
  "legs": {
@@ -648,7 +711,10 @@
  ],
  "hidden": [
   "handL",
-  "handR"
+  "handR",
+  "wSleeve",
+  "wFore",
+  "wHand"
  ],
  "faces": {
   "happy": "face_happy",
@@ -739,7 +805,8 @@
   "stillReady": {
    "t": 0.22,
    "cut": 0.36
-  }
+  },
+  "touch": "wave"
  },
  "note": "6 카르덴. 8 러스트 니콜(rust-fork-girl v15) 뼈대·동작 방식(봉 계열 기준). 다른 점: 짧은 다리·넓은 발, 긴 렌치 봉(쥔 손이 몸에서 멂), 옆머리 2·수염(머리 뼈, 출렁임), 고글(깜빡임 없음), 바지 엉덩이(hips) 조각",
  "headFront": {
@@ -769,6 +836,46 @@
   "up": 0.25,
   "x": 0.3
  },
+ "waveImg": {
+  "upper": 1.5708,
+  "fore": 1.5708,
+  "hand": -1.6074,
+  "handRest": -0.357,
+  "shoulderShift": [
+   0,
+   0
+  ],
+  "up": 1.15,
+  "fore0": -1.2,
+  "openAt": 0.02,
+  "openWa": 0.6,
+  "note": "먼 팔(봉 팔) 손 흔들기: 소매는 상체 뒤, 팔뚝은 수염 옆, 편 손은 맨 앞"
+ },
+ "drawWave": [
+  "cape",
+  "legFar",
+  "legNear",
+  "armF",
+  "wSleeve",
+  "skirt",
+  "torso",
+  "pouch",
+  "foreF",
+  "tuftL",
+  "tuftR",
+  "head",
+  "beard",
+  "headFront",
+  "weapon",
+  "fistF",
+  "wFore",
+  "handL",
+  "armU",
+  "armL",
+  "pauldron",
+  "handR",
+  "wHand"
+ ],
  "actions": {
   "thrust": {
    "kind": "staff",

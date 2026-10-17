@@ -272,6 +272,24 @@ if T('pantsSkirt', False):   # DHL 23:51: 벨트 아래 ~ 무릎(바지 윗부�
         else:
             for sd_ in ['near', 'far']: legs[sd_]['shinImg'] = {'part': 'shinR', 'a': sa_, 'b': sb_, 'w': round(il_ / legs['shin'] * LS_, 3)}
     rig['bounce'] = [q for q in rig['bounce'] if q['bone'] != 'pouch']   # 주머니는 바지 그림에도 있음 → 출렁이면 두 겹
+WV = T('wave', None)
+if WV:   # 인사(손 흔들기, DHL 10-18 02:02) — 8 니콜과 같은 엔진 경로(waveImg): 봉이 사라지고 먼 팔(봉 팔)이 올라와 편 손을 흔듦
+    # 그림 = 조각 시트의 먼 윗팔 소매(armF) · 먼 팔뚝 소매(foreF) · 편 장갑 손(waveHand, 손바닥이 보는 쪽·엄지 왼쪽 = 왼손 손바닥)
+    sA, sB = A(PT['armF'][0]), A(PT['armF'][1]); fE, fW = A(PT['foreF'][0]), A(PT['foreF'][1])
+    hW, hT = A(WV.get('wristImg', [45, 84])), A(WV.get('tipImg', [42, 2])); kH = K * WV.get('handScale', 1.0); kU = K * WV.get('upperScale', 1.0); kF = K * WV.get('foreScale', 1.0)
+    for nm, src, piv, sc in [('waveSleeve', 'cut/armF.png', sA, kU), ('waveFore', 'cut/foreF.png', fE, kF), ('waveHandW', 'cut/waveHand.png', hW, kH)]:
+        shutil.copy(os.path.join(HERE, src), os.path.join(PARTS, nm + '.png')); parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [round(float(piv[0]), 1), round(float(piv[1]), 1)], 'scale': round(sc, 4)}
+    parts['waveSleeve']['elbow'] = [round(float(sB[0]), 1), round(float(sB[1]), 1)]; parts['waveFore']['wrist'] = [round(float(fW[0]), 1), round(float(fW[1]), 1)]; parts['waveHandW']['tip'] = [round(float(hT[0]), 1), round(float(hT[1]), 1)]
+    armFb = next(b for b in out_bones if b['name'] == 'armF')
+    out_bones.append({'name': 'wSleeve', 'parent': 'torso', 'pos': list(armFb['pos']), 'part': 'waveSleeve'})
+    out_bones.append({'name': 'wFore', 'parent': 'wSleeve', 'pos': [round(float((sB - sA)[0] * kU), 1), round(float((sB - sA)[1] * kU), 1)], 'part': 'waveFore'})
+    out_bones.append({'name': 'wHand', 'parent': 'wFore', 'pos': [round(float((fW - fE)[0] * kF), 1), round(float((fW - fE)[1] * kF), 1)], 'part': 'waveHandW'})
+    ang_ = lambda v: round(math.atan2(v[1], v[0]), 4)
+    rig['waveImg'] = {'upper': ang_(sB - sA), 'fore': ang_(fW - fE), 'hand': ang_(hT - hW), 'handRest': WV.get('handRest', -0.357), 'shoulderShift': WV.get('shoulderShift', [0, 0]),
+                      'up': WV.get('up', 1.15), 'fore0': WV.get('fore0', -1.2), 'openAt': WV.get('openAt', .45), 'openWa': WV.get('openWa', .05), 'note': '먼 팔(봉 팔) 손 흔들기: 소매는 상체 뒤, 팔뚝은 수염 옆, 편 손은 맨 앞'}
+    rig['drawWave'] = WV.get('draw') or ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront',
+                                          'weapon', 'fistF', 'wFore', 'handL', 'armU', 'armL', 'pauldron', 'handR', 'wHand']
+    rig['hidden'] = rig['hidden'] + ['wSleeve', 'wFore', 'wHand']; rig['ui']['touch'] = 'wave'
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)

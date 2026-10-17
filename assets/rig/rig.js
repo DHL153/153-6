@@ -911,7 +911,7 @@
       b.foreF.ar = b.foreF.ar + wrapA(tFF - b.foreF.ar) * w;
       b.fistF.ar = b.fistF.ar * (1 - w);
       this.wrist = b.fistF.rot + b.fistF.ar;
-      const open = w > .45 && wa < .05;                                      // open arm only while the spear is away
+      const open = w > (WI0.openAt ?? .45) && wa < (WI0.openWa ?? .05);   // open arm only while the spear is away (openAt/openWa opt-in: 쥔 주먹 그림에 자루 토막이 있는 리그(6)는 일찍 편 손으로)
       // ---- open arm = sheet W: sleeve (upper arm) < bandaged forearm < sleeve cuff lip, open LEFT hand (palm to viewer) on top.
       // Angles are world directions of each drawn segment; the hand flicks at the wrist a little behind the forearm.
       const WI = rig.def.waveImg, ph3 = Math.sin((t - .34) * TAU * 2.6 - 1.3);
