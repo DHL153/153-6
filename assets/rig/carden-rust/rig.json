@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "df3d695a",
+ "version": "f2dde157",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -178,19 +178,23 @@
    "wrist": [
     6,
     203
+   ],
+   "toElbow": [
+    -0.968,
+    -0.252
    ]
   },
   "armLS": {
    "src": "parts/armLS.png",
    "pivot": [
-    34,
-    3
+    46.2,
+    10.6
    ],
    "scale": 2.05,
    "noAxis": true,
    "grip": [
-    33,
-    37
+    40.0,
+    61
    ]
   },
   "thighN": {
@@ -1407,8 +1411,8 @@
  "staffKey": {
   "sleeve": "armLS",
   "shoulder": [
-   70,
-   30
+   15,
+   10
   ],
   "leadOn": 0.12,
   "pauldronFollow": 0.25,
@@ -1416,7 +1420,9 @@
   "upperLen": 78,
   "fit": 0.93,
   "fitMin": 0.85,
-  "fitMax": 1.7
+  "fitMax": 1.7,
+  "foreFromHand": true,
+  "foreK": 1.25
  },
  "drawStaff": [
   "cape",
@@ -1433,8 +1439,8 @@
   "beard",
   "headFront",
   "weapon",
-  "armU",
   "armL",
+  "armU",
   "pauldron",
   "fistF",
   "handL",

@@ -612,11 +612,34 @@
         // staffKey.upperLen / fit (opt-in, 6 카르덴 10-18): 윗팔을 어깨갑 밖으로 빼고(upperLen), 소매를 어깨→손목 거리에 맞춰 늘임(fit = 펴짐 정도)
         //   → 팔꿈치가 윗팔 끝에 딱 붙고 손목이 뒷주먹 소매 테에 딱 닿음 (짧은 소매로는 팔이 봉 뒤에 숨거나 모자랐음)
         let n2 = N2;
+        if (SK.foreFromHand && hr.toElbow) {   // staffKey.foreFromHand (opt-in, 6 카르덴 10-18 00:59 '손-팔꿈치-어깨가 다 나오게'): 팔뚝은 뒷주먹 소매 테가 향한 쪽으로 그대로 이어지고(팔꿈치 = 손목 + 소매 방향 × 팔뚝 길이),
+          //   윗팔은 어깨→그 팔꿈치를 잇도록 길이만 맞춤 → 니콜처럼 어깨 밑으로 내려온 윗팔 + 앞으로 뻗은 팔뚝 + 손이 한 줄로 보임
+          const tx_ = hr.toElbow[0], ty_ = hr.toElbow[1], dW = [cR * tx_ - sR2 * ty_, sR2 * tx_ + cR * ty_], ULn = SK.upperLen || 78;
+          // 팔뚝 길이 배율 fk 를 0.85~1.4 에서 골라: 윗팔(어깨→팔꿈치)이 upperLen 에 가깝고 팔꿈치가 -20°~-150° 로 굽는 것 (돌아올 때 팔꿈치가 어깨에 붙어 접히던 것 방지)
+          let best_ = SK.foreK ?? 1, bs_ = 1e9; for (let k_ = .85; k_ <= 1.401; k_ += .05) { const E_ = [WN[0] + dW[0] * N2 * k_, WN[1] + dW[1] * N2 * k_], u_ = Math.hypot(E_[0] - SN[0], E_[1] - SN[1]);
+            const bd_ = wrapA(Math.atan2(WN[1] - E_[1], WN[0] - E_[0]) - Math.atan2(E_[1] - SN[1], E_[0] - SN[0])) * 180 / Math.PI, sc_ = Math.abs(u_ - ULn) + Math.abs(k_ - (SK.foreK ?? 1)) * 40 + (bd_ > -20 || bd_ < -150 ? 1e3 : 0); if (sc_ < bs_) { bs_ = sc_; best_ = k_ } }
+          const first_ = this.fkS == null || w < (SK.nearOn ?? .9) + .02;
+          this.fkS = first_ ? best_ : damp(this.fkS, best_, 20, 1 / 120);
+          const fk_ = this.fkS, EH_ = [WN[0] + dW[0] * N2 * fk_, WN[1] + dW[1] * N2 * fk_];
+          const bh_ = wrapA(Math.atan2(WN[1] - EH_[1], WN[0] - EH_[0]) - Math.atan2(EH_[1] - SN[1], EH_[0] - SN[0])) * 180 / Math.PI, ok_ = bh_ < -25 && bh_ > -140 && Math.hypot(EH_[0] - SN[0], EH_[1] - SN[1]) > ULn * .6;
+          // 봉을 다시 세우는 동안(소매 방향대로는 팔꿈치가 어깨 위로 가거나 팔이 다 접힘)은 보통 IK 팔꿈치로 부드럽게 넘어감 — 팔꿈치 뒤집힘·접힘 없음
+          this.hW = first_ ? (ok_ ? 1 : 0) : damp(this.hW ?? 1, ok_ ? 1 : 0, 30, 1 / 120);
+          const D2_ = Math.hypot(WN[0] - SN[0], WN[1] - SN[1]), c50_ = Math.cos(.87), s50_ = Math.sin(.87);   // IK 쪽 팔뚝 길이: 팔꿈치가 약 −130° 로 굽게(다 접히지 않게)
+          const n2i_ = clamp(D2_ > ULn * s50_ ? ULn * c50_ + Math.sqrt(D2_ * D2_ - ULn * ULn * s50_ * s50_) : ULn * c50_, N2 * .7, N2 * 1.4);
+          const EI_ = pick(SN, WN, solve2(SN, WN, ULn, n2i_)), EN_ = [lerp(EI_[0], EH_[0], this.hW), lerp(EI_[1], EH_[1], this.hW)];
+          const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1, u1 = Math.hypot(EN_[0] - SN[0], EN_[1] - SN[1]), n1b = u1;   // 윗팔 길이 = 어깨→팔꿈치 (길이만 섞으면 팔꿈치가 목표를 지나쳐 팔뚝이 뒤로 접힘)
+          b.armL.ax = p_[0] * (n1b / l_ - 1); b.armL.ay = p_[1] * (n1b / l_ - 1);
+          b.armU.ar += wrapA(Math.atan2(EN_[1] - SN[1], EN_[0] - SN[0]) - Math.atan2(p_[1], p_[0]) - wAng(b.armU.m)); rig.compute();
+          const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m));
+          const dl_ = Math.hypot(WN[0] - EN[0], WN[1] - EN[1]); b.armL.asy = clamp(dl_ / N2, .7, 1.45); rig.compute();
+          { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }
+        } else {
         if (SK.fit) { const D_ = Math.hypot(WN[0] - SN[0], WN[1] - SN[1]), st_ = clamp((D_ / SK.fit - n1) / N2, SK.fitMin ?? .85, SK.fitMax ?? 1.6); b.armL.asy = st_; n2 = N2 * st_ }
         const eN = pick(SN, WN, solve2(SN, WN, n1, n2));
         b.armU.ar += wrapA(Math.atan2(eN[1] - SN[1], eN[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]) - wAng(b.armU.m)); rig.compute();
         const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m)); rig.compute();
         { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }   // 팔이 안 닿은 거리(검사용)
+        }
       } else {   // 다가가기: 주먹 그림으로 바꾸고 팔을 그 손목 쪽으로 반쯤
         rig.swap.armL = P.armL.alt || null; const pl = P[P.armL.alt || 'armL'], gp = pl.grip || pl.pivot, M2 = Math.hypot(gp[0] - pl.pivot[0], gp[1] - pl.pivot[1]) * (pl.scale || 1);
         const eN = pick(SN, GN, solve2(SN, GN, n1, M2)), base = b.armU.ar;   // 주먹 그림(armLF)의 쥔 점 = 뒷주먹 쥔 점

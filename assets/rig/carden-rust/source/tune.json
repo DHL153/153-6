@@ -1873,8 +1873,8 @@
  "staffKey": {
   "sleeve": "armLS",
   "shoulder": [
-   70,
-   30
+   15,
+   10
   ],
   "leadOn": 0.12,
   "pauldronFollow": 0.25,
@@ -1882,7 +1882,9 @@
   "upperLen": 78,
   "fit": 0.93,
   "fitMin": 0.85,
-  "fitMax": 1.7
+  "fitMax": 1.7,
+  "foreFromHand": true,
+  "foreK": 1.25
  },
  "closeArmhole": true,
  "pts": {
@@ -2068,5 +2070,12 @@
  },
  "carryDrop": 9,
  "lowerLegScale": 1.12,
- "weaponFloor": 2
+ "weaponFloor": 2,
+ "longSleeve": {
+  "cutY": 64
+ },
+ "handRtoElbow": [
+  -0.968,
+  -0.252
+ ]
 }

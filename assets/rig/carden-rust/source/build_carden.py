@@ -169,6 +169,13 @@ if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼�
         yy_ = np.arange(sa.shape[0])[:, None]; sa[..., 3] = (sa[..., 3] * np.clip((cutY - yy_) / 4, 0, 1)).astype(np.uint8)
         Image.fromarray(sa[:cutY + 1], 'RGBA').save(os.path.join(PARTS, 'armLS.png'))
         parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': PT['armLF'][0], 'scale': parts['armL']['scale'], 'noAxis': True, 'grip': [PT['armLF'][0][0] - 1, cutY - 3]}
+        LSL = T('longSleeve', None)
+        if LSL:   # 찌르기 팔뚝 = 달리기 팔뚝(armLF, 소매 늘인 것)의 소매만 (DHL 10-18 00:59 '손-팔꿈치-어깨가 다 나오게': 짧은 소매로는 팔이 접혀 숨었음)
+            q_ = np.asarray(Image.open(os.path.join(PARTS, 'armLF.png')).convert('RGBA')).copy(); cy_ = LSL['cutY']; yy_ = np.arange(q_.shape[0])[:, None]
+            q_[..., 3] = (q_[..., 3] * np.clip((cy_ - yy_) / 3, 0, 1)).astype(np.uint8); q_ = q_[:cy_ + 1]
+            Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armLS.png')); xs_ = np.nonzero(q_[cy_ - 4, :, 3] > 100)[0]
+            parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': parts['armLF']['pivot'], 'scale': parts['armL']['scale'], 'noAxis': True, 'grip': [round((xs_.min() + xs_.max()) / 2, 1), cy_ - 3]}
+        if T('handRflip', False) and T('handRtoElbow', None): parts['handR']['toElbow'] = T('handRtoElbow', None)   # 뒷주먹 소매 테가 향한 쪽(그림 기준, 뒤집은 뒤)
 
 # 다리: 허벅지·정강이 = 가까운/먼 다리 다른 그림(S.thighImg), 뼈 길이에 맞춰 늘이되 굵기는 K 그대로(w = K/길이 배율)
 d2 = lambda a, b: float(np.linalg.norm(A(b) - A(a)))
@@ -247,7 +254,7 @@ if T('pantsSkirt', False):   # DHL 23:51: 벨트 아래 ~ 무릎(바지 윗부�
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
-if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armU', 'armL', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
+if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armL', 'armU', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
 _h = hashlib.sha1()
 for _f in sorted(os.listdir(PARTS)): _h.update(_f.encode()); _h.update(open(os.path.join(PARTS, _f), 'rb').read())
 _h.update(json.dumps(rig, sort_keys=True).encode()); rig['version'] = _h.hexdigest()[:8]
