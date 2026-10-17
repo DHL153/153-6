@@ -160,6 +160,11 @@ legs = {'hip': [0, LH], 'thigh': thighL, 'shin': shinL,
         'boot': {'part': 'boot', 'sole': T('sole', [[-38, 50], [-30, 58], [45, 58], [66, 50]]), 'ankleRange': T('ankleRange', [-0.62, 0.45])},
         'near': {'x': T('nearX', 24), 'shade': 0}, 'far': {'x': T('farX', -34), 'shade': T('farShade', 0.16)}}
 
+# 서 있을 때 골반이 다리 때문에 내려가는 양(hipDrop)만큼 몸을 미리 올려 둠 → 서 있는 자세가 원화와 같은 높이 (다리 관절 위치는 그대로)
+LIFT = T('idleLift', 14)
+for b_ in out_bones:
+    if b_['name'] == 'hip': b_['pos'][1] = round(b_['pos'][1] - LIFT, 1)
+legs['hip'][1] = legs['hip'][1] + LIFT
 draw = ['cape', 'legFar', 'legNear', 'armF', 'torso', 'collarBack', 'pauldronF', 'skirt', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar']
 drawWave = ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'torso', 'collarBack', 'pauldronF', 'skirt', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'wFore', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar', 'wHand']
 wt = ap(np.linalg.inv(np.vstack([MW, [0, 0, 1]]))[:2], (0, 0))

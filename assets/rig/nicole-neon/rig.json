@@ -133,8 +133,8 @@
   "fistF": {
    "src": "parts/fistF.png",
    "pivot": [
-    13.2,
-    10.2
+    17.1,
+    21.9
    ],
    "scale": 1.2674
   },
@@ -171,16 +171,16 @@
   "handL": {
    "src": "parts/handL.png",
    "pivot": [
-    37.5,
+    40.4,
     37.3
    ],
    "scale": 1.2363,
    "shaftDir": [
     1.0,
-    -0.0009
+    -0.0008
    ],
    "wrist": [
-    3.0,
+    4.0,
     60.0
    ],
    "toElbow": [
@@ -191,7 +191,7 @@
   "handR": {
    "src": "parts/handR.png",
    "pivot": [
-    143.4,
+    141.2,
     36.1
    ],
    "scale": 1.2363,
@@ -359,7 +359,7 @@
    "parent": "root",
    "pos": [
     34.0,
-    -398.2
+    -417.2
    ]
   },
   {
@@ -528,7 +528,7 @@
     0,
     0
    ],
-   "rot": -1.5699,
+   "rot": -1.57,
    "part": "handL"
   },
   {
@@ -572,7 +572,7 @@
  "legs": {
   "hip": [
    0,
-   34
+   53
   ],
   "thigh": 150,
   "shin": 146,
@@ -729,7 +729,7 @@
  "hemRest": true,
  "idleStance": {
   "near": 40,
-  "far": -92
+  "far": -106
  },
  "follow": [
   {

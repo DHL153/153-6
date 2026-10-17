@@ -17,8 +17,11 @@ def hsv(a):
 
 def skin_mask(a):
     h, s, v = hsv(a.astype(float)); al = a[..., 3] > 128
-    m = al & (h > 12) & (h < 42) & (s > .2) & (s < .7) & (v > .6)
-    lb, n = nd.label(m); sz = nd.sum(m, lb, range(1, n + 1)); m = lb == 1 + int(np.argmax(sz))
+    m = al & (h > 10) & (h < 42) & (s > .2) & (s < .82) & (v > .5)
+    lb, n = nd.label(m); sz = np.array(nd.sum(m, lb, range(1, n + 1))); big = 1 + int(np.argmax(sz))
+    near = nd.binary_dilation(lb == big, iterations=12)
+    keepL = [i + 1 for i in range(n) if sz[i] >= sz.max() * .03 and (near & (lb == i + 1)).any()]   # 엄지처럼 외곽선으로 갈라진 피부 덩어리도 포함
+    m = np.isin(lb, keepL)
     return nd.binary_fill_holes(nd.binary_closing(m, iterations=3))
 
 def shaft_axis(a, skin, vertical):
@@ -78,9 +81,14 @@ def process(name, vertical, fist_only, flipU=False, keep_extra=None, full_band=T
         if gs: stub |= band & (tb > tl) & (tb < gs - 1)
     keep = ~(stub | (band & ~fistP & mode_full_band))
     if fist_only:
-        dark = (a[..., :3].astype(int).mean(-1) < 95) & al
-        cuff = dark & nd.binary_dilation(skin, iterations=9) & ~band
-        keep = fistP | cuff
+        # 주먹만: 피부를 외곽선 두께(4px)만큼 키운 뒤, 가는 잔선(자루 테두리 조각)은 열기로 깎음 → 매끈한 주먹 실루엣 (2026-10-17 확대 검수에서 조각 발견)
+        disk = lambda r: (lambda y, x: x * x + y * y <= r * r)(*np.mgrid[-r:r + 1, -r:r + 1])
+        import cv2
+        sk = nd.binary_closing(skin, structure=disk(3)).astype(np.uint8); cnts, _ = cv2.findContours(sk, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        hull = np.zeros_like(sk); cv2.fillPoly(hull, [cv2.convexHull(np.vstack(cnts))], 1)
+        lum = a[..., :3].astype(int).mean(-1); h_, s_, v_ = hsv(a.astype(float))
+        shaftc = al & (s_ < .25) & (lum >= 42)                     # 자루 회색·흰 띠
+        keep = nd.binary_dilation(hull.astype(bool), structure=disk(4)) & ~(shaftc & ~hull.astype(bool))   # 주먹 = 피부 볼록 껍질 + 외곽선 4px, 껍질 밖 자루색은 뺌
     a[..., 3] = np.where(keep, a[..., 3], 0)
     # 가는 잔선 정리 + 작은 덩어리 제거
     m0 = a[..., 3] > 20; body = nd.binary_dilation(nd.binary_opening(m0, iterations=2), iterations=3) & m0

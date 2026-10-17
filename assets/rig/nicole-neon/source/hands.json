@@ -2,29 +2,29 @@
  "handL": {
   "file": "parts_work/handL.png",
   "grip": [
-   37.5,
+   40.4,
    37.3
   ],
   "shaftDir": [
    1.0,
-   -0.0009
+   -0.0008
   ],
   "thick": 32.0,
-  "axisPts": 63,
+  "axisPts": 62,
   "fistC": [
-   37.5,
-   30.0
+   40.4,
+   32.7
   ],
   "off": [
-   95.0,
+   94.0,
    3.0
   ],
-  "fistW": 59
+  "fistW": 61
  },
  "handR": {
   "file": "parts_work/handR.png",
   "grip": [
-   143.4,
+   141.2,
    36.1
   ],
   "shaftDir": [
@@ -34,35 +34,35 @@
   "thick": 31.0,
   "axisPts": 69,
   "fistC": [
-   143.4,
-   32.8
+   141.2,
+   35.0
   ],
   "off": [
    44.0,
    3.0
   ],
-  "fistW": 63
+  "fistW": 82
  },
  "fistF": {
   "file": "parts_work/fistF.png",
   "grip": [
-   21.4,
-   30.7
+   32.4,
+   31.7
   ],
   "shaftDir": [
-   0.001,
+   0.0011,
    -1.0
   ],
   "thick": 26.0,
-  "axisPts": 46,
+  "axisPts": 45,
   "fistC": [
-   25.2,
-   30.7
+   30.0,
+   31.7
   ],
   "off": [
-   55.0,
-   53.0
+   44.0,
+   52.0
   ],
-  "fistW": 34
+  "fistW": 46
  }
 }

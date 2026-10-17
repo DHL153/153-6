@@ -59,11 +59,12 @@
  "shinWidth": 58,
  "idleStance": {
   "near": 40,
-  "far": -92
+  "far": -106
  },
  "ankleRange": [
   -0.62,
   0.56
  ],
- "weaponRaise": 22
+ "weaponRaise": 22,
+ "idleLift": 19
 }
