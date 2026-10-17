@@ -764,7 +764,7 @@
       const ord = step("order", null);
       rig.drawOrder = (reach > .3 || w > .2) ? (rig.def[ord || "drawSword"] || null) : null;
       rig.compute();
-      if (act && !act.hit && at >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+      if (act && !act.hit && at >= D.hitAt) { act.hit = true; if (D.hitStop) act.freeze = D.hitStop; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }   // hitStop(초, opt-in): 칼이 땅에 닿는 순간 잠깐 멈춤(묵직함)
     }
     _waveArms(D, t, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
@@ -827,7 +827,7 @@
       this.turnT = Math.max(0, this.turnT - dt);
       const lvx = vx * this.facing, sp = Math.abs(vx);
       this.odo += lvx * dt; this.events.length = 0;
-      const act = this.act; if (act) { act.t += dt * (act.speed || 1); if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
+      const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
       const D = act && act.def, at = act ? act.t : 0;
       this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? 14 : 8, dt);
       const G = this.G, A = this.A, I = 1 - A, S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
@@ -942,6 +942,14 @@
       const wph = T * (2.4 + sp * .009), wamp = 5 + sp * .02;
       rig.meshFx.cape = (u, v) => { const w = Math.pow(v, 1.25) * (.35 + .65 * (1 - u)); const wave = Math.sin(wph - v * 4.2 - (1 - u) * 2.4);
         return [(-capeA * 85 + wave * wamp) * w, (-this.hipVy * .035 + wave * wamp * .45 - capeA * 30 * (1 - u)) * w] };
+
+      // ---------- streamers (opt-in, 알론소 v4 목도리 긴 꼬리): 그림 오른쪽 끝(pivot)이 뿌리, 왼쪽(뒤)으로 날리는 천.
+      //   동작 시트처럼 서 있어도 바람에 날리고(wind), 달릴수록 펴지고(처짐 sag·droop 줄어듦), 몸이 오르내리거나 갑자기 움직이면 늦게 따라옴(lag) ----------
+      if (rig.def.streamers) for (const S of rig.def.streamers) { const bn = b[S.bone]; if (!bn) continue;
+        const run = Math.max(S.wind ?? .5, A), L = S.len || 200, ph = T * (S.freq || 7) + (S.phase || 0), amp = (S.amp || 10) * (.55 + .45 * run), sag = (S.sag ?? 25) * (1 - run);
+        bn.ar += -(S.droop ?? .4) * (1 - run) + capeA * (S.lag ?? .35) + clamp(this.hipVy * .0007, -.12, .12);
+        rig.meshFx[S.part] = (u, v, x, y) => { const q = clamp(-x / L, 0, 1), e = Math.pow(q, 1.35), wv = Math.sin(ph - q * 5.5);
+          return [-Math.abs(wv) * amp * .2 * e, (wv * amp + sag * q) * e] } }
 
       // ---------- braid (optional part): trails back a little, bounces with the steps ----------
       if (b.braid) { const bra = this.braid.step(clamp(lvx * .00022 + accel * .00006 - this.hipVy * .0012, -.12, .2), dt);

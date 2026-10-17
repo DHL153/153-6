@@ -183,13 +183,13 @@ rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}, 'far
 rig['drawSwordRel'] = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'foreF']   # 먼 손 놓은 뒤: 먼 팔 몸 뒤, 칼과 가까운 손 맨 앞
 rig['drawSwordRise'] = ['cape','pauldron','armU','legFar','legNear','torso','skirt','pouch','scarf','head','armL','armF','pauldronF','weapon','farFistDn','foreF']   # DHL 14:40: 칼을 다시 메러 얼굴 근처로 올릴 때 먼 팔뚝이 몸 앞(가슴)으로 보임, 주먹은 칼 위
 # 내려찍기 v5 1차 (12:58): 키 기반(rigid) — 쥔 팔뚝 그림은 칼에 고정, 그림은 구간마다 고정(튀지 않음). 준비 = 동작 시트 m12(주먹 머리 위), 타격 = m13
-rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45, 1.1], 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
+rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45, 1.1], 'dur': 0.9, 'hitAt': 0.46, 'hitStop': 0.07, 'cancelAt': 0.62,
     'reach': [[0, 0, 'io'], [0.1, 1], [0.79, 1, 'io'], [0.9, 0]],   # 14:40: 얼굴 앞(0.75~0.79)까지 쥐고 있다가 놓음   # DHL 14:20: 칼이 얼굴 근처까지 올라올 때까지 두 손으로 들고, 그 뒤 먼 손을 놓음   # DHL 14:07: 들어 올릴 때 먼 손이 이미 손잡이를 쥠   # reachPiece: 먼 손은 처음부터 쥔 팔뚝 그림으로 주먹 자리→손잡이(튐 없음), 타격 뒤 손잡이→제자리로 내림
     'reachPiece': True,
     'w': [[0, 0, 'io'], [0.3, 1], [0.62, 1, 'io'], [0.85, 0]],
     'gx': [[0, -5], [0.3, 10, 'i'], [0.38, 10, 'i'], [0.42, 60, 'o'], [0.46, 110], [1, 110]],   # 머리 위 칼을 머리 가운데로 → 먼 팔뚝이 얼굴 오른쪽으로 내려옴(DHL 14:07 스케치)
-    'gy': [[0, -405], [0.3, -385, 'i'], [0.38, -390, 'i'], [0.42, -300, 'o'], [0.46, -40], [1, -40]],
-    'sa': [[0, -2.71], [0.3, -2.95, 'i'], [0.38, -2.95, 'i'], [0.42, -1.4, 'o'], [0.46, 0.44], [1, 0.44]],
+    'gy': [[0, -405], [0.3, -385, 'io'], [0.38, -393, 'i'], [0.42, -300, 'o'], [0.46, -40, 'o'], [0.5, -52, 'io'], [0.57, -40], [1, -40]],   # 15:10 타격 뒤 칼이 땅에서 살짝 튀었다 가라앉음(무게)
+    'sa': [[0, -2.71], [0.3, -2.95, 'io'], [0.38, -3.06, 'i'], [0.42, -1.4, 'o'], [0.46, 0.44, 'o'], [0.5, 0.37, 'io'], [0.57, 0.44], [1, 0.44]],   # 15:10 머리 위에서 한 번 더 젖혔다(준비) 휘두름
     'sN': [[0, 0, 'io'], [0.16, 40], [0.41, 40], [0.42, 38], [0.68, 38], [0.69, 25], [0.77, 25], [0.78, 0]],
     'sF': [[0, -55], [0.41, -55], [0.42, -30]],   # 머리 위: 먼 손은 폼멜 쪽 끝
     'nPiece': [[0, 'foreF'], [0.12, 'gNup'], [0.41, 'gNdn'], [0.68, 'gN49'], [0.78, 'foreF']],   # 복귀: 팔꿈치가 어깨 아래·윗팔 길이에 오는 그림만(13:44 gNup은 팔꿈치가 얼굴 위로 올라가 바꿈)   # 메는 손↔머리 위 손은 팔꿈치 차이 19뿐 → 들어 올릴 때 머리 위 손을 거쳐 메기로(큰 바뀜은 휘두름·들어 올림 시작 순간에만)
@@ -199,7 +199,7 @@ rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45
     'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.75, 'drawSwordRise'], [0.79, 'drawSwordRel']],   # 14:40: 얼굴 앞에서만 먼 팔뚝이 몸 앞에 보임 → 놓을 때는 몸 뒤로(놓는 그림 바꿈이 몸에 가려짐)
     'tPiece': [[0, 'torso'], [0.13, 'torsoTurn'], [0.41, 'torso']],
     'hipX': [[0, 0, 'io'], [0.32, -14, 's'], [0.46, 40], [0.6, 40, 'io'], [0.85, 0]],
-    'hipY': [[0, 0, 'io'], [0.3, 24, 's'], [0.38, 28, 's'], [0.46, 55], [0.6, 51, 'io'], [0.85, 0]],
+    'hipY': [[0, 0, 'io'], [0.3, 24, 's'], [0.38, 30, 's'], [0.46, 55, 'o'], [0.5, 61, 'io'], [0.6, 51, 'io'], [0.85, 0]],   # 15:10 타격 때 몸이 한 번 더 눌림
     'lean': [[0, 0, 'io'], [0.32, -0.08, 's'], [0.46, 0.5], [0.6, 0.46, 'io'], [0.85, 0]],
     'head': [[0, 0, 'io'], [0.32, 0.08, 's'], [0.46, -0.2], [0.6, -0.18, 'io'], [0.85, 0]],
     'breath': [[0, 0, 'io'], [0.3, 1, 'o'], [0.46, -0.5, 'io'], [0.8, 0]],
@@ -208,6 +208,22 @@ rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45
     'nearDx': [[0, 0, 'io'], [0.38, 0, 'io'], [0.47, -60], [0.65, -60, 'io'], [0.85, 0]],   # 다리 길이 안에서 뒷다리를 곧게 뻗음(시트 m13은 다리를 2배 길게 그림 → 방향만 따름)
     'shake': [[0, 0], [0.46, 0, 'lin'], [0.47, 1], [0.56, 0]],
     'face': [[0, 'effort'], [0.3, 'shout'], [0.56, 'focus'], [0.76, None]]}}
+# ---------------- 목도리 긴 꼬리 2개 (시트 2 r15·r16, 15:25) — 동작 시트처럼 늘 뒤로 날림. 짧게 늘어진 예전 꼬리(cape)는 안 그림 ----------------
+#   r15: 왼쪽 끝이 찢긴 끝(자유 끝), 오른쪽 뾰족한 끝이 매듭 쪽 → 그대로. r16: 오른쪽 끝이 아래로 처진 자유 끝 → 좌우 뒤집어 왼쪽으로 날리게
+#   크기: 매듭(r14) 폭 192px ↔ 지금 목도리 고리 폭 124 → 0.65배인데, 동작 시트 꼬리(목→끝 약 300·폭 넓음)에 맞춰 0.95배
+for n, src, flip in [('tailA', 'r15', False), ('tailB', 'r16', True)]:
+    im = Image.open(os.path.join(HERE, 'pieces', 'rig2', src + '.png')).convert('RGBA')
+    if flip: im = im.transpose(Image.FLIP_LEFT_RIGHT)
+    im.save(os.path.join(OUT, 'parts', n + '.png'))
+    al = np.array(im)[..., 3] > 40; xs = np.where(al.any(0))[0]; x1 = int(xs.max()); ys = np.where(al[:, x1 - 25:x1 + 1].any(1))[0]
+    rig['parts'][n] = {'src': f'parts/{n}.png', 'pivot': [float(x1 - 8), float((ys.min() + ys.max()) / 2)], 'scale': 0.95, 'mesh': {'cols': 8, 'rows': 2}}
+    rig['_tailLen_' + n] = round(float(x1 - xs.min()) * 0.95, 1)
+rig['bones'].append({'name': 'tailA', 'parent': 'torso', 'pos': [-14.0, -204.0], 'rot': -0.12, 'part': 'tailA'})
+rig['bones'].append({'name': 'tailB', 'parent': 'torso', 'pos': [-8.0, -192.0], 'rot': -0.32, 'part': 'tailB'})
+rig['streamers'] = [{'bone': 'tailA', 'part': 'tailA', 'len': rig.pop('_tailLen_tailA'), 'amp': 11, 'freq': 7.5, 'phase': 0, 'droop': 0.3, 'sag': 20, 'wind': 0.7, 'lag': 0.35},
+                    {'bone': 'tailB', 'part': 'tailB', 'len': rig.pop('_tailLen_tailB'), 'amp': 15, 'freq': 6.6, 'phase': 1.9, 'droop': 0.4, 'sag': 26, 'wind': 0.65, 'lag': 0.45}]
+for k in [k for k in rig if k == 'draw' or k.startswith('drawSword')]:
+    L = rig[k]; i = L.index('cape'); rig[k] = L[:i] + ['tailB', 'tailA'] + L[i + 1:]
 json.dump(rig, open(os.path.join(OUT, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
 open(os.path.join(OUT, 'rig.def.js'), 'w').write("// 자동 생성: rig.json을 JS로 감싼 것. 원본은 같은 폴더의 rig.json\nwindow.MR_RIG_DEFS=window.MR_RIG_DEFS||{};\nwindow.MR_RIG_DEFS['alonso-rust']=" + json.dumps(rig, ensure_ascii=False) + ";\n")
 print('ok', len(def_parts), 'parts; GRIP', GRIP.round(1), 'EL_N', EL_N.round(1), 'EL_F', EL_F.round(1), 'FIST_F', FIST_F.round(1))

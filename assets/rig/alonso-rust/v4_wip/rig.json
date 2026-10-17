@@ -558,6 +558,30 @@
     250.0
    ],
    "scale": 1.1444
+  },
+  "tailA": {
+   "src": "parts/tailA.png",
+   "pivot": [
+    315.0,
+    71.5
+   ],
+   "scale": 0.95,
+   "mesh": {
+    "cols": 8,
+    "rows": 2
+   }
+  },
+  "tailB": {
+   "src": "parts/tailB.png",
+   "pivot": [
+    324.0,
+    33.0
+   ],
+   "scale": 0.95,
+   "mesh": {
+    "cols": 8,
+    "rows": 2
+   }
   }
  },
  "bones": [
@@ -715,6 +739,26 @@
    ],
    "rot": 0.2094,
    "part": "pauldronF"
+  },
+  {
+   "name": "tailA",
+   "parent": "torso",
+   "pos": [
+    -14.0,
+    -204.0
+   ],
+   "rot": -0.12,
+   "part": "tailA"
+  },
+  {
+   "name": "tailB",
+   "parent": "torso",
+   "pos": [
+    -8.0,
+    -192.0
+   ],
+   "rot": -0.32,
+   "part": "tailB"
   }
  ],
  "legs": {
@@ -789,7 +833,8 @@
   }
  },
  "draw": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "armU",
   "armL",
@@ -895,7 +940,8 @@
   }
  },
  "drawSword": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "legFar",
   "legNear",
@@ -947,7 +993,8 @@
   ]
  },
  "drawSwordUp": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "armU",
   "legFar",
@@ -966,7 +1013,8 @@
   "foreF"
  ],
  "drawSwordUp2": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "armU",
   "legFar",
@@ -1039,7 +1087,8 @@
   }
  },
  "drawSwordRel": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "armU",
   "armL",
@@ -1056,7 +1105,8 @@
   "foreF"
  ],
  "drawSwordRise": [
-  "cape",
+  "tailB",
+  "tailA",
   "pauldron",
   "armU",
   "legFar",
@@ -1083,6 +1133,7 @@
    ],
    "dur": 0.9,
    "hitAt": 0.46,
+   "hitStop": 0.07,
    "cancelAt": 0.62,
    "reach": [
     [
@@ -1162,11 +1213,11 @@
     [
      0.3,
      -385,
-     "i"
+     "io"
     ],
     [
      0.38,
-     -390,
+     -393,
      "i"
     ],
     [
@@ -1176,6 +1227,16 @@
     ],
     [
      0.46,
+     -40,
+     "o"
+    ],
+    [
+     0.5,
+     -52,
+     "io"
+    ],
+    [
+     0.57,
      -40
     ],
     [
@@ -1191,11 +1252,11 @@
     [
      0.3,
      -2.95,
-     "i"
+     "io"
     ],
     [
      0.38,
-     -2.95,
+     -3.06,
      "i"
     ],
     [
@@ -1205,6 +1266,16 @@
     ],
     [
      0.46,
+     0.44,
+     "o"
+    ],
+    [
+     0.5,
+     0.37,
+     "io"
+    ],
+    [
+     0.57,
      0.44
     ],
     [
@@ -1399,12 +1470,18 @@
     ],
     [
      0.38,
-     28,
+     30,
      "s"
     ],
     [
      0.46,
-     55
+     55,
+     "o"
+    ],
+    [
+     0.5,
+     61,
+     "io"
     ],
     [
      0.6,
@@ -1609,5 +1686,31 @@
     ]
    ]
   }
- }
+ },
+ "streamers": [
+  {
+   "bone": "tailA",
+   "part": "tailA",
+   "len": 304.9,
+   "amp": 11,
+   "freq": 7.5,
+   "phase": 0,
+   "droop": 0.3,
+   "sag": 20,
+   "wind": 0.7,
+   "lag": 0.35
+  },
+  {
+   "bone": "tailB",
+   "part": "tailB",
+   "len": 312.6,
+   "amp": 15,
+   "freq": 6.6,
+   "phase": 1.9,
+   "droop": 0.4,
+   "sag": 26,
+   "wind": 0.65,
+   "lag": 0.45
+  }
+ ]
 }
