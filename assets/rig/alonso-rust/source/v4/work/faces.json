@@ -1,0 +1,50 @@
+{
+ "neutral": {
+  "cc": 0.89,
+  "hairDiff": 18.7
+ },
+ "happy": {
+  "cc": 0.849,
+  "hairDiff": 18.7
+ },
+ "effort": {
+  "cc": 0.875,
+  "hairDiff": 19.9
+ },
+ "shout": {
+  "cc": 0.841,
+  "hairDiff": 19.8
+ },
+ "angry": {
+  "cc": 0.88,
+  "hairDiff": 19.6
+ },
+ "focus": {
+  "cc": 0.861,
+  "hairDiff": 20.6
+ },
+ "sad": {
+  "cc": 0.87,
+  "hairDiff": 20.3
+ },
+ "grimace": {
+  "cc": 0.855,
+  "hairDiff": 18.9
+ },
+ "relaxed": {
+  "cc": 0.846,
+  "hairDiff": 22.5
+ },
+ "surprised": {
+  "cc": 0.804,
+  "hairDiff": 24.3
+ },
+ "blink_half": {
+  "cc": 0.845,
+  "hairDiff": 21.0
+ },
+ "blink_closed": {
+  "cc": 0.826,
+  "hairDiff": 20.3
+ }
+}
