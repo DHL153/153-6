@@ -142,6 +142,10 @@ def mirror_grip(src, dst):
     el = R(g['elbow']); def_parts[dst] = {'src': f'parts/{dst}.png', 'pivot': el, 'elbow': el, 'grip': R(g['grip']), 'wrist': R(g['grip']), 'shaftDir': g['shaftDir'], 'scale': g['scale'], 'fist': R(g['fist'])}
     return R, off
 R_FT, _ = mirror_grip('gFdn', 'gFdnT')
+# DHL 15:56: 먼 손 세로 손잡이 쥔 팔(엄지 위, 칼날 12시, 팔뚝 5시) — 칼을 다시 메러 얼굴 앞으로 올릴 때(0.75~0.79) 몸 앞에 보이는 먼 팔
+#   쥔 점 = 손잡이 축(x 433.5) 위 손가락 4개 가운데(y 500), 팔꿈치 = 둥근 피부 끝 중심, 크기 = 손가락 간격을 gFdn과 같게(0.22)
+shutil.copy(os.path.join(HERE, 'pieces', 'grip4', 'k02_vertical.png'), os.path.join(OUT, 'parts', 'gFrise.png'))
+def_parts['gFrise'] = {'src': 'parts/gFrise.png', 'pivot': [925.0, 991.0], 'elbow': [925.0, 991.0], 'grip': [433.5, 500.0], 'wrist': [433.5, 500.0], 'shaftDir': [0.0, -1.0], 'scale': 0.22}
 _fr = np.array([R_FT(c) for c in [(195, 298), (420, 298), (195, 503), (420, 503)]]); FIST_DN_T = [388, int(_fr[:, 1].min()), int(_fr[:, 0].max()) - 387, int(np.ptp(_fr[:, 1])) + 1]   # 왼쪽 끝은 털 소매 빼고 장갑부터(그림 보고 정함)
 # ---------------- 다리 (IK) ----------------
 for n, f in [('thigh', 'thigh.png'), ('shin', 'f20.png'), ('boot', 'a30f.png'), ('bootB', 'a30.png')]: shutil.copy(os.path.join(W, f), os.path.join(OUT, 'parts', n + '.png'))
@@ -179,9 +183,9 @@ rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
 rig['drawSwordUp'] = ['cape', 'pauldron', 'armU', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armL', 'headFront_face', 'armF', 'pauldronF', 'weapon', 'farFist', 'foreF']   # DHL 14:07: 먼 손은 손잡이를 쥐고 팔뚝은 얼굴 뒤·머리카락 앞으로 내려옴, 먼 주먹은 칼 위에 다시 그림(farFist)
 rig['drawSwordUp2'] = ['cape', 'pauldron', 'armU', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'armL', 'foreF']   # DHL 14:13: 머리 위 정점에서는 먼 팔뚝이 얼굴 앞으로 보임
 rig['headFront_face'] = {'clip': [[95, 267], [88, 170], [105, 135], [150, 118], [240, 108], [300, 112], [318, 170], [300, 267]]}   # 머리 그림 px: 얼굴(이마~턱)만
-rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}, 'farFistDn': {'bone': 'armL', 'rect': FIST_DN_T}}   # gFup·gFdn 그림의 주먹 부분   # gFup 그림의 주먹 부분(머리 위 준비 때만 씀)
+rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}, 'farFistDn': {'bone': 'armL', 'rect': FIST_DN_T}, 'farFistRise': {'bone': 'armL', 'rect': [300, 330, 340, 322]}}   # gFup·gFdn 그림의 주먹 부분   # gFup 그림의 주먹 부분(머리 위 준비 때만 씀)
 rig['drawSwordRel'] = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'foreF']   # 먼 손 놓은 뒤: 먼 팔 몸 뒤, 칼과 가까운 손 맨 앞
-rig['drawSwordRise'] = ['cape','pauldron','armU','legFar','legNear','torso','skirt','pouch','scarf','head','armL','armF','pauldronF','weapon','farFistDn','foreF']   # DHL 14:40: 칼을 다시 메러 얼굴 근처로 올릴 때 먼 팔뚝이 몸 앞(가슴)으로 보임, 주먹은 칼 위
+rig['drawSwordRise'] = ['cape','pauldron','armU','legFar','legNear','torso','skirt','pouch','scarf','head','armL','armF','pauldronF','weapon','farFistRise','foreF']   # DHL 14:40: 칼을 다시 메러 얼굴 근처로 올릴 때 먼 팔뚝이 몸 앞(가슴)으로 보임, 주먹은 칼 위
 # 내려찍기 v5 1차 (12:58): 키 기반(rigid) — 쥔 팔뚝 그림은 칼에 고정, 그림은 구간마다 고정(튀지 않음). 준비 = 동작 시트 m12(주먹 머리 위), 타격 = m13
 rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45, 1.1], 'dur': 0.9, 'hitAt': 0.46, 'hitStop': 0.07, 'cancelAt': 0.62,
     'reach': [[0, 0, 'io'], [0.1, 1], [0.79, 1, 'io'], [0.9, 0]],   # 14:40: 얼굴 앞(0.75~0.79)까지 쥐고 있다가 놓음   # DHL 14:20: 칼이 얼굴 근처까지 올라올 때까지 두 손으로 들고, 그 뒤 먼 손을 놓음   # DHL 14:07: 들어 올릴 때 먼 손이 이미 손잡이를 쥠   # reachPiece: 먼 손은 처음부터 쥔 팔뚝 그림으로 주먹 자리→손잡이(튐 없음), 타격 뒤 손잡이→제자리로 내림
@@ -193,7 +197,7 @@ rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45
     'sN': [[0, 0, 'io'], [0.16, 40], [0.41, 40], [0.42, 38], [0.68, 38], [0.69, 25], [0.77, 25], [0.78, 0]],
     'sF': [[0, -55], [0.41, -55], [0.42, -30]],   # 머리 위: 먼 손은 폼멜 쪽 끝
     'nPiece': [[0, 'foreF'], [0.12, 'gNup'], [0.41, 'gNdn'], [0.68, 'gN49'], [0.78, 'foreF']],   # 복귀: 팔꿈치가 어깨 아래·윗팔 길이에 오는 그림만(13:44 gNup은 팔꿈치가 얼굴 위로 올라가 바꿈)   # 메는 손↔머리 위 손은 팔꿈치 차이 19뿐 → 들어 올릴 때 머리 위 손을 거쳐 메기로(큰 바뀜은 휘두름·들어 올림 시작 순간에만)
-    'fPiece': [[0, 'gFup'], [0.41, 'gFdnT'], [0.79, 'gFdn']],   # 14:40 엄지 위로 뒤집은 그림   # gFup은 손잡이 토막을 양쪽 다 지운 그림 → 칼에서 먼 흔들던 주먹 자리에서도 토막이 안 보임
+    'fPiece': [[0, 'gFup'], [0.41, 'gFdnT'], [0.75, 'gFrise'], [0.79, 'gFdn']],   # 14:40 엄지 위로 뒤집은 그림   # gFup은 손잡이 토막을 양쪽 다 지운 그림 → 칼에서 먼 흔들던 주먹 자리에서도 토막이 안 보임
     'nUpper': [[0, 'armF'], [0.14, 'armFup'], [0.41, 'armF']],
     'fUpper': [[0, 'armU'], [0.14, 'armUup'], [0.41, 'armU']],
     'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.75, 'drawSwordRise'], [0.79, 'drawSwordRel']],   # 14:40: 얼굴 앞에서만 먼 팔뚝이 몸 앞에 보임 → 놓을 때는 몸 뒤로(놓는 그림 바꿈이 몸에 가려짐)
