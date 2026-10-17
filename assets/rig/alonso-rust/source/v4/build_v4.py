@@ -147,7 +147,7 @@ rig['blinkFaces'] = {'half': 'face_blink_half', 'closed': 'face_blink_closed'}
 rig['swordGrip'] = {'maxWrist': 0.35, 'tipDepth': 6,
     'near': {'upper': 'armF', 'carry': 'foreF', 'pieces': ['gN49', 'gN90'], 'sPref': 25, 'sSig': 20, 'sMin': 0, 'sMax': 55, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05, 'bendMin': -2.65},
     'far': {'upper': 'armU', 'pieces': ['gF34', 'gF46'], 'sPref': -40, 'sSig': 25, 'sMin': -95, 'sMax': 0, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05}}
-rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'weapon', 'head', 'armU', 'armL', 'armF', 'foreF', 'pauldronF']
+rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'armU', 'armL', 'armF', 'foreF', 'pauldronF']   # DHL 12:34: 공격 중에도 칼은 머리 앞
 rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
 rig['actions'] = {'smash': {'kind': 'sword', 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
     'reach': [[0, 0, 'io'], [0.28, 1], [0.6, 1, 'io'], [0.8, 0]],
