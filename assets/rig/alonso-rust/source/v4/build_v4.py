@@ -117,6 +117,16 @@ def_parts['armLF'] = {'src': 'parts/armLF.png', 'pivot': FS['joint'], 'scale': r
 def_parts['armL']['alt'] = 'armLF'
 def_parts['foreF'].update({'grip': [130, 50], 'wrist': [130, 50], 'shaftDir': [-0.896, -0.444], 'elbow': [35, 180]})
 print('carryFore', round(carryFore, 1), {n: def_parts[n]['scale'] for n in GJ})
+# ---------------- 위로 든 윗팔 (조각 시트 2 r11·r12) — 내려찍기 준비(머리 위) 때 바꿔 끼움 ----------------
+R2 = os.path.join(os.path.dirname(W), 'pieces', 'rig2')
+for n, f in [('armFup', 'r11.png'), ('armUup', 'r12.png')]: shutil.copy(os.path.join(R2, f), os.path.join(OUT, 'parts', n + '.png'))
+def_parts['armFup'] = {'src': 'parts/armFup.png', 'pivot': [78, 190], 'elbow': [60, 42], 'scale': 0.5}   # 어깨(아래 초록 소매 끝) → 팔꿈치(위 피부 끝)
+def_parts['armUup'] = {'src': 'parts/armUup.png', 'pivot': [56, 190], 'elbow': [74, 42], 'scale': 0.5}
+# ---------------- 쥔 팔 시트 3 (12:59): 머리 위(up)·내려찍기(dn) 쥔 팔뚝 — grip3.py 결과, 칼에 그대로 붙임(rigid) ----------------
+G3 = json.load(open(os.path.join(W, 'grips3.json')))
+for n, g in G3.items():
+    shutil.copy(os.path.join(W, n + '_s.png'), os.path.join(OUT, 'parts', n + '.png'))
+    def_parts[n] = {'src': f'parts/{n}.png', 'pivot': g['elbow'], 'elbow': g['elbow'], 'grip': g['grip'], 'wrist': g['grip'], 'shaftDir': g['shaftDir'], 'scale': g['scale']}
 # ---------------- 다리 (IK) ----------------
 for n, f in [('thigh', 'thigh.png'), ('shin', 'f20.png'), ('boot', 'a30f.png'), ('bootB', 'a30.png')]: shutil.copy(os.path.join(W, f), os.path.join(OUT, 'parts', n + '.png'))
 TH, SHN = 64 * F, 72 * F
@@ -150,20 +160,29 @@ rig['swordGrip'] = {'maxWrist': 0.35, 'tipDepth': 6,
 rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'headFront', 'armU', 'armL', 'armF', 'foreF', 'pauldronF']   # DHL 12:34: 공격 중에도 칼은 머리 앞
 rig['headFront'] = {'clip': [[60, 267], [55, 182], [72, 152], [108, 118], [148, 62], [172, 0], [343, 0], [343, 267]]}   # 머리 그림 px: 얼굴·귀·앞머리(오른쪽) — 칼 손잡이는 이 뒤로, 칼날은 뒷머리(왼쪽 뾰족 머리) 위로
 rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
-rig['actions'] = {'smash': {'kind': 'sword', 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
-    'reach': [[0, 0, 'io'], [0.28, 1], [0.6, 1, 'io'], [0.8, 0]],
+rig['drawSwordUp'] = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'headFront', 'armF', 'foreF', 'pauldronF']   # 머리 위 준비: 먼 팔은 몸·머리 뒤
+# 내려찍기 v5 1차 (12:58): 키 기반(rigid) — 쥔 팔뚝 그림은 칼에 고정, 그림은 구간마다 고정(튀지 않음). 준비 = 동작 시트 m12(주먹 머리 위), 타격 = m13
+rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
+    'reach': [[0, 0, 'io'], [0.22, 1], [0.52, 1], [0.5201, 0]],   # 먼 손은 타격 흔들림 끝에 놓고 바로 제자리(튐을 타격 순간에 숨김)
     'w': [[0, 0, 'io'], [0.3, 1], [0.62, 1, 'io'], [0.85, 0]],
-    'gx': [[0, -5], [0.38, -5, 'i'], [0.42, 70, 'o'], [0.46, 60], [1, 60]],
-    'gy': [[0, -405], [0.38, -405, 'i'], [0.42, -314, 'o'], [0.46, -20], [1, -20]],
-    'sa': [[0, -2.71], [0.38, -2.71, 'i'], [0.42, -1.4, 'o'], [0.46, 0.6], [1, 0.6]],
+    'gx': [[0, -5], [0.3, -55, 'i'], [0.38, -55, 'i'], [0.42, 60, 'o'], [0.46, 110], [1, 110]],
+    'gy': [[0, -405], [0.3, -385, 'i'], [0.38, -390, 'i'], [0.42, -300, 'o'], [0.46, -40], [1, -40]],
+    'sa': [[0, -2.71], [0.3, -2.95, 'i'], [0.38, -2.95, 'i'], [0.42, -1.4, 'o'], [0.46, 0.44], [1, 0.44]],
+    'sN': [[0, 0, 'io'], [0.16, 40], [0.41, 40], [0.42, 38]],
+    'sF': [[0, -25], [0.41, -25], [0.42, -30]],
+    'nPiece': [[0, 'foreF'], [0.12, 'gNup'], [0.41, 'gNdn'], [0.72, 'foreF']],
+    'fPiece': [[0, 'gFup'], [0.41, 'gFdn']],
+    'nUpper': [[0, 'armF'], [0.14, 'armFup'], [0.41, 'armF']],
+    'fUpper': [[0, 'armU'], [0.14, 'armUup'], [0.41, 'armU']],
+    'order': [[0, 'drawSwordUp'], [0.41, 'drawSword']],
     'hipX': [[0, 0, 'io'], [0.32, -14, 's'], [0.46, 40], [0.6, 40, 'io'], [0.85, 0]],
-    'hipY': [[0, 0, 'io'], [0.32, -6, 's'], [0.46, 26], [0.6, 24, 'io'], [0.85, 0]],
-    'lean': [[0, 0, 'io'], [0.32, -0.12, 's'], [0.46, 0.42], [0.6, 0.4, 'io'], [0.85, 0]],
-    'head': [[0, 0, 'io'], [0.32, 0.05, 's'], [0.46, -0.2], [0.6, -0.18, 'io'], [0.85, 0]],
+    'hipY': [[0, 0, 'io'], [0.3, 24, 's'], [0.38, 28, 's'], [0.46, 80], [0.6, 76, 'io'], [0.85, 0]],
+    'lean': [[0, 0, 'io'], [0.32, -0.08, 's'], [0.46, 0.5], [0.6, 0.46, 'io'], [0.85, 0]],
+    'head': [[0, 0, 'io'], [0.32, 0.08, 's'], [0.46, -0.2], [0.6, -0.18, 'io'], [0.85, 0]],
     'breath': [[0, 0, 'io'], [0.3, 1, 'o'], [0.46, -0.5, 'io'], [0.8, 0]],
-    'farDx': [[0, 0, 'io'], [0.36, 0, 's'], [0.46, 60], [0.65, 60, 'io'], [0.85, 0]],
+    'farDx': [[0, 0, 'io'], [0.38, 0, 's'], [0.46, 140], [0.65, 140, 'io'], [0.85, 0]],
     'farLift': [[0, 0], [0.36, 0, 'io'], [0.41, 22, 'io'], [0.46, 0], [0.65, 0, 'io'], [0.75, 14, 'io'], [0.85, 0]],
-    'nearDx': [[0, 0, 'io'], [0.4, 0, 'io'], [0.5, -30], [0.65, -30, 'io'], [0.85, 0]],
+    'nearDx': [[0, 0, 'io'], [0.38, 0, 'io'], [0.47, -170], [0.65, -170, 'io'], [0.85, 0]],
     'shake': [[0, 0], [0.46, 0, 'lin'], [0.47, 1], [0.56, 0]],
     'face': [[0, 'effort'], [0.3, 'shout'], [0.56, 'focus'], [0.76, None]]}}
 json.dump(rig, open(os.path.join(OUT, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
