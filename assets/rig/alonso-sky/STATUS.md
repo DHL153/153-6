@@ -39,3 +39,9 @@
 - 칼 메는 손: 공격 내내 원화 손 cArt + 늘인 소매 armFw (cN·armFup·armNup 삭제)
 - 가까운 팔: armUs(소매 밑단에서 자름, source/sleeve_crop.py) + 쥔 팔뚝, 소매가 팔뚝 위
 - 휘두름·타격 0.40~0.62: 먼 팔 fade 0, 그리는 순서 drawSwing·drawStrike2 추가
+
+## 02:30 게임 반영 (DHL 02:20 "기존 것 참고해서 · 컷인 안 잘리게 · 도감 가운데")
+- index.html: REGISTRY 21:'alonso-sky', rig.def 스크립트(?v=버전 해시)
+- 도감: gameRef.refOrigin x 273.7 (fitArt 중심 275.7 − hip x 4/2) → 마이룸·전투 두 장 모두 골반 = 칸 가운데
+- 컷인: cutHold .55 (내려찍은 런지 자세, 칼까지 칸 가운데 · 발은 칸 안 — 6 카르덴 발 보정과 같이 동작)
+- 확인 스크립트: source/tools/game_check.py [가로 세로 이름]
