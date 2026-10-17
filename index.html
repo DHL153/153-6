@@ -18755,9 +18755,10 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     artBox.set(src,p);return p;
   }
   const rigBox={}; // id → 대기 자세의 리그 그림 영역 (발 기준 리그 단위) — 전투 그림 칸에 맞출 때 가로 중심용
-  function measureRig(id,def,images,act='guardIn'){const key=id+'|'+act;
+  function measureRig(id,def,images,act='guardIn',T=0){const key=id+'|'+act+(T?'|'+T:'');   // T(초): 그 동작의 이 시각 자세로 잼 (컷인 유지 자세)
     if(rigBox[key])return rigBox[key];
-    const rig=new CharacterRig(def,images),an=new RunAnimator(rig,{runSpeed:620});an.attack(act);for(let i=0;i<40;i++)an.update(1/60,{vx:0,facing:1});
+    const rig=new CharacterRig(def,images),an=new RunAnimator(rig,{runSpeed:620});an.attack(act);
+    if(T){for(let i=0;i<400&&an.act&&an.act.t<T;i++){if(an.act.freeze>0)an.act.freeze=0;an.update(Math.min(1/60,T-an.act.t+1e-4),{vx:0,facing:1});}}else for(let i=0;i<40;i++)an.update(1/60,{vx:0,facing:1});
     const N=2400,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d',{willReadFrequently:true});rig.draw(g,N/2,N*.8,1,1);
     const d=g.getImageData(0,0,N,N).data;let l=N,t=N,r=-1,b=-1;for(let y=0;y<N;y+=3)for(let x=0;x<N;x+=3)if(d[(y*N+x)*4+3]>40){if(x<l)l=x;if(x>r)r=x;if(y<t)t=y;if(y>b)b=y;}
     return rigBox[key]=r<0?{cx:0,bottom:0,w:300,h:900}:{cx:(l+r)/2-N/2,bottom:b-N*.8,w:r-l,h:b-t};
@@ -18788,7 +18789,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       // 2026-10-17 20:36 DHL: 도감·시작 선택은 8·18 모두 '대기 → 클릭 → 공격 → 대기' (전투와 같은 동작·속도). 준비 자세 대기는 쓰지 않음, 컷인만 찌른 자세 유지
       e.N=(atk!=='thrust'&&!spear)||!m.cut?{in:null,loop:null,hit:atk,A:0,B:0,other:true,speed:ATTACK_SPEED}:m.cut?{in:px+'guardIn',loop:px+'guardLoop',hit:px+'gthrust',A:LOOP_A,B:LOOP_B}:{in:px+'readyIn',loop:px+'readyLoop',hit:px+'rthrust',A:R_LOOP_A,B:R_LOOP_B}; // 컷인=찌른 자세 유지, 그 외=준비 자세 (찌르기 캐릭터)
       e.rig=new CharacterRig(def,images);e.anim=new RunAnimator(e.rig,{runSpeed:620});
-      if(m.mode==='battle'){e.box=measureRig(m.id,def,images,e.N.in||'none');if(e.N.other){if(m.cut)e.anim.attack(atk,{speed:1.3});}else if(m.cut){e.anim.attack(e.N.loop);e.anim.attack(e.N.hit);}else e.anim.attack(e.N.in);} // 컷인: 나오자마자 공격
+      if(m.mode==='battle'){e.box=e.N.other&&m.cut?measureRig(m.id,def,images,atk,def.cutHold||.62):measureRig(m.id,def,images,e.N.in||'none'); /* 컷인(공격 자세 유지): 그 유지 자세로 재서 칸 가운데 (2026-10-17 21:26 DHL 알론소 컷인 가운데) */if(e.N.other){if(m.cut)e.anim.attack(atk,{speed:1.3});}else if(m.cut){e.anim.attack(e.N.loop);e.anim.attack(e.N.hit);}else e.anim.attack(e.N.in);} // 컷인: 나오자마자 공격
       measureArt(e.src).then(b=>{e.art=b;});
     }).catch(err=>{console.warn('[MRRig still]',err);});
     // 클릭: 전투 그림은 찌르기, 마이룸 그림은 짧은 반응. 도감 상세에서는 그림을 눌러도 다음 장으로 넘어가지 않음(화살표로만)
@@ -18844,6 +18845,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       const sibH=sib?parseFloat(sib.style.height)||0:0,sibN=sib?.naturalHeight||512;
       s=sibH>0?(sibH/sibN)/(RF.refScale||2):BODY_PX*512*f.D/(def.metrics?.bodyHeight||718);
       fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;
+      if(e.N?.other&&e.cut)fx=f.left+(img.naturalWidth||512)*f.D/2-k.cx*s; // 컷인 유지 자세(칼까지)를 그림 칸 가운데에
       // 2026-10-17 20:45 DHL: 도감 전투 칸(대기 → 공격 → 대기)은 캐릭터 몸(골반)이 칸 가운데('2/2 · 전투' 글자 위)에 오게. 창·칼 길이와 상관없이 몸 기준
       if(e.N?.other&&!e.cut){const host=img.closest('.mrw-hero'),hr=host?.getBoundingClientRect(),cxs=hr&&hr.width>0?hr.left+hr.width/2:f.left+(img.naturalWidth||512)*f.D/2;
         const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;
