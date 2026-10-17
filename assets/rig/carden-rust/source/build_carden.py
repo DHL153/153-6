@@ -202,7 +202,7 @@ rig = {'name': 'carden-rust', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'parts': parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': ['handL', 'handR'], 'faces': {}, 'idleStance': T('idleStance', idle),
        'gait': T('gait', {}), 'weaponRaise': T('weaponRaise', 16),
        'releaseOpen': True, 'dropLift': T('dropLift', 12), 'follow': T('follow', [{'bone': 'pauldron', 'src': 'armU', 'k': .3}]),
-       'rearBlend': T('rearBlend', .1), 'runSlide': T('runSlide', 110), 'upperRun': T('upperRun', None), 'hemGain': T('hemGain', None), 'seamInterior': T('seamInterior', None), 'carryDrop': T('carryDrop', None), 'runForeBend': T('runForeBend', -.35), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
+       'rearBlend': T('rearBlend', .1), 'runSlide': T('runSlide', 110), 'upperRun': T('upperRun', None), 'hemGain': T('hemGain', None), 'seamInterior': T('seamInterior', None), 'carryDrop': T('carryDrop', None), 'weaponFloor': T('weaponFloor', None), 'runForeBend': T('runForeBend', -.35), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'bounce': T('bounce', [{'bone': 'pouch', 'stiff': 220, 'damp': 8, 'y': .6, 'rot': .005, 'max': 10},
                              {'bone': 'tuftL', 'stiff': 160, 'damp': 7, 'y': .15, 'rot': -.006, 'max': 12}, {'bone': 'tuftR', 'stiff': 170, 'damp': 7, 'y': .15, 'rot': .006, 'max': 12},
                              {'bone': 'beard', 'stiff': 260, 'damp': 10, 'y': .1, 'rot': .002, 'max': 6}]),

@@ -22,7 +22,7 @@
  },
  "weaponRaise": 40,
  "runForeBend": -0.35,
- "runSlide": 110,
+ "runSlide": 0,
  "thrustFull": {
   "kind": "staff",
   "dur": 0.8,
@@ -1897,7 +1897,7 @@
    ]
   ]
  },
- "upperRun": 78,
+ "upperRun": 55,
  "pantsSkirt": true,
  "legsPants": {
   "hipY": 70,
@@ -2062,10 +2062,11 @@
  "foreStretch": {
   "y0": 8,
   "y1": 38,
-  "add": 14,
+  "add": 25,
   "fadeFrom": 1,
   "fadeTop": 6
  },
  "carryDrop": 9,
- "lowerLegScale": 1.12
+ "lowerLegScale": 1.12,
+ "weaponFloor": 2
 }

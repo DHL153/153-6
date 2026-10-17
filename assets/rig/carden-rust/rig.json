@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "c79a3823",
+ "version": "df3d695a",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -136,12 +136,12 @@
    "src": "parts/armLF.png",
    "pivot": [
     46.2,
-    10.0
+    10.6
    ],
    "scale": 2.05,
    "grip": [
     36.7,
-    94.8
+    105.8
    ]
   },
   "handL": {
@@ -666,11 +666,12 @@
   }
  ],
  "rearBlend": 0.1,
- "runSlide": 110,
- "upperRun": 78,
+ "runSlide": 0,
+ "upperRun": 55,
  "hemGain": 0.15,
  "seamInterior": true,
  "carryDrop": 9,
+ "weaponFloor": 2,
  "runForeBend": -0.35,
  "wristRange": 0.55,
  "runTilt": 0,
