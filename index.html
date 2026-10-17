@@ -18846,7 +18846,10 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;
       // 2026-10-17 20:45 DHL: 도감 전투 칸(대기 → 공격 → 대기)은 캐릭터 몸(골반)이 칸 가운데('2/2 · 전투' 글자 위)에 오게. 창·칼 길이와 상관없이 몸 기준
       if(e.N?.other&&!e.cut){const host=img.closest('.mrw-hero'),hr=host?.getBoundingClientRect(),cxs=hr&&hr.width>0?hr.left+hr.width/2:f.left+(img.naturalWidth||512)*f.D/2;
-        const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;}}
+        const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;
+        // 2026-10-17 21:14 DHL "서로 위치를 똑같이": 같은 캐릭터의 마이룸 칸 그림이 있으면 그 칸과 똑같은 자리·크기 (마이룸 칸 그림은 fitArt가 px로 놓음 → 숨겨져 있어도 계산됨)
+        const sm=sib&&sibH>0&&stillMatch(sib);if(sm&&sm.mode==='room'&&sm.id===e.id&&host){const sl=parseFloat(sib.style.left),st=parseFloat(sib.style.top);
+          if(isFinite(sl)&&isFinite(st)&&/px$/.test(sib.style.left)&&/px$/.test(sib.style.top)){const Dr=sibH/sibN;fx=hr.left+host.clientLeft+sl+RF.refOrigin[0]*Dr;fy=hr.top+host.clientTop+st+RF.refOrigin[1]*Dr+(RF.refLift||0)*s;}}}}
     const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);
     e.rig.draw(g,(fx-L)*dpr,(fy-T)*dpr,s*dpr,a.facingScale);
   }
