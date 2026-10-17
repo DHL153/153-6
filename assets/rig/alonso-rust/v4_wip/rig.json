@@ -772,11 +772,10 @@
   "pouch",
   "scarf",
   "head",
-  "weapon",
-  "headFront",
-  "foreF",
   "armF",
-  "pauldronF"
+  "pauldronF",
+  "weapon",
+  "foreF"
  ],
  "hidden": [],
  "faces": {
@@ -877,13 +876,12 @@
   "pouch",
   "scarf",
   "head",
-  "weapon",
-  "headFront",
   "armU",
-  "armL",
   "armF",
-  "foreF",
-  "pauldronF"
+  "pauldronF",
+  "weapon",
+  "armL",
+  "foreF"
  ],
  "headFront": {
   "clip": [
@@ -925,6 +923,7 @@
   "cape",
   "pauldron",
   "armU",
+  "armL",
   "legFar",
   "legNear",
   "torso",
@@ -932,12 +931,10 @@
   "pouch",
   "scarf",
   "head",
-  "weapon",
-  "armL",
-  "headFront",
   "armF",
-  "foreF",
-  "pauldronF"
+  "pauldronF",
+  "weapon",
+  "foreF"
  ],
  "drawSwordRel": [
   "cape",
@@ -951,11 +948,10 @@
   "pouch",
   "scarf",
   "head",
-  "weapon",
-  "headFront",
-  "foreF",
   "armF",
-  "pauldronF"
+  "pauldronF",
+  "weapon",
+  "foreF"
  ],
  "actions": {
   "smash": {
