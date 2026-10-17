@@ -1,7 +1,7 @@
-# 알론소 (alonso-rust, 1번) — 지금: P8 검수 (v3, 게임 적용됨)
-정해진 것: 엔진 assets/rig/rig.js / gait 기본 / 공격 위에서 내려찍기(smash) / 터치 공용 반응(폴짝·끄덕·움찔 — 손 흔들기는 시트 W 받으면) / 기준 그림 B안(마이룸 char_0001 교체됨)
-구조: 대검 팔이 화면 앞(armF→foreF→fistF→weapon, 몸 앞에 그림), 주먹 팔이 뒤(armU→armL→fistN, 몸 뒤). armPhase .5로 팔 흔들기 박자 보정.
-받은 시트: 0 ✅(B) 1A ✅ 1B ✅ 2 ✅(표정 8종) K-내려찍기 ✅
-내려찍기: 엔진 ACTIONS.smash + _smashArms (칼날 각도 sa, 손잡이 위치 gx/gy를 키로, 두 팔 IK). 머리가 크고 팔이 짧아 준비 자세에서 손은 머리 뒤(drawSmash에서 머리를 맨 앞).
-남은 문제: 눈 깜빡임 없음 · 손 흔들기 인사 없음(시트 W 필요) · 준비 자세 칼 각도가 키 포즈 1보다 눕혀져 있음 · 뒷손 주먹이 손잡이를 쥔 모양이 아님(키 포즈에서 오려 쓰면 개선)
-다음 할 일: (DHL) 휴대폰에서 확인 → 느낌 피드백
+# 알론소 (alonso-rust, 1번) — 지금: v4 게임 적용 (2026-10-17)
+기준: 오른쪽 3/4 새 시트 (source/v4/sheets). 빌드: `cd source/v4 && python3 -I build_v4.py` (출력 = 이 폴더 rig.json·rig.def.js·parts/)
+게임: 전투·마이룸·친구 방문 = 리그 / 도감·시작 선택 = 대기 → 클릭 → 전투와 같은 내려찍기 → 대기 / 스킬 컷인 = 내려찍은 자세 유지(cutHold .58)
+캐시: rig.json version = 그림 해시 → 게임이 조각 그림에 ?v= 를 붙임. index.html 스크립트 태그 ?v= 도 같은 값으로 바꿀 것
+게임 그림 자리: gameRef (characters/char_0001.png 512px 기준 발 자리·배율). refOrigin·refScale은 시트 기준(편집기용)
+엔진 opt-in: swordGrip + rigid 내려찍기, hitStop, streamers(목도리 꼬리), overlays, headFront, legs.hipX/runX
+남은 것: 전투 타격 시점(게임 타격 100ms vs 칼이 땅에 닿는 308ms) 맞출지 결정 · 다리 길이/자세 시트 2 조각으로 다시 · 손 흔들기 인사(시트 W) · 정적 그림(char_0001·battle_char_0001)은 아직 v3 그림

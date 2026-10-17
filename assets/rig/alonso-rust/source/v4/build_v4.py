@@ -8,7 +8,7 @@ import json, math, os, shutil, sys
 import numpy as np
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); W = os.path.join(HERE, 'work')
-OUT = sys.argv[1]; os.makedirs(os.path.join(OUT, 'parts'), exist_ok=True)
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '..', '..'); os.makedirs(os.path.join(OUT, 'parts'), exist_ok=True)
 match = json.load(open(os.path.join(W, 'match_result.json')))
 O = np.array([395., 748.])          # 뿌리: 두 발 가운데 땅
 F = 753 / 658                        # 리그 단위 / ref2 px (머리카락 중간 y≈90 ~ 발바닥 y≈748)
@@ -243,6 +243,15 @@ rig['streamers'] = [{'bone': 'tailA', 'part': 'tailA', 'len': rig.pop('_tailLen_
                     {'bone': 'tailB', 'part': 'tailB', 'len': rig.pop('_tailLen_tailB'), 'amp': 15, 'freq': 6.6, 'phase': 1.9, 'droop': 0.4, 'sag': 26, 'wind': 0.65, 'lag': 0.45}]
 for k in [k for k in rig if k == 'draw' or k.startswith('drawSword')]:
     L = rig[k]; i = L.index('cape'); rig[k] = L[:i] + ['tailB', 'tailA'] + L[i + 1:]
+# 게임 연결 (2026-10-17 DHL "러스트 니콜 기준으로 게임에 반영" + 20:36 기준): 도감·시작 선택 = 대기 → 클릭 → 전투와 같은 내려찍기 → 대기,
+#  스킬 컷인 = 내려찍은 자세(cutHold .58초) 유지. version = 그림 해시 (게임이 그림 주소에 ?v= 로 붙여 캐시를 깸)
+rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
+rig['cutHold'] = 0.58
+rig['gameRef'] = {'refOrigin': [360.0, 477.5], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림(characters/char_0001.png 512px) 위 발 자리·배율. refOrigin·refScale은 v4 시트(ref2) 기준이라 편집기용'}
+import hashlib
+_h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
+for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
+rig['version'] = _h.hexdigest()[:8]
 json.dump(rig, open(os.path.join(OUT, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
 open(os.path.join(OUT, 'rig.def.js'), 'w').write("// 자동 생성: rig.json을 JS로 감싼 것. 원본은 같은 폴더의 rig.json\nwindow.MR_RIG_DEFS=window.MR_RIG_DEFS||{};\nwindow.MR_RIG_DEFS['alonso-rust']=" + json.dumps(rig, ensure_ascii=False) + ";\n")
 print('ok', len(def_parts), 'parts; GRIP', GRIP.round(1), 'EL_N', EL_N.round(1), 'EL_F', EL_F.round(1), 'FIST_F', FIST_F.round(1))

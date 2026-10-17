@@ -18477,7 +18477,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
 </style>
 <script src="assets/rig/rig.js?v=20261017n2"></script>
 <script src="assets/rig/rust-fork-girl/rig.def.js"></script>
-<script src="assets/rig/alonso-rust/rig.def.js"></script>
+<script src="assets/rig/alonso-rust/rig.def.js?v=dac0447f"></script>
 <script src="assets/rig/nicole-sky/rig.def.js"></script>
 <script src="assets/rig/nicole-neon/rig.def.js?v=20261017n2"></script>
 <script id="mr-rig-js">
@@ -18834,13 +18834,14 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     }
     a.update(dt,{vx:0,facing:1});
     const f=imgFrame(img,r),def=e.rig.def;let s,fx,fy;
-    if(e.mode==='room'){s=f.D/(def.refScale||2);fx=f.left+def.refOrigin[0]*f.D;fy=f.top+def.refOrigin[1]*f.D+(def.refLift||0)*s;}
+    const RF=def.gameRef||def; // gameRef: 게임 그림 기준 발 자리·배율이 편집기 원화(refOrigin)와 다를 때 (1 알론소 v4)
+    if(e.mode==='room'){s=f.D/(RF.refScale||2);fx=f.left+RF.refOrigin[0]*f.D;fy=f.top+RF.refOrigin[1]*f.D+(RF.refLift||0)*s;}
     else{const b=e.art,k=e.box; // 원본 전투 그림의 그림 영역 안에 대기 자세가 꼭 맞게 (가로 가운데·발 바닥 맞춤)
       // 몸 크기 (2026-10-16 DHL "사이즈가 달라요"): 도감은 그림마다 무기까지 든 상자로 확대가 달라서, 같은 칸의 마이룸 그림 배율을 그대로 씀.
       //  마이룸 그림이 없는 자리(시작 선택 등)는 전투 그림 규칙(512 그림에서 머리~발 290px)으로 몸 높이를 맞춤.
       const sib=img.closest('.mrw-hero')?[...img.parentElement.querySelectorAll('img')].find(o=>o!==img&&!/battle_/i.test(o.getAttribute('src')||'')):null;
       const sibH=sib?parseFloat(sib.style.height)||0:0,sibN=sib?.naturalHeight||512;
-      s=sibH>0?(sibH/sibN)/(def.refScale||2):BODY_PX*512*f.D/(def.metrics?.bodyHeight||718);
+      s=sibH>0?(sibH/sibN)/(RF.refScale||2):BODY_PX*512*f.D/(def.metrics?.bodyHeight||718);
       fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;}
     const g=c.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);
     e.rig.draw(g,(fx-L)*dpr,(fy-T)*dpr,s*dpr,a.facingScale);
