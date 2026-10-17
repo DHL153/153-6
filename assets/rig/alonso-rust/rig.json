@@ -1,6 +1,6 @@
 {
  "name": "alonso-rust",
- "version": "dac0447f",
+ "version": "de43e98a",
  "units": "rig px (reference x2)",
  "refOrigin": [
   395.0,
@@ -1794,11 +1794,11 @@
  "cutHold": 0.58,
  "gameRef": {
   "refOrigin": [
-   360.0,
+   292.0,
    477.5
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림(characters/char_0001.png 512px) 위 발 자리·배율. refOrigin·refScale은 v4 시트(ref2) 기준이라 편집기용"
+  "note": "게임 그림(characters/char_0001.png 512px) 위 발 자리·배율. x 292 = 도감 칸에서 몸이 가운데(2026-10-17 21:06 DHL). refOrigin·refScale은 v4 시트(ref2) 기준이라 편집기용"
  }
 }

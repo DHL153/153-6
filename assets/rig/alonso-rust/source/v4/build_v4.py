@@ -247,7 +247,7 @@ for k in [k for k in rig if k == 'draw' or k.startswith('drawSword')]:
 #  스킬 컷인 = 내려찍은 자세(cutHold .58초) 유지. version = 그림 해시 (게임이 그림 주소에 ?v= 로 붙여 캐시를 깸)
 rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
 rig['cutHold'] = 0.58
-rig['gameRef'] = {'refOrigin': [360.0, 477.5], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림(characters/char_0001.png 512px) 위 발 자리·배율. refOrigin·refScale은 v4 시트(ref2) 기준이라 편집기용'}
+rig['gameRef'] = {'refOrigin': [292.0, 477.5], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림(characters/char_0001.png 512px) 위 발 자리·배율. x 292 = 도감 칸에서 몸이 가운데(2026-10-17 21:06 DHL). refOrigin·refScale은 v4 시트(ref2) 기준이라 편집기용'}
 import hashlib
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
