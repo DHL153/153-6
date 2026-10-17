@@ -18465,6 +18465,9 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 <style id="mr-rig-css">
 #battle-rig-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;display:none}
 #battle-stage.mr-rig-on #battle-rig-canvas{display:block}
+/* 2026-10-18: 리그 캐릭터마다 자기 캔버스 — 겹침 순서를 그림 캐릭터와 같게(주 캐릭터 7 > 보조1 6 > 보조2 5) */
+#battle-stage .mr-rig-slot-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none}
+#battle-stage.mr-rig-on .mr-rig-slot-canvas{display:block}
 #battle-stage .hero.mr-rig-hidden{visibility:hidden!important}
 .char-preview-character.mr-rig-hidden{opacity:0!important} /* 마이룸: 클릭 영역은 남기고 그림만 숨김 */
 /* 2026-10-16: 미니 마이룸·친구 방 방문도 같은 규칙 — 그림을 안 숨겨서 리그 캐릭터와 그림이 2명으로 겹쳐 보였음 */
@@ -18513,11 +18516,12 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     if(!next.W||!next.H)return; // 숨겨진 화면(0×0)의 배치값은 무시
     info=next;const stage=next.stage;if(!stage)return;
     const seen=new Set();
+    next.members.forEach((m,i)=>{m.z=7-i;}); // 겹침 순서 = 그림 캐릭터의 --team-z (주 캐릭터가 맨 앞)
     for(const m of next.members){
       const id=rigIdFor(m.slot,m.id);
       if(!id){m.el?.classList.remove('mr-rig-hidden');continue;}
       seen.add(m.slot);
-      const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.footX=m.footX;entry.footY=next.H-next.ground;
+      const entry=live.get(m.slot)||{slot:m.slot};entry.id=id;entry.el=m.el;entry.z=m.z;entry.footX=m.footX;entry.footY=next.H-next.ground;
       entry.bodyH=m.imageH>0?m.imageH*BODY_PX:next.bodyH; // 그림 캐릭터와 같은 몸 크기
       // 배율은 배치할 때마다 다시 계산 (휴대폰처럼 처음 배치 뒤 전투 칸 크기가 바뀌면 옛 배율로 거대하게 그려졌음 — 2026-10-16 수정)
       if(entry.rig)entry.scale=entry.bodyH/(entry.rig.def.metrics?.bodyHeight||718);
@@ -18529,7 +18533,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
         m.el?.classList.add('mr-rig-hidden');
       }).catch(e=>{console.warn('[MRRig]',e);live.delete(m.slot);m.el?.classList.remove('mr-rig-hidden');});
     }
-    for(const [slot,e] of live)if(!seen.has(slot)){e.el?.classList.remove('mr-rig-hidden');live.delete(slot);}
+    for(const [slot,e] of live)if(!seen.has(slot)){e.el?.classList.remove('mr-rig-hidden');e.cv?.remove();live.delete(slot);}
     stage.classList.toggle('mr-rig-on',live.size>0);
     if(live.size){ensureCanvas(stage);start();}else stop();
   }
@@ -18566,6 +18570,11 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
     for(const e of live.values()){
       if(!e.anim)continue;
+      // 캐릭터별 캔버스 (겹침 순서용)
+      if(!e.cv||!e.cv.isConnected){e.cv=document.createElement('canvas');e.cv.className='mr-rig-slot-canvas';e.cv.setAttribute('aria-hidden','true');stage.appendChild(e.cv);e.cx=e.cv.getContext('2d');}
+      if(e.cv.style.zIndex!==String(e.z??7))e.cv.style.zIndex=String(e.z??7);
+      if(e.cv.width!==canvas.width||e.cv.height!==canvas.height){e.cv.width=canvas.width;e.cv.height=canvas.height;}
+      e.cx.setTransform(1,0,0,1,0,0);e.cx.clearRect(0,0,e.cv.width,e.cv.height);
       // 안전장치(2026-10-16 휴대폰에서 거대하게 그려진 문제): 몸 높이가 칸의 70%를 넘거나 발이 칸 밖이면 칸 기준으로 다시 맞춘다
       const bodyHeight=e.rig.def.metrics?.bodyHeight||718,maxBody=H*.7;
       let scale=e.scale,footX=e.footX,footY=e.footY;
@@ -18575,16 +18584,16 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       e.anim.update(dt,{vx,facing:1});
       busy=busy||e.anim.busy;
       // 타격 순간 이벤트는 게임이 이미 자체 연출을 내므로 여기서는 쓰지 않는다 (e.anim.events)
-      e.rig.draw(ctx,footX*dpr,footY*dpr,scale*dpr,e.anim.facingScale);
+      e.rig.draw(e.cx,footX*dpr,footY*dpr,scale*dpr,e.anim.facingScale);
     }
     if(busy!==wasBusy){wasBusy=busy;stage.classList.toggle('mr-rig-busy',busy);}
   }
   function start(){if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}}
-  function stop(){cancelAnimationFrame(raf);raf=0;if(ctx&&canvas)ctx.clearRect(0,0,canvas.width,canvas.height);info?.stage?.classList.remove('mr-rig-busy');wasBusy=false;}
+  function stop(){cancelAnimationFrame(raf);raf=0;if(ctx&&canvas)ctx.clearRect(0,0,canvas.width,canvas.height);for(const e of live.values()){e.cv?.remove();e.cv=null;}info?.stage?.classList.remove('mr-rig-busy');wasBusy=false;}
   function setEnabled(v){
     v=!!v;if(v===enabled)return;enabled=v;
     const stage=$('battle-stage');
-    if(!enabled){for(const e of live.values())e.el?.classList.remove('mr-rig-hidden');live.clear();stage?.classList.remove('mr-rig-on');stop();roomStop();}
+    if(!enabled){for(const e of live.values()){e.el?.classList.remove('mr-rig-hidden');e.cv?.remove();}live.clear();stage?.classList.remove('mr-rig-on');stop();roomStop();}
     if(typeof layoutBattleTeam==='function'&&stage&&typeof activeBattleTeam!=='undefined')try{layoutBattleTeam(stage,activeBattleTeam);}catch(e){}
   }
   // ================= 마이룸 (MRRunWalker가 매 프레임 roomPlace를 부른다) =================
