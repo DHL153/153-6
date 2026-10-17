@@ -743,6 +743,15 @@
       if (reach > .985) {   // 먼 손도 칼에 붙음
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper);
         const EF = fore("armL", fP, this._tr("sF") || SG.far.sPref || 0); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
+      } else if (reach > 0 && D.reachPiece) {   // (opt-in) 먼 손: 처음부터 쥔 팔뚝 그림으로 바꾸고, 흔들던 주먹 자리·팔뚝 방향 → 손잡이로 옮겨 감(IK→그림 바뀜 튐 없음)
+        const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
+        const F0 = apply(b.armL.m, fv[0], fv[1]), E0 = apply(b.armL.m, 0, 0), sF = this._tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
+        const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper), p = P[fP], k = p.scale || 1, el = p.elbow || p.pivot;
+        const e = smooth(0, 1, reach), rho0 = ang([F0[0] - E0[0], F0[1] - E0[1]]) - ang([p.grip[0] - el[0], p.grip[1] - el[1]]), rho1 = ang(U) - ang(p.shaftDir);
+        const rho = rho0 + wrapA(rho1 - rho0) * e, Gp = [lerp(F0[0], Gf[0], e), lerp(F0[1], Gf[1], e)], c = Math.cos(rho), s_ = Math.sin(rho);
+        const dx = (p.grip[0] - p.pivot[0]) * k, dy = (p.grip[1] - p.pivot[1]) * k, X = [Gp[0] - (c * dx - s_ * dy), Gp[1] - (s_ * dx + c * dy)];
+        rig.swap.armL = fP === b.armL.part ? null : fP; b.armL.wm = [c, s_, -s_, c, X[0], X[1]];
+        const ex = (el[0] - p.pivot[0]) * k, ey = (el[1] - p.pivot[1]) * k; this.stF = upper("armU", fU, SF, [X[0] + c * ex - s_ * ey, X[1] + s_ * ex + c * ey]); b.pauldron.ar = 0;
       } else if (reach > 0) {   // 먼 손이 흔들던 주먹 → 손잡이 아래쪽으로 다가감 (2관절 IK, 주먹 그림 그대로, 팔꿈치 방향 고정)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
         const F0 = apply(b.armL.m, fv[0], fv[1]), sF = this._tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
