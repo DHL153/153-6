@@ -801,7 +801,9 @@
         const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w + y * (rig.def.skirtStretch || 0) * v] };   // skirtStretch: 치마 길이만 늘림 (허리띠를 벨트 뒤로 올린 만큼)
       // 코트 앞자락(앞트임 오른쪽, opt-in rig.def.flap): 같은 코트 변형을 따르고, 앞 무릎·런지만큼 트임 쪽 가장자리가 앞으로 벌어짐 → 안감(뒤판)이 보임
       if (rig.def.flap) { const FL = rig.def.flap, fim = rig.images[FL.part], sim = rig.images.skirt, skFx = rig.meshFx.skirt;
-        this.flapOpen = this.flapOpen || new Spring(90, 12); const op = clamp(this.flapOpen.step(clamp(openT, 0, 1), dt), 0, 1.1); this.flapAmt = op;
+        this.flapOpen = this.flapOpen || new Spring(90, 12);
+        if (FL.bounce) { this.flapLag = this.flapLag || Object.assign(new Spring(200, 8), { x: b.hip.ay }); openT += clamp(Math.abs(this.flapLag.step(b.hip.ay, dt) - b.hip.ay) * FL.bounce, 0, .35) }   // 걸음마다 앞자락이 살짝 들썩 (opt-in flap.bounce)
+        const op = clamp(this.flapOpen.step(clamp(openT, 0, 1), dt), 0, 1.1); this.flapAmt = op;
         if (fim && sim) rig.meshFx[FL.part] = (u, v, x, y) => { const U = (u * fim.width + FL.off[0]) / sim.width, V = (v * fim.height + FL.off[1]) / sim.height, o = skFx(U, V, x, y), e = Math.pow(V, 1.25) * op;
           return [o[0] + e * FL.openX * (1 - .45 * u), o[1] - e * FL.openY * (1 - .3 * u)] } }
 
@@ -821,6 +823,13 @@
       if (b.pony && rig.def.ponySway) { const k = rig.def.ponySway, po = this.pony.step(clamp(lvx * .0005 + accel * .00012 - this.hipVy * .002, -.3, .45), dt);
         b.pony.ar += po * .9 * k + I * Math.sin(T * 1.9) * .05 * k + A * Math.sin(TAU * psi) * .06 * k }
 
+      // ---------- 출렁이는 작은 조각 (opt-in rig.def.bounce: [{bone, stiff, damp, y, rot, max}], 18 네온 파우치) ----------
+      //  골반 높이를 스프링이 늦게 따라감 → (늦은 높이 − 지금 높이)만큼 조각이 덜 따라오고(y) 살짝 돎(rot). 걸음마다 한 번 출렁이고 멈추면 가라앉음
+      if (rig.def.bounce) { this.bnc = this.bnc || {}; const hy = b.hip.ay;
+        for (const q of rig.def.bounce) { const bb = b[q.bone]; if (!bb) continue;
+          const sp_ = this.bnc[q.bone] || (this.bnc[q.bone] = Object.assign(new Spring(q.stiff || 220, q.damp || 9), { x: hy }));
+          const M_ = q.max || 12, lag = M_ * Math.tanh((sp_.step(hy, dt) - hy) / M_);   // 부드러운 한계 (딱 멈춤 없음)
+          bb.ay += lag * (q.y ?? .6); bb.ar += lag * (q.rot ?? .004) } }
       // ---------- blink ----------
       // expression cross-fade (~70 ms) — only the face patch changes, hood and hair never do
       const fTarget = this._faceAt(D, at), faces = rig.def.faces || {};

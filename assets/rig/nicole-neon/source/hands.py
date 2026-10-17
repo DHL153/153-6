@@ -107,3 +107,35 @@ if __name__ == '__main__':
     R['handR'] = process('handR', False, False, full_band=False)
     R['fistF'] = process('fistF', True, True)
     json.dump(R, open(os.path.join(HERE, 'hands.json'), 'w'), indent=1); print(json.dumps(R, indent=0))
+
+def process2(name, keep_left=False):
+    """쥔 손 2차 시트(2026-10-17 14:14, 자루 수평): 자루 축 = 양 끝 자루만 있는 기둥의 위·아래 테 가운데(수평 고정),
+    손 = 피부 ∪ 밝은 장갑(흰 테·금 단추) 볼록 껍질 + 외곽선 4px. 자루 띠에서 손 밖은 지움(keep_left: 왼쪽 자루는 남김 — 팔뚝 뒤로 지나가는 자루)"""
+    import cv2
+    a = np.asarray(Image.open(os.path.join(HERE, 'cut', name + '.png')).convert('RGBA')).copy(); al = a[..., 3] > 128; H, W = al.shape
+    skin = skin_mask(a); sy, sx = np.nonzero(skin)
+    cols = [x for x in list(range(2, 12)) + list(range(W - 12, W - 2)) if al[:, x].any()]
+    tops = [np.nonzero(al[:, x])[0].min() for x in cols]; bots = [np.nonzero(al[:, x])[0].max() for x in cols]
+    rx = [x for x in range(sx.max() + 6, W - 2) if al[:, x].any()]
+    ty = np.median([np.nonzero(al[:, x])[0].min() for x in rx]); by = np.median([np.nonzero(al[:, x])[0].max() for x in rx])
+    cy = (ty + by) / 2; th = by - ty + 1; P0 = np.array([0., cy]); U = np.array([1., 0.])
+    h_, s_, v_ = hsv(a.astype(float)); light = al & (s_ < .3) & (v_ > .72); gold = al & (h_ > 35) & (h_ < 60) & (s_ > .5) & (v_ > .55)
+    skin = skin & ~nd.binary_dilation(gold | light, iterations=3); sy, sx = np.nonzero(skin)   # 금 단추·흰 테가 피부로 잡히지 않게
+    yy0 = np.mgrid[0:H, 0:W][0]; bandL = np.abs(yy0 - cy) <= th / 2 + 3   # 자루 위 밝은 반사는 손이 아님
+    hand = (skin | ((light | gold) & ~bandL)).astype(np.uint8); hand = nd.binary_opening(hand, iterations=1).astype(np.uint8)
+    cnts, _ = cv2.findContours(hand, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cnts = [c for c in cnts if cv2.contourArea(c) > 30]
+    hull = np.zeros_like(hand); cv2.fillPoly(hull, [cv2.convexHull(np.vstack(cnts))], 1)
+    disk = lambda r: (lambda y, x: x * x + y * y <= r * r)(*np.mgrid[-r:r + 1, -r:r + 1])
+    hullD = nd.binary_dilation(hull.astype(bool), structure=disk(4))
+    yy, xx = np.mgrid[0:H, 0:W]; band = np.abs(yy - cy) <= th / 2 + 2.5
+    drop = band & ~hullD
+    if keep_left: drop &= xx > sx.mean()
+    else:   # 주먹 왼쪽 자루 토막(장갑 테 위)도 지움 — 테(밝은 장갑·금 단추)는 남김
+        cuff = nd.binary_dilation((light | gold) & ~bandL, iterations=2); drop |= band & (xx < sx.min() - 2) & ~cuff & ~nd.binary_dilation(skin, iterations=7)
+    a[..., 3] = np.where(drop, 0, a[..., 3])
+    m = a[..., 3] > 20; lb, nn = nd.label(m); sz = nd.sum(m, lb, range(1, nn + 1)); a[..., 3] = np.where(np.isin(lb, np.nonzero(sz >= sz.max() * .05)[0] + 1), a[..., 3], 0)
+    fc = np.array([sx.mean(), sy.mean()]); G = np.array([fc[0], cy])
+    ys, xs = np.nonzero(a[..., 3] > 0); x0, y0 = int(max(0, xs.min() - 3)), int(max(0, ys.min() - 3))
+    a = a[y0:ys.max() + 4, x0:xs.max() + 4]; Image.fromarray(a, 'RGBA').save(os.path.join(OUT, name + '.png')); off = np.array([x0, y0], float)
+    return dict(file=f'parts_work/{name}.png', grip=(G - off).round(1).tolist(), shaftDir=[1.0, 0.0], thick=round(float(th), 1), axisPts=len(rx),
+                fistC=(fc - off).round(1).tolist(), off=off.tolist(), fistW=int(np.ptp(sx)))

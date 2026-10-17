@@ -991,5 +991,32 @@
    ]
   ]
  },
- "handLflip": true
+ "handLflip": true,
+ "armLtrim": {
+  "keep": 5,
+  "feather": 6
+ },
+ "flap": {
+  "openX": 46,
+  "openY": 18,
+  "knee": 0.012,
+  "kneeUp": 0.008,
+  "lunge": 0.009,
+  "bounce": 0.02
+ },
+ "grip2": {
+  "scale": 0.92
+ },
+ "handL2wristCut": [
+  61,
+  62
+ ],
+ "handL2toElbow": [
+  -32,
+  23
+ ],
+ "handR2elbowCut": [
+  8,
+  58
+ ]
 }

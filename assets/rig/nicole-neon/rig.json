@@ -183,37 +183,37 @@
   "handL": {
    "src": "parts/handL.png",
    "pivot": [
-    40.4,
-    32.7
+    74.1,
+    36.5
    ],
-   "scale": 1.2363,
+   "scale": 1.1374,
    "shaftDir": [
     1.0,
-    0.0008
+    0.0
    ],
    "wrist": [
-    4.0,
-    55.4
+    45.0,
+    62.0
    ],
    "toElbow": [
-    -0.862,
-    0.506
+    -0.812,
+    0.584
    ]
   },
   "handR": {
    "src": "parts/handR.png",
    "pivot": [
-    141.2,
-    36.1
+    160.2,
+    33.5
    ],
-   "scale": 1.2363,
+   "scale": 1.1374,
    "shaftDir": [
     1.0,
-    -0.0004
+    0.0
    ],
    "elbow": [
-    3.0,
-    36.0
+    8.0,
+    58.0
    ]
   },
   "waveSleeve": {
@@ -549,7 +549,7 @@
     0,
     0
    ],
-   "rot": -1.5716,
+   "rot": -1.5708,
    "part": "handL"
   },
   {
@@ -559,7 +559,7 @@
     0,
     0
    ],
-   "rot": -1.5704,
+   "rot": -1.5708,
    "part": "handR"
   },
   {
@@ -758,7 +758,8 @@
   "openY": 18,
   "knee": 0.012,
   "kneeUp": 0.008,
-  "lunge": 0.009
+  "lunge": 0.009,
+  "bounce": 0.02
  },
  "releaseOpen": true,
  "dropLift": 16,
@@ -772,6 +773,24 @@
    "bone": "pauldronF",
    "src": "armF",
    "k": 0.35
+  }
+ ],
+ "bounce": [
+  {
+   "bone": "pouchA",
+   "stiff": 210,
+   "damp": 8,
+   "y": 0.6,
+   "rot": 0.005,
+   "max": 12
+  },
+  {
+   "bone": "pouchB",
+   "stiff": 240,
+   "damp": 9,
+   "y": 0.5,
+   "rot": -0.004,
+   "max": 10
   }
  ],
  "runForeBend": -0.45,

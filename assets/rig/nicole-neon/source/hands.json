@@ -64,5 +64,49 @@
    52.0
   ],
   "fistW": 46
+ },
+ "handL2": {
+  "file": "parts_work/handL2s.png",
+  "grip": [
+   74.1,
+   36.5
+  ],
+  "shaftDir": [
+   1.0,
+   0.0
+  ],
+  "thick": 28.0,
+  "axisPts": 40,
+  "fistC": [
+   74.1,
+   41.8
+  ],
+  "off": [
+   16.0,
+   0.0
+  ],
+  "fistW": 69
+ },
+ "handR2": {
+  "file": "parts_work/handR2s.png",
+  "grip": [
+   160.2,
+   33.5
+  ],
+  "shaftDir": [
+   1.0,
+   0.0
+  ],
+  "thick": 28.0,
+  "axisPts": 31,
+  "fistC": [
+   160.2,
+   36.9
+  ],
+  "off": [
+   0.0,
+   0.0
+  ],
+  "fistW": 58
  }
 }

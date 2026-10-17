@@ -122,23 +122,37 @@ pLF = ap(Mr, aLF); gLF = ap(Mr, T('armLFgripImg', [34, 125]))
 parts['armL']['alt'] = 'armLF'
 parts['armLF'] = {'src': 'parts/armLF.png', 'pivot': [round(float(pLF[0]), 1), round(float(pLF[1]), 1)], 'scale': parts['armL']['scale'], 'grip': [round(float(gLF[0]), 1), round(float(gLF[1]), 1)]}
 
+# 팔꿈치 두꺼움 정리(DHL 14:09 추천 2): 팔뚝 그림 윗부분(관절 위 검은 소매)이 윗팔의 검은 아래 토막과 겹쳐 팔꿈치가 굵어 보임
+# → 팔뚝 그림을 관절점 위 keep px 까지만 남기고 feather px 동안 부드럽게 지움 (윗팔 끝 둥근 마개가 관절을 덮음)
+_tr = T('armLtrim', None)
+if _tr:
+    _u = np.array(bL, float) - np.array(aL, float); _u /= np.linalg.norm(_u)
+    if _u[1] < 0: _u = -_u                                   # 팔뚝 축: 관절 → 손 (아래)
+    for _nm in ['armL', 'armLF']:
+        _p = os.path.join(PARTS, _nm + '.png'); _a = np.asarray(Image.open(_p).convert('RGBA')).copy(); _h, _w = _a.shape[:2]
+        _pv = np.array(parts[_nm]['pivot'], float); _yy, _xx = np.mgrid[0:_h, 0:_w]
+        _t = (_xx - _pv[0]) * _u[0] + (_yy - _pv[1]) * _u[1]
+        _k = np.clip((_t + _tr['keep'] + _tr['feather']) / _tr['feather'], 0, 1); _k = _k * _k * (3 - 2 * _k)
+        _a[..., 3] = (_a[..., 3] * _k).astype(np.uint8); Image.fromarray(_a, 'RGBA').save(_p)
+
 # 찌르기 손: handL(앞 주먹만, 8 방식) / handR(뒤 팔뚝+주먹 한 장) — 창 뼈 원점(먼 주먹이 쥔 점)에 붙고 자루 방향을 따라 돎
 wphi = world['weapon'][1]
+G2 = T('grip2', None)   # 쥔 손 2차 시트(14:14, 자루 수평·엄지 위·빛 왼쪽 위): {'scale': SARM 대비 배율}
 for nm in ['handL', 'handR']:
-    hj = HJ[nm]; sd = hj['shaftDir']; shutil.copy(os.path.join(HERE, hj['file']), os.path.join(PARTS, nm + '.png'))
-    parts[nm] = {'src': f'parts/{nm}.png', 'pivot': hj['grip'], 'scale': round(SARM, 4), 'shaftDir': sd}
+    hj = HJ[nm + '2'] if G2 else HJ[nm]; sd = hj['shaftDir']; shutil.copy(os.path.join(HERE, hj['file']), os.path.join(PARTS, nm + '.png'))
+    parts[nm] = {'src': f'parts/{nm}.png', 'pivot': hj['grip'], 'scale': round(SARM * (G2['scale'] if G2 else 1), 4), 'shaftDir': sd}
     r_ = (-math.pi / 2) - math.atan2(sd[1], sd[0]) - wphi
     out_bones.append({'name': nm, 'parent': 'weapon', 'pos': [0, 0], 'rot': round(r_, 4), 'part': nm})
-off = HJ['handL']['off']; wL = A(T('handLwristCut', [98, 63])) - off; parts['handL']['wrist'] = [round(float(wL[0]), 1), round(float(wL[1]), 1)]
-if T('handLflip', False):   # 앞(먼) 주먹 좌우 손 반대 → 자루 축 기준 위아래 뒤집기: 엄지가 위(창끝 쪽)로 (DHL 13:13 '반대 손 모양')
+off = HJ['handL2' if G2 else 'handL']['off']; wL = A(T('handL2wristCut' if G2 else 'handLwristCut', [98, 63])) - off; parts['handL']['wrist'] = [round(float(wL[0]), 1), round(float(wL[1]), 1)]
+if T('handLflip', False) and not G2:   # 앞(먼) 주먹 좌우 손 반대 → 자루 축 기준 위아래 뒤집기: 엄지가 위(창끝 쪽)로 (DHL 13:13 '반대 손 모양')
     pim = Image.open(os.path.join(PARTS, 'handL.png')); hh = pim.height; pim.transpose(Image.FLIP_TOP_BOTTOM).save(os.path.join(PARTS, 'handL.png'))
     pl = parts['handL']; pl['pivot'] = [pl['pivot'][0], round(hh - pl['pivot'][1], 1)]; pl['shaftDir'] = [pl['shaftDir'][0], -pl['shaftDir'][1]]
     # wrist(팔뚝이 붙는 점)는 그대로 둠: 팔뚝은 여전히 왼쪽 아래에서 들어옴 → 창·뒷손 자리 변화 없음
     py0 = hh - pl['pivot'][1]; pl['wrist'] = [pl['wrist'][0], round(pl['wrist'][1] - py0 + pl['pivot'][1], 1)]   # 쥔 점 기준 같은 자리
     for b_ in out_bones:
         if b_['name'] == 'handL': sd_ = pl['shaftDir']; b_['rot'] = round((-math.pi / 2) - math.atan2(sd_[1], sd_[0]) - wphi, 4)
-te = A(T('handLtoElbow', [-63, 37]), float); te /= np.linalg.norm(te); parts['handL']['toElbow'] = [round(float(te[0]), 3), round(float(te[1]), 3)]
-off = HJ['handR']['off']; eR = A(T('handRelbowCut', [47, 39])) - off; parts['handR']['elbow'] = [round(float(eR[0]), 1), round(float(eR[1]), 1)]
+te = A(T('handL2toElbow' if G2 else 'handLtoElbow', [-63, 37]), float); te /= np.linalg.norm(te); parts['handL']['toElbow'] = [round(float(te[0]), 3), round(float(te[1]), 3)]
+off = HJ['handR2' if G2 else 'handR']['off']; eR = A(T('handR2elbowCut' if G2 else 'handRelbowCut', [47, 39])) - off; parts['handR']['elbow'] = [round(float(eR[0]), 1), round(float(eR[1]), 1)]
 
 # 손 흔들기(시트 20번대): 먼 팔 소매(윗팔) · 팔뚝 · 편 손
 (sA, _), (sB, _) = axis(os.path.join(HERE, 'cut/waveSleeve.png')), (None, None)
@@ -194,6 +208,7 @@ rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'flap': {'part': 'coatFlap', 'off': FOFF, **T('flap', {'openX': 46, 'openY': 18, 'knee': .012, 'kneeUp': .008, 'lunge': .009})},
        'releaseOpen': True, 'dropLift': T('dropLift', 16), 'hemRest': True, 'idleStance': T('idleStance', {'near': 40, 'far': -80}),
        'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': .35}],
+       'bounce': T('bounce', [{'bone': 'pouchA', 'stiff': 210, 'damp': 8, 'y': .6, 'rot': .005, 'max': 12}, {'bone': 'pouchB', 'stiff': 240, 'damp': 9, 'y': .5, 'rot': -.004, 'max': 10}]),   # 파우치 출렁임 (DHL 14:09 추천 3)
        'runForeBend': T('runForeBend', -0.45), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'metrics': {'bodyHeight': round(GROUND - 226), 'heightWithWeapon': round(GROUND - 3), 'note': 'rig units. bodyHeight = 머리카락 위 ~ 발바닥(대기), 무기 제외',
                    'shaftWidth': 34, 'fistWidth': 70, 'forearmThickness': 50},
