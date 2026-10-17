@@ -141,7 +141,7 @@ rig = {'name': 'alonso-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', '
        'metrics': {'bodyHeight': 2 * (477 - 88), 'note': 'rig units; 머리카락 중간(y88)~발바닥(477) ×2, 무기 제외'},
        'armPhase': 0.5, 'gait': {'heelKick': 0.3, 'kneeLift': 0.5, 'strideBase': 45, 'strideK': 0.12, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0}, 'carrySwing': 0.25, 'wristRange': 0.2,
        'ui': {'attack': 'smash', 'touch': 'hop'},
-       'gameRef': {'refOrigin': [float(O[0] / 2), float(O[1] / 2)], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0021.png(512) = 원화'},
+       'gameRef': {'refOrigin': [273.7, float(O[1] / 2)], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0021.png(512) 발 높이 = 원화. x 273.7 = 도감 칸(fitArt 중심 275.7)에서 골반(hip x 4)이 가운데 (2026-10-18 02:20 DHL "도감 위치 가운데")'},
        'note': '21 스카이아크 알론소 (2026-10-17 밤, v1 대기 조립). 칼 = 원화 자리(칼날 머리 뒤·손잡이 얼굴 앞), 메는 팔은 몸 뒤·주먹만 얼굴 앞.'}
 # ---------------- 망토 꼬리 2개 (streamers) ----------------
 for n, src in [('tailA', 'capeA'), ('tailB', 'capeB')]:

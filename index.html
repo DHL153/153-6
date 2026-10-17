@@ -18474,17 +18474,18 @@ body.mini-window #app.mini-mode{box-shadow:0 0 0 1px #b8893a,0 0 0 3px rgba(0,0,
 img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대로 맡음, 클릭은 감싼 칸(도감 그림칸·카드)이 받음 */
 #battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
 </style>
-<script src="assets/rig/rig.js?v=20261018c7"></script>
+<script src="assets/rig/rig.js?v=20261018s1"></script>
 <script src="assets/rig/rust-fork-girl/rig.def.js"></script>
 <script src="assets/rig/alonso-rust/rig.def.js?v=de43e98a"></script>
 <script src="assets/rig/nicole-sky/rig.def.js"></script>
 <script src="assets/rig/nicole-neon/rig.def.js?v=20261017n2"></script>
 <script src="assets/rig/carden-rust/rig.def.js?v=0f7ad643"></script>
+<script src="assets/rig/alonso-sky/rig.def.js?v=33dd5c12"></script>
 <script id="mr-rig-js">
 (()=>{
   const RIG_DIR='assets/rig/';
   // 캐릭터 번호(1~30, 전투·마이룸 같은 번호) → 리그 id. 등록된 번호는 전투·마이룸·친구 방문에서 그림 대신 리그로 그린다. 정지 그림(도감·카드·컷인)은 기존 PNG 그대로
-  const REGISTRY={1:'alonso-rust',6:'carden-rust',8:'rust-fork-girl',18:'nicole-neon',28:'nicole-sky'}; // 2026-10-18 6 카르덴 (8 러스트 니콜 구조 + 봉 키 찌르기, 리그 원본 = char_0006.png, 도감 몸 가운데 gameRef) // 2026-10-17 18 네온 니콜 (8 러스트 니콜 구조, 리그 원본 = 새 char_0018.png) // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
+  const REGISTRY={1:'alonso-rust',6:'carden-rust',8:'rust-fork-girl',18:'nicole-neon',21:'alonso-sky',28:'nicole-sky'}; // 2026-10-18 21 스카이아크 알론소 (1 알론소 v4 구조 + 내려찍기 v4, 리그 원본 = char_0021.png, 도감 몸 가운데 gameRef, 컷인 cutHold .55) // 2026-10-18 6 카르덴 (8 러스트 니콜 구조 + 봉 키 찌르기, 리그 원본 = char_0006.png, 도감 몸 가운데 gameRef) // 2026-10-17 18 네온 니콜 (8 러스트 니콜 구조, 리그 원본 = 새 char_0018.png) // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
   const BODY_PX=290/512;                  // 전투 그림 규칙(normalize_battle_chars.py): 512 그림에서 머리~발 290px
   const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
   let enabled=null,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;

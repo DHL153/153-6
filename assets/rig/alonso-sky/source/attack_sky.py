@@ -101,3 +101,4 @@ for t, X, Y, A, *e in ATK['grip']:
     gx.append([t, round(X - HIP0[0] - samp(act.get('hipX', [[0, 0]]), t), 1), ee]); gy.append([t, round(Y - HIP0[1] - samp(act.get('hipY', [[0, 0]]), t), 1), ee]); sa.append([t, A, ee])
 act.update({'gx': gx, 'gy': gy, 'sa': sa})
 rig['actions'] = {'smash': act}
+rig['cutHold'] = ATK.get('cutHold', .55)   # 스킬 컷인: 내려찍은 자세(런지, 칼 앞 아래)로 멈춤 — 손을 놓기(0.62) 전
