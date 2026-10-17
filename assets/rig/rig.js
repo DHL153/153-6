@@ -150,6 +150,10 @@
       // boot inside/back rim → shin (enters the opening) → boot front (its rim line overlaps the shin) → thigh
       // legs.thighFirst (opt-in, 알론소 v4): 허벅지를 먼저 → 무릎 보호대가 붙은 정강이 그림이 무릎 위를 덮음
       // S.thighImg / S.shinImg (opt-in): 가까운·먼 다리에 다른 그림. L.kneeImg / S.kneeImg (opt-in): 무릎 덮개(보호대)를 무릎 위에 따로 — 허벅지·정강이 가운데 각도
+      if (L.tube) {   // legs.tube (opt-in, 6 카르덴 10-18): 다리 = 엉덩이→발목 곧은 바지 통 하나(무릎에서 꺾이지 않음, 굵기 고정) + 부츠 — 바지가 몸처럼 고정인 캐릭터에서 무릎이 바지 밖으로 튀어나와 '떨어진 다리'로 보이던 것
+        const T_ = L.tube, im_ = this.images[T_.part], il_ = Math.hypot(T_.b[0] - T_.a[0], T_.b[1] - T_.a[1]), wl_ = Math.hypot(P.ankle[0] - P.hip[0], P.ankle[1] - P.hip[1]) || 1;
+        set(ctx, this._seg(R, T_.a, T_.b, P.hip, P.ankle, (T_.k || 1) * il_ / wl_)); ctx.drawImage(im_, 0, 0); boot(bd.part);
+        if (useF) ctx.filter = "none"; return }
       const th = S.thighImg || L.thighImg, thigh = () => { set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0) };
       if (L.thighFirst) thigh();
       if (bd.back) boot(bd.back);
@@ -1008,6 +1012,10 @@
           need = Math.max(need, nd_) }
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
         if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
+      // footReach (opt-in, 6 카르덴 10-18): 동작 중 발이 다리 길이 밖이면(런지 뒤 몸이 돌아올 때) 발을 엉덩이 쪽으로 당김 — 다리와 부츠가 떨어져 보이지 않게
+      if (act && rig.def.footReach) { const Lm_ = (L.thigh + L.shin) * rig.def.footReach;
+        for (const side of ["near", "far"]) { const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
+          if (Math.hypot(dx, dy) > Lm_ && Math.abs(dy) < Lm_) { const nx = Math.sign(dx) * Math.sqrt(Lm_ * Lm_ - dy * dy); f.x += nx - dx } } }
       if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
       else if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
       else if (act && D.kind === "wave") this._waveArms(D, at, T);

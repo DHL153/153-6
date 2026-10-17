@@ -209,7 +209,7 @@ rig = {'name': 'carden-rust', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'parts': parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': ['handL', 'handR'], 'faces': {}, 'idleStance': T('idleStance', idle),
        'gait': T('gait', {}), 'weaponRaise': T('weaponRaise', 16),
        'releaseOpen': True, 'dropLift': T('dropLift', 12), 'follow': T('follow', [{'bone': 'pauldron', 'src': 'armU', 'k': .3}]),
-       'rearBlend': T('rearBlend', .1), 'runSlide': T('runSlide', 110), 'upperRun': T('upperRun', None), 'hemGain': T('hemGain', None), 'seamInterior': T('seamInterior', None), 'carryDrop': T('carryDrop', None), 'weaponFloor': T('weaponFloor', None), 'runForeBend': T('runForeBend', -.35), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
+       'rearBlend': T('rearBlend', .1), 'runSlide': T('runSlide', 110), 'upperRun': T('upperRun', None), 'hemGain': T('hemGain', None), 'seamInterior': T('seamInterior', None), 'carryDrop': T('carryDrop', None), 'weaponFloor': T('weaponFloor', None), 'footReach': T('footReach', None), 'runForeBend': T('runForeBend', -.35), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'bounce': T('bounce', [{'bone': 'pouch', 'stiff': 220, 'damp': 8, 'y': .6, 'rot': .005, 'max': 10},
                              {'bone': 'tuftL', 'stiff': 160, 'damp': 7, 'y': .15, 'rot': -.006, 'max': 12}, {'bone': 'tuftR', 'stiff': 170, 'damp': 7, 'y': .15, 'rot': .006, 'max': 12},
                              {'bone': 'beard', 'stiff': 260, 'damp': 10, 'y': .1, 'rot': .002, 'max': 6}]),
@@ -239,7 +239,7 @@ if T('pantsSkirt', False):   # DHL 23:51: 벨트 아래 ~ 무릎(바지 윗부�
     rig['hemRun'] = T('hemRun', {'lift': 10, 'knee': .5, 'heel': .3, 'reach': .2}); rig['hemLimit'] = T('hemLimit', {'up': .25, 'x': .3})
     for sd_ in ['near', 'far']: legs[sd_]['thighImg'] = dict(legs[sd_]['thighImg'], w=0.001)   # 허벅지는 바지 그림 안 — 다리 그림은 정강이·부츠만
     if 'boot' in PJ:   # 부츠·정강이 = 원화에서 오린 그림(pants_ref.py), 배율 1(원화 2배 = 리그 단위)
-        for n_ in ['bootR', 'shinR']: shutil.copy(os.path.join(HERE, f'parts_work/{n_}.png'), os.path.join(PARTS, n_ + '.png'))
+        for n_ in ['bootR', 'shinR', 'shinP']: shutil.copy(os.path.join(HERE, f'parts_work/{n_}.png'), os.path.join(PARTS, n_ + '.png'))
         LS_ = T('lowerLegScale', 1)   # 걷는 다리(정강이·부츠) 굵기·크기 (DHL 10-18 00:26 '살짝만 크게')
         parts['boot'] = {'src': 'parts/bootR.png', 'pivot': PJ['boot']['ankle'], 'scale': LS_}
         parts['shinR'] = {'src': 'parts/shinR.png', 'pivot': [0, 0], 'scale': 1}
@@ -249,12 +249,17 @@ if T('pantsSkirt', False):   # DHL 23:51: 벨트 아래 ~ 무릎(바지 윗부�
         if LP:
             legs['hip'][1] = LP['hipY'] + T('idleLift', 0); legs['thigh'] = LP['thigh']; legs['shin'] = LP['shin']; legs['near']['x'] = LP['nearX']; legs['far']['x'] = LP['farX']
             for sd_ in ['near', 'far']: legs[sd_]['thighImg'] = dict(legs[sd_]['thighImg'], w=0.001)
-        for sd_ in ['near', 'far']: legs[sd_]['shinImg'] = {'part': 'shinR', 'a': sa_, 'b': sb_, 'w': round(il_ / legs['shin'] * LS_, 3)}
+        if T('shinTube', False) and 'shinP' in PJ:   # 정강이 = 바지 천 통(바짓단에서 부츠까지 이어짐, DHL 10-18 01:19)
+            parts['shinP'] = {'src': 'parts/shinP.png', 'pivot': [0, 0], 'scale': 1}; sa_, sb_ = PJ['shinP']['a'], PJ['shinP']['b']; il_ = float(np.hypot(sb_[0] - sa_[0], sb_[1] - sa_[1]))
+            for sd_ in ['near', 'far']: legs[sd_]['shinImg'] = {'part': 'shinP', 'a': sa_, 'b': sb_, 'w': round(il_ / legs['shin'] * T('shinTubeW', 1.0), 3)}
+            legs['tube'] = {'part': 'shinP', 'a': sa_, 'b': sb_, 'k': T('shinTubeW', 1.0)}   # 다리 = 엉덩이→발목 곧은 바지 통(무릎 안 꺾임) + 부츠
+        else:
+            for sd_ in ['near', 'far']: legs[sd_]['shinImg'] = {'part': 'shinR', 'a': sa_, 'b': sb_, 'w': round(il_ / legs['shin'] * LS_, 3)}
     rig['bounce'] = [q for q in rig['bounce'] if q['bone'] != 'pouch']   # 주머니는 바지 그림에도 있음 → 출렁이면 두 겹
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
-if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armL', 'armU', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
+if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armU', 'armL', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
 _h = hashlib.sha1()
 for _f in sorted(os.listdir(PARTS)): _h.update(_f.encode()); _h.update(open(os.path.join(PARTS, _f), 'rb').read())
 _h.update(json.dumps(rig, sort_keys=True).encode()); rig['version'] = _h.hexdigest()[:8]

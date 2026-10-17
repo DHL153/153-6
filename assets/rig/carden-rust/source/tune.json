@@ -2077,5 +2077,8 @@
  "handRtoElbow": [
   -0.968,
   -0.252
- ]
+ ],
+ "shinTube": true,
+ "footReach": 0.97,
+ "shinTubeW": 0.88
 }
