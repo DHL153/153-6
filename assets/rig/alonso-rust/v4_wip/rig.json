@@ -618,12 +618,14 @@
   },
   "near": {
    "x": -68.7,
-   "hipX": -34.3,
+   "hipX": -17.2,
+   "runX": -10,
    "shade": 0
   },
   "far": {
    "x": 57.2,
-   "hipX": 28.6,
+   "hipX": 14.3,
+   "runX": 10,
    "shade": 0.3
   }
  },
@@ -676,7 +678,10 @@
  },
  "gait": {
   "heelKick": 0.85,
-  "kneeLift": 0.9
+  "kneeLift": 0.9,
+  "swingReach": -0.05,
+  "swingAng": 0.15,
+  "landAng": 0
  },
  "carrySwing": 0.35,
  "wristRange": 0.2,

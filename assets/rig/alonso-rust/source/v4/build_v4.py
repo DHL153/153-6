@@ -129,12 +129,12 @@ legs = {'hip': [0, round(25 * F, 1)], 'thigh': round(TH, 1), 'shin': round(SHN, 
         'thighImg': {'part': 'thigh', 'a': [152, 42], 'b': [72, 196], 'w': 1.0},
         'shinImg': {'part': 'shin', 'a': [118, 58], 'b': [86, 158], 'w': 0.95},
         'thighFirst': True, 'boot': {'part': 'boot', 'back': 'bootB', 'sole': [[-28, 68], [-25, 74], [65, 74], [73, 62]], 'ankleRange': [-0.45, 0.75]},
-        'near': {'x': round(-60 * F, 1), 'hipX': round(-30 * F, 1), 'shade': 0}, 'far': {'x': round(50 * F, 1), 'hipX': round(25 * F, 1), 'shade': 0.3}}   # DHL 11:46: 엉덩이 관절은 튜닉 안쪽(발 자리의 절반) → 달릴 때 다리가 옷 밖으로 안 빠짐
+        'near': {'x': round(-60 * F, 1), 'hipX': round(-15 * F, 1), 'runX': -10, 'shade': 0}, 'far': {'x': round(50 * F, 1), 'hipX': round(12.5 * F, 1), 'runX': 10, 'shade': 0.3}}   # DHL 12:26 B안 확정: 엉덩이 관절은 튜닉 안쪽(발 자리의 1/4), 달릴 때 발은 몸 가운데 줄(runX)
 draw = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'foreF', 'armF', 'pauldronF']   # 대기·달리기: 칼이 머리 앞
 rig = {'name': 'alonso-rust', 'version': 4, 'units': 'rig px (reference x2)', 'refOrigin': [float(O[0]), float(O[1])], 'refScale': F, 'refLift': 0,
        'parts': def_parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {},
        'metrics': {'bodyHeight': 753, 'note': 'rig units; 머리카락 중간~발바닥, 무기 제외'},
-       'armPhase': 0.5, 'hemOpenSides': True, 'seamInterior': True, 'hemLimit': {'up': 0.2, 'x': 0.14}, 'hemRun': {'lift': 4, 'knee': 0.28, 'heel': 0.24, 'reach': 0, 'kneeX': 0.3}, 'gait': {'heelKick': 0.85, 'kneeLift': 0.9}, 'carrySwing': 0.35, 'wristRange': 0.2, 'ui': {'attack': 'smash', 'touch': 'hop'},
+       'armPhase': 0.5, 'hemOpenSides': True, 'seamInterior': True, 'hemLimit': {'up': 0.2, 'x': 0.14}, 'hemRun': {'lift': 4, 'knee': 0.28, 'heel': 0.24, 'reach': 0, 'kneeX': 0.3}, 'gait': {'heelKick': 0.85, 'kneeLift': 0.9, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0}, 'carrySwing': 0.35, 'wristRange': 0.2, 'ui': {'attack': 'smash', 'touch': 'hop'},
        'note': '1번 알론소 v4 (2026-10-17, 오른쪽 3/4 새 시트). 가까운 팔(armF→foreF=메는 손 한 장)이 칼을 어깨에 멤, 먼 팔(armU→armL 팔뚝+주먹 한 장)이 자유롭게 흔듦. 내려찍기는 손 시트 받은 뒤.'}
 # ---------------- 표정 (align_faces_v4.py: 기준 머리와 같은 크기·좌표의 얼굴 패치) ----------------
 FN = ['happy', 'effort', 'shout', 'angry', 'focus', 'sad', 'grimace', 'relaxed', 'surprised']
