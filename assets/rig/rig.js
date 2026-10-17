@@ -95,17 +95,19 @@
           const hk = hp.scale || 1, HM = mul(base, hb.m); ctx.save(); set(ctx, mul(HM, [hk, 0, 0, hk, 0, 0])); ctx.beginPath();
           hf.clip.forEach(([cx, cy], i) => i ? ctx.lineTo(cx - hp.pivot[0], cy - hp.pivot[1]) : ctx.moveTo(cx - hp.pivot[0], cy - hp.pivot[1])); ctx.closePath(); ctx.clip();
           ctx.globalAlpha = hop; ctx.drawImage(him, -hp.pivot[0], -hp.pivot[1]); ctx.globalAlpha = 1;
-          if (this.def.faces) this._drawFaces(ctx, HM);
+          if (this.def.faces && !hf.facesFree) this._drawFaces(ctx, HM);
           if (this.def.blinkFaces && this.blink > .15) { const bf = this.def.blinkFaces, n2 = this.blink > .7 ? bf.closed : bf.half, q2 = this.def.parts[n2], m2 = this.images[n2];
             if (m2) { const k2 = q2.scale || 1; set(ctx, mul(HM, [k2, 0, 0, k2, 0, 0])); ctx.drawImage(m2, -q2.pivot[0], -q2.pivot[1]) } }
-          ctx.restore(); continue }
+          ctx.restore();
+          if (this.def.faces && hf.facesFree) { ctx.save(); this._drawFaces(ctx, HM); ctx.restore() }   // facesFree (opt-in, 6 카르덴): 표정 패치는 클립 밖까지(입이 수염 속) — 클립은 코만
+          continue }
         const b = this.by[name], pn = this.swap[name] || b.part, part = this.def.parts[pn], img = this.images[pn]; if (!img) continue;
         const op = this.alpha[name] ?? 1; if (op <= .003) continue; ctx.globalAlpha = op;
         const k = part.scale || 1, M = mul(mul(base, b.m), [k, 0, 0, k, 0, 0]);
         if (part.mesh) this._drawMesh(ctx, M, img, part, this.meshFx[pn]);
         else { set(ctx, M); ctx.drawImage(img, -part.pivot[0], -part.pivot[1]) }
         ctx.globalAlpha = 1;
-        if (name === "head" && this.def.faces) this._drawFaces(ctx, mul(base, b.m));
+        if (name === "head" && this.def.faces && !(this.def.headFront && this.def.headFront.facesFree)) this._drawFaces(ctx, mul(base, b.m));
         if (this.def.blinkFaces && name === "head" && this.blink > .15) {   // 그린 깜빡임 얼굴 (반쯤 → 감음 → 반쯤)
           const bf = this.def.blinkFaces, pn2 = this.blink > .7 ? bf.closed : bf.half, p2 = this.def.parts[pn2], im2 = this.images[pn2];
           if (im2) { const k2 = p2.scale || 1; set(ctx, mul(mul(base, b.m), [k2, 0, 0, k2, 0, 0])); ctx.drawImage(im2, -p2.pivot[0], -p2.pivot[1]) } }
@@ -374,7 +376,7 @@
     /** root-space point between the two prong tips */
     tip() { const p = this.rig.def.parts.weapon.tips; const a = this.rig.partPoint("weapon", ...p[0]), c = this.rig.partPoint("weapon", ...p[1]); return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2] }
     get facingScale() { const k = this.turnT > 0 ? .72 + .28 * Math.abs(Math.cos((1 - this.turnT / .16) * Math.PI)) : 1; return this.facing * k }
-    _ik(H, A, soft = 0) { // two-bone IK, knee bends forward (+x)
+    _ik(H, A, soft = 0, kw = 0) { // two-bone IK, knee bends forward (+x); kw>0 = knee turned outward (kneeOut)
       const L1 = this.L.thigh, L2 = this.L.shin; let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
       // soft IK for a foot in the air: near full extension the knee angle changes infinitely fast (acos singularity),
       // which shows as a one-frame knee snap at toe-off. Ease the reach so the leg straightens smoothly (the foot lags a hair).
@@ -382,7 +384,9 @@
         A = [H[0] + dx / d * dd, H[1] + dy / d * dd]; dx = A[0] - H[0]; dy = A[1] - H[1]; d = dd } }
       const dm = Math.min(d, (L1 + L2) * .999), base = Math.atan2(dy, dx), cosA = clamp((L1 * L1 + dm * dm - L2 * L2) / (2 * L1 * dm), -1, 1), al = Math.acos(cosA);
       const k1 = [H[0] + Math.cos(base - al) * L1, H[1] + Math.sin(base - al) * L1], k2 = [H[0] + Math.cos(base + al) * L1, H[1] + Math.sin(base + al) * L1];
-      const knee = k1[0] > k2[0] ? k1 : k2, ankle = d > dm ? [H[0] + dx / d * (L1 + L2) * .999, H[1] + dy / d * (L1 + L2) * .999] : A;
+      let knee = k1[0] > k2[0] ? k1 : k2; const ankle = d > dm ? [H[0] + dx / d * (L1 + L2) * .999, H[1] + dy / d * (L1 + L2) * .999] : A;
+      if (kw > 0) { const ux = Math.cos(base), uy = Math.sin(base), t = (knee[0] - H[0]) * ux + (knee[1] - H[1]) * uy, F = [H[0] + ux * t, H[1] + uy * t], c = Math.cos(Math.PI * Math.min(1, kw));
+        knee = [F[0] + (knee[0] - F[0]) * c, F[1] + (knee[1] - F[1]) * c] }   // kneeOut (opt-in, 6 카르덴): 무릎이 바깥(뒤)으로 — 다리가 엉덩이-발목 축으로 돈 것처럼 수직 거리만 cos 로 줄임(3D 회전의 그림자)
       return { hip: H, knee, ankle };
     }
     _ankleFor(gx, lift, ang) { // ankle height so the lowest sole point (heel / ball / toe tip) touches the ground
@@ -904,15 +908,17 @@
       if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       if (!act && rig.def.twoHand && !rig.def.spearGrip) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
+      if (L.near.kneeOut || L.far.kneeOut) this.koW = damp(this.koW ?? 1, (act ? 0 : 1) * (1 - this.A), act ? 16 : 9, dt);
       for (const side of ["near", "far"]) {
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
         const [r0, r1] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9];   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
-        let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft);
+        const kw = L[side].kneeOut ? L[side].kneeOut * this.koW : 0;   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게)
+        let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft, kw);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
-          if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft) }
+          if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft, kw) }
         sol.foot = ang; sol.lift = f.lift; lp[side] = sol;
       }
       rig.legPose = lp;

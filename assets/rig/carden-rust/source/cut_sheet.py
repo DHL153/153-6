@@ -43,32 +43,16 @@ def blobs(alpha, minpx=300):
         out.append(dict(mask=m, x0=xs.min(), x1=xs.max() + 1, y0=ys.min(), y1=ys.max() + 1, cx=xs.mean(), cy=ys.mean(), px=int(m.sum())))
     return out
 
-def rows_order(bs):
-    """줄 찾기: 보통 키 조각들의 세로 투영에서 빈 띠로 줄을 나누고(봉처럼 2줄에 걸친 긴 조각은 빼고 계산),
-    각 조각은 '위 끝'이 들어간 줄에 넣음 → 줄은 위→아래, 줄 안은 왼쪽→오른쪽"""
-    hs = np.array([b['y1'] - b['y0'] for b in bs]); med = np.median(hs); H = max(b['y1'] for b in bs) + 1
-    prof = np.zeros(H, bool)
-    for b in bs:
-        if b['y1'] - b['y0'] <= 1.6 * med: prof[b['y0']:b['y1']] = True
-    bands, y = [], 0
-    while y < H:
-        if prof[y]:
-            y2 = y
-            while y2 < H and prof[y2]: y2 += 1
-            bands.append([y, y2]); y = y2
-        else: y += 1
-    merged = []                                    # 아주 가까운 띠(조각끼리 살짝 어긋남)는 합침
-    for bd in bands:
-        if merged and bd[0] - merged[-1][1] < .12 * med: merged[-1][1] = bd[1]
-        else: merged.append(bd)
-    def row_of(b):
-        for i, (t, e) in enumerate(merged):
-            if t - .15 * med <= b['y0'] < e: return i
-        return int(np.argmin([abs(b['y0'] - t) for t, _ in merged]))
-    rows = [[] for _ in merged]
-    for b in bs: rows[row_of(b)].append(b)
-    rows = [sorted(r, key=lambda b: b['cx']) for r in rows if r]
-    return [x for r in rows for x in r], [len(r) for r in rows]
+def rows_order(bs, W=None, H=None, grid=6):
+    """칸(grid×grid, 같은 크기) 기준: 조각 가운데가 든 칸 — 칸보다 긴 조각(봉)은 위 끝이 든 칸. 줄 위→아래, 줄 안 왼쪽→오른쪽"""
+    W = W or max(b['x1'] for b in bs); H = H or max(b['y1'] for b in bs); cw, ch = W / grid, H / grid
+    def cell(b):
+        y = b['y0'] + ch * .3 if b['y1'] - b['y0'] > ch * .9 else b['cy']
+        return int(min(grid - 1, y // ch)), int(min(grid - 1, b['cx'] // cw))
+    cells = sorted(((cell(b), b) for b in bs), key=lambda t: t[0])
+    rows = {}
+    for (r, c), b in cells: rows.setdefault(r, []).append(b)
+    return [b for (r_, c_), b in cells], [len(rows[r]) for r in sorted(rows)]
 
 def axis_angle(m):
     """조각 긴 축 각도(세로 = 0°, 도) · 길이 · 굵기"""
@@ -79,7 +63,7 @@ def axis_angle(m):
 if __name__ == '__main__':
     src = sys.argv[1]; names = json.load(open(sys.argv[sys.argv.index('--names') + 1])) if '--names' in sys.argv else NAMES
     rgba, alpha = key(np.asarray(Image.open(src).convert('RGB')))
-    bs, per_row = rows_order(blobs(alpha))
+    bs, per_row = rows_order(blobs(alpha), alpha.shape[1], alpha.shape[0])
     os.makedirs(os.path.join(HERE, 'cut'), exist_ok=True); os.makedirs(os.path.join(HERE, 'review'), exist_ok=True)
     rep = {'sheet': src, 'pieces': len(bs), 'expected': len(names), 'rows': per_row, 'items': {}, 'fails': []}
     if len(bs) != len(names): rep['fails'].append(f'조각 수 {len(bs)} ≠ {len(names)} — 칸이 붙었거나 빠짐, 이름 붙이기 전 그림 확인')

@@ -20,8 +20,9 @@ window.audit=()=>{const R={};
    if((rig.alpha.armL??1)>.5){const pn=rig.def.parts[rig.swap.armL||'armL'],w=pn.grip||pn.wrist;if(w){const S=rig.point('armU'),E=rig.point('armL'),W=rig.partPoint('armL',...w);const e=wrap(ang(sub(W,E))-ang(sub(E,S)))*D;r.elbowN[0]=Math.min(r.elbowN[0],e);r.elbowN[1]=Math.max(r.elbowN[1],e)}}
    // 다리
    const tA=wA(b.torso.m);let kn={},hp={};
-   for(const sd of ['near','far']){const P=rig.legPose[sd];const k=wrap(ang(sub(P.ankle,P.knee))-ang(sub(P.knee,P.hip)))*D;kn[sd]=k;r.knee[0]=Math.min(r.knee[0],k);r.knee[1]=Math.max(r.knee[1],k);
-    const h=wrap(ang(sub(P.knee,P.hip))-(tA+Math.PI/2))*D;hp[sd]=h;r.hip[0]=Math.min(r.hip[0],h);r.hip[1]=Math.max(r.hip[1],h);
+   for(const sd of ['near','far']){const P=rig.legPose[sd];const k=wrap(ang(sub(P.ankle,P.knee))-ang(sub(P.knee,P.hip)))*D;kn[sd]=k;const ko=(rig.def.legs[sd].kneeOut||0)*(an.koW??0)>.02;   // kneeOut(6 카르덴): 서 있을 때 무릎이 바깥(3D로 돈 다리) — 옆모습 기준 한계에서 뺌
+    if(!ko){r.knee[0]=Math.min(r.knee[0],k);r.knee[1]=Math.max(r.knee[1],k)}
+    const h=wrap(ang(sub(P.knee,P.hip))-(tA+Math.PI/2))*D;hp[sd]=h;if(!ko){r.hip[0]=Math.min(r.hip[0],h);r.hip[1]=Math.max(r.hip[1],h)}
     const ft=an.ft[sd];if(ft.planted&&!busy&&Math.abs(v)>300&&t>0.9&&!ft.step&&lock[sd]!=null){{const sl=Math.abs(an.odo+ft.x-lock[sd]);if(sl>r.slide){r.slide=sl;r.slideAt=sd+'@'+t.toFixed(3)+' lift'+ft.lift.toFixed(2)}}}lock[sd]=ft.planted?(lock[sd]!=null&&prev&&prev.pl[sd]?lock[sd]:an.odo+ft.x):null}
    // 무기 끝
    if((rig.alpha.weapon??1)>.5&&rig.def.parts.weapon.tips){const w=rig.images.weapon,p=rig.def.parts.weapon;for(const q of [[w.width/2,w.height],...p.tips]){const y=rig.partPoint('weapon',...q)[1];if(y>r.tipBelow){r.tipBelow=y;r.tipAt=t.toFixed(3)}}}

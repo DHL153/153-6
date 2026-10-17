@@ -1,0 +1,1271 @@
+{
+ "name": "carden-rust",
+ "version": "7c95d9b9",
+ "units": "rig px (reference x2)",
+ "refOrigin": [
+  234.0,
+  500.0
+ ],
+ "refScale": 2.0,
+ "refLift": 0,
+ "parts": {
+  "hips": {
+   "src": "parts/hips.png",
+   "pivot": [
+    73.0,
+    14.1
+   ],
+   "scale": 2.3575
+  },
+  "pouch": {
+   "src": "parts/pouch.png",
+   "pivot": [
+    22.0,
+    4.0
+   ],
+   "scale": 2.05
+  },
+  "torso": {
+   "src": "parts/torso.png",
+   "pivot": [
+    112.8,
+    114.7
+   ],
+   "scale": 2.05
+  },
+  "head": {
+   "src": "parts/head.png",
+   "pivot": [
+    60.9,
+    95.5
+   ],
+   "scale": 2.0581
+  },
+  "tuftL": {
+   "src": "parts/tuftL.png",
+   "pivot": [
+    102.1,
+    48.4
+   ],
+   "scale": 2.05
+  },
+  "tuftR": {
+   "src": "parts/tuftR.png",
+   "pivot": [
+    8.4,
+    31.0
+   ],
+   "scale": 2.05
+  },
+  "beard": {
+   "src": "parts/beard.png",
+   "pivot": [
+    80.5,
+    12.0
+   ],
+   "scale": 2.0102
+  },
+  "armU": {
+   "src": "parts/armU.png",
+   "pivot": [
+    22.0,
+    3.0
+   ],
+   "scale": 2.05
+  },
+  "armL": {
+   "src": "parts/armL.png",
+   "pivot": [
+    57.0,
+    3.0
+   ],
+   "scale": 2.05,
+   "alt": "armLF"
+  },
+  "pauldron": {
+   "src": "parts/pauldron.png",
+   "pivot": [
+    55.4,
+    34.9
+   ],
+   "scale": 2.05
+  },
+  "armF": {
+   "src": "parts/armF.png",
+   "pivot": [
+    19.0,
+    2.0
+   ],
+   "scale": 2.05
+  },
+  "foreF": {
+   "src": "parts/foreF.png",
+   "pivot": [
+    17.0,
+    2.0
+   ],
+   "scale": 2.05
+  },
+  "fistF": {
+   "src": "parts/fistF.png",
+   "pivot": [
+    136.8,
+    49.5
+   ],
+   "scale": 1.0
+  },
+  "weapon": {
+   "src": "parts/weapon.png",
+   "pivot": [
+    45.2,
+    295.1
+   ],
+   "scale": 2.05,
+   "tips": [
+    [
+     16.0,
+     6.0
+    ],
+    [
+     58.0,
+     6.0
+    ]
+   ]
+  },
+  "armLF": {
+   "src": "parts/armLF.png",
+   "pivot": [
+    46.2,
+    9.4
+   ],
+   "scale": 2.05,
+   "grip": [
+    36.7,
+    80.8
+   ]
+  },
+  "handL": {
+   "src": "parts/handL.png",
+   "pivot": [
+    32.0,
+    33.5
+   ],
+   "scale": 2.05,
+   "shaftDir": [
+    1,
+    0
+   ],
+   "wrist": [
+    22,
+    6
+   ],
+   "toElbow": [
+    -0.349,
+    -0.937
+   ]
+  },
+  "handR": {
+   "src": "parts/handR.png",
+   "pivot": [
+    68.5,
+    29.0
+   ],
+   "scale": 2.05,
+   "shaftDir": [
+    1,
+    0
+   ],
+   "elbow": [
+    7,
+    30
+   ]
+  },
+  "thighN": {
+   "src": "parts/thighN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  "thighF": {
+   "src": "parts/thighF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  "shinN": {
+   "src": "parts/shinN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  "shinF": {
+   "src": "parts/shinF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1
+  },
+  "boot": {
+   "src": "parts/boot.png",
+   "pivot": [
+    19,
+    6
+   ],
+   "scale": 2.3575
+  },
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    19.9,
+    76.5
+   ],
+   "scale": 2.0581
+  },
+  "face_angry": {
+   "src": "parts/face_angry.png",
+   "pivot": [
+    14.9,
+    76.5
+   ],
+   "scale": 2.0581
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    19.9,
+    76.5
+   ],
+   "scale": 2.0581
+  },
+  "face_sad": {
+   "src": "parts/face_sad.png",
+   "pivot": [
+    19.9,
+    76.5
+   ],
+   "scale": 2.0581
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    19.9,
+    76.5
+   ],
+   "scale": 2.0581
+  }
+ },
+ "bones": [
+  {
+   "name": "root",
+   "parent": null,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "hip",
+   "parent": "root",
+   "pos": [
+    12.0,
+    -230.0
+   ]
+  },
+  {
+   "name": "skirt",
+   "parent": "hip",
+   "pos": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "name": "cape",
+   "parent": "hip",
+   "pos": [
+    -4.0,
+    -266.0
+   ]
+  },
+  {
+   "name": "hips",
+   "parent": "hip",
+   "pos": [
+    14.8,
+    50.8
+   ],
+   "rot": 0.0698,
+   "part": "hips"
+  },
+  {
+   "name": "pouch",
+   "parent": "hip",
+   "pos": [
+    -102.6,
+    -25.7
+   ],
+   "rot": 0.192,
+   "part": "pouch"
+  },
+  {
+   "name": "torso",
+   "parent": "hip",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "torso"
+  },
+  {
+   "name": "head",
+   "parent": "torso",
+   "pos": [
+    -4.0,
+    -266.0
+   ],
+   "rot": -0.0335,
+   "part": "head"
+  },
+  {
+   "name": "tuftL",
+   "parent": "head",
+   "pos": [
+    -60.8,
+    -116.0
+   ],
+   "rot": -0.0713,
+   "part": "tuftL"
+  },
+  {
+   "name": "tuftR",
+   "parent": "head",
+   "pos": [
+    118.2,
+    -132.0
+   ],
+   "rot": 0.1905,
+   "part": "tuftR"
+  },
+  {
+   "name": "beard",
+   "parent": "head",
+   "pos": [
+    88.3,
+    1.1
+   ],
+   "rot": 0.0198,
+   "part": "beard"
+  },
+  {
+   "name": "armU",
+   "parent": "torso",
+   "pos": [
+    -150.0,
+    -194.0
+   ],
+   "rot": 0.9969,
+   "part": "armU"
+  },
+  {
+   "name": "armL",
+   "parent": "armU",
+   "pos": [
+    -0.0,
+    47.3
+   ],
+   "rot": -0.6478,
+   "part": "armL"
+  },
+  {
+   "name": "pauldron",
+   "parent": "torso",
+   "pos": [
+    -150.0,
+    -194.0
+   ],
+   "rot": 0.0698,
+   "part": "pauldron"
+  },
+  {
+   "name": "armF",
+   "parent": "torso",
+   "pos": [
+    220.0,
+    -170.0
+   ],
+   "rot": 0.4117,
+   "part": "armF"
+  },
+  {
+   "name": "foreF",
+   "parent": "armF",
+   "pos": [
+    0.0,
+    98.4
+   ],
+   "rot": -2.4941,
+   "part": "foreF"
+  },
+  {
+   "name": "fistF",
+   "parent": "foreF",
+   "pos": [
+    0.0,
+    102.5
+   ],
+   "part": "fistF"
+  },
+  {
+   "name": "weapon",
+   "parent": "fistF",
+   "pos": [
+    -12.8,
+    80.0
+   ],
+   "rot": 2.0998,
+   "part": "weapon"
+  },
+  {
+   "name": "handL",
+   "parent": "weapon",
+   "pos": [
+    0,
+    0
+   ],
+   "rot": -1.5882,
+   "part": "handL"
+  },
+  {
+   "name": "handR",
+   "parent": "weapon",
+   "pos": [
+    0,
+    0
+   ],
+   "rot": -1.5882,
+   "part": "handR"
+  }
+ ],
+ "legs": {
+  "hip": [
+   0,
+   46.0
+  ],
+  "thigh": 102.5,
+  "shin": 77.0,
+  "thighImg": {
+   "part": "thighN",
+   "a": [
+    40,
+    4
+   ],
+   "b": [
+    36,
+    55
+   ],
+   "w": 1.33
+  },
+  "shinImg": {
+   "part": "shinN",
+   "a": [
+    19,
+    3
+   ],
+   "b": [
+    18,
+    43
+   ],
+   "w": 1.385
+  },
+  "boot": {
+   "part": "boot",
+   "sole": [
+    [
+     -18,
+     19
+    ],
+    [
+     -15,
+     21
+    ],
+    [
+     22,
+     21
+    ],
+    [
+     25,
+     18
+    ]
+   ],
+   "ankleRange": [
+    -0.85,
+    0.95
+   ]
+  },
+  "near": {
+   "x": -50.0,
+   "shade": 0,
+   "thighImg": {
+    "part": "thighN",
+    "a": [
+     40,
+     4
+    ],
+    "b": [
+     36,
+     55
+    ],
+    "w": 1.33
+   },
+   "shinImg": {
+    "part": "shinN",
+    "a": [
+     19,
+     3
+    ],
+    "b": [
+     18,
+     43
+    ],
+    "w": 1.385
+   },
+   "runX": -20,
+   "kneeOut": 1
+  },
+  "far": {
+   "x": 64.0,
+   "shade": 0.22,
+   "thighImg": {
+    "part": "thighF",
+    "a": [
+     37,
+     4
+    ],
+    "b": [
+     40,
+     55
+    ],
+    "w": 1.328
+   },
+   "shinImg": {
+    "part": "shinF",
+    "a": [
+     19,
+     3
+    ],
+    "b": [
+     19,
+     43
+    ],
+    "w": 1.384
+   },
+   "runX": 20
+  }
+ },
+ "draw": [
+  "cape",
+  "legFar",
+  "legNear",
+  "armF",
+  "hips",
+  "torso",
+  "pouch",
+  "foreF",
+  "tuftL",
+  "tuftR",
+  "head",
+  "beard",
+  "headFront",
+  "weapon",
+  "fistF",
+  "handL",
+  "armU",
+  "armL",
+  "pauldron",
+  "handR"
+ ],
+ "hidden": [
+  "handL",
+  "handR"
+ ],
+ "faces": {
+  "happy": "face_happy",
+  "angry": "face_angry",
+  "focus": "face_focus",
+  "sad": "face_sad",
+  "shout": "face_shout",
+  "effort": "face_angry"
+ },
+ "idleStance": {
+  "near": -90,
+  "far": 48
+ },
+ "gait": {
+  "stance": 0.42,
+  "strideBase": 40,
+  "strideK": 0.1,
+  "hipBase": 0,
+  "bob": 12,
+  "lean": 0.12,
+  "waddle": 0.05,
+  "headBob": 4,
+  "kneeLift": 0.55,
+  "heelKick": 0.25,
+  "dropCap": 20,
+  "swingReach": 0.05,
+  "landAng": -0.08
+ },
+ "weaponRaise": 30,
+ "releaseOpen": true,
+ "dropLift": 12,
+ "follow": [
+  {
+   "bone": "pauldron",
+   "src": "armU",
+   "k": 0.3
+  }
+ ],
+ "rearBlend": 0.1,
+ "runSlide": 110,
+ "runForeBend": -0.35,
+ "wristRange": 0.55,
+ "runTilt": 0,
+ "bounce": [
+  {
+   "bone": "pouch",
+   "stiff": 220,
+   "damp": 8,
+   "y": 0.6,
+   "rot": 0.005,
+   "max": 10
+  },
+  {
+   "bone": "tuftL",
+   "stiff": 160,
+   "damp": 7,
+   "y": 0.15,
+   "rot": -0.006,
+   "max": 12
+  },
+  {
+   "bone": "tuftR",
+   "stiff": 170,
+   "damp": 7,
+   "y": 0.15,
+   "rot": 0.006,
+   "max": 12
+  },
+  {
+   "bone": "beard",
+   "stiff": 260,
+   "damp": 10,
+   "y": 0.1,
+   "rot": 0.002,
+   "max": 6
+  }
+ ],
+ "metrics": {
+  "bodyHeight": 714,
+  "heightWithWeapon": 1006,
+  "note": "rig units. bodyHeight = 옆머리 위 ~ 발바닥(대기), 무기 제외",
+  "shaftWidth": 28,
+  "fistWidth": 76,
+  "forearmThickness": 60
+ },
+ "ui": {
+  "attack": "thrust",
+  "stillReady": {
+   "t": 0.22,
+   "cut": 0.36
+  }
+ },
+ "note": "6 카르덴. 8 러스트 니콜(rust-fork-girl v15) 뼈대·동작 방식(봉 계열 기준). 다른 점: 짧은 다리·넓은 발, 긴 렌치 봉(쥔 손이 몸에서 멂), 옆머리 2·수염(머리 뼈, 출렁임), 고글(깜빡임 없음), 바지 엉덩이(hips) 조각",
+ "headFront": {
+  "clip": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "facesFree": true
+ },
+ "actions": {
+  "thrust": {
+   "dur": 0.8,
+   "hitAt": 0.3,
+   "cancelAt": 0.54,
+   "w": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.1,
+     1
+    ],
+    [
+     0.58,
+     1,
+     "io"
+    ],
+    [
+     0.8,
+     0
+    ]
+   ],
+   "hipX": [
+    [
+     0,
+     0.0,
+     "io"
+    ],
+    [
+     0.18,
+     -16.12,
+     "s"
+    ],
+    [
+     0.3,
+     57.04
+    ],
+    [
+     0.42,
+     54.56,
+     "io"
+    ],
+    [
+     0.7,
+     0.0
+    ]
+   ],
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     10,
+     "s"
+    ],
+    [
+     0.3,
+     16
+    ],
+    [
+     0.42,
+     15,
+     "io"
+    ],
+    [
+     0.7,
+     -1,
+     "io"
+    ],
+    [
+     0.75,
+     3,
+     "io"
+    ],
+    [
+     0.8,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -0.1,
+     "s"
+    ],
+    [
+     0.3,
+     0.22
+    ],
+    [
+     0.42,
+     0.2,
+     "io"
+    ],
+    [
+     0.7,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     0.06,
+     "s"
+    ],
+    [
+     0.3,
+     -0.12
+    ],
+    [
+     0.42,
+     -0.1,
+     "io"
+    ],
+    [
+     0.7,
+     0
+    ]
+   ],
+   "breath": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.16,
+     1,
+     "o"
+    ],
+    [
+     0.3,
+     -0.4,
+     "io"
+    ],
+    [
+     0.48,
+     -0.6,
+     "io"
+    ],
+    [
+     0.8,
+     0
+    ]
+   ],
+   "twist": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -0.7,
+     "s"
+    ],
+    [
+     0.3,
+     0.7
+    ],
+    [
+     0.42,
+     0.6,
+     "io"
+    ],
+    [
+     0.7,
+     0
+    ]
+   ],
+   "ang": [
+    [
+     0,
+     0.05,
+     "io"
+    ],
+    [
+     0.18,
+     1,
+     "s"
+    ],
+    [
+     0.3,
+     1.4,
+     "o"
+    ],
+    [
+     0.33,
+     1.36,
+     "io"
+    ],
+    [
+     0.42,
+     1.39,
+     "io"
+    ],
+    [
+     0.62,
+     1.2,
+     "io"
+    ],
+    [
+     0.79,
+     0.35
+    ]
+   ],
+   "thF": [
+    [
+     0,
+     0.35,
+     "io"
+    ],
+    [
+     0.18,
+     0.45,
+     "s"
+    ],
+    [
+     0.3,
+     1.0,
+     "o"
+    ],
+    [
+     0.33,
+     0.95,
+     "io"
+    ],
+    [
+     0.42,
+     0.98,
+     "io"
+    ],
+    [
+     0.62,
+     0.8,
+     "io"
+    ],
+    [
+     0.79,
+     0.35
+    ]
+   ],
+   "nearW": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.17,
+     1
+    ],
+    [
+     0.54,
+     1,
+     "io"
+    ],
+    [
+     0.7,
+     0
+    ]
+   ],
+   "gap": [
+    [
+     0,
+     170,
+     "io"
+    ],
+    [
+     0.18,
+     165,
+     "io"
+    ],
+    [
+     0.3,
+     170,
+     "io"
+    ],
+    [
+     0.6,
+     170
+    ]
+   ],
+   "farDx": [
+    [
+     0,
+     0.0,
+     "io"
+    ],
+    [
+     0.18,
+     0.0,
+     "s"
+    ],
+    [
+     0.3,
+     41.2
+    ],
+    [
+     0.46,
+     41.2,
+     "io"
+    ],
+    [
+     0.64,
+     0.0
+    ]
+   ],
+   "farLift": [
+    [
+     0,
+     0.0
+    ],
+    [
+     0.18,
+     0.0,
+     "io"
+    ],
+    [
+     0.24,
+     19.84,
+     "io"
+    ],
+    [
+     0.3,
+     0.0
+    ],
+    [
+     0.46,
+     0.0,
+     "io"
+    ],
+    [
+     0.55,
+     14.88,
+     "io"
+    ],
+    [
+     0.64,
+     0.0
+    ]
+   ],
+   "farAng": [
+    [
+     0,
+     0
+    ],
+    [
+     0.21,
+     0,
+     "io"
+    ],
+    [
+     0.27,
+     -0.24,
+     "io"
+    ],
+    [
+     0.33,
+     0
+    ]
+   ],
+   "nearDx": [
+    [
+     0,
+     0.0,
+     "io"
+    ],
+    [
+     0.03,
+     0.0,
+     "io"
+    ],
+    [
+     0.15,
+     -27.9
+    ],
+    [
+     0.62,
+     -27.9,
+     "io"
+    ],
+    [
+     0.76,
+     0.0
+    ]
+   ],
+   "nearLift": [
+    [
+     0,
+     0.0
+    ],
+    [
+     0.03,
+     0.0,
+     "io"
+    ],
+    [
+     0.09,
+     9.92,
+     "io"
+    ],
+    [
+     0.15,
+     0.0
+    ],
+    [
+     0.62,
+     0.0,
+     "io"
+    ],
+    [
+     0.69,
+     8.68,
+     "io"
+    ],
+    [
+     0.76,
+     0.0
+    ]
+   ],
+   "nearAng": [
+    [
+     0,
+     0
+    ],
+    [
+     0.21,
+     0,
+     "io"
+    ],
+    [
+     0.31,
+     0.2
+    ],
+    [
+     0.44,
+     0.18,
+     "io"
+    ],
+    [
+     0.6,
+     0
+    ]
+   ],
+   "trail": [
+    [
+     0,
+     0
+    ],
+    [
+     0.19,
+     0,
+     "lin"
+    ],
+    [
+     0.22,
+     1
+    ],
+    [
+     0.34,
+     1,
+     "lin"
+    ],
+    [
+     0.41,
+     0
+    ]
+   ],
+   "shake": [
+    [
+     0,
+     0
+    ],
+    [
+     0.3,
+     0,
+     "lin"
+    ],
+    [
+     0.31,
+     1
+    ],
+    [
+     0.42,
+     0
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "effort"
+    ],
+    [
+     0.19,
+     "shout"
+    ],
+    [
+     0.4,
+     "focus"
+    ],
+    [
+     0.62,
+     "relaxed"
+    ],
+    [
+     0.76,
+     null
+    ]
+   ],
+   "slide": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     130,
+     "s"
+    ],
+    [
+     0.24,
+     130,
+     "io"
+    ],
+    [
+     0.3,
+     30,
+     "o"
+    ],
+    [
+     0.42,
+     30,
+     "io"
+    ],
+    [
+     0.62,
+     90,
+     "io"
+    ],
+    [
+     0.79,
+     0
+    ]
+   ]
+  }
+ }
+}
