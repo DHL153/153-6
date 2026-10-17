@@ -25,8 +25,8 @@ function axisOf(im){const cv=document.createElement('canvas');cv.width=im.width;
  let n=0,mx=0,my=0;for(let j=0;j<im.height;j+=2)for(let i=0;i<im.width;i+=2)if(d[(j*im.width+i)*4+3]>100){n++;mx+=i;my+=j}mx/=n;my/=n;let sxx=0,syy=0,sxy=0;
  for(let j=0;j<im.height;j+=2)for(let i=0;i<im.width;i+=2)if(d[(j*im.width+i)*4+3]>100){sxx+=(i-mx)**2;syy+=(j-my)**2;sxy+=(i-mx)*(j-my)}
  const th=.5*Math.atan2(2*sxy,sxx-syy);return [Math.cos(th),Math.sin(th)]}
-const AX={};for(const k of ['foreF','armL'])if(rig.def.parts[k])AX[k]=axisOf(rig.images[k]);
-function foreTwist(){const out={};for(const k of ['foreF','armL']){const b=rig.by[k];if(!b||(rig.alpha[k]??1)<.5)continue;const a=AX[k],m=b.m;const dv=[m[0]*a[0]+m[2]*a[1],m[1]*a[0]+m[3]*a[1]];
+const AX={},axOf=pn=>{if(!(pn in AX)){const im=rig.images[pn];AX[pn]=im&&!rig.def.parts[pn].noAxis&&Math.max(im.width,im.height)/Math.min(im.width,im.height)>=1.3?axisOf(im):null}return AX[pn]};   // 지금 그린 그림(swap 포함)의 축. 납작한 조각(긴 축 없음, 예: 6 카르덴 소매 armLS)은 뺌
+function foreTwist(){const out={};for(const k of ['foreF','armL']){const b=rig.by[k];if(!b||(rig.alpha[k]??1)<.5)continue;const a=axOf(rig.swap[k]||b.part);if(!a)continue;const m=b.m;const dv=[m[0]*a[0]+m[2]*a[1],m[1]*a[0]+m[3]*a[1]];
   const e=rig.point(k);let w;if(k==='foreF')w=rig.by.fistF?rig.point('fistF'):rig.by.handL?rig.point('handL'):null;else{const pn=rig.def.parts[rig.swap.armL||'armL'];w=rig.by.fistN?rig.point('fistN'):pn.wrist?rig.partPoint('armL',...pn.wrist):(rig.alpha.handR>.5?rig.point('handR'):null)}if(!w)continue;
   let dlt=wrap(ang(dv)-ang(sub(w,e)))*D;dlt=((dlt%180)+270)%180-90;out[k]=dlt}return out}   // 축 방향 부호 무시(±90 안으로 접음)
 function elbows(){const P=n=>rig.point(n),r={};const rel=(u,v)=>wrap(ang(v)-ang(u))*D;

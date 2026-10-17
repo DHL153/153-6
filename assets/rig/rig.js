@@ -567,6 +567,65 @@
       b.pauldron.ar = b.armU.ar * .3; b.pauldron.ax = b.armU.ax; b.pauldron.ay = b.armU.ay;
       if (!act.hit && t >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
     }
+    /** 봉 키 찌르기 (opt-in, D.kind "staff" — 6 카르덴 2026-10-17): 동작 시트가 두 주먹을 배 앞에 붙이고 팔뚝을 거의 안 보이게 그림(팔 길이 1.5배로 그림)
+        → 어깨→팔로 봉 위치를 계산하면 가슴 높이에서 못 내려옴. 그래서 봉(앞 주먹 쥔 점 gx·gy 골반 기준, 각도 ang)을 키로 두고
+        먼 팔은 앞 주먹 소매(handL.wrist)까지 두 관절 IK(수염 뒤라 거의 안 보임), 뒷주먹(handR)은 앞 주먹 뒤 gap 에 자루 위,
+        가까운 팔은 어깨(sh 만큼 앞으로 — 몸이 돌아 두 손이 만남) → 팔꿈치 → 소매 조각(staffKey.sleeve)으로 뒷주먹 소매까지 두 관절 IK */
+    _staffArms(D, t, T, act) {
+      const rig = this.rig, b = rig.by, P = rig.def.parts, w = this._tr('w'), SK = rig.def.staffKey || {};
+      rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = (this._tr('w') > .3 && rig.def.drawStaff) || null;   // drawStaff(opt-in): 찌를 때 봉은 가까운 팔 앞(집게가 배 앞에 보임)
+      const sh = this._tr('sh'), SS = SK.shoulder || [60, 0]; b.armU.ax += SS[0] * sh; b.armU.ay += SS[1] * sh; const PF = SK.pauldronFollow ?? 1; b.pauldron.ax += SS[0] * sh * PF; b.pauldron.ay += SS[1] * sh * PF;   // pauldronFollow<1: 어깨갑은 몸통 소매 구멍을 덮은 채 남음
+      rig.compute();
+      const G0 = apply(b.weapon.m, 0, 0), a0 = wAng(b.weapon.m);
+      const aK = this._tr('ang') + this._tr('shake') * Math.sin(T * 95) * .025, a = a0 + wrapA(aK - a0) * Math.min(1, w * 2), u = [Math.sin(a), -Math.cos(a)];   // 봉은 손보다 먼저 눕힘 → 세운 봉 집게가 땅을 긁지 않음
+      const LO = SK.leadOn ?? .5, on = w > LO;   // 앞 주먹(handL)으로 바꾸는 때 — 그 전엔 세운 봉 주먹 그대로 봉만 돎
+      const GK = apply(b.hip.m, this._tr('gx'), this._tr('gy')), wg = smooth(LO, 1, w), G = [lerp(G0[0], GK[0], wg), lerp(G0[1], GK[1], wg)];   // 바꾸는 순간 G = 세운 봉 주먹이 쥔 점(이어짐)
+      // 먼 팔: 어깨 → 앞 주먹 소매 (주먹을 쥐기 전엔 세운 봉 주먹의 손목)
+      const hl = P.handL, sL = hl.scale, sd = Math.atan2(hl.shaftDir[1], hl.shaftDir[0]), rho = a - Math.PI / 2 - sd, c = Math.cos(rho), s = Math.sin(rho);
+      const wo = [(hl.wrist[0] - hl.pivot[0]) * sL, (hl.wrist[1] - hl.pivot[1]) * sL], Wl = [G[0] + c * wo[0] - s * wo[1], G[1] + s * wo[0] + c * wo[1]];
+      const W0 = apply(b.fistF.m, 0, 0), Wt = on ? Wl : W0;   // 바꾸기 전: 먼 팔은 그대로(달리기·대기 자세)
+      const SF = apply(b.armF.m, 0, 0), L1 = Math.hypot(...b.foreF.pos), L2 = Math.hypot(...b.fistF.pos);
+      const bend = (S, E, W) => wrapA(Math.atan2(W[1] - E[1], W[0] - E[0]) - Math.atan2(E[1] - S[1], E[0] - S[0]));   // 팔꿈치 굽힘(−: 대기 자세와 같은 쪽)
+      const pick = (S, W, sol) => bend(S, sol[0], W) <= 0 ? sol[0] : bend(S, sol[1], W) <= 0 ? sol[1] : sol[0];   // 굽는 쪽이 대기와 같은 해(팔꿈치 뒤집힘 없음)
+      const eF = pick(SF, Wt, solve2(SF, Wt, L1, L2));
+      b.armF.ar += wrapA(Math.atan2(eF[1] - SF[1], eF[0] - SF[0]) - Math.atan2(b.foreF.pos[1], b.foreF.pos[0]) - wAng(b.armF.m)); rig.compute();
+      const EF = apply(b.foreF.m, 0, 0); b.foreF.ar += wrapA(Math.atan2(Wt[1] - EF[1], Wt[0] - EF[0]) - Math.atan2(b.fistF.pos[1], b.fistF.pos[0]) - wAng(b.foreF.m)); rig.compute();
+      // 봉: 앞 주먹 쥔 점 G, 각도 a (봉 뼈는 fistF 자식 → fistF 기준으로 환산). 앞 주먹으로 바꾸기 전(세운 봉 주먹이 보일 때)은 그 주먹이 쥔 점에서 돌리기만
+      if (!on) { const g_ = apply(b.fistF.m, b.weapon.pos[0], b.weapon.pos[1]); G[0] = g_[0]; G[1] = g_[1] }
+      { const F = b.fistF.m, det = F[0] * F[3] - F[1] * F[2], ix = G[0] - F[4], iy = G[1] - F[5];
+        b.weapon.ax = (F[3] * ix - F[2] * iy) / det - b.weapon.pos[0]; b.weapon.ay = (-F[1] * ix + F[0] * iy) / det - b.weapon.pos[1]; b.weapon.ar = wrapA(a - wAng(F) - b.weapon.rot) }
+      b.handL.pos = [0, 0];
+      // 뒷주먹: 자루 위 앞 주먹 뒤 gap
+      const gap = this._tr('gap') || 170; b.handR.pos = [0, gap];
+      const hr = P.handR, sR = hr.scale, sdR = Math.atan2(hr.shaftDir[1], hr.shaftDir[0]), rR = a - Math.PI / 2 - sdR, cR = Math.cos(rR), sR2 = Math.sin(rR);
+      const GN = [G[0] - u[0] * gap, G[1] - u[1] * gap], ro = [((hr.wrist || hr.elbow)[0] - hr.pivot[0]) * sR, ((hr.wrist || hr.elbow)[1] - hr.pivot[1]) * sR];
+      const WN = [GN[0] + cR * ro[0] - sR2 * ro[1], GN[1] + sR2 * ro[0] + cR * ro[1]];
+      // 가까운 팔: 어깨 → 팔꿈치 → 소매 끝 = 뒷주먹 손목. 쥐기 전(w<.5)에는 달리기 주먹 그림(armLF)으로 다가감
+      const SN = apply(b.armU.m, 0, 0), sl = P[SK.sleeve || 'armL'], ks = sl.scale || 1, sg = sl.grip || sl.pivot;
+      const N1 = Math.hypot(...b.armL.pos), N2 = Math.hypot(sg[0] - sl.pivot[0], sg[1] - sl.pivot[1]) * ks;
+      const ww = smooth(0, 1, w);
+      const onN = w > (SK.nearOn ?? .9);   // 가까운 손은 봉이 자리 잡은 뒤에만 쥠(옮겨 가는 동안 팔이 안 닿음)
+      if (onN) {
+        rig.swap.armL = SK.sleeve || null;
+        const eN = pick(SN, WN, solve2(SN, WN, N1, N2));
+        b.armU.ar += wrapA(Math.atan2(eN[1] - SN[1], eN[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]) - wAng(b.armU.m)); rig.compute();
+        const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m)); rig.compute();
+        { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }   // 팔이 안 닿은 거리(검사용)
+      } else {   // 다가가기: 주먹 그림으로 바꾸고 팔을 그 손목 쪽으로 반쯤
+        rig.swap.armL = P.armL.alt || null; const pl = P[P.armL.alt || 'armL'], gp = pl.grip || pl.pivot, M2 = Math.hypot(gp[0] - pl.pivot[0], gp[1] - pl.pivot[1]) * (pl.scale || 1);
+        const eN = pick(SN, GN, solve2(SN, GN, N1, M2)), base = b.armU.ar;   // 주먹 그림(armLF)의 쥔 점 = 뒷주먹 쥔 점
+        b.armU.ar += wrapA(Math.atan2(eN[1] - SN[1], eN[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]) - wAng(b.armU.m)) * Math.min(1, ww * 1.6); rig.compute();
+        const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(GN[1] - EN[1], GN[0] - EN[0]) - Math.atan2(gp[1] - pl.pivot[1], gp[0] - pl.pivot[0]) - wAng(b.armL.m)) * Math.min(1, ww * 1.6); rig.compute() }
+      rig.alpha.handR = onN ? 1 : 0; rig.alpha.armL = 1; rig.alpha.handL = on ? 1 : 0; rig.alpha.fistF = on ? 0 : 1;
+      if (!onN) this.rearErr = 0;
+      b.pauldron.ar = b.armU.ar * (SK.pauldronRot ?? .35);
+      rig.compute();
+      if (act && !act.hit && t >= D.hitAt) { act.hit = true; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }
+      const tr = this._tr('trail'), tips = P.weapon.tips;
+      tips.forEach((tp, i) => { const Q = this.trailPts[i]; Q.push(rig.partPoint("weapon", tp[0], tp[1])); if (Q.length > 7) Q.shift(); if (tr <= 0) Q.length = 0 });
+      rig.trail = tr > 0 ? { a: tr, pts: this.trailPts } : null;
+      this.gripOn = on;
+    }
     /** 가까운(자유) 팔을 무기 자루 위 한 점에 붙임: 손잡이(weapon 뼈 원점)에서 칼끝 반대쪽으로 gap만큼. 두 관절 IK */
     _nearToShaft(w, gap, ux, uy) {
       const rig = this.rig, b = rig.by; rig.compute();
@@ -903,12 +962,13 @@
       else if (act && D.kind === "wave") this._waveArms(D, at, T);
       else if (act && D.kind === "sword" && rig.def.swordGrip) this._swordArms(D, at, T);
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
+      else if (act && D.kind === "staff") this._staffArms(D, at, T, act);   // 봉 키 찌르기 (6 카르덴 opt-in)
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
       if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       if (!act && rig.def.twoHand && !rig.def.spearGrip) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
-      if (L.near.kneeOut || L.far.kneeOut) this.koW = damp(this.koW ?? 1, (act ? 0 : 1) * (1 - this.A), act ? 16 : 9, dt);
+      if (L.near.kneeOut || L.far.kneeOut) this.koW = damp(this.koW ?? 1, (act ? (act.def.kneeOut ?? 0) : 1) * (1 - this.A), act && !act.def.kneeOut ? 16 : 9, dt);   // 동작별 kneeOut(opt-in): 봉 찌르기 런지에서도 가까운 무릎 바깥(시트 10~13)
       for (const side of ["near", "far"]) {
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)

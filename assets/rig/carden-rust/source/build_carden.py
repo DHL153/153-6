@@ -67,6 +67,15 @@ P['fistF'] = dict(file=fo['file'], M=MF, at=WF)
 MW = M_('weapon').copy(); MW[1, 2] -= T('weaponRaise', 16)
 P['weapon'] = dict(file='cut/weapon.png', M=MW, at=G)
 
+if T('closeArmhole', False):   # 몸통 가까운 소매 구멍(어두운 안쪽) → 소매 윗면 올리브로 메움: 봉 찌르기에서 어깨가 앞으로 나가면 구멍이 보임(시트 10~13엔 없음)
+    from scipy import ndimage as _nd
+    _a = np.asarray(Image.open(os.path.join(HERE, 'cut/torso.png')).convert('RGBA')).astype(float); _l = _a[..., :3].mean(-1)
+    _m = (_a[..., 3] > 128) & (_l < 70); _m[:, 22:] = False; _m[:30] = False; _m[88:] = False
+    _lb, _n = _nd.label(_m); _sz = _nd.sum(_m, _lb, range(1, _n + 1)); _m = _lb == (1 + int(np.argmax(_sz)))
+    _edge = (_a[..., 3] > 128) & ~_nd.binary_erosion(_a[..., 3] > 128, iterations=4)   # 바깥 외곽선은 남김
+    _f = _m & ~_edge; _ol = _a[50:62, 26:40, :3].reshape(-1, 3).mean(0) * .8
+    _fs = _nd.gaussian_filter(_f.astype(float), 1.2); _a[..., :3] = _a[..., :3] * (1 - _fs[..., None]) + _ol * _fs[..., None]
+    os.makedirs(os.path.join(HERE, 'parts_work'), exist_ok=True); Image.fromarray(_a.astype(np.uint8), 'RGBA').save(os.path.join(HERE, 'parts_work/torso.png')); P['torso']['file'] = 'parts_work/torso.png'
 for n_, f_ in T('pieceScale', {}).items():   # 조각 하나만 키움(시트에서 원화보다 작게 그려진 조각) — 관절점(at) 기준
     if n_ in P: m_ = P[n_]['M'].copy(); at_ = A(P[n_]['at']); P[n_]['M'] = np.c_[m_[:, :2] * f_, at_ + f_ * (m_[:, 2] - at_)]
 bones = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('cape', 'hip'), ('hips', 'hip'), ('pouch', 'hip'), ('torso', 'hip'),
@@ -123,6 +132,24 @@ if kx:   # 뒤 팔뚝이 시트에서 길게 그려짐(소매 ≈ 100px, 편 손
     a_[..., 3] = (a_[..., 3] * np.clip((xx_ - kx + 4) / 6, 0, 1)).astype(np.uint8); ys_, xs_ = np.nonzero(a_[..., 3] > 0); x0_ = int(xs_.min())
     Image.fromarray(a_[:, x0_:], 'RGBA').save(p_); parts['handR']['pivot'] = [round(parts['handR']['pivot'][0] - x0_, 1), parts['handR']['pivot'][1]]
     parts['handR']['elbow'] = [round(kx + 4 - x0_, 1), T('handRelbow', [4, 30])[1]]
+if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼쪽 아래(8시, 팔뚝이 아래에서 옴) · 뒷손 팔뚝 9시 — grip2.py
+    H2 = json.load(open(os.path.join(HERE, 'hands2.json')))
+    for nm in ['handL', 'handR']:
+        h2 = H2[nm]; shutil.copy(os.path.join(HERE, h2['file']), os.path.join(PARTS, nm + '.png'))
+        parts[nm] = {'src': f'parts/{nm}.png', 'pivot': h2['grip'], 'scale': h2['scale'], 'shaftDir': h2['shaftDir']}
+        for k_ in ['wrist', 'toElbow', 'elbow']:
+            if k_ in h2: parts[nm][k_] = h2[k_]
+    for k_, v_ in T('grip2Override', {}).items(): parts[k_.split('.')[0]][k_.split('.')[1]] = v_
+    # 봉 키 찌르기(staff): 뒷주먹 = 주먹 + 소매 테만(시트에서 팔뚝이 안 보임), 손목 = 테 왼쪽 가운데 / 가까운 팔뚝 = 달리기 주먹 팔뚝의 소매만(armLS)
+    if T('staffKey', None):
+        kx2 = T('handR2keepX', 222); p_ = os.path.join(PARTS, 'handR.png'); a_ = np.asarray(Image.open(p_).convert('RGBA')).copy(); xx_ = np.arange(a_.shape[1])[None, :]
+        a_[..., 3] = (a_[..., 3] * np.clip((xx_ - kx2) / 6, 0, 1)).astype(np.uint8); ys_, xs_ = np.nonzero(a_[..., 3] > 0); x0_ = int(xs_.min())
+        Image.fromarray(a_[:, x0_:], 'RGBA').save(p_); pr = parts['handR']; pr['pivot'] = [round(pr['pivot'][0] - x0_, 1), pr['pivot'][1]]
+        wr = T('handR2wrist', [229, 185]); pr['wrist'] = [round(wr[0] - x0_, 1), wr[1]]; pr.pop('elbow', None)
+        sl = Image.open(os.path.join(HERE, 'cut', 'armLF.png')).convert('RGBA'); cutY = T('sleeveCutY', 40); sa = np.asarray(sl).copy()
+        yy_ = np.arange(sa.shape[0])[:, None]; sa[..., 3] = (sa[..., 3] * np.clip((cutY - yy_) / 4, 0, 1)).astype(np.uint8)
+        Image.fromarray(sa[:cutY + 1], 'RGBA').save(os.path.join(PARTS, 'armLS.png'))
+        parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': PT['armLF'][0], 'scale': parts['armL']['scale'], 'noAxis': True, 'grip': [PT['armLF'][0][0] - 1, cutY - 3]}
 
 # 다리: 허벅지·정강이 = 가까운/먼 다리 다른 그림(S.thighImg), 뼈 길이에 맞춰 늘이되 굵기는 K 그대로(w = K/길이 배율)
 d2 = lambda a, b: float(np.linalg.norm(A(b) - A(a)))
@@ -150,6 +177,8 @@ draw = ['cape', 'legFar', 'legNear', 'armF', 'hips', 'torso', 'pouch', 'foreF', 
 wim = np.asarray(Image.open(os.path.join(PARTS, 'weapon.png')))[..., 3] > 128; ys2, xs2 = np.nonzero(wim); ytop = ys2.min()
 row = np.nonzero(wim[ytop + 10])[0]
 parts['weapon']['tips'] = [[float(row.min()), float(ytop + 6)], [float(row.max()), float(ytop + 6)]]
+_mid = [((np.nonzero(r_)[0].min() + np.nonzero(r_)[0].max()) / 2) for r_ in wim[int(wim.shape[0] * .35):int(wim.shape[0] * .8)] if r_.any()]
+parts['weapon']['pivot'][0] = round(float(np.median(_mid)), 1)   # 봉 뼈 원점을 자루 가운데 선 위로(손-자루 검사, 2026-10-17)
 rig = {'name': 'carden-rust', 'version': 1, 'units': 'rig px (reference x2)', 'refOrigin': [round(ROOT[0] / 2, 1), round(ROOT[1] / 2, 1)], 'refScale': 2.0, 'refLift': 0,
        'parts': parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': ['handL', 'handR'], 'faces': {}, 'idleStance': T('idleStance', idle),
        'gait': T('gait', {}), 'weaponRaise': T('weaponRaise', 16),
@@ -159,7 +188,7 @@ rig = {'name': 'carden-rust', 'version': 1, 'units': 'rig px (reference x2)', 'r
                              {'bone': 'tuftL', 'stiff': 160, 'damp': 7, 'y': .15, 'rot': -.006, 'max': 12}, {'bone': 'tuftR', 'stiff': 170, 'damp': 7, 'y': .15, 'rot': .006, 'max': 12},
                              {'bone': 'beard', 'stiff': 260, 'damp': 10, 'y': .1, 'rot': .002, 'max': 6}]),
        'metrics': {'bodyHeight': round(GROUND - J['hairTop'][1]), 'heightWithWeapon': round(GROUND - J['staffTop'][1] + T('weaponRaise', 16)),
-                   'note': 'rig units. bodyHeight = 옆머리 위 ~ 발바닥(대기), 무기 제외', 'shaftWidth': 28, 'fistWidth': 76, 'forearmThickness': 60},
+                   'note': 'rig units. bodyHeight = 옆머리 위 ~ 발바닥(대기), 무기 제외', 'shaftWidth': 52, 'fistWidth': 76, 'forearmThickness': 60},
        'ui': {'attack': 'thrust', 'stillReady': {'t': .22, 'cut': .36}},
        'note': '6 카르덴. 8 러스트 니콜(rust-fork-girl v15) 뼈대·동작 방식(봉 계열 기준). 다른 점: 짧은 다리·넓은 발, 긴 렌치 봉(쥔 손이 몸에서 멂), 옆머리 2·수염(머리 뼈, 출렁임), 고글(깜빡임 없음), 바지 엉덩이(hips) 조각'}
 for k_ in ['legs']: pass
@@ -174,6 +203,8 @@ if os.path.exists(os.path.join(HERE, 'faces_out.json')):
 else: rig['draw'].remove('headFront')
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
+if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
+if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'armU', 'armL', 'pauldron', 'weapon', 'fistF', 'handL', 'handR']   # 봉 찌르기: 가까운 팔 < 봉 < 주먹 (시트 10~13 — 렌치가 배 앞)
 _h = hashlib.sha1()
 for _f in sorted(os.listdir(PARTS)): _h.update(_f.encode()); _h.update(open(os.path.join(PARTS, _f), 'rb').read())
 _h.update(json.dumps(rig, sort_keys=True).encode()); rig['version'] = _h.hexdigest()[:8]

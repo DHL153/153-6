@@ -9,8 +9,8 @@ START = json.load(open(sys.argv[3])) if len(sys.argv) > 3 else {}
 shutil.copy(os.path.join(here, 'fitpts.html'), os.path.join(pkg, '_fitpts.html'))
 s = socket.socket(); s.bind(('127.0.0.1', 0)); port = s.getsockname()[1]; s.close()
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1'], cwd=pkg, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); time.sleep(.5)
-PARAMS = ['hipX', 'hipY', 'lean', 'head', 'thF', 'nearDx', 'gap']   # 뒷발(먼 발)은 디딘 채, 앞발(가까운 발)만 내딛음
-STEP = {'gap': 40, 'hipX': 30, 'hipY': 20, 'lean': .06, 'head': .05, 'thF': .1, 'farDx': 40, 'nearDx': 40}
+PARAMS = os.environ.get('PARAMS', 'hipX,hipY,lean,head,thF,nearDx,gap').split(',')   # 뒷발(먼 발)은 디딘 채, 앞발(가까운 발)만 내딛음
+STEP = {'sh': .15, 'gx': 30, 'gy': 20, 'gap': 40, 'hipX': 30, 'hipY': 20, 'lean': .06, 'head': .05, 'thF': .1, 'farDx': 40, 'nearDx': 40, 'ang': .05}
 res = {}
 try:
     with sync_playwright() as p:
