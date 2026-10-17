@@ -99,7 +99,7 @@ def_parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': rot((gx_piece, 51)), 
 # 메기 자세: 무기 뼈는 foreF 자식 — 세계 각도 = 칼끝 방향(-UAX) + 90°
 for bb in out_bones:
     if bb['name'] == 'weapon':
-        aw = math.atan2(-UAX[1], -UAX[0]) + math.pi / 2; pa = world['foreF'][1]; bb['rot'] = round(aw - pa, 4)
+        aw = math.atan2(-UAX[1], -UAX[0]) + math.pi / 2; pa = world['foreF'][1]; bb['rot'] = round(aw - pa - 0.3, 4)   # DHL 11:49: 칼을 머리 앞·어깨에 걸치게 → 칼을 손잡이 중심으로 0.3 낮춤
 # ---------------- 쥔 손 조각 (strip_grips.py 결과) ----------------
 GJ = json.load(open(os.path.join(W, 'grips.json')))
 cp = def_parts['foreF']; carryFore = math.hypot(cp['pivot'][0] - 130, cp['pivot'][1] - 50) * cp['scale']   # 메는 손 팔뚝 길이(리그 단위)
@@ -129,8 +129,8 @@ legs = {'hip': [0, round(25 * F, 1)], 'thigh': round(TH, 1), 'shin': round(SHN, 
         'thighImg': {'part': 'thigh', 'a': [152, 42], 'b': [72, 196], 'w': 1.0},
         'shinImg': {'part': 'shin', 'a': [118, 58], 'b': [86, 158], 'w': 0.95},
         'thighFirst': True, 'boot': {'part': 'boot', 'back': 'bootB', 'sole': [[-28, 68], [-25, 74], [65, 74], [73, 62]], 'ankleRange': [-0.45, 0.75]},
-        'near': {'x': round(-60 * F, 1), 'shade': 0}, 'far': {'x': round(50 * F, 1), 'shade': 0.3}}
-draw = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'weapon', 'head', 'foreF', 'armF', 'pauldronF']
+        'near': {'x': round(-60 * F, 1), 'hipX': round(-30 * F, 1), 'shade': 0}, 'far': {'x': round(50 * F, 1), 'hipX': round(25 * F, 1), 'shade': 0.3}}   # DHL 11:46: 엉덩이 관절은 튜닉 안쪽(발 자리의 절반) → 달릴 때 다리가 옷 밖으로 안 빠짐
+draw = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'foreF', 'armF', 'pauldronF']   # 대기·달리기: 칼이 머리 앞
 rig = {'name': 'alonso-rust', 'version': 4, 'units': 'rig px (reference x2)', 'refOrigin': [float(O[0]), float(O[1])], 'refScale': F, 'refLift': 0,
        'parts': def_parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {},
        'metrics': {'bodyHeight': 753, 'note': 'rig units; 머리카락 중간~발바닥, 무기 제외'},

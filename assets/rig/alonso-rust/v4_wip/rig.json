@@ -544,7 +544,7 @@
     80.4,
     -110.1
    ],
-   "rot": -1.1104,
+   "rot": -1.4104,
    "part": "weapon"
   },
   {
@@ -618,10 +618,12 @@
   },
   "near": {
    "x": -68.7,
+   "hipX": -34.3,
    "shade": 0
   },
   "far": {
    "x": 57.2,
+   "hipX": 28.6,
    "shade": 0.3
   }
  },
@@ -636,8 +638,8 @@
   "skirt",
   "pouch",
   "scarf",
-  "weapon",
   "head",
+  "weapon",
   "foreF",
   "armF",
   "pauldronF"

@@ -136,12 +136,19 @@
       const boot = (n) => { const p = this.def.parts[n], im = this.images[n]; if (im) { set(ctx, Bk); ctx.drawImage(im, -p.pivot[0], -p.pivot[1]) } };
       // boot inside/back rim → shin (enters the opening) → boot front (its rim line overlaps the shin) → thigh
       // legs.thighFirst (opt-in, 알론소 v4): 허벅지를 먼저 → 무릎 보호대가 붙은 정강이 그림이 무릎 위를 덮음
-      const th = L.thighImg, thigh = () => { set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0) };
+      // S.thighImg / S.shinImg (opt-in): 가까운·먼 다리에 다른 그림. L.kneeImg / S.kneeImg (opt-in): 무릎 덮개(보호대)를 무릎 위에 따로 — 허벅지·정강이 가운데 각도
+      const th = S.thighImg || L.thighImg, thigh = () => { set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0) };
       if (L.thighFirst) thigh();
       if (bd.back) boot(bd.back);
-      const sh = L.shinImg; set(ctx, this._seg(R, sh.a, sh.b, P.knee, P.ankle, sh.w)); ctx.drawImage(this.images[sh.part], 0, 0);
+      const sh = S.shinImg || L.shinImg; set(ctx, this._seg(R, sh.a, sh.b, P.knee, P.ankle, sh.w)); ctx.drawImage(this.images[sh.part], 0, 0);
       boot(bd.part);
       if (!L.thighFirst) thigh();
+      const kc = S.kneeImg || L.kneeImg;
+      if (kc && this.images[kc.part]) {
+        const at = Math.atan2(P.knee[1] - P.hip[1], P.knee[0] - P.hip[0]), as = Math.atan2(P.ankle[1] - P.knee[1], P.ankle[0] - P.knee[0]);
+        const am = at + wrapA(as - at) * (kc.mix ?? .5) - Math.PI / 2 + (kc.rot || 0), kp = this.def.parts[kc.part], k = kp.scale || 1;
+        set(ctx, mul(mul(R, rotT(P.knee[0] + (kc.dx || 0), P.knee[1] + (kc.dy || 0), am)), [k, 0, 0, k, 0, 0])); ctx.drawImage(this.images[kc.part], -kp.pivot[0], -kp.pivot[1]);
+      }
       if (useF) ctx.filter = "none";
     }
     // ---- textured triangle mesh: every grid cell = 2 triangles, each drawn with its own affine map (no strip seams)
@@ -790,7 +797,7 @@
       // full extension, the pelvis sinks instead (rises back slowly) — the body lowers, the knee stays soft
       { const Lm = L.thigh + L.shin, dmax = Lm * .99; let need = 0;
         for (const side of ["near", "far"]) { const f = this.ft[side], hard = 1 - smooth(0, 3, f.lift); if (hard <= 0) continue;   // same weight the soft IK hands over with
-          const H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
+          const H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           const nd_ = Math.hypot(dx, dy) > dmax ? hard * (dy - Math.sqrt(Math.max(0, dmax * dmax - dx * dx))) : 0;
           need = Math.max(need, nd_) }
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
@@ -805,7 +812,7 @@
       if (!act && rig.def.twoHand && !rig.def.spearGrip) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
       for (const side of ["near", "far"]) {
-        const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]);
+        const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
         const [r0, r1] = L.boot.ankleRange || [-9, 9];
