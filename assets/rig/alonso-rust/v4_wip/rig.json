@@ -544,7 +544,7 @@
     80.4,
     -110.1
    ],
-   "rot": -1.4104,
+   "rot": -1.1104,
    "part": "weapon"
   },
   {
@@ -642,6 +642,7 @@
   "scarf",
   "head",
   "weapon",
+  "headFront",
   "foreF",
   "armF",
   "pauldronF"
@@ -746,12 +747,49 @@
   "scarf",
   "head",
   "weapon",
+  "headFront",
   "armU",
   "armL",
   "armF",
   "foreF",
   "pauldronF"
  ],
+ "headFront": {
+  "clip": [
+   [
+    60,
+    267
+   ],
+   [
+    55,
+    182
+   ],
+   [
+    72,
+    152
+   ],
+   [
+    108,
+    118
+   ],
+   [
+    148,
+    62
+   ],
+   [
+    172,
+    0
+   ],
+   [
+    343,
+    0
+   ],
+   [
+    343,
+    267
+   ]
+  ]
+ },
  "actions": {
   "smash": {
    "kind": "sword",

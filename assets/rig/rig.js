@@ -88,6 +88,17 @@
           if (oimg && oa > .003) { const k = op_.scale || 1, M = mul(mul(base, ob.m), [k, 0, 0, k, 0, 0]); ctx.save(); set(ctx, M); const [rx, ry, rw, rh] = ov.rect;
             ctx.beginPath(); ctx.rect(rx - op_.pivot[0], ry - op_.pivot[1], rw, rh); ctx.clip(); ctx.globalAlpha = oa; ctx.drawImage(oimg, -op_.pivot[0], -op_.pivot[1]); ctx.restore() }
           continue }
+        // headFront (opt-in, 알론소 v4): 머리 그림의 얼굴·귀·앞머리 부분만 한 번 더 그림(def.headFront.clip = 머리 그림 px 다각형)
+        //   → 칼은 뒷머리 위로 지나가고, 손잡이는 얼굴·귀 뒤로 숨음(키 포즈와 같은 겹침). 표정 패치·깜빡임도 같이 그림
+        if (name === "headFront") { const hf = this.def.headFront, hb = this.by.head; if (!hf || !hb) continue;
+          const hpn = this.swap.head || hb.part, hp = this.def.parts[hpn], him = this.images[hpn], hop = this.alpha.head ?? 1; if (!him || hop <= .003) continue;
+          const hk = hp.scale || 1, HM = mul(base, hb.m); ctx.save(); set(ctx, mul(HM, [hk, 0, 0, hk, 0, 0])); ctx.beginPath();
+          hf.clip.forEach(([cx, cy], i) => i ? ctx.lineTo(cx - hp.pivot[0], cy - hp.pivot[1]) : ctx.moveTo(cx - hp.pivot[0], cy - hp.pivot[1])); ctx.closePath(); ctx.clip();
+          ctx.globalAlpha = hop; ctx.drawImage(him, -hp.pivot[0], -hp.pivot[1]); ctx.globalAlpha = 1;
+          if (this.def.faces) this._drawFaces(ctx, HM);
+          if (this.def.blinkFaces && this.blink > .15) { const bf = this.def.blinkFaces, n2 = this.blink > .7 ? bf.closed : bf.half, q2 = this.def.parts[n2], m2 = this.images[n2];
+            if (m2) { const k2 = q2.scale || 1; set(ctx, mul(HM, [k2, 0, 0, k2, 0, 0])); ctx.drawImage(m2, -q2.pivot[0], -q2.pivot[1]) } }
+          ctx.restore(); continue }
         const b = this.by[name], pn = this.swap[name] || b.part, part = this.def.parts[pn], img = this.images[pn]; if (!img) continue;
         const op = this.alpha[name] ?? 1; if (op <= .003) continue; ctx.globalAlpha = op;
         const k = part.scale || 1, M = mul(mul(base, b.m), [k, 0, 0, k, 0, 0]);

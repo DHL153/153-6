@@ -99,7 +99,7 @@ def_parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': rot((gx_piece, 51)), 
 # 메기 자세: 무기 뼈는 foreF 자식 — 세계 각도 = 칼끝 방향(-UAX) + 90°
 for bb in out_bones:
     if bb['name'] == 'weapon':
-        aw = math.atan2(-UAX[1], -UAX[0]) + math.pi / 2; pa = world['foreF'][1]; bb['rot'] = round(aw - pa - 0.3, 4)   # DHL 11:49: 칼을 머리 앞·어깨에 걸치게 → 칼을 손잡이 중심으로 0.3 낮춤
+        aw = math.atan2(-UAX[1], -UAX[0]) + math.pi / 2; pa = world['foreF'][1]; bb['rot'] = round(aw - pa, 4)   # 12:50: 칼 각도는 메는 손 그림의 손잡이 방향 그대로(돌리면 손 그림 속 손잡이와 칼 손잡이가 2개로 보임 — DHL 12:44)
 # ---------------- 쥔 손 조각 (strip_grips.py 결과) ----------------
 GJ = json.load(open(os.path.join(W, 'grips.json')))
 cp = def_parts['foreF']; carryFore = math.hypot(cp['pivot'][0] - 130, cp['pivot'][1] - 50) * cp['scale']   # 메는 손 팔뚝 길이(리그 단위)
@@ -130,7 +130,7 @@ legs = {'hip': [0, round(25 * F, 1)], 'thigh': round(TH, 1), 'shin': round(SHN, 
         'shinImg': {'part': 'shin', 'a': [118, 58], 'b': [86, 158], 'w': 0.95},
         'thighFirst': True, 'boot': {'part': 'boot', 'back': 'bootB', 'sole': [[-28, 68], [-25, 74], [65, 74], [73, 62]], 'ankleRange': [-0.45, 0.75]},
         'near': {'x': round(-60 * F, 1), 'hipX': round(-15 * F, 1), 'runX': -10, 'shade': 0}, 'far': {'x': round(50 * F, 1), 'hipX': round(12.5 * F, 1), 'runX': 10, 'shade': 0.3}}   # DHL 12:26 B안 확정: 엉덩이 관절은 튜닉 안쪽(발 자리의 1/4), 달릴 때 발은 몸 가운데 줄(runX)
-draw = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'foreF', 'armF', 'pauldronF']   # 대기·달리기: 칼이 머리 앞
+draw = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'headFront', 'foreF', 'armF', 'pauldronF']   # 칼은 뒷머리 위, 얼굴·귀(headFront) 뒤 — 키 포즈 겹침
 rig = {'name': 'alonso-rust', 'version': 4, 'units': 'rig px (reference x2)', 'refOrigin': [float(O[0]), float(O[1])], 'refScale': F, 'refLift': 0,
        'parts': def_parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {},
        'metrics': {'bodyHeight': 753, 'note': 'rig units; 머리카락 중간~발바닥, 무기 제외'},
@@ -147,7 +147,8 @@ rig['blinkFaces'] = {'half': 'face_blink_half', 'closed': 'face_blink_closed'}
 rig['swordGrip'] = {'maxWrist': 0.35, 'tipDepth': 6,
     'near': {'upper': 'armF', 'carry': 'foreF', 'pieces': ['gN49', 'gN90'], 'sPref': 25, 'sSig': 20, 'sMin': 0, 'sMax': 55, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05, 'bendMin': -2.65},
     'far': {'upper': 'armU', 'pieces': ['gF34', 'gF46'], 'sPref': -40, 'sSig': 25, 'sMin': -95, 'sMax': 0, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05}}
-rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'armU', 'armL', 'armF', 'foreF', 'pauldronF']   # DHL 12:34: 공격 중에도 칼은 머리 앞
+rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'weapon', 'headFront', 'armU', 'armL', 'armF', 'foreF', 'pauldronF']   # DHL 12:34: 공격 중에도 칼은 머리 앞
+rig['headFront'] = {'clip': [[60, 267], [55, 182], [72, 152], [108, 118], [148, 62], [172, 0], [343, 0], [343, 267]]}   # 머리 그림 px: 얼굴·귀·앞머리(오른쪽) — 칼 손잡이는 이 뒤로, 칼날은 뒷머리(왼쪽 뾰족 머리) 위로
 rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
 rig['actions'] = {'smash': {'kind': 'sword', 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
     'reach': [[0, 0, 'io'], [0.28, 1], [0.6, 1, 'io'], [0.8, 0]],
