@@ -154,6 +154,7 @@ rig['bones'].append({'name': 'tailA', 'parent': 'torso', 'pos': tl(P2(312, 262))
 rig['bones'].append({'name': 'tailB', 'parent': 'torso', 'pos': tl(P2(312, 290)), 'rot': -0.45, 'part': 'tailB'})
 rig['streamers'] = [{'bone': 'tailA', 'part': 'tailA', 'len': rig.pop('_len_tailA'), 'amp': 10, 'freq': 7.2, 'phase': 0, 'droop': 0.25, 'sag': 18, 'wind': 0.7, 'lag': 0.35},
                     {'bone': 'tailB', 'part': 'tailB', 'len': rig.pop('_len_tailB'), 'amp': 13, 'freq': 6.4, 'phase': 1.9, 'droop': 0.35, 'sag': 24, 'wind': 0.65, 'lag': 0.45}]
+rig['hemOpenSides'] = True   # 치마 폭 바깥의 다리는 밑단 높이에서 잘리지 않게(런지·뒤로 뻗은 다리) — 알론소 v4와 같은 옵션
 exec(open(os.path.join(HERE, 'attack_sky.py'), encoding='utf-8').read())   # 내려찍기 (쥔 팔 조각 합성 + 키)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
