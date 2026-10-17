@@ -170,8 +170,9 @@ LIFT = T('idleLift', 14)
 for b_ in out_bones:
     if b_['name'] == 'hip': b_['pos'][1] = round(b_['pos'][1] - LIFT, 1)
 legs['hip'][1] = legs['hip'][1] + LIFT
-draw = ['cape', 'legFar', 'legNear', 'armF', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar']
-drawWave = ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'wFore', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar', 'wHand']
+# 무기는 두 주머니보다 앞 (DHL 13:04)
+draw = ['cape', 'legFar', 'legNear', 'armF', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'pouchA', 'weapon', 'foreF', 'fistF', 'handL', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar']
+drawWave = ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'pouchA', 'weapon', 'foreF', 'fistF', 'handL', 'wFore', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar', 'wHand']
 wt = ap(np.linalg.inv(np.vstack([MW, [0, 0, 1]]))[:2], (0, 0))
 # 집게 두 날 끝(창 그림 좌표): 위 끝 줄에서 왼쪽·오른쪽 덩어리 가운데
 wa2 = np.asarray(Image.open(os.path.join(HERE, 'parts_work/weapon.png')))[..., 3] > 128; ys2, xs2 = np.nonzero(wa2); ytop = ys2.min()
