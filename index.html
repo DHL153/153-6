@@ -18561,6 +18561,8 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
     const moving=stage.classList.contains('mr-legs')&&!paused;
     const gpx=moving?groundPx(stage):0;
     let busy=false;
+    // 2026-10-18 DHL: 한 명이 공격해서 땅이 멈추면(공격 중·리그 찌르기) 다른 리그 캐릭터도 같이 멈춰 서기. 연쇄 러시 중에는 땅이 계속 가므로 그대로 달림
+    const frozen=([...live.values()].some(x=>x.anim?.busy)||stage.classList.contains('battle-action-pause'))&&!stage.hasAttribute('data-rush'); // battle-action-pause = 누가 공격 중(땅 멈춤)
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
     for(const e of live.values()){
       if(!e.anim)continue;
@@ -18569,7 +18571,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       let scale=e.scale,footX=e.footX,footY=e.footY;
       if(!(scale>0)||scale*bodyHeight>maxBody)scale=(H*.52)/bodyHeight;
       if(!(footX>=0&&footX<=W))footX=W*.3; if(!(footY>0&&footY<=H))footY=H*.86;
-      const vx=(e.anim.busy?0:gpx)/scale;         // 리그 단위/초 — 배경 px/s ÷ 배율이면 발이 땅에 붙는다
+      const vx=(e.anim.busy||frozen?0:gpx)/scale;         // 리그 단위/초 — 배경 px/s ÷ 배율이면 발이 땅에 붙는다
       e.anim.update(dt,{vx,facing:1});
       busy=busy||e.anim.busy;
       // 타격 순간 이벤트는 게임이 이미 자체 연출을 내므로 여기서는 쓰지 않는다 (e.anim.events)
@@ -18847,6 +18849,8 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
       s=sibH>0?(sibH/sibN)/(RF.refScale||2):BODY_PX*512*f.D/(def.metrics?.bodyHeight||718);
       fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;
       if(e.N?.other&&e.cut)fx=f.left+(img.naturalWidth||512)*f.D/2-k.cx*s; // 컷인 유지 자세(칼까지)를 그림 칸 가운데에
+      // 2026-10-18 DHL '6 카르덴 컷인 다리가 잘림': 컷인은 발이 전투 칸 아래 5% 안에 오도록 위로 올림 (8 러스트 니콜처럼 전신)
+      if(e.cut){const st=img.closest('#battle-stage')?.getBoundingClientRect();if(st&&st.height>0){const foot=fy+k.bottom*s,lim=st.bottom-st.height*.05;if(foot>lim)fy-=foot-lim;}}
       // 2026-10-17 20:45 DHL: 도감 전투 칸(대기 → 공격 → 대기)은 캐릭터 몸(골반)이 칸 가운데('2/2 · 전투' 글자 위)에 오게. 창·칼 길이와 상관없이 몸 기준
       if(e.N?.other&&!e.cut){const host=img.closest('.mrw-hero'),hr=host?.getBoundingClientRect(),cxs=hr&&hr.width>0?hr.left+hr.width/2:f.left+(img.naturalWidth||512)*f.D/2;
         const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;
