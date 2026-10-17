@@ -9,7 +9,7 @@ const renderOnly=names=>{rig.drawOrder=names||null;const hp=rig._hemPath;rig._he
 function seam(){const T=renderOnly(rig.by.torsoUnder?['torso','torsoUnder']:['torso']),S=renderOnly(['skirt']),B=renderOnly(null);
  let gap=0,cols=0,tb=-1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(T[y*W+x])tb=Math.max(tb,y);
  for(let x=0;x<W;x++){let tl=-1,st=-1;for(let y=0;y<H;y++){if(T[y*W+x])tl=y;if(st<0&&S[y*W+x])st=y}
-  if(tl<0||st<0||tl<tb-60||st<=tl||st>tl+80)continue;cols++;for(let y=tl;y<st;y++)if(!B[y*W+x])gap++}
+  if(tl<0||st<0||tl<tb-60||st<=tl||st>tl+80)continue;cols++;for(let y=tl;y<st;y++)if(!B[y*W+x]){if(rig.def.seamInterior){const q=i=>T[i]||S[i];let l=0,r=0;for(let k=1;k<40;k++){if(x-k>=0&&q(y*W+x-k))l=1;if(x+k<W&&q(y*W+x+k))r=1}if(!(l&&r))continue}gap++}}   // seamInterior(짧은 치마, 알론소 v4): 좌우가 상체·치마로 막힌 빈칸(허리 안쪽 구멍)만 셈 — 몸과 팔 사이 배경은 제외
  return {gapPx:gap,cols}}
 // 2) 손-자루 접촉: 보이는 주먹/손 조각의 중심에서 자루 중심선까지 거리 (자루 굵기의 절반 + 여유 8 이내여야)
 // 쥔 손: 지금 보이는 그림에 grip(쥔 점)이 있으면 그 점, 없으면 이름이 fist/hand 인 그림의 가운데
