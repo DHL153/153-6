@@ -27,3 +27,10 @@
 - 머리 위 칼은 머리 앞(drawOver), 휘두름·타격은 drawStrike(먼 주먹이 가까운 팔 위)
 - 엔진 opt-in: reachIK(손 잡기·놓기 IK)·reachUp(계단 키)·reachBulge(곡선 경로)·shoulderN/F(+shN/shF 키)
 - 키 보정: `tools/calib.py` (빌드 + 프로브 + gripFix 3회)
+
+## 01:50 내려찍기 v3 (DHL 01:26 표시 3곳)
+- 머리 위: 먼 팔 = cN(cFist+토시 팔뚝 한 장) + armFup, 가까운 윗팔 armNup, 어깨갑 fade(엔진 opt-in `fade`)
+- 들어 올리기 0~0.20 · 돌아옴 0.72~ = 원화 메는 손 cArt + drawA (cU 삭제)
+- 타격: 뒷손을 가까운 팔 뒤로, hilt 235(날밑이 앞주먹 앞)
+- 보기 도구: `tools/atkview.html?...&hide=pauldron,armF` (조각 숨겨 보기)
+- 남은 것: 타격 손 그림(칼끝 오른쪽·손목 왼쪽으로 쥔 양손) 요청 여부, 앞자락·정강이, 게임 연결
