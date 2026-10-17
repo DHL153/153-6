@@ -200,7 +200,8 @@ wa2 = np.asarray(Image.open(os.path.join(HERE, 'parts_work/weapon.png')))[..., 3
 row = np.nonzero(wa2[ytop + 6])[0]; mid = (row.min() + row.max()) / 2
 tips = [[round(float(row[row < mid].mean()), 1), float(ytop + 4)], [round(float(row[row > mid].mean()), 1), float(ytop + 4)]]
 parts['weapon']['tips'] = tips
-rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'refOrigin': [round(ROOT[0] / 2, 1), round(ROOT[1] / 2, 1)], 'refScale': 2.0, 'refLift': 0,
+rig = {'name': 'nicole-neon', 'version': 1,   # version 은 아래에서 조각 그림 내용 해시로 덮어씀(캐시 방지)
+       'units': 'rig px (reference x2)', 'refOrigin': [round(ROOT[0] / 2, 1), round(ROOT[1] / 2, 1)], 'refScale': 2.0, 'refLift': 0,
        'parts': parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'drawWave': drawWave,
        'hidden': ['handL', 'handR', 'wSleeve', 'wFore', 'wHand'], 'faces': {}, 'waveImg': waveImg,
        'hemRun': T('hemRun', {'lift': 22, 'knee': 1.2, 'heel': .9, 'reach': .4}),
@@ -213,7 +214,7 @@ rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'runForeBend': T('runForeBend', -0.45), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'metrics': {'bodyHeight': round(GROUND - 226), 'heightWithWeapon': round(GROUND - 3), 'note': 'rig units. bodyHeight = 머리카락 위 ~ 발바닥(대기), 무기 제외',
                    'shaftWidth': 34, 'fistWidth': 70, 'forearmThickness': 50},
-       'ui': {'attack': 'thrust', 'touch': 'wave', 'stillSame': True},
+       'ui': {'attack': 'thrust', 'touch': 'wave', 'stillReady': {'t': .22, 'cut': .36}},   # 도감·시작 선택·컷인 = 8 러스트 니콜과 같은 방식 (자기 찌르기로)
        'note': '18 네온 니콜. 8 러스트 니콜(rust-fork-girl v15)과 같은 뼈대·동작. 다른 점: 칼라(collar)·먼 어깨갑(pauldronF, 먼 팔을 35% 따라 돎)·코트 꼬리(cape, 허리 뼈)·파우치 2개(코트 위 고정)·그린 깜빡임'}
 # 표정·깜빡임 패치: 머리 뼈에 같은 pivot·배율로 겹침 (faces_raw.json = faces.py 결과)
 FR = json.load(open(os.path.join(HERE, 'faces_raw.json'))); hp = parts['head']['pivot']; hs = parts['head']['scale']
@@ -233,6 +234,10 @@ th = dict(AB['thrust']); th['slide'] = T('thrustSlide', [[0, 0, 'io'], [.18, 90,
 for k, v in T('thrustOverride', {}).items(): th[k] = v
 if T('thrustFull', None): th = T('thrustFull', None)   # 동작 시트(motion1)에 맞춘 찌르기 (tools/fit.py)
 rig['actions'] = {'thrust': th}
+import hashlib as _hl   # 조각 그림이 바뀌면 version 이 바뀜 → 게임이 ?v= 로 새 그림을 받음 (같은 version 이면 브라우저·exe 캐시의 옛 손 그림 + 새 쥔 점이 섞여 손이 어긋남, 2026-10-17)
+_h = _hl.sha1()
+for _f in sorted(os.listdir(PARTS)): _h.update(_f.encode()); _h.update(open(os.path.join(PARTS, _f), 'rb').read())
+rig['version'] = _h.hexdigest()[:8]
 json.dump(rig, open(os.path.join(PK, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
 open(os.path.join(PK, 'rig.def.js'), 'w').write("window.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS['nicole-neon']=" + json.dumps(rig, ensure_ascii=False, separators=(',', ':')) + ";\n")
 print('ok', len(parts), 'parts; EF', EF.round(1), 'WF', WF.round(1), 'L1,L2', round(L1, 1), round(L2, 1), 'd', round(d, 1))

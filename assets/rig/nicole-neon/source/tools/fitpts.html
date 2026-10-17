@@ -16,7 +16,7 @@ window.setTargets=(o)=>{SI=o.idle;for(const k in o)if(k!=='idle')TG[k]=o[k]};
 window.err=(t)=>{if(!IDLE)IDLE=meas(sim(null));const T=TG[String(t)],an_=sim(t),m=meas(an_);
   const dHalf=(m.half-IDLE.half)-(T.half-SI.half),dHx=(m.head[0]-IDLE.head[0])-(T.head[0]-SI.head[0]),dHy=(m.head[1]-IDLE.head[1])-(T.head[1]-SI.head[1]);
   const dL=[m.lead[0]-T.lead[0],m.lead[1]-T.lead[1]],dA=m.ang-T.angDeg;
-  let e=(dHalf/40)**2+(dHx/50)**2+(dHy/40)**2+(dL[0]/40)**2+(dL[1]/30)**2+(dA/5)**2;
+  let e=(dHalf/40)**2+(dHx/50)**2+(dHy/(T.wHead||40))**2+(dL[0]/40)**2+(dL[1]/30)**2+(dA/5)**2;
   if(m.nearW>.5&&m.reach<0)e+=(-m.reach/400)**2;
   if(T.armStraight&&m.reach!=null&&m.reach>0)e+=(m.reach/1500)**2;   // 찌른 뒤 뒷팔은 거의 곧게(시트): 자루가 팔 길이 끝에 오도록
   if(T.handsGap!=null)e+=m.gapH==null?4:((m.gapH-T.handsGap)/40)**2;   // 두 손 사이 (시트: 당길 땐 넓게, 찌를 땐 뒷손이 앞손 바로 뒤로)          // 뒷손이 자루에 닿아야 함

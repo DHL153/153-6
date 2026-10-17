@@ -11,7 +11,8 @@
    -345.1
   ],
   "angDeg": 2.0,
-  "handsGap": 165
+  "handsGap": 165,
+  "wHead": 15
  },
  "0.24": {
   "frame": 10,
@@ -25,7 +26,8 @@
    -353.6
   ],
   "angDeg": 2.0,
-  "handsGap": 195
+  "handsGap": 195,
+  "wHead": 20
  },
  "0.3": {
   "frame": 11,

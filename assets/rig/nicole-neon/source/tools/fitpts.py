@@ -18,7 +18,7 @@ try:
         pg.goto(f'http://127.0.0.1:{port}/_fitpts.html'); pg.wait_for_function('window.ready', timeout=30000)
         pg.evaluate('o=>setTargets(o)', TG)
         for n, v in START.items(): pg.evaluate('([n,v])=>setTrack(n,v)', [n, v])
-        keys = sorted(float(k) for k in TG if k != 'idle')
+        keys = sorted(float(k) for k in TG if k != 'idle' and (not os.environ.get('KEYS') or k in os.environ['KEYS'].split(',')))
         for t in keys:
             r0 = pg.evaluate('t=>err(t)', t); print('before', t, round(r0['e'], 2), r0['d'], flush=True)
         if os.environ.get('NOFIT') != '1':
