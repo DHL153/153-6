@@ -2316,8 +2316,37 @@
   "note": "게임 그림 char_0006.png(512) = 원화. x 264.5 = 도감 칸(fitArt 중심 270.5)에서 골반이 가운데 (2026-10-18 DHL)"
  },
  "wave": {
-  "note": "인사(10-18 02:02) — 8 니콜 waveImg 경로",
+  "note": "인사(10-18 02:02) — 8 니콜 waveImg 경로. 02:17 DHL 팔꿈치 길게·뒤 그림 안 보이게: 윗팔 소매 숨김 + 팔꿈치를 수염 밑으로(up 2.0) + 팔뚝을 수염 뒤에서 나오게(draw) + 팔꿈치 쪽 소매 20줄 늘임",
   "openAt": 0.02,
-  "openWa": 0.6
+  "openWa": 0.6,
+  "elbowExt": 20,
+  "hideSleeve": true,
+  "up": 2.0,
+  "fore0": -0.95,
+  "draw": [
+   "cape",
+   "legFar",
+   "legNear",
+   "armF",
+   "wSleeve",
+   "skirt",
+   "torso",
+   "pouch",
+   "wFore",
+   "foreF",
+   "tuftL",
+   "tuftR",
+   "head",
+   "beard",
+   "headFront",
+   "weapon",
+   "fistF",
+   "handL",
+   "armU",
+   "armL",
+   "pauldron",
+   "handR",
+   "wHand"
+  ]
  }
 }

@@ -279,6 +279,14 @@ if WV:   # 인사(손 흔들기, DHL 10-18 02:02) — 8 니콜과 같은 엔진 
     hW, hT = A(WV.get('wristImg', [45, 84])), A(WV.get('tipImg', [42, 2])); kH = K * WV.get('handScale', 1.0); kU = K * WV.get('upperScale', 1.0); kF = K * WV.get('foreScale', 1.0)
     for nm, src, piv, sc in [('waveSleeve', 'cut/armF.png', sA, kU), ('waveFore', 'cut/foreF.png', fE, kF), ('waveHandW', 'cut/waveHand.png', hW, kH)]:
         shutil.copy(os.path.join(HERE, src), os.path.join(PARTS, nm + '.png')); parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [round(float(piv[0]), 1), round(float(piv[1]), 1)], 'scale': round(sc, 4)}
+    if WV.get('hideSleeve'):   # 먼 윗팔 소매는 수염·몸 뒤 — 밖으로 삐져나온 토막이 '뒤의 그림'처럼 보여 안 그림(팔뚝 팔꿈치 끝이 몸 뒤로 들어감)
+        q_ = np.asarray(Image.open(os.path.join(PARTS, 'waveSleeve.png')).convert('RGBA')).copy(); q_[..., 3] = 0; Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'waveSleeve.png'))
+    EX = WV.get('elbowExt', 0)
+    if EX:   # 팔꿈치를 길게(DHL 10-18 02:17 '뒤의 이미지가 보이지 않게'): 팔뚝 소매의 팔꿈치 쪽(둥근 끝 아래 줄 a~b)만 EX 줄 늘여 관절 뒤로 튀어나오게 → 수염 옆 윗팔 소매 토막을 덮음. 팔꿈치 관절·손목 자리는 그대로
+        q_ = np.asarray(Image.open(os.path.join(PARTS, 'waveFore.png')).convert('RGBA')).astype(np.float32); a_, b_ = WV.get('extBand', [5, 20])
+        mid_ = cv2.resize(q_[a_:b_], (q_.shape[1], b_ - a_ + EX), interpolation=cv2.INTER_CUBIC)
+        Image.fromarray(np.concatenate([q_[:a_], mid_, q_[b_:]], 0).clip(0, 255).astype(np.uint8), 'RGBA').save(os.path.join(PARTS, 'waveFore.png'))
+        fE = fE + A([0, EX]); fW = fW + A([0, EX]); parts['waveFore']['pivot'] = [round(float(fE[0]), 1), round(float(fE[1]), 1)]
     parts['waveSleeve']['elbow'] = [round(float(sB[0]), 1), round(float(sB[1]), 1)]; parts['waveFore']['wrist'] = [round(float(fW[0]), 1), round(float(fW[1]), 1)]; parts['waveHandW']['tip'] = [round(float(hT[0]), 1), round(float(hT[1]), 1)]
     armFb = next(b for b in out_bones if b['name'] == 'armF')
     out_bones.append({'name': 'wSleeve', 'parent': 'torso', 'pos': list(armFb['pos']), 'part': 'waveSleeve'})
