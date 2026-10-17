@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "98e94abd",
+ "version": "0f7ad643",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -321,12 +321,12 @@
    "src": "parts/waveFore.png",
    "pivot": [
     17.0,
-    22.0
+    2.0
    ],
    "scale": 2.05,
    "wrist": [
     17.0,
-    72.0
+    52.0
    ]
   },
   "waveHandW": {
@@ -845,8 +845,8 @@
    0,
    0
   ],
-  "up": 2.0,
-  "fore0": -0.95,
+  "up": 1.9,
+  "fore0": -1.0,
   "openAt": 0.02,
   "openWa": 0.6,
   "note": "먼 팔(봉 팔) 손 흔들기: 소매는 상체 뒤, 팔뚝은 수염 옆, 편 손은 맨 앞"
