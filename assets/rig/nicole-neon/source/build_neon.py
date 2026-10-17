@@ -130,6 +130,13 @@ for nm in ['handL', 'handR']:
     r_ = (-math.pi / 2) - math.atan2(sd[1], sd[0]) - wphi
     out_bones.append({'name': nm, 'parent': 'weapon', 'pos': [0, 0], 'rot': round(r_, 4), 'part': nm})
 off = HJ['handL']['off']; wL = A(T('handLwristCut', [98, 63])) - off; parts['handL']['wrist'] = [round(float(wL[0]), 1), round(float(wL[1]), 1)]
+if T('handLflip', False):   # 앞(먼) 주먹 좌우 손 반대 → 자루 축 기준 위아래 뒤집기: 엄지가 위(창끝 쪽)로 (DHL 13:13 '반대 손 모양')
+    pim = Image.open(os.path.join(PARTS, 'handL.png')); hh = pim.height; pim.transpose(Image.FLIP_TOP_BOTTOM).save(os.path.join(PARTS, 'handL.png'))
+    pl = parts['handL']; pl['pivot'] = [pl['pivot'][0], round(hh - pl['pivot'][1], 1)]; pl['shaftDir'] = [pl['shaftDir'][0], -pl['shaftDir'][1]]
+    # wrist(팔뚝이 붙는 점)는 그대로 둠: 팔뚝은 여전히 왼쪽 아래에서 들어옴 → 창·뒷손 자리 변화 없음
+    py0 = hh - pl['pivot'][1]; pl['wrist'] = [pl['wrist'][0], round(pl['wrist'][1] - py0 + pl['pivot'][1], 1)]   # 쥔 점 기준 같은 자리
+    for b_ in out_bones:
+        if b_['name'] == 'handL': sd_ = pl['shaftDir']; b_['rot'] = round((-math.pi / 2) - math.atan2(sd_[1], sd_[0]) - wphi, 4)
 te = A(T('handLtoElbow', [-63, 37]), float); te /= np.linalg.norm(te); parts['handL']['toElbow'] = [round(float(te[0]), 3), round(float(te[1]), 3)]
 off = HJ['handR']['off']; eR = A(T('handRelbowCut', [47, 39])) - off; parts['handR']['elbow'] = [round(float(eR[0]), 1), round(float(eR[1]), 1)]
 
