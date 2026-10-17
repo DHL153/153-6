@@ -12778,7 +12778,7 @@ function createSocialDataFoundation(assets, emojis) {
 // 스토리 만화 뷰어 — window.MRStory.play({mode:'first'|'replay'}) → Promise(끝/건너뛰기 시 resolve)
 // 조작: 클릭/→/Space/Enter 다음 · ←/Backspace 이전 · Esc 건너뛰기(닫기) · M 음소거 · 컨트롤러 A=다음(포커스), B=Esc
 (()=>{
- const CUTS=8, SRC=i=>'assets/art/story/story_'+String(i).padStart(2,'0')+'.webp';
+ const CUTS=8, SRC=i=>'assets/art/story/story_'+String(i).padStart(2,'0')+'.webp?v=2'; // v=2: 2026-10-18 3컷 그림 교체(캐시 갱신)
  const SEEN_KEY='mergeRoll.storySeen.v1';
  const ICON={
   prev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
