@@ -411,6 +411,34 @@
    ],
    "scale": 0.3231
   },
+  "gFdnT": {
+   "src": "parts/gFdnT.png",
+   "pivot": [
+    86.0,
+    273.7
+   ],
+   "elbow": [
+    86.0,
+    273.7
+   ],
+   "grip": [
+    502.6,
+    332.9
+   ],
+   "wrist": [
+    502.6,
+    332.9
+   ],
+   "shaftDir": [
+    0.8436,
+    0.537
+   ],
+   "scale": 0.3231,
+   "fist": [
+    232.8,
+    175.7
+   ]
+  },
   "thigh": {
    "src": "parts/thigh.png",
    "pivot": [
@@ -1003,10 +1031,10 @@
   "farFistDn": {
    "bone": "armL",
    "rect": [
-    195,
-    298,
-    225,
-    205
+    388,
+    199,
+    251,
+    291
    ]
   }
  },
@@ -1025,6 +1053,24 @@
   "armF",
   "pauldronF",
   "weapon",
+  "foreF"
+ ],
+ "drawSwordRise": [
+  "cape",
+  "pauldron",
+  "armU",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "pouch",
+  "scarf",
+  "head",
+  "armL",
+  "armF",
+  "pauldronF",
+  "weapon",
+  "farFistDn",
   "foreF"
  ],
  "actions": {
@@ -1049,12 +1095,12 @@
      1
     ],
     [
-     0.72,
+     0.79,
      1,
      "io"
     ],
     [
-     0.84,
+     0.9,
      0
     ]
    ],
@@ -1244,6 +1290,10 @@
     ],
     [
      0.41,
+     "gFdnT"
+    ],
+    [
+     0.79,
      "gFdn"
     ]
    ],
@@ -1289,7 +1339,11 @@
      "drawSword"
     ],
     [
-     0.74,
+     0.75,
+     "drawSwordRise"
+    ],
+    [
+     0.79,
      "drawSwordRel"
     ]
    ],
