@@ -90,7 +90,7 @@
           continue }
         // headFront (opt-in, 알론소 v4): 머리 그림의 얼굴·귀·앞머리 부분만 한 번 더 그림(def.headFront.clip = 머리 그림 px 다각형)
         //   → 칼은 뒷머리 위로 지나가고, 손잡이는 얼굴·귀 뒤로 숨음(키 포즈와 같은 겹침). 표정 패치·깜빡임도 같이 그림
-        if (name === "headFront") { const hf = this.def.headFront, hb = this.by.head; if (!hf || !hb) continue;
+        if (name === "headFront" || name.startsWith("headFront_")) { const hf = this.def[name], hb = this.by.head;   // headFront_* (opt-in): 다른 클립 다각형(예: 얼굴만) if (!hf || !hb) continue;
           const hpn = this.swap.head || hb.part, hp = this.def.parts[hpn], him = this.images[hpn], hop = this.alpha.head ?? 1; if (!him || hop <= .003) continue;
           const hk = hp.scale || 1, HM = mul(base, hb.m); ctx.save(); set(ctx, mul(HM, [hk, 0, 0, hk, 0, 0])); ctx.beginPath();
           hf.clip.forEach(([cx, cy], i) => i ? ctx.lineTo(cx - hp.pivot[0], cy - hp.pivot[1]) : ctx.moveTo(cx - hp.pivot[0], cy - hp.pivot[1])); ctx.closePath(); ctx.clip();
