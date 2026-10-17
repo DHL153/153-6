@@ -735,6 +735,8 @@
         const R = (t) => [Math.cos(t), Math.sin(t), -Math.sin(t), Math.cos(t), 0, 0];
         let M = mul(R(rot + phi), [st, 0, 0, 1, 0, 0]); M = mul(M, R(-phi)); M[4] = S[0]; M[5] = S[1];
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = M; return st };
+      { const tp = step("tPiece", null); rig.swap.torso = tp && tp !== b.torso.part ? tp : null;
+        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
       const EN = fore("foreF", nP, this._tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
@@ -810,7 +812,7 @@
     update(dt, s = {}) {
       dt = Math.min(dt, .05); this.t += dt; this.dt = dt;
       const rig = this.rig, b = rig.by, L = this.L; rig.resetPose();
-      if (rig.def.swordGrip) { rig.swap.foreF = rig.swap.armF = rig.swap.armU = null; if (!this.act) this.inSword = false }   // 대검(알론소 v4): 쥔 손 그림은 동작 중에만
+      if (rig.def.swordGrip) { rig.swap.foreF = rig.swap.armF = rig.swap.armU = null; if (rig.def.parts.torsoTurn) { rig.swap.torso = null; for (const h of rig.def.parts.torsoTurn.hides || []) rig.alpha[h] = 1 } if (!this.act) this.inSword = false }   // 대검(알론소 v4): 쥔 손 그림은 동작 중에만
       const vx = s.vx || 0, want = this.act ? this.facing : (s.facing || (Math.abs(vx) > 1 ? Math.sign(vx) : this.facing));
       if (want !== this.facing) { this.facing = want; this.turnT = .16; this.prevLVx = -this.prevLVx; for (const k in this.ft) { const f = this.ft[k]; f.planted = false } }
       this.turnT = Math.max(0, this.turnT - dt);
@@ -885,7 +887,7 @@
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
-        const [r0, r1] = L.boot.ankleRange || [-9, 9];
+        const [r0, r1] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9];   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
