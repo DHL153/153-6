@@ -201,6 +201,7 @@ if os.path.exists(os.path.join(HERE, 'faces.json')):
 AB = json.load(open(os.path.join(HERE, 'actions_base.json')))
 th = dict(AB['thrust']); th['slide'] = T('thrustSlide', [[0, 0, 'io'], [.18, 90, 's'], [.30, 130, 'o'], [.42, 130, 'io'], [.62, 60, 'io'], [.79, 0]])
 for k, v in T('thrustOverride', {}).items(): th[k] = v
+if T('thrustFull', None): th = T('thrustFull', None)   # 동작 시트(motion1)에 맞춘 찌르기 (tools/fit.py)
 rig['actions'] = {'thrust': th}
 json.dump(rig, open(os.path.join(PK, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
 open(os.path.join(PK, 'rig.def.js'), 'w').write("window.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS['nicole-neon']=" + json.dumps(rig, ensure_ascii=False, separators=(',', ':')) + ";\n")

@@ -1,0 +1,118 @@
+[
+ {
+  "act": "thrust",
+  "t": 0.18,
+  "frame": 9,
+  "target": {
+   "dFar": -96,
+   "dNear": -30,
+   "dHead": -65
+  },
+  "params": [
+   "hipX",
+   "hipY",
+   "lean",
+   "thF",
+   "gap",
+   "slide",
+   "farDx"
+  ],
+  "step": {
+   "hipX": 30,
+   "hipY": 20,
+   "lean": 0.06,
+   "thF": 0.1,
+   "gap": 30,
+   "slide": 30,
+   "farDx": 30
+  },
+  "rounds": 18
+ },
+ {
+  "act": "thrust",
+  "t": 0.24,
+  "frame": 10,
+  "target": {
+   "dFar": -112,
+   "dNear": -23,
+   "dHead": -88
+  },
+  "params": [
+   "hipX",
+   "hipY",
+   "lean",
+   "thF",
+   "gap",
+   "slide",
+   "nearDx"
+  ],
+  "step": {
+   "hipX": 30,
+   "hipY": 20,
+   "lean": 0.06,
+   "thF": 0.1,
+   "gap": 30,
+   "slide": 30,
+   "nearDx": 40
+  },
+  "rounds": 18
+ },
+ {
+  "act": "thrust",
+  "t": 0.3,
+  "frame": 11,
+  "target": {
+   "dFar": -264,
+   "dNear": -59,
+   "dHead": -120
+  },
+  "params": [
+   "hipX",
+   "hipY",
+   "lean",
+   "thF",
+   "gap",
+   "slide",
+   "nearDx"
+  ],
+  "step": {
+   "hipX": 30,
+   "hipY": 20,
+   "lean": 0.06,
+   "thF": 0.1,
+   "gap": 30,
+   "slide": 30,
+   "nearDx": 40
+  },
+  "rounds": 18
+ },
+ {
+  "act": "thrust",
+  "t": 0.42,
+  "frame": 12,
+  "target": {
+   "dFar": -259,
+   "dNear": -17,
+   "dHead": -135
+  },
+  "params": [
+   "hipX",
+   "hipY",
+   "lean",
+   "thF",
+   "gap",
+   "slide",
+   "nearDx"
+  ],
+  "step": {
+   "hipX": 30,
+   "hipY": 20,
+   "lean": 0.06,
+   "thF": 0.1,
+   "gap": 30,
+   "slide": 30,
+   "nearDx": 40
+  },
+  "rounds": 18
+ }
+]

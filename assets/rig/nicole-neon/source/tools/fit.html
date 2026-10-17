@@ -1,0 +1,40 @@
+<!doctype html><meta charset=utf-8><script src="rig.js"></script><script>
+// 동작 시트 맞춤 (18 네온, 2026-10-17): 리그를 시각 t 까지 재생한 실루엣 vs 시트 프레임(리그 단위로 줄인 것) 겹침(IoU)을 키 값으로 최대화
+// 가로 위치는 프레임마다 가장 잘 겹치는 곳으로 맞춤(시트 프레임은 각자 잘려 있어 절대 위치가 없음), 바닥선은 같게
+(async()=>{const rig=await CharacterRig.load("rig.json");window.rig=rig;
+const DS=4,W=1600,H=1200,OX=700,OY=1120;  // 리그 그리는 캔버스 (발 = OX,OY)
+const cv=document.createElement('canvas');cv.width=W/DS;cv.height=H/DS;const g=cv.getContext('2d',{willReadFrequently:true});
+const masks={};
+window.loadMask=async(i,url)=>{const im=new Image();await new Promise(r=>{im.onload=r;im.src=url});const c=document.createElement('canvas');c.width=Math.ceil(im.width/DS);c.height=Math.ceil(im.height/DS);const x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);
+ const d=x.getImageData(0,0,c.width,c.height).data,m=new Uint8Array(c.width*c.height);let n=0;for(let k=0;k<m.length;k++){m[k]=d[k*4+3]>128?1:0;n+=m[k]}masks[i]={w:c.width,h:c.height,m,n};return [c.width,c.height,n]};
+function sim(act,T,extra){const an=new RunAnimator(rig);for(let i=0;i<30;i++)an.update(1/60,{vx:0});if(act)an.attack(act);const dt=1/120;for(let t=0;t<T-1e-9;t+=dt)an.update(dt,{vx:0});return an}
+function rigMask(){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);rig.draw(g,OX/DS,OY/DS,1/DS,1);const d=g.getImageData(0,0,cv.width,cv.height).data,m=new Uint8Array(cv.width*cv.height);let n=0;for(let k=0;k<m.length;k++){m[k]=d[k*4+3]>128?1:0;n+=m[k]}return {m,n}}
+function iou(R,F){const w=cv.width,h=cv.height,gy=Math.round(OY/DS),y0=gy-F.h+1;let best=[0,0];
+ for(let x0=0;x0+F.w<=w;x0+=1){let inter=0;for(let y=0;y<F.h;y++){const ry=y0+y;if(ry<0||ry>=h)continue;const ro=ry*w+x0,fo=y*F.w;for(let x=0;x<F.w;x++)if(F.m[fo+x]&&R.m[ro+x])inter++}const u=R.n+F.n-inter,s=inter/u;if(s>best[0])best=[s,x0]}return best}
+const SPEAR={};window.setSpear=(i,ang,midYfromGround)=>{SPEAR[i]={ang,y:midYfromGround}};
+function spearNow(){const w=rig.images.weapon,p=rig.def.parts.weapon,a=rig.partPoint('weapon',w.width/2,w.height*.92),b=rig.partPoint('weapon',w.width/2,w.height*.08);return {ang:Math.atan2(-(b[1]-a[1]),b[0]-a[0])*180/Math.PI,y:-(a[1]+b[1])/2}}
+const TG={};let IDLE=null;window.setTarget=(i,t)=>{TG[i]=t};
+function bodyNow(an){const nk=rig.point('head');return {far:an.ft.far.x-nk[0],near:an.ft.near.x-nk[0],neckY:-nk[1]}}
+window.score=(act,T,i)=>{if(!IDLE){const a0=sim(null,0);rig.compute();IDLE=bodyNow(a0)}
+ const an=sim(act,T);rig.compute();const R=rigMask();const [s,x0]=iou(R,masks[i]);let pen=0,sp=null,bd=bodyNow(an);
+ if(TG[i]){const t=TG[i];pen+=Math.abs(bd.far-(IDLE.far+t.dFar))/300+Math.abs(bd.near-(IDLE.near+t.dNear))/300+Math.abs(bd.neckY-(IDLE.neckY+t.dHead))/200}
+ if(SPEAR[i]){sp=spearNow();let da=Math.abs(((sp.ang-SPEAR[i].ang+540)%360)-180);pen=da*.004+Math.abs(sp.y-SPEAR[i].y)/250}
+ return {iou:+(s-pen).toFixed(4),raw:+s.toFixed(4),x0:x0*DS,spear:sp,body:bd,idle:IDLE}};
+// 키 맞춤: A = rig.def.actions[act] 의 트랙들, keys = [{t, frame}], params = 트랙 이름, step = 이름→처음 걸음
+window.fit=(act,keyT,frame,params,step,rounds=14)=>{const A=rig.def.actions[act];const get=n=>{const k=A[n].find(x=>Math.abs(x[0]-keyT)<1e-6);return k};
+ for(const n of params)if(!get(n)){A[n].push([keyT,(()=>{let v=0;for(const k of A[n])if(k[0]<keyT)v=k[1];return v})(),'io']);A[n].sort((a,b)=>a[0]-b[0])}
+ let cur=score(act,keyT,frame).iou;const st={...step};const log=[cur];
+ for(let r=0;r<rounds;r++){let moved=false;for(const n of params){const k=get(n),v0=k[1];for(const dir of [1,-1]){k[1]=v0+dir*st[n];const s=score(act,keyT,frame).iou;if(s>cur+1e-4){cur=s;moved=true;break}k[1]=v0}}
+  if(!moved)for(const n of params)st[n]*=.5;log.push(cur)}
+ const out={};for(const n of params)out[n]=+get(n)[1].toFixed(3);return {iou:cur,vals:out,log}};
+// 달리기: gait 값으로 1.5초 달린 뒤 한 주기를 8등분(+off)한 시점의 실루엣 vs 시트 달리기 8장 평균 IoU
+window.scoreRun=(gait,frames,off)=>{const an=new RunAnimator(rig,{gait});const dt=1/240;let v=0;for(let t=0;t<1.6;t+=dt){v+=(620-v)*(1-Math.exp(-4.2*dt));an.update(dt,{vx:v})}
+ const need=frames.map((f,k)=>((k/frames.length+off)%1+1)%1);const got={};let prev=an.cyc;
+ for(let n=0;n<240*1.2&&Object.keys(got).length<need.length;n++){an.update(dt,{vx:620});const c=an.cyc;
+  need.forEach((p,k)=>{if(got[k])return;const crossed=prev<=c?(p>prev&&p<=c):(p>prev||p<=c);if(crossed){rig.compute();const R=rigMask();got[k]=iou(R,masks[frames[k]])[0]}});prev=c}
+ const vals=need.map((_,k)=>got[k]||0);return {mean:vals.reduce((a,b)=>a+b,0)/vals.length,vals}};
+window.fitRun=(base,frames,params,step,rounds=10)=>{let off=0,best=-1;for(let o=0;o<1;o+=1/16){const s=scoreRun(base,frames,o).mean;if(s>best){best=s;off=o}}
+ const g={...base},st={...step};let cur=best;for(let r=0;r<rounds;r++){let moved=false;for(const n of params){const v0=g[n];for(const d of [1,-1]){g[n]=v0+d*st[n];const s=scoreRun(g,frames,off).mean;if(s>cur+1e-4){cur=s;moved=true;break}g[n]=v0}}if(!moved)for(const n of params)st[n]*=.5}
+ return {off,start:best,score:cur,gait:g,vals:scoreRun(g,frames,off).vals}};
+window.ready=1})();
+</script>
