@@ -48,7 +48,9 @@ bodyH = 228
 data = {'image': 'alonso_sprite.png', 'bodyHeight': bodyH, 'frames': out,
         'anims': {
             # 달리기: 기준 속도 620에서 12장/초, 속도에 비례
-            'run': {'frames': [idx[n] for n in ROWS['run']], 'fps': 12, 'refSpeed': 620},
+            # 임시(11:15 DHL '다리 움직임 어색'): 시트 8장 중 5·6번이 2번과 같은 '낮게' 자세라 멈칫, 3·4·8번 공중 자세가 겹쳐 깡충 뛰는 느낌 →
+            # 한 발짝이 자연스럽게 이어지는 4장만 씀: 닿기(m01) → 낮게(m02) → 지나기(m06, 한 발 땅) → 높이(m07). 다리 교대 시트 오면 8장으로 교체
+            'run': {'frames': [idx[n] for n in ['m01', 'm02', 'm06', 'm07']], 'fps': 10, 'refSpeed': 620},
             'ready': {'frames': [idx['m10']]},
             # 내려찍기: [프레임, 보여 주는 시간(초)] — 준비에 무게, 휘두름은 짧게, 타격 뒤 멈칫(hitStop)
             'smash': {'keys': [[idx['m11'], .09], [idx['m12'], .16], [idx['m09'], .045], [idx['m13'], .30], [idx['m14'], .16]],
