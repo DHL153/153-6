@@ -63,6 +63,11 @@ ATK = json.load(open(os.path.join(HERE, 'attack_keys.json'), encoding='utf-8'))
 _o = np.array(P2(405, 225), float); _px = lambda p: [round(float(v), 1) for v in (np.array(p, float) - _o) / 2.0]
 def_parts['cArt'] = {'src': 'parts/fistF.png', 'pivot': _px(EL_F), 'elbow': _px(EL_F), 'grip': _px(GRIP), 'wrist': _px(GRIP), 'shaftDir': [float(-UAX[0]), float(-UAX[1])], 'scale': 2.0}
 for nm, (fist, fore, rel, *Lx) in ATK['pieces'].items(): compose(nm, fist, fore, rel, *(Lx[:1] or []))
+# 머리 위로 든 윗팔 소매(시트 armFup·armNup, DHL 01:26 '팔이 2개'): 내린 소매를 거꾸로 세우면 소매 밑단이 위로 뒤집혀 보임 → 든 팔 전용 그림
+#  pivot = 어깨 쪽 살(아래), elbow = 팔꿈치 쪽 살(위) — 살 덩어리 중심(tools 측정)
+for nm, pv, el in [('armFup', (28.3, 150.0), (74.0, 32.0)), ('armNup', (78.0, 146.0), (29.0, 33.0))]:
+    img(os.path.join(PC, nm + '.png')).save(os.path.join(OUT, 'parts', nm + '.png'))
+    def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': list(pv), 'elbow': list(el), 'scale': def_parts['armF']['scale'] if nm == 'armFup' else def_parts['armU']['scale']}
 # 칼 폼멜: 공격 때만(메는 손 원화 그림이 없을 때) 그림 — 칼 그림의 잘린 아래쪽
 _full = img(os.path.join(W, 'sword_full.png')); _top = 515 + EXT; _full.crop((0, _top, _full.width, _full.height)).save(os.path.join(OUT, 'parts', 'pommel.png'))
 _wp = def_parts['weapon']; def_parts['pommel'] = {'src': 'parts/pommel.png', 'pivot': [_wp['pivot'][0], _wp['pivot'][1] - _top], 'scale': _wp['scale']}

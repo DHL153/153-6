@@ -11,7 +11,7 @@ for(let i=0;i<60;i++)an.update(1/60,{vx:0,facing:1});an.attack(Q.get('atk')||'sm
 const tOf=()=>an.act?an.act.t:9;
 for(let k=0;k<TS.length;k++){let guard=0;while(tOf()<TS[k]-1e-4&&guard++<2000)an.update(1/240,{vx:0,facing:1});
   const x0=FW*(k%C),y0=FH*Math.floor(k/C);g.strokeStyle='#ddd';g.strokeRect(x0,y0,FW,FH);
-  g.save();rig.draw(g,x0+OX*K,y0+OY*K,K,1);g.restore();g.setTransform(1,0,0,1,0,0);
+  const HID=(Q.get('hide')||'').split(',').filter(Boolean),sv=HID.map(n=>rig.alpha[n]);HID.forEach(n=>rig.alpha[n]=0);g.save();rig.draw(g,x0+OX*K,y0+OY*K,K,1);g.restore();HID.forEach((n,i)=>rig.alpha[n]=sv[i]);g.setTransform(1,0,0,1,0,0);
   g.fillStyle='#c00';g.font=(40*K|0)+'px sans-serif';if(!Q.get('nolab'))g.fillText(TS[k].toFixed(2)+' st '+(an.stN||0).toFixed(2)+'/'+(an.stF||0).toFixed(2),x0+10,y0+44*K)}
 document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
 </script>

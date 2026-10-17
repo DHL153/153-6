@@ -846,7 +846,8 @@
         let M = mul(R(rot + phi), [st, 0, 0, 1, 0, 0]); M = mul(M, R(-phi)); M[4] = S[0]; M[5] = S[1];
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = M; return st };
       { const tp = step("tPiece", null); rig.swap.torso = tp && tp !== b.torso.part ? tp : null;
-        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
+        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }
+      if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
       const EN = fore("foreF", nP, this._tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
@@ -1016,6 +1017,7 @@
       if (act && rig.def.footReach) { const Lm_ = (L.thigh + L.shin) * rig.def.footReach;
         for (const side of ["near", "far"]) { const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           if (Math.hypot(dx, dy) > Lm_ && Math.abs(dy) < Lm_) { const nx = Math.sign(dx) * Math.sqrt(Lm_ * Lm_ - dy * dy); f.x += nx - dx } } }
+      if (this._fadeN && !(act && D.kind === "sword" && D.rigid && D.fade)) { for (const n of this._fadeN) rig.alpha[n] = 1; this._fadeN = null }   // fade(opt-in) 동작이 끝나거나 끊기면 숨겼던 조각을 되돌림
       if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
       else if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
       else if (act && D.kind === "wave") this._waveArms(D, at, T);
