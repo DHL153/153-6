@@ -170,7 +170,7 @@ rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}, 'far
 rig['drawSwordRel'] = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'foreF']   # 먼 손 놓은 뒤: 먼 팔 몸 뒤, 칼과 가까운 손 맨 앞
 # 내려찍기 v5 1차 (12:58): 키 기반(rigid) — 쥔 팔뚝 그림은 칼에 고정, 그림은 구간마다 고정(튀지 않음). 준비 = 동작 시트 m12(주먹 머리 위), 타격 = m13
 rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45, 1.1], 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
-    'reach': [[0, 0, 'io'], [0.1, 1], [0.52, 1, 'io'], [0.66, 0]],   # DHL 14:07: 들어 올릴 때 먼 손이 이미 손잡이를 쥠   # reachPiece: 먼 손은 처음부터 쥔 팔뚝 그림으로 주먹 자리→손잡이(튐 없음), 타격 뒤 손잡이→제자리로 내림
+    'reach': [[0, 0, 'io'], [0.1, 1], [0.72, 1, 'io'], [0.84, 0]],   # DHL 14:20: 칼이 얼굴 근처까지 올라올 때까지 두 손으로 들고, 그 뒤 먼 손을 놓음   # DHL 14:07: 들어 올릴 때 먼 손이 이미 손잡이를 쥠   # reachPiece: 먼 손은 처음부터 쥔 팔뚝 그림으로 주먹 자리→손잡이(튐 없음), 타격 뒤 손잡이→제자리로 내림
     'reachPiece': True,
     'w': [[0, 0, 'io'], [0.3, 1], [0.62, 1, 'io'], [0.85, 0]],
     'gx': [[0, -5], [0.3, 10, 'i'], [0.38, 10, 'i'], [0.42, 60, 'o'], [0.46, 110], [1, 110]],   # 머리 위 칼을 머리 가운데로 → 먼 팔뚝이 얼굴 오른쪽으로 내려옴(DHL 14:07 스케치)
@@ -182,7 +182,7 @@ rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45
     'fPiece': [[0, 'gFup'], [0.41, 'gFdn']],   # gFup은 손잡이 토막을 양쪽 다 지운 그림 → 칼에서 먼 흔들던 주먹 자리에서도 토막이 안 보임
     'nUpper': [[0, 'armF'], [0.14, 'armFup'], [0.41, 'armF']],
     'fUpper': [[0, 'armU'], [0.14, 'armUup'], [0.41, 'armU']],
-    'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.52, 'drawSwordRel']],
+    'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.74, 'drawSwordRel']],
     'tPiece': [[0, 'torso'], [0.13, 'torsoTurn'], [0.41, 'torso']],
     'hipX': [[0, 0, 'io'], [0.32, -14, 's'], [0.46, 40], [0.6, 40, 'io'], [0.85, 0]],
     'hipY': [[0, 0, 'io'], [0.3, 24, 's'], [0.38, 28, 's'], [0.46, 55], [0.6, 51, 'io'], [0.85, 0]],
