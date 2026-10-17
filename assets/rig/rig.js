@@ -787,10 +787,12 @@
       const Gk = apply(b.hip.m, this._tr("gx"), this._tr("gy")), ak = this._tr("sa") + this._tr("shake") * Math.sin(T * 95) * .03;
       const wp = P.weapon, kW = wp.scale || 1, tipL = Math.hypot(wp.tip[0] - wp.pivot[0], wp.tip[1] - wp.pivot[1]) * kW;
       let G = [lerp(G0[0], Gk[0], w), lerp(G0[1], Gk[1], w)], a = a0 + wrapA(ak - a0) * w;
-      const ty = G[1] + Math.sin(a) * tipL, td = SG.tipDepth ?? 6; if (ty > td && Math.cos(a) > 0) a = Math.asin(clamp((td - G[1]) / tipL, -1, 1));
+      const hs = D.hiltSlide ? this._tr("hilt") : 0, tL = tipL - hs;   // (opt-in) 긴 손잡이 줄이기: 칼날(+날밑)이 손 쪽으로 hs만큼 미끄러짐, 손잡이 감은 부분·폼멜은 손에 그대로
+      const ty = G[1] + Math.sin(a) * tL, td = SG.tipDepth ?? 6; if (ty > td && Math.cos(a) > 0) a = Math.asin(clamp((td - G[1]) / tL, -1, 1));
       const U = [Math.cos(a), Math.sin(a)];
       this.swordA = a; this.swordG = G; this.swordPull = 0; this.swordMiss = 0;
-      const rw = a + Math.PI / 2; b.weapon.wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0], G[1]];
+      const rw = a + Math.PI / 2; b.weapon.wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0] - U[0] * hs, G[1] - U[1] * hs];
+      if (D.hiltSlide) for (const n of D.hiltSlide) if (b[n]) b[n].wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0], G[1]];
       const ang = v => Math.atan2(v[1], v[0]);
       // 쥔 팔뚝 그림을 칼에 붙임 → 팔꿈치 점 반환
       const fore = (bone, pn, s) => { const p = P[pn], k = p.scale || 1, gp = p.grip, el = p.elbow || p.pivot, rho = ang(U) - ang(p.shaftDir);
@@ -834,7 +836,7 @@
         const E = apply(b.armL.m, 0, 0), tL = Math.atan2(Tg[1] - E[1], Tg[0] - E[0]) - Math.atan2(fv[1], fv[0]);
         b.armL.ar += wrapA(tL - wAng(b.armL.m)); b.pauldron.ar = b.armU.ar * .3 }
       const ord = step("order", null);
-      rig.drawOrder = (reach > .3 || w > .2) ? (rig.def[ord || "drawSword"] || null) : null;
+      rig.drawOrder = (reach > .3 || w > .2 || D.orderAlways) ? (rig.def[ord || "drawSword"] || null) : null;   // orderAlways(opt-in): 쥔 팔 조각이 처음부터 바뀌는 리그(21) — 기본 순서의 메는 주먹이 떠 보이지 않게
       rig.compute();
       if (act && !act.hit && at >= D.hitAt) { act.hit = true; if (D.hitStop) act.freeze = D.hitStop; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }   // hitStop(초, opt-in): 칼이 땅에 닿는 순간 잠깐 멈춤(묵직함)
     }

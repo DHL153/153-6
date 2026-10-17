@@ -1,0 +1,84 @@
+# 21 스카이아크 알론소 내려찍기 (2026-10-18) — 1 러스트 알론소 v4의 rigid 방식(칼 먼저, 쥔 팔뚝 그림이 칼에 붙음)
+#  build_sky.py 안에서 exec 됨 (rig, def_parts, parts, world, W, PC, OUT, P2, O, img, unit, np, math, Image 사용)
+#  · 엔진 이름: near(armF→foreF) = 칼 메는 팔(여기선 몸 뒤 먼 팔) · far(armU→armL) = 자유 팔(여기선 몸 앞 가까운 팔)
+#  · 쥔 팔 조각 = 시트 쥔 주먹(4손가락) + 팔뚝 그림을 합성. 팔뚝 방향은 칼 축 기준으로 고정(rigid) → 구간마다 조각을 바꿈
+R2 = 2.0   # 합성 그림 해상도: 리그 1단위 = 2px
+FIST_S = 1.24
+FISTS = {   # 주먹 조각: 쥔 점, 칼끝 쪽 손잡이 방향(그림 좌표), 손목 점(토시 끝)
+    'gNv': dict(grip=(60.0, 80.0), sd=(0.0, -1.0), wrist=(10.0, 88.0)),
+    'gFv': dict(grip=(46.0, 80.0), sd=(0.0, -1.0), wrist=(116.0, 90.0)),
+    # 좌우 뒤집은 주먹(이름 끝 M): 손목이 반대쪽 — 타격 때 앞 손은 손목이 폼멜 쪽(어깨 쪽)에 있어야 팔이 닿음
+    'gFvM': dict(grip=(77.0, 80.0), sd=(0.0, -1.0), wrist=(7.0, 90.0)),
+    'gNhM': dict(grip=(114.0, 52.0), sd=(1.0, 0.0), wrist=(24.0, 48.0)),
+}
+FORES = {   # 팔뚝: 팔꿈치·손목 점(그림 좌표)
+    'near': dict(file=os.path.join(W, 'nearFore.png'), el=(30.0, 22.0), wr=(70.0, 122.0)),
+    'carry': dict(file=os.path.join(W, 'carryFore.png'), el=(35.0, 60.0), wr=(176.0, 72.0)),
+}
+# 자유 손(손을 뗐다 잡는 손) 주먹: 위아래로 삐져나온 손잡이 토막을 지움 — 열마다 주먹 테두리(어두운 선)까지만 (뒤집기 전 그림 좌표)
+#  ('top', x0, x1, y): y 아래 처음 나오는 테두리 위를 지움 / ('bot', x0, x1, y): y 위 마지막 테두리 아래를 지움 / ('left', y0, y1, x): x 왼쪽 지움
+NOSTUB = {'gFvM': [('top', 26, 70, 43), ('bot', 24, 68, 127)], 'gNhM': [('left', 28, 78, 40)]}
+def unstub(im, spec):
+    a = np.array(im).copy(); dark = (a[..., 3] > 128) & (a[..., :3].sum(-1) < 120)
+    for kind, p0, p1, q in spec:
+        for c in range(p0, p1 + 1):
+            if kind == 'top':
+                ys = [y for y in range(q, q + 8) if dark[y, c]]; a[:(ys[0] if ys else q), c, 3] = 0
+            elif kind == 'bot':
+                ys = [y for y in range(q - 8, q + 1) if dark[y, c]]; a[(ys[-1] + 1 if ys else q):, c, 3] = 0
+            else:
+                xs = [x for x in range(q, q + 10) if dark[c, x]]; a[c, :(xs[0] if xs else q), 3] = 0
+    from scipy import ndimage   # 지우고 남은 가는 부스러기 제거: 가장 큰 덩어리만
+    lab, n = ndimage.label(a[..., 3] > 0)
+    if n > 1: big = 1 + int(np.argmax(ndimage.sum(np.ones_like(lab), lab, range(1, n + 1)))); a[..., 3] = np.where(lab == big, a[..., 3], 0)
+    return Image.fromarray(a)
+def sim_pts(p1, p2, q1, q2):
+    p1, p2, q1, q2 = map(lambda v: np.array(v, float), (p1, p2, q1, q2)); vp, vq = p2 - p1, q2 - q1
+    s = np.linalg.norm(vq) / np.linalg.norm(vp); a = math.atan2(vq[1], vq[0]) - math.atan2(vp[1], vp[0]); c, sn = math.cos(a) * s, math.sin(a) * s
+    A = np.array([[c, -sn], [sn, c]]); return A, q1 - A @ p1
+def compose(name, fist, fore, rel_deg, L=95.0, inset=10.0):
+    """쥔 팔 조각 만들기: 주먹 그림 + 팔뚝. rel_deg = 손목→팔꿈치 방향(칼끝 방향 기준, 화면 각도·시계 방향 +)."""
+    F, Fo = FISTS[fist], FORES[fore]; oim = img(Fo['file'])
+    fim = img(os.path.join(PC, (fist[:-1] if fist.endswith('M') else fist) + '.png'))
+    fim = unstub(fim, NOSTUB.get(fist, []))   # 주먹 위아래로 삐져나온 손잡이 토막 지움 (진짜 손잡이가 주먹 뒤에 그려짐 → 손을 뗄 때 토막만 남아 보이지 않게)
+    if fist.endswith('M'): fim = fim.transpose(Image.FLIP_LEFT_RIGHT)
+    k = FIST_S * R2; sd = unit(F['sd']); a_sd = math.atan2(sd[1], sd[0]); d = (math.cos(a_sd + math.radians(rel_deg)), math.sin(a_sd + math.radians(rel_deg)))
+    Wc = np.array(F['wrist']) * k; Wi = Wc - np.array(d) * inset * R2; Ec = Wi + np.array(d) * L * R2   # 팔뚝 손목 끝은 토시 안으로 inset만큼
+    A, t = sim_pts(Fo['wr'], Fo['el'], Wi, Ec)
+    cs = [A @ np.array(c, float) + t for c in [(0, 0), (oim.width, 0), (0, oim.height), (oim.width, oim.height)]] + [np.array([0, 0]), np.array([fim.width * k, fim.height * k])]
+    mn = np.floor(np.min(cs, 0)) - 4; mx = np.ceil(np.max(cs, 0)) + 4; size = tuple((mx - mn).astype(int))
+    Ai = np.linalg.inv(A); bi = -Ai @ (t - mn)   # 캔버스 → 팔뚝 그림
+    canvas = oim.transform(size, Image.AFFINE, (Ai[0, 0], Ai[0, 1], Ai[0, 0] * 0 + bi[0], Ai[1, 0], Ai[1, 1], bi[1]), resample=Image.BICUBIC)
+    fs = fim.resize((round(fim.width * k), round(fim.height * k)), Image.LANCZOS); canvas.alpha_composite(fs, (int(-mn[0]), int(-mn[1])))
+    canvas.save(os.path.join(OUT, 'parts', name + '.png'))
+    g = np.array(F['grip']) * k - mn; e = Ec - mn
+    def_parts[name] = {'src': f'parts/{name}.png', 'pivot': [round(float(e[0]), 1), round(float(e[1]), 1)], 'elbow': [round(float(e[0]), 1), round(float(e[1]), 1)],
+                       'grip': [round(float(g[0]), 1), round(float(g[1]), 1)], 'wrist': [round(float(g[0]), 1), round(float(g[1]), 1)], 'shaftDir': [float(sd[0]), float(sd[1])], 'scale': 1 / R2}
+# 구간별 쥔 팔 (손목→팔꿈치 방향, 칼끝 방향 기준 각도): 머리 위(칼끝이 뒤쪽 192°) / 휘두름(0°) / 타격(25°)
+ATK = json.load(open(os.path.join(HERE, 'attack_keys.json'), encoding='utf-8'))
+# 원화 메는 손(cArt): 서 있을 때 그림(fistF = 원화 오림) 그대로 쥔 팔 조각으로 — 공격 시작·끝이 서 있는 그림과 똑같이 이어짐 (팔꿈치 = 원화 팔꿈치 EL_F)
+_o = np.array(P2(405, 225), float); _px = lambda p: [round(float(v), 1) for v in (np.array(p, float) - _o) / 2.0]
+def_parts['cArt'] = {'src': 'parts/fistF.png', 'pivot': _px(EL_F), 'elbow': _px(EL_F), 'grip': _px(GRIP), 'wrist': _px(GRIP), 'shaftDir': [float(-UAX[0]), float(-UAX[1])], 'scale': 2.0}
+for nm, (fist, fore, rel) in ATK['pieces'].items(): compose(nm, fist, fore, rel)
+# 칼 폼멜: 공격 때만(메는 손 원화 그림이 없을 때) 그림 — 칼 그림의 잘린 아래쪽
+_full = img(os.path.join(W, 'sword_full.png')); _top = 515 + EXT; _full.crop((0, _top, _full.width, _full.height)).save(os.path.join(OUT, 'parts', 'pommel.png'))
+_wp = def_parts['weapon']; def_parts['pommel'] = {'src': 'parts/pommel.png', 'pivot': [_wp['pivot'][0], _wp['pivot'][1] - _top], 'scale': _wp['scale']}
+rig['bones'].append({'name': 'pommel', 'parent': 'weapon', 'pos': [0, 0], 'part': 'pommel'})
+rig['hidden'] = []
+rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': ATK['carry0']}, 'far': {'upper': 'armU', 'pieces': [ATK['far0']], 'sPref': ATK['sF']}}
+D0 = rig['draw']
+for k, L in ATK['orders'].items(): rig[k] = L if 'hiltW' in L else [x for n in L for x in (['hiltW', n] if n == 'weapon' else [n])]
+act = dict(ATK['action']); act.update({'kind': 'sword', 'rigid': True, 'reachPiece': True, 'hiltSlide': ['hiltW', 'pommel'], 'orderAlways': True})
+# 키: 칼 손잡이 자리는 '세계(발 기준)' 좌표로 적고 골반 이동(hipX·hipY)을 빼서 gx·gy로 (엔진은 골반 기준)
+from bisect import bisect
+def samp(K, t):
+    for i in range(len(K) - 1):
+        if K[i][0] <= t <= K[i + 1][0]: u = (t - K[i][0]) / (K[i + 1][0] - K[i][0]); return K[i][1] + (K[i + 1][1] - K[i][1]) * u
+    return K[-1][1] if t > K[-1][0] else K[0][1]
+HIP0 = next(b for b in rig['bones'] if b['name'] == 'hip')['pos']
+gx, gy, sa = [], [], []
+for t, X, Y, A, *e in ATK['grip']:
+    ee = e[0] if e else 'io'
+    gx.append([t, round(X - HIP0[0] - samp(act.get('hipX', [[0, 0]]), t), 1), ee]); gy.append([t, round(Y - HIP0[1] - samp(act.get('hipY', [[0, 0]]), t), 1), ee]); sa.append([t, A, ee])
+act.update({'gx': gx, 'gy': gy, 'sa': sa})
+rig['actions'] = {'smash': act}
