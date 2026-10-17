@@ -10,7 +10,8 @@
    80.6,
    -345.1
   ],
-  "angDeg": 2.0
+  "angDeg": 2.0,
+  "handsGap": 165
  },
  "0.24": {
   "frame": 10,
@@ -23,7 +24,8 @@
    249.2,
    -353.6
   ],
-  "angDeg": 2.0
+  "angDeg": 2.0,
+  "handsGap": 195
  },
  "0.3": {
   "frame": 11,
@@ -36,7 +38,9 @@
    352.6,
    -387.8
   ],
-  "angDeg": 2.0
+  "angDeg": 2.0,
+  "handsGap": 80,
+  "armStraight": 1
  },
  "0.42": {
   "frame": 12,
@@ -49,7 +53,9 @@
    314.4,
    -372.2
   ],
-  "angDeg": 2.0
+  "angDeg": 2.0,
+  "handsGap": 80,
+  "armStraight": 1
  },
  "idle": {
   "half": 133.7,

@@ -208,6 +208,7 @@ rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'flap': {'part': 'coatFlap', 'off': FOFF, **T('flap', {'openX': 46, 'openY': 18, 'knee': .012, 'kneeUp': .008, 'lunge': .009})},
        'releaseOpen': True, 'dropLift': T('dropLift', 16), 'hemRest': True, 'idleStance': T('idleStance', {'near': 40, 'far': -80}),
        'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': .35}],
+       'rearBlend': T('rearBlend', .1),   # 뒷손 팔꿈치 뒤→팔 뻗음 바뀔 때 0.1초 동안 미끄러짐
        'bounce': T('bounce', [{'bone': 'pouchA', 'stiff': 210, 'damp': 8, 'y': .6, 'rot': .005, 'max': 12}, {'bone': 'pouchB', 'stiff': 240, 'damp': 9, 'y': .5, 'rot': -.004, 'max': 10}]),   # 파우치 출렁임 (DHL 14:09 추천 3)
        'runForeBend': T('runForeBend', -0.45), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'metrics': {'bodyHeight': round(GROUND - 226), 'heightWithWeapon': round(GROUND - 3), 'note': 'rig units. bodyHeight = 머리카락 위 ~ 발바닥(대기), 무기 제외',

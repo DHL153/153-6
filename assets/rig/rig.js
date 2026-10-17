@@ -474,6 +474,13 @@
         const V = [G[0] + off[0] - SN[0], G[1] + off[1] - SN[1]], vu = V[0] * u[0] + V[1] * u[1], disc = vu * vu - (V[0] * V[0] + V[1] * V[1]) + lu * lu;
         let k = disc >= 0 ? null : -vu;
         if (disc >= 0) { let bc = 1e9; for (const rr of [-vu - Math.sqrt(disc), -vu + Math.sqrt(disc)]) { const c2 = Math.abs(rr - kPref) + (rr > -60 ? 1e4 : 0); if (c2 < bc) { bc = c2; k = rr } } }
+        if (rig.def.rearBlend && disc >= 0 && wn > .9) {   // 뒷손 해(팔꿈치 뒤 ↔ 팔 뻗음)가 바뀔 때 한 프레임에 튀지 않게, 자루 위를 rearBlend 초 동안 미끄러져 옮김 (opt-in, 18 네온)
+          const side = Math.sign(k + vu) || 1, B = this._rB;
+          if (this._rSide && side !== this._rSide && this._rK != null) this._rB = { from: this._rK, t: 0 };
+          this._rSide = side;
+          if (this._rB) { const bb = this._rB; bb.t += this.dt || 1 / 60; const uu = Math.min(1, bb.t / rig.def.rearBlend), e_ = uu * uu * (3 - 2 * uu); k = bb.from + (k - bb.from) * e_; if (uu >= 1) this._rB = null } }
+        else if (wn <= .9) { this._rSide = 0; this._rB = null }
+        this._rK = k;
         this.rearK = k; this.rearReach = disc;
         const GN = [G[0] + u[0] * k, G[1] + u[1] * k], EN = [GN[0] + off[0], GN[1] + off[1]];
         b.handR.pos = [0, -k];

@@ -9,8 +9,8 @@ START = json.load(open(sys.argv[3])) if len(sys.argv) > 3 else {}
 shutil.copy(os.path.join(here, 'fitpts.html'), os.path.join(pkg, '_fitpts.html'))
 s = socket.socket(); s.bind(('127.0.0.1', 0)); port = s.getsockname()[1]; s.close()
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1'], cwd=pkg, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); time.sleep(.5)
-PARAMS = ['hipX', 'hipY', 'lean', 'head', 'thF', 'farDx', 'nearDx']
-STEP = {'hipX': 30, 'hipY': 20, 'lean': .06, 'head': .05, 'thF': .1, 'farDx': 40, 'nearDx': 40}
+PARAMS = ['hipX', 'hipY', 'lean', 'head', 'thF', 'nearDx', 'gap']   # 뒷발(먼 발)은 디딘 채, 앞발(가까운 발)만 내딛음
+STEP = {'gap': 40, 'hipX': 30, 'hipY': 20, 'lean': .06, 'head': .05, 'thF': .1, 'farDx': 40, 'nearDx': 40}
 res = {}
 try:
     with sync_playwright() as p:
@@ -26,7 +26,7 @@ try:
                 r = pg.evaluate('([t,p,s])=>fit(t,p,s,18)', [t, PARAMS, STEP]); res[str(t)] = r
                 print('fit', t, round(r['e'], 3), r['d'], r['vals'], flush=True)
             for t in keys:
-                r1 = pg.evaluate('t=>err(t)', t); print('after', t, round(r1['e'], 3), r1['d'], flush=True)
+                r1 = pg.evaluate('t=>err(t)', t); print('after', t, round(r1['e'], 3), 'pen', r1['pen'], r1['d'], flush=True)
         res['_action'] = pg.evaluate('()=>rig.def.actions.thrust'); b.close()
 finally: srv.terminate(); os.remove(os.path.join(pkg, '_fitpts.html'))
 json.dump(res, open(sys.argv[2], 'w'), indent=0)
