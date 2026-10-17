@@ -34,3 +34,8 @@
 - 타격: 뒷손을 가까운 팔 뒤로, hilt 235(날밑이 앞주먹 앞)
 - 보기 도구: `tools/atkview.html?...&hide=pauldron,armF` (조각 숨겨 보기)
 - 남은 것: 타격 손 그림(칼끝 오른쪽·손목 왼쪽으로 쥔 양손) 요청 여부, 앞자락·정강이, 게임 연결
+
+## 02:15 내려찍기 v4 (DHL 01:54)
+- 칼 메는 손: 공격 내내 원화 손 cArt + 늘인 소매 armFw (cN·armFup·armNup 삭제)
+- 가까운 팔: armUs(소매 밑단에서 자름, source/sleeve_crop.py) + 쥔 팔뚝, 소매가 팔뚝 위
+- 휘두름·타격 0.40~0.62: 먼 팔 fade 0, 그리는 순서 drawSwing·drawStrike2 추가
