@@ -880,6 +880,7 @@
       const FB = A * (rig.def.runForeBend || 0); b.foreF.ar += FB;   // 달릴 때 창 팔 팔꿈치를 더 굽혀 창을 듦 (긴 창 캐릭터, opt-in — 없으면 0)
       const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar - FB, -WR, WR);   // wrist
       b.weapon.ar = 0;
+      if (rig.def.runSlide) { const rs = A * rig.def.runSlide; b.weapon.ax = Math.sin(b.weapon.rot) * rs; b.weapon.ay = -Math.cos(b.weapon.rot) * rs }   // 달릴 때만 봉을 손 안에서 위로 밀어 올림 — 서 있을 땐 원화 그대로 (짧은 다리 + 긴 봉, 6 카르덴 opt-in)
 
       // ---------- feet + legs ----------
       this._feet(dt, sp, lvx, S, A);

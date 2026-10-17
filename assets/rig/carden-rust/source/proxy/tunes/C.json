@@ -1,0 +1,2 @@
+{"gait":{"stance":0.4,"strideBase":40,"strideK":0.1,"hipBase":10,"bob":14,"lean":0.12,"waddle":0.05,"headBob":4,"kneeLift":0.65,"heelKick":0.5,"dropCap":25,"swingReach":0.05,"landAng":-0.08},
+ "legs":{"near":{"runX":-20},"far":{"runX":20}},"weaponRaise":14,"runForeBend":-0.35}

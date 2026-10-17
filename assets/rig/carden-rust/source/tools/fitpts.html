@@ -1,0 +1,40 @@
+<!doctype html><meta charset=utf-8><script src="rig.js"></script><script>
+// 관절점 맞춤 (18 네온 찌르기, 2026-10-17 14시): 실루엣 겹침(IoU)만 쓰면 꼼수 해가 나와서(실수 기록 '연구' 11:40) 점으로 맞춤
+// 점: 두 발 간격의 절반 · 머리 위(발 가운데 기준) · 앞 주먹(발 가운데 기준) · 창 각도. 머리·발 간격은 '서 있는 자세 대비 변화량'으로 비교(시트와 리그의 몸 비율 차이 제거)
+(async()=>{const rig=await CharacterRig.load("rig.json");window.rig=rig;
+const him=rig.images.head,c=document.createElement('canvas');c.width=him.width;c.height=him.height;const x=c.getContext('2d');x.drawImage(him,0,0);
+const d=x.getImageData(0,0,c.width,c.height).data;let top=0;outer:for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++)if(d[(y*c.width+xx)*4+3]>128){top=y;break outer}
+let sx=0,n=0;for(let xx=0;xx<c.width;xx++)if(d[(top+3)*c.width*4+xx*4+3]>128){sx+=xx;n++}const HT=[n?sx/n:c.width/2,top];
+function sim(T){const an=new RunAnimator(rig);for(let i=0;i<40;i++)an.update(1/60,{vx:0});if(T!=null){an.attack('thrust');for(let t=0;t<T-1e-9;t+=1/120)an.update(1/120,{vx:0})}return an}
+function spearDeg(){const w=rig.images.weapon,a=rig.partPoint('weapon',w.width/2,w.height*.92),b=rig.partPoint('weapon',w.width/2,w.height*.08);return Math.atan2(-(b[1]-a[1]),b[0]-a[0])*180/Math.PI}
+window.meas=an=>{rig.compute();const xs=[an.ft.near.x,an.ft.far.x],mid=(xs[0]+xs[1])/2,half=Math.abs(xs[0]-xs[1])/2,h=rig.partPoint('head',HT[0],HT[1]);
+  const L=(rig.alpha.handL||0)>.5?rig.point('handL'):rig.point('fistF');
+  const Rr=(rig.alpha.handR||0)>.5?rig.point('handR'):null;
+  return {gapH:Rr?Math.hypot(Rr[0]-L[0],Rr[1]-L[1]):null,mid,half,head:[h[0]-mid,h[1]],lead:[L[0]-mid,L[1]],ang:spearDeg(),reach:an.rearReach,nearW:an._tr?an._tr('nearW'):0,front:xs[1]>xs[0]?'far':'near'}};
+let IDLE=null,SI=null;const TG={};
+window.setTargets=(o)=>{SI=o.idle;for(const k in o)if(k!=='idle')TG[k]=o[k]};
+window.err=(t)=>{if(!IDLE)IDLE=meas(sim(null));const T=TG[String(t)],an_=sim(t),m=meas(an_);
+  const dHalf=(m.half-IDLE.half)-(T.half-SI.half),dHx=(m.head[0]-IDLE.head[0])-(T.head[0]-SI.head[0]),dHy=(m.head[1]-IDLE.head[1])-(T.head[1]-SI.head[1]);
+  const dL=[m.lead[0]-T.lead[0],m.lead[1]-T.lead[1]],dA=m.ang-T.angDeg;
+  let e=(dHalf/40)**2+(dHx/50)**2+(dHy/(T.wHead||40))**2+(dL[0]/40)**2+(dL[1]/30)**2+(dA/5)**2;
+  if(m.nearW>.5&&m.reach<0)e+=(-m.reach/400)**2;
+  if(T.armStraight&&m.reach!=null&&m.reach>0)e+=(m.reach/1500)**2;   // 찌른 뒤 뒷팔은 거의 곧게(시트): 자루가 팔 길이 끝에 오도록
+  if(T.handsGap!=null)e+=m.gapH==null?4:((m.gapH-T.handsGap)/40)**2;   // 두 손 사이 (시트: 당길 땐 넓게, 찌를 땐 뒷손이 앞손 바로 뒤로)          // 뒷손이 자루에 닿아야 함
+  // 관절 한계 (audit 와 같은 정의, 조금 안쪽에서 벌점): 엉덩이 ≤30°, 무릎 ≤145°, 팔꿈치 N ≥ −140°, F ≥ −148°, 몸 기울기 ≤ .32(허리 이음매)
+  const P=c=>c,b=rig.by,D=180/Math.PI,ang=v=>Math.atan2(v[1],v[0]),sub=(a,c)=>[a[0]-c[0],a[1]-c[1]],wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  const tA=Math.atan2(b.torso.m[1],b.torso.m[0]);let pen=0;
+  for(const sd of ['near','far']){const Q=rig.legPose[sd];if(!Q)continue;const k=wrap(ang(sub(Q.ankle,Q.knee))-ang(sub(Q.knee,Q.hip)))*D,h=wrap(ang(sub(Q.knee,Q.hip))-(tA+Math.PI/2))*D;
+    if(h>30)pen+=((h-30)/5)**2;if(h<-120)pen+=((-120-h)/5)**2;if(k>145)pen+=((k-145)/5)**2}
+  const el=(s_,e_,w_)=>wrap(ang(sub(w_,e_))-ang(sub(e_,s_)))*D;
+  if((rig.alpha.armL??1)>.5||(rig.alpha.handR||0)>.5){const w_=(rig.alpha.handR||0)>.5?rig.point('handR'):rig.point('armL');const eN=el(rig.point('armU'),rig.point('armL'),(rig.alpha.handR||0)>.5?rig.point('handR'):rig.partPoint('armL',...(rig.def.parts[rig.swap.armL||'armL'].grip||rig.def.parts.armL.pivot)));if(eN<-140)pen+=((-140-eN)/5)**2}
+  {const eF=el(rig.point('armF'),rig.point('foreF'),(rig.alpha.handL||0)>.5?rig.point('handL'):rig.point('fistF'));if(eF<-148)pen+=((-148-eF)/5)**2}
+  {const lk=rig.def.actions.thrust.lean;let lv=0;for(const q of lk)if(Math.abs(q[0]-t)<1e-6)lv=q[1];if(lv>.32)pen+=((lv-.32)/.03)**2}e+=pen;
+  return {e,pen:+pen.toFixed(2),m,d:{gapH:m.gapH==null?null:+m.gapH.toFixed(0),half:+dHalf.toFixed(1),headX:+dHx.toFixed(1),headY:+dHy.toFixed(1),leadX:+dL[0].toFixed(1),leadY:+dL[1].toFixed(1),ang:+dA.toFixed(1)}}};
+const A=()=>rig.def.actions.thrust;
+window.setTrack=(n,v)=>{A()[n]=v};
+function key(n,t){const tr=A()[n];let k=tr.find(x=>Math.abs(x[0]-t)<1e-6);if(!k){let v=0;for(const q of tr)if(q[0]<t)v=q[1];k=[t,v,'io'];tr.push(k);tr.sort((a,b)=>a[0]-b[0])}return k}
+window.fit=(t,params,step,rounds=16)=>{for(const p of params)key(p,t);let cur=err(t).e;const st={...step};
+  for(let r=0;r<rounds;r++){let moved=false;for(const p of params){const k=key(p,t),v0=k[1];for(const dir of [1,-1]){k[1]=v0+dir*st[p];const e=err(t).e;if(e<cur-1e-5){cur=e;moved=true;break}k[1]=v0}}if(!moved)for(const p of params)st[p]*=.5}
+  const vals={};for(const p of params)vals[p]=+key(p,t)[1].toFixed(3);return {e:cur,vals,...err(t)}};
+window.ready=1})();
+</script>
