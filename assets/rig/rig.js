@@ -591,7 +591,7 @@
       b.armF.ar += wrapA(Math.atan2(eF[1] - SF[1], eF[0] - SF[0]) - Math.atan2(b.foreF.pos[1], b.foreF.pos[0]) - wAng(b.armF.m)); rig.compute();
       const EF = apply(b.foreF.m, 0, 0); b.foreF.ar += wrapA(Math.atan2(Wt[1] - EF[1], Wt[0] - EF[0]) - Math.atan2(b.fistF.pos[1], b.fistF.pos[0]) - wAng(b.foreF.m)); rig.compute();
       // 봉: 앞 주먹 쥔 점 G, 각도 a (봉 뼈는 fistF 자식 → fistF 기준으로 환산). 앞 주먹으로 바꾸기 전(세운 봉 주먹이 보일 때)은 그 주먹이 쥔 점에서 돌리기만
-      if (!on) { const g_ = apply(b.fistF.m, b.weapon.pos[0], b.weapon.pos[1]); G[0] = g_[0]; G[1] = g_[1] }
+      if (!on) { const g_ = apply(b.fistF.m, b.weapon.pos[0] + b.weapon.ax, b.weapon.pos[1] + b.weapon.ay); G[0] = g_[0]; G[1] = g_[1] }   // 손 안에서 밀린 만큼(runSlide·carryDrop) 그대로 이어받음 — 공격 시작 때 봉이 한 프레임에 튀지 않게
       { const F = b.fistF.m, det = F[0] * F[3] - F[1] * F[2], ix = G[0] - F[4], iy = G[1] - F[5];
         b.weapon.ax = (F[3] * ix - F[2] * iy) / det - b.weapon.pos[0]; b.weapon.ay = (-F[1] * ix + F[0] * iy) / det - b.weapon.pos[1]; b.weapon.ar = wrapA(a - wAng(F) - b.weapon.rot) }
       b.handL.pos = [0, 0];
@@ -607,7 +607,12 @@
       const onN = w > (SK.nearOn ?? .9);   // 가까운 손은 봉이 자리 잡은 뒤에만 쥠(옮겨 가는 동안 팔이 안 닿음)
       if (onN) {
         rig.swap.armL = SK.sleeve || null;
-        const eN = pick(SN, WN, solve2(SN, WN, N1, N2));
+        // staffKey.upperLen / fit (opt-in, 6 카르덴 10-18): 윗팔을 어깨갑 밖으로 빼고(upperLen), 소매를 어깨→손목 거리에 맞춰 늘임(fit = 펴짐 정도)
+        //   → 팔꿈치가 윗팔 끝에 딱 붙고 손목이 뒷주먹 소매 테에 딱 닿음 (짧은 소매로는 팔이 봉 뒤에 숨거나 모자랐음)
+        let n1 = N1, n2 = N2;
+        if (SK.upperLen) { const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1; b.armL.ax = p_[0] * (SK.upperLen / l_ - 1); b.armL.ay = p_[1] * (SK.upperLen / l_ - 1); n1 = SK.upperLen }
+        if (SK.fit) { const D_ = Math.hypot(WN[0] - SN[0], WN[1] - SN[1]), st_ = clamp((D_ / SK.fit - n1) / N2, SK.fitMin ?? .85, SK.fitMax ?? 1.6); b.armL.asy = st_; n2 = N2 * st_ }
+        const eN = pick(SN, WN, solve2(SN, WN, n1, n2));
         b.armU.ar += wrapA(Math.atan2(eN[1] - SN[1], eN[0] - SN[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]) - wAng(b.armU.m)); rig.compute();
         const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m)); rig.compute();
         { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }   // 팔이 안 닿은 거리(검사용)
@@ -946,7 +951,7 @@
       const FB = A * (rig.def.runForeBend || 0); b.foreF.ar += FB;   // 달릴 때 창 팔 팔꿈치를 더 굽혀 창을 듦 (긴 창 캐릭터, opt-in — 없으면 0)
       const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar - FB, -WR, WR);   // wrist
       b.weapon.ar = 0;
-      if (rig.def.runSlide) { const rs = A * rig.def.runSlide; b.weapon.ax = Math.sin(b.weapon.rot) * rs; b.weapon.ay = -Math.cos(b.weapon.rot) * rs }   // 달릴 때만 봉을 손 안에서 위로 밀어 올림 — 서 있을 땐 원화 그대로 (짧은 다리 + 긴 봉, 6 카르덴 opt-in)
+      if (rig.def.runSlide || rig.def.carryDrop) { const rs = A * (rig.def.runSlide || 0) - (1 - A) * (rig.def.carryDrop || 0); b.weapon.ax = Math.sin(b.weapon.rot) * rs; b.weapon.ay = -Math.cos(b.weapon.rot) * rs }   // 달릴 때만 봉을 손 안에서 위로 밀어 올림 — 서 있을 땐 원화 그대로 (짧은 다리 + 긴 봉, 6 카르덴 opt-in) · carryDrop: 서 있을 때 봉을 그만큼 내림(집게가 땅 가까이, 6 카르덴 10-18)
 
       // ---------- feet + legs ----------
       this._feet(dt, sp, lvx, S, A);

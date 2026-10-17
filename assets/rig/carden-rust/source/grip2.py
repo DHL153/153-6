@@ -12,7 +12,7 @@ from cut_sheet import key
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, 'parts_work')
 SHAFT_Y = (395, 488); SHAFT_C = 441.5; SCALE = 50.0 / (SHAFT_Y[1] - SHAFT_Y[0])
 P = {'handL': dict(x=(0, 700), fist=(240, 525), cut=[(0, 166, 386, 496), (527, 700, 386, 496)], grip=(380, SHAFT_C), wrist=(165, 592), toElbow=(-0.80, 0.60)),
-     'handR': dict(x=(700, 1536), fist=(1020, 1292), cut=[(1294, 1536, 386, 496)], grip=(1160, SHAFT_C), elbow=(760, 545))}
+     'handR': dict(x=(700, 1536), fist=(1020, 1292), cut=[(1354, 1536, 386, 496)], grip=(1160, SHAFT_C), elbow=(760, 545))}   # 뒷주먹 cut 1294 였을 때 넷째 손가락 끝이 지워져 자루가 손가락 앞으로 보였음 → 1354 (10-18 00:21)
 rgba, alpha = key(np.asarray(Image.open(os.path.join(HERE, 'sheets', 'grip2_both.png')).convert('RGB')))
 R = {}
 for nm, p in P.items():

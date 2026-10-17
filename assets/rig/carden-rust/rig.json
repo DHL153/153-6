@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "3583c502",
+ "version": "c79a3823",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -136,12 +136,12 @@
    "src": "parts/armLF.png",
    "pivot": [
     46.2,
-    9.4
+    10.0
    ],
    "scale": 2.05,
    "grip": [
     36.7,
-    80.8
+    94.8
    ]
   },
   "handL": {
@@ -231,7 +231,7 @@
     42,
     31
    ],
-   "scale": 1
+   "scale": 1.12
   },
   "face_happy": {
    "src": "parts/face_happy.png",
@@ -568,7 +568,7 @@
      26,
      72
     ],
-    "w": 0.923
+    "w": 1.034
    }
   },
   "far": {
@@ -596,7 +596,7 @@
      26,
      72
     ],
-    "w": 0.923
+    "w": 1.034
    }
   }
  },
@@ -667,9 +667,10 @@
  ],
  "rearBlend": 0.1,
  "runSlide": 110,
- "upperRun": 100,
+ "upperRun": 78,
  "hemGain": 0.15,
  "seamInterior": true,
+ "carryDrop": 9,
  "runForeBend": -0.35,
  "wristRange": 0.55,
  "runTilt": 0,
@@ -1410,7 +1411,11 @@
   ],
   "leadOn": 0.12,
   "pauldronFollow": 0.25,
-  "pauldronRot": 0.12
+  "pauldronRot": 0.12,
+  "upperLen": 78,
+  "fit": 0.93,
+  "fitMin": 0.85,
+  "fitMax": 1.7
  },
  "drawStaff": [
   "cape",
@@ -1426,10 +1431,10 @@
   "head",
   "beard",
   "headFront",
+  "weapon",
   "armU",
   "armL",
   "pauldron",
-  "weapon",
   "fistF",
   "handL",
   "handR"

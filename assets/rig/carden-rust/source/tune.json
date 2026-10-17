@@ -1878,7 +1878,11 @@
   ],
   "leadOn": 0.12,
   "pauldronFollow": 0.25,
-  "pauldronRot": 0.12
+  "pauldronRot": 0.12,
+  "upperLen": 78,
+  "fit": 0.93,
+  "fitMin": 0.85,
+  "fitMax": 1.7
  },
  "closeArmhole": true,
  "pts": {
@@ -1893,7 +1897,7 @@
    ]
   ]
  },
- "upperRun": 100,
+ "upperRun": 78,
  "pantsSkirt": true,
  "legsPants": {
   "hipY": 70,
@@ -2054,5 +2058,14 @@
   ]
  },
  "hemGain": 0.15,
- "seamInterior": true
+ "seamInterior": true,
+ "foreStretch": {
+  "y0": 8,
+  "y1": 38,
+  "add": 14,
+  "fadeFrom": 1,
+  "fadeTop": 6
+ },
+ "carryDrop": 9,
+ "lowerLegScale": 1.12
 }
