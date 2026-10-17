@@ -2072,7 +2072,10 @@
  "lowerLegScale": 1.12,
  "weaponFloor": 2,
  "longSleeve": {
-  "cutY": 64
+  "cutY": 64,
+  "elbowCap": 22,
+  "capFrom": 16,
+  "capOver": 4
  },
  "handRtoElbow": [
   -0.968,

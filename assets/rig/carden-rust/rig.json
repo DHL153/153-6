@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "8c6f0c27",
+ "version": "c62d2baa",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -188,13 +188,13 @@
    "src": "parts/armLS.png",
    "pivot": [
     46.2,
-    10.6
+    12.6
    ],
    "scale": 2.05,
    "noAxis": true,
    "grip": [
     40.0,
-    61
+    67
    ]
   },
   "thighN": {

@@ -173,8 +173,24 @@ if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼�
         if LSL:   # 찌르기 팔뚝 = 달리기 팔뚝(armLF, 소매 늘인 것)의 소매만 (DHL 10-18 00:59 '손-팔꿈치-어깨가 다 나오게': 짧은 소매로는 팔이 접혀 숨었음)
             q_ = np.asarray(Image.open(os.path.join(PARTS, 'armLF.png')).convert('RGBA')).copy(); cy_ = LSL['cutY']; yy_ = np.arange(q_.shape[0])[:, None]
             q_[..., 3] = (q_[..., 3] * np.clip((cy_ - yy_) / 3, 0, 1)).astype(np.uint8); q_ = q_[:cy_ + 1]
-            Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armLS.png')); xs_ = np.nonzero(q_[cy_ - 4, :, 3] > 100)[0]
-            parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': parts['armLF']['pivot'], 'scale': parts['armL']['scale'], 'noAxis': True, 'grip': [round((xs_.min() + xs_.max()) / 2, 1), cy_ - 3]}
+            xs_ = np.nonzero(q_[cy_ - 4, :, 3] > 100)[0]; grip_ = [round((xs_.min() + xs_.max()) / 2, 1), cy_ - 3]; piv_ = list(parts['armLF']['pivot'])
+            EC = LSL.get('elbowCap', 0)
+            if EC:   # 팔꿈치 끝(DHL 10-18 01:33 '팔꿈치를 표기한 것처럼 길게'): 소매 위 끝(흐린 잘린 면)을 둥근 팔꿈치로 EC 줄 더 늘임 — 팔꿈치 관절보다 뒤로 튀어나온 둥근 끝 + 원화 선
+                top_ = LSL.get('capFrom', 14); band_ = q_[top_:top_ + 12].astype(np.float32); W_ = q_.shape[1]
+                xs2_ = np.nonzero(q_[top_ + 6, :, 3] > 100)[0]; x0_, x1_ = xs2_.min(), xs2_.max(); cx_, hw_ = (x0_ + x1_) / 2, (x1_ - x0_) / 2 + .5
+                cap_ = np.zeros((EC, W_, 4), np.float32); xx2_ = np.arange(W_)[None, :] + .5; ry_ = (EC - np.arange(EC)[:, None] - .5) / EC
+                ell_ = np.sqrt(np.clip(1 - ry_ ** 2, 0, 1)) * hw_; dist_ = ell_ - np.abs(xx2_ - cx_)   # 타원 안쪽까지 거리(가로)
+                bp_ = q_[top_ + 4:top_ + 30][q_[top_ + 4:top_ + 30, :, 3] > 200][:, :3].astype(np.float32); L_ = bp_.mean(1)
+                base_ = np.median(bp_[(L_ > np.percentile(L_, 35)) & (L_ < np.percentile(L_, 85))], 0); dk_ = base_ * .72   # 소매 천 색(밝은 무늬·선 뺀 가운데)
+                sh_ = np.clip(1 - dist_ / max(hw_ * .45, 1), 0, 1)[..., None]; cap_[..., :3] = base_ * (1 - sh_) + dk_ * sh_   # 가장자리로 갈수록 어둡게(둥근 면)
+                inside_ = dist_ > 0; cap_[..., 3] = np.clip(dist_ * 1.5, 0, 1) * 255
+                edge_ = (dist_ < 3.2) | (ry_ * EC > EC - 3.2)   # 둘레 3px = 선
+                edge_ = edge_ & inside_; cap_[edge_, :3] = np.array([30, 27, 14], np.float32)
+                body_ = q_[top_:].astype(np.float32); body_[..., 3] = np.maximum(body_[..., 3], 0)
+                q_ = np.concatenate([cap_, body_], 0).clip(0, 255).astype(np.uint8)
+                piv_ = [piv_[0], round(piv_[1] - top_ + EC - LSL.get('capOver', 6), 1)]; grip_ = [grip_[0], grip_[1] - top_ + EC]
+            Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armLS.png'))
+            parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': piv_, 'scale': parts['armL']['scale'], 'noAxis': True, 'grip': grip_}
         if T('handRflip', False) and T('handRtoElbow', None): parts['handR']['toElbow'] = T('handRtoElbow', None)   # 뒷주먹 소매 테가 향한 쪽(그림 기준, 뒤집은 뒤)
 
 # 다리: 허벅지·정강이 = 가까운/먼 다리 다른 그림(S.thighImg), 뼈 길이에 맞춰 늘이되 굵기는 K 그대로(w = K/길이 배율)
