@@ -156,6 +156,18 @@
     ]
    ]
   },
+  "coatFlap": {
+   "src": "parts/coatFlap.png",
+   "pivot": [
+    -45.5,
+    -32.0
+   ],
+   "scale": 0.996,
+   "mesh": {
+    "cols": 3,
+    "rows": 9
+   }
+  },
   "armLF": {
    "src": "parts/armLF.png",
    "pivot": [
@@ -522,6 +534,15 @@
    "part": "weapon"
   },
   {
+   "name": "coatFlap",
+   "parent": "skirt",
+   "pos": [
+    0,
+    0
+   ],
+   "part": "coatFlap"
+  },
+  {
    "name": "handL",
    "parent": "weapon",
    "pos": [
@@ -643,6 +664,7 @@
   "collarBack",
   "pauldronF",
   "skirt",
+  "coatFlap",
   "pouchB",
   "weapon",
   "foreF",
@@ -666,6 +688,7 @@
   "collarBack",
   "pauldronF",
   "skirt",
+  "coatFlap",
   "pouchB",
   "weapon",
   "foreF",
@@ -724,6 +747,18 @@
  "hemLimit": {
   "up": 0.28,
   "x": 0.32
+ },
+ "flap": {
+  "part": "coatFlap",
+  "off": [
+   221.0,
+   50.0
+  ],
+  "openX": 46,
+  "openY": 18,
+  "knee": 0.012,
+  "kneeUp": 0.008,
+  "lunge": 0.009
  },
  "dropLift": 16,
  "hemRest": true,

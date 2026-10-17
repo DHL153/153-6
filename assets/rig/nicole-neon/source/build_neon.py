@@ -30,7 +30,7 @@ ROOT = A([H[0] - 34, GROUND])
 
 P = {}   # 이름 -> dict(file, M, at(관절, 기준 좌표))
 P['torso'] = dict(file='cut/torso.png', M=A(S['torso']['M']), at=H)
-P['skirt'] = dict(file='cut/coat.png', M=A(S['coat']['M']))
+P['skirt'] = dict(file=T('coatFile', 'cut/coatBack.png'), M=A(S['coat']['M']))   # 2026-10-17: 코트 뒤판(트임 뒤 안감 포함). 앞자락은 coatFlap
 cw = Image.open(os.path.join(HERE, 'cut/coat.png')).size; P['skirt']['at'] = ap(P['skirt']['M'], (cw[0] / 2, 18))
 P['collarBack'] = None
 P['head'] = dict(file='cut/head.png', M=A(S['head']['M']), at=NECK)
@@ -103,6 +103,11 @@ for name, parent in bones:
     if name in P: b['part'] = name
     out_bones.append(b)
 parts['skirt']['mesh'] = {'cols': 8, 'rows': 9}; parts['cape']['mesh'] = {'cols': 6, 'rows': 7}
+# 코트 앞자락: 뒤판과 같은 뼈·배율, 그림 위치만 옮김(sheets/coatSplit 에서 맞춘 평행이동 motion/flapM.npy, 겹침 IoU 0.997)
+FLM = np.load(os.path.join(HERE, 'motion', 'flapM.npy')); FOFF = [float(FLM[0, 2]), float(FLM[1, 2])]
+shutil.copy(os.path.join(HERE, 'cut/coatFlap.png'), os.path.join(PARTS, 'coatFlap.png'))
+sp_ = parts['skirt']['pivot']; parts['coatFlap'] = {'src': 'parts/coatFlap.png', 'pivot': [round(sp_[0] - FOFF[0], 1), round(sp_[1] - FOFF[1], 1)], 'scale': parts['skirt']['scale'], 'mesh': {'cols': 3, 'rows': 9}}
+out_bones.append({'name': 'coatFlap', 'parent': 'skirt', 'pos': [0, 0], 'part': 'coatFlap'})
 
 # 달리기 주먹(armLF): 그림 축을 armL 그림 축과 같게 돌려 저장 → 바꿔 그려도 팔뚝 방향이 그대로
 def axis(fn):
@@ -165,8 +170,8 @@ LIFT = T('idleLift', 14)
 for b_ in out_bones:
     if b_['name'] == 'hip': b_['pos'][1] = round(b_['pos'][1] - LIFT, 1)
 legs['hip'][1] = legs['hip'][1] + LIFT
-draw = ['cape', 'legFar', 'legNear', 'armF', 'torso', 'collarBack', 'pauldronF', 'skirt', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar']
-drawWave = ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'torso', 'collarBack', 'pauldronF', 'skirt', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'wFore', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar', 'wHand']
+draw = ['cape', 'legFar', 'legNear', 'armF', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar']
+drawWave = ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'torso', 'collarBack', 'pauldronF', 'skirt', 'coatFlap', 'pouchB', 'weapon', 'foreF', 'fistF', 'handL', 'pouchA', 'wFore', 'armL', 'armU', 'pauldron', 'handR', 'head', 'collar', 'wHand']
 wt = ap(np.linalg.inv(np.vstack([MW, [0, 0, 1]]))[:2], (0, 0))
 # 집게 두 날 끝(창 그림 좌표): 위 끝 줄에서 왼쪽·오른쪽 덩어리 가운데
 wa2 = np.asarray(Image.open(os.path.join(HERE, 'parts_work/weapon.png')))[..., 3] > 128; ys2, xs2 = np.nonzero(wa2); ytop = ys2.min()
@@ -178,6 +183,7 @@ rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'hidden': ['handL', 'handR', 'wSleeve', 'wFore', 'wHand'], 'faces': {}, 'waveImg': waveImg,
        'hemRun': T('hemRun', {'lift': 22, 'knee': 1.2, 'heel': .9, 'reach': .4}),
        'hemLimit': T('hemLimit', {'up': .32, 'x': .45}),
+       'flap': {'part': 'coatFlap', 'off': FOFF, **T('flap', {'openX': 46, 'openY': 18, 'knee': .012, 'kneeUp': .008, 'lunge': .009})},
        'dropLift': T('dropLift', 16), 'hemRest': True, 'idleStance': T('idleStance', {'near': 40, 'far': -80}),
        'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': .35}],
        'runForeBend': T('runForeBend', -0.45), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),

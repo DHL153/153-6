@@ -767,6 +767,7 @@
       const skPivot = apply(sk.m, 0, 0), restKneeY = apply(b.hip.m, 0, L.hip[1])[1] + L.thigh * .98;
       const cols = this.hem.length - 1, drag = A * 26 + clamp(-accel * .008, -30, 30);
       const actW = act ? this._tr('w') : 0;
+      let openT = 0;
       for (let i = 0; i <= cols; i++) {
         const u = i / cols, front = smooth(.45, 1, u), back = smooth(.6, 0, u);
         // running: the whole hem rides up a little (air under the cloth) so the boots show at every step (L41)
@@ -786,6 +787,7 @@
           // lunge: a foot planted far in front drags the front hem up the shin (cloth drapes from the waist over the knee)
           const lunge = actW * clamp((rig.def.hemLungeRel ? P.ankle[0] - this.hipX[side] - 10 : P.ankle[0] - skPivot[0] + 30) * 1.1, 0, 115), fr2 = smooth(.4, .95, u);   // hemLungeRel: 발이 제자리보다 앞으로 나갈 때만 (스카이: 앞발이 원래 앞쪽에 서 있음)
           const LK = H_.lungeK ?? 1; ty -= fr2 * lunge * LK; tx += fr2 * lunge * .35 * (H_.lungeX ?? 1) * LK;
+          if (rig.def.flap && i === cols) openT = Math.max(openT, kneeFwd * (rig.def.flap.knee ?? .012) + kneeUp * (rig.def.flap.kneeUp ?? .008) + lunge * (rig.def.flap.lunge ?? .009));   // 앞트임 벌어짐 (18 네온)
         }
         this.hem[i][0].step(tx, dt); this.hem[i][1].step(ty, dt);
       }
@@ -797,6 +799,11 @@
       const hc = this.hemC;
       rig.meshFx.skirt = (u, v, x, y) => { const w = v * v * (1.4 - .4 * v), f = u * cols, i = Math.min(cols - 1, Math.floor(f)), t = f - i;
         const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w + y * (rig.def.skirtStretch || 0) * v] };   // skirtStretch: 치마 길이만 늘림 (허리띠를 벨트 뒤로 올린 만큼)
+      // 코트 앞자락(앞트임 오른쪽, opt-in rig.def.flap): 같은 코트 변형을 따르고, 앞 무릎·런지만큼 트임 쪽 가장자리가 앞으로 벌어짐 → 안감(뒤판)이 보임
+      if (rig.def.flap) { const FL = rig.def.flap, fim = rig.images[FL.part], sim = rig.images.skirt, skFx = rig.meshFx.skirt;
+        this.flapOpen = this.flapOpen || new Spring(90, 12); const op = clamp(this.flapOpen.step(clamp(openT, 0, 1), dt), 0, 1.1); this.flapAmt = op;
+        if (fim && sim) rig.meshFx[FL.part] = (u, v, x, y) => { const U = (u * fim.width + FL.off[0]) / sim.width, V = (v * fim.height + FL.off[1]) / sim.height, o = skFx(U, V, x, y), e = Math.pow(V, 1.25) * op;
+          return [o[0] + e * FL.openX * (1 - .45 * u), o[1] - e * FL.openY * (1 - .3 * u)] } }
 
       // ---------- cape: trails behind, flutters, lags the bounce ----------
       const capeA = this.cape.step(clamp(lvx * .0011 + accel * .00012, -.25, .9), dt);

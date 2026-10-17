@@ -33,7 +33,7 @@ function elbows(){const P=n=>rig.point(n),r={};const rel=(u,v)=>wrap(ang(v)-ang(
  if(rig.by.foreF){const pf=rig.def.parts[rig.swap.foreF||'foreF'],s=P('armF'),e=P('foreF'),w=pf.grip?rig.partPoint('foreF',...pf.grip):rig.by.fistF?P('fistF'):P('handL');r.F=rel(sub(e,s),sub(w,e))}
  if(rig.by.armL){const pn=rig.def.parts[rig.swap.armL||'armL'],s=P('armU'),e=P('armL'),w=rig.by.fistN?P('fistN'):rig.alpha.handR>.5?P('handR'):(pn.grip||pn.wrist)?rig.partPoint('armL',...(pn.grip||pn.wrist)):null;if(w)r.N=rel(sub(e,s),sub(w,e))}return r}
 // 5) 천 물리: skirt/cape 메시 각 칸의 넓이비(변형 후/원래)·접힘(음수)·변 늘어남 비율. 과한 찌그러짐 = 넓이비 <0.55 또는 >1.6, 변 비율 >1.5
-function cloth(){const out={};for(const pn of ['skirt','cape']){const part=rig.def.parts[pn],fx=rig.meshFx[pn];if(!part||!part.mesh||!fx)continue;
+function cloth(){const out={};for(const pn of ['skirt','cape',...(rig.def.flap?[rig.def.flap.part]:[])]){const part=rig.def.parts[pn],fx=rig.meshFx[pn];if(!part||!part.mesh||!fx)continue;
  const {cols,rows}=part.mesh,im=rig.images[pn],W=im.width,H=im.height,[px,py]=part.pivot,k=part.scale||1,n=cols+1;const P=[];
  for(let j=0;j<=rows;j++)for(let i=0;i<=cols;i++){const X=i/cols*W,Y=j/rows*H;const o=fx(i/cols,j/rows,(X-px)*k,(Y-py)*k)||[0,0];P.push([X+o[0]/k,Y+o[1]/k])}
  const A0=(W/cols)*(H/rows);let amin=1e9,amax=0,emax=0,fold=0;
