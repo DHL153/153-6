@@ -160,13 +160,13 @@ rig['blinkFaces'] = {'half': 'face_blink_half', 'closed': 'face_blink_closed'}
 rig['swordGrip'] = {'maxWrist': 0.35, 'tipDepth': 6,
     'near': {'upper': 'armF', 'carry': 'foreF', 'pieces': ['gN49', 'gN90'], 'sPref': 25, 'sSig': 20, 'sMin': 0, 'sMax': 55, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05, 'bendMin': -2.65},
     'far': {'upper': 'armU', 'pieces': ['gF34', 'gF46'], 'sPref': -40, 'sSig': 25, 'sMin': -95, 'sMax': 0, 'shMin': -3.15, 'shMax': 3.15, 'pieceCost': 0.05}}
-rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armU', 'armF', 'pauldronF', 'weapon', 'armL', 'foreF']   # 타격: 칼 위에 두 손
+rig['drawSword'] = ['cape', 'pauldron', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'farFistDn', 'foreF']   # DHL 14:19: 휘두름·타격 때 먼 팔은 안 그리고(꺾여 보임) 칼을 쥔 먼 주먹만 칼 위에
 rig['headFront'] = {'clip': [[60, 267], [55, 182], [72, 152], [108, 118], [148, 62], [172, 0], [343, 0], [343, 267]]}   # 머리 그림 px: 얼굴·귀·앞머리(오른쪽) — 칼 손잡이는 이 뒤로, 칼날은 뒷머리(왼쪽 뾰족 머리) 위로
 rig['ui'] = {'attack': 'smash', 'touch': 'hop'}
 rig['drawSwordUp'] = ['cape', 'pauldron', 'armU', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armL', 'headFront_face', 'armF', 'pauldronF', 'weapon', 'farFist', 'foreF']   # DHL 14:07: 먼 손은 손잡이를 쥐고 팔뚝은 얼굴 뒤·머리카락 앞으로 내려옴, 먼 주먹은 칼 위에 다시 그림(farFist)
 rig['drawSwordUp2'] = ['cape', 'pauldron', 'armU', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'armL', 'foreF']   # DHL 14:13: 머리 위 정점에서는 먼 팔뚝이 얼굴 앞으로 보임
 rig['headFront_face'] = {'clip': [[95, 267], [88, 170], [105, 135], [150, 118], [240, 108], [300, 112], [318, 170], [300, 267]]}   # 머리 그림 px: 얼굴(이마~턱)만
-rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}}   # gFup 그림의 주먹 부분(머리 위 준비 때만 씀)
+rig['overlays'] = {'farFist': {'bone': 'armL', 'rect': [140, 0, 340, 290]}, 'farFistDn': {'bone': 'armL', 'rect': [195, 298, 225, 205]}}   # gFup·gFdn 그림의 주먹 부분   # gFup 그림의 주먹 부분(머리 위 준비 때만 씀)
 rig['drawSwordRel'] = ['cape', 'pauldron', 'armU', 'armL', 'legFar', 'legNear', 'torso', 'skirt', 'pouch', 'scarf', 'head', 'armF', 'pauldronF', 'weapon', 'foreF']   # 먼 손 놓은 뒤: 먼 팔 몸 뒤, 칼과 가까운 손 맨 앞
 # 내려찍기 v5 1차 (12:58): 키 기반(rigid) — 쥔 팔뚝 그림은 칼에 고정, 그림은 구간마다 고정(튀지 않음). 준비 = 동작 시트 m12(주먹 머리 위), 타격 = m13
 rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45, 1.1], 'dur': 0.9, 'hitAt': 0.46, 'cancelAt': 0.62,
@@ -182,7 +182,7 @@ rig['actions'] = {'smash': {'kind': 'sword', 'rigid': True, 'ankleRange': [-0.45
     'fPiece': [[0, 'gFup'], [0.41, 'gFdn']],   # gFup은 손잡이 토막을 양쪽 다 지운 그림 → 칼에서 먼 흔들던 주먹 자리에서도 토막이 안 보임
     'nUpper': [[0, 'armF'], [0.14, 'armFup'], [0.41, 'armF']],
     'fUpper': [[0, 'armU'], [0.14, 'armUup'], [0.41, 'armU']],
-    'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.58, 'drawSwordRel']],
+    'order': [[0, 'drawSwordUp'], [0.2, 'drawSwordUp2'], [0.41, 'drawSword'], [0.52, 'drawSwordRel']],
     'tPiece': [[0, 'torso'], [0.13, 'torsoTurn'], [0.41, 'torso']],
     'hipX': [[0, 0, 'io'], [0.32, -14, 's'], [0.46, 40], [0.6, 40, 'io'], [0.85, 0]],
     'hipY': [[0, 0, 'io'], [0.3, 24, 's'], [0.38, 28, 's'], [0.46, 55], [0.6, 51, 'io'], [0.85, 0]],

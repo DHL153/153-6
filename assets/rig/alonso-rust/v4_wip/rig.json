@@ -876,11 +876,10 @@
   "pouch",
   "scarf",
   "head",
-  "armU",
   "armF",
   "pauldronF",
   "weapon",
-  "armL",
+  "farFistDn",
   "foreF"
  ],
  "headFront": {
@@ -999,6 +998,15 @@
     0,
     340,
     290
+   ]
+  },
+  "farFistDn": {
+   "bone": "armL",
+   "rect": [
+    195,
+    298,
+    225,
+    205
    ]
   }
  },
@@ -1281,7 +1289,7 @@
      "drawSword"
     ],
     [
-     0.58,
+     0.52,
      "drawSwordRel"
     ]
    ],
