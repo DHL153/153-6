@@ -324,7 +324,7 @@
       this.expr = null; this.faceW = {}; this.gripW = 0;
       const L = rig.def.legs; this.L = L; const bp = rig.def.parts[L.boot.part]; this.kb = bp.scale || 1;
       this.hipX = {}; this.ft = {};   // feet: actual pose (root space) + ground lock / settle-step state
-      for (const s of ["near", "far"]) { this.hipX[s] = rig.by.hip.pos[0] + L.hip[0] + L[s].x; this.ft[s] = { x: this.hipX[s], lift: 0, ang: 0, planted: true, lockW: 0, off: 0, step: null } }
+      for (const s of ["near", "far"]) { this.hipX[s] = rig.by.hip.pos[0] + L.hip[0] + L[s].x; this.ft[s] = { x: this.hipX[s] + ((rig.def.idleStance || {})[s] || 0), lift: 0, ang: 0, planted: true, lockW: 0, off: 0, step: null } }
       for (const s of ["near", "far"]) this.ft[s].lockW = this.odo + this.ft[s].x;
     }
     /** start an action ("thrust"); returns false while another one is still committed */
@@ -378,7 +378,7 @@
     _feet(dt, sp, lvx, S, A) {
       const moving = sp > 14 && A > .04 && !(this.act && this.act.def.plant), ph = this.cyc, act = this.act;
       for (const side of ["near", "far"]) {
-        const f = this.ft[side], rest = this.hipX[side];
+        const f = this.ft[side], rest = this.hipX[side] + (1 - A) * ((this.rig.def.idleStance || {})[side] || 0);   // idleStance: 서 있을 때만 발을 더 벌림 (opt-in, 18 네온)
         if (act && !act.def.plant) {   // action owns the feet: lead foot steps out and back, rear foot stays where it was planted
           const D = act.def, t = act.t, E = act.entry[side], land = 1 - smooth(0, .1, t);
           if (side === "far") { f.x = lerp(E.x, rest, smooth(.17, .29, t)) + track(D.farDx, t); f.lift = Math.max(track(D.farLift, t), E.lift * land); f.ang = track(D.farAng, t) + E.ang * land }
@@ -458,6 +458,8 @@
         const W = [Wr[0] - fd[0] * 14, Wr[1] - fd[1] * 14], wo = [(hl.wrist[0] - hl.pivot[0]) * sL, (hl.wrist[1] - hl.pivot[1]) * sL];
         G = [W[0] - (c * wo[0] - s2 * wo[1]), W[1] - (s2 * wo[0] + c * wo[1])];
       } else G = apply(b.weapon.m, 0, 0);
+      const sl = this._tr('slide') || 0;   // 자루가 앞손 안에서 미끄러짐(+ = 창끝 쪽으로): 긴 창 준비 자세에서 뒤끝이 땅에 안 닿게 (rig.def.actions 의 slide 트랙, opt-in)
+      if (sl) { G = [G[0] + u[0] * sl, G[1] + u[1] * sl]; b.handL.pos = [0, sl] } else b.handL.pos = [0, 0];
       { const F = b.fistF.m, det = F[0] * F[3] - F[1] * F[2], ix = G[0] - F[4], iy = G[1] - F[5];
         b.weapon.ax = (F[3] * ix - F[2] * iy) / det - b.weapon.pos[0]; b.weapon.ay = (-F[1] * ix + F[0] * iy) / det - b.weapon.pos[1];
         b.weapon.ar = wrapA(a - wAng(F) - b.weapon.rot) }
@@ -468,7 +470,7 @@
       if (wn > 0) {
         const hr = P.handR, sR = hr.scale, sdR = Math.atan2(hr.shaftDir[1], hr.shaftDir[0]), rhoR = a - Math.PI / 2 - sdR, cR = Math.cos(rhoR), sR2 = Math.sin(rhoR);
         const eo = [(hr.elbow[0] - hr.pivot[0]) * sR, (hr.elbow[1] - hr.pivot[1]) * sR], off = [cR * eo[0] - sR2 * eo[1], sR2 * eo[0] + cR * eo[1]];
-        const lu = Math.hypot(...b.armL.pos), kPref = -(this._tr('gap') || 170);
+        const lu = Math.hypot(...b.armL.pos), kPref = -(this._tr('gap') || 170) - sl;
         const V = [G[0] + off[0] - SN[0], G[1] + off[1] - SN[1]], vu = V[0] * u[0] + V[1] * u[1], disc = vu * vu - (V[0] * V[0] + V[1] * V[1]) + lu * lu;
         let k = disc >= 0 ? null : -vu;
         if (disc >= 0) { let bc = 1e9; for (const rr of [-vu - Math.sqrt(disc), -vu + Math.sqrt(disc)]) { const c2 = Math.abs(rr - kPref) + (rr > -60 ? 1e4 : 0); if (c2 < bc) { bc = c2; k = rr } } }
@@ -722,7 +724,8 @@
       b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) * CS - leanA * .3;
       const wl = this.weapon.step(this.hipVy * .00016 - accel * .00006, dt);
       const torsoTilt = b.torso.ar, want_ = I * br * .01 + A * (-.06 + (rig.def.runTilt || 0)) + wl;    // spear world tilt (rad, 0 = as in the reference)
-      const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar, -WR, WR);   // wrist
+      const FB = A * (rig.def.runForeBend || 0); b.foreF.ar += FB;   // 달릴 때 창 팔 팔꿈치를 더 굽혀 창을 듦 (긴 창 캐릭터, opt-in — 없으면 0)
+      const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar - FB, -WR, WR);   // wrist
       b.weapon.ar = 0;
 
       // ---------- feet + legs ----------
@@ -731,7 +734,7 @@
       // a standing leg never locks fully straight (that is where IK snaps): if a planted foot would need more than ~16° short of
       // full extension, the pelvis sinks instead (rises back slowly) — the body lowers, the knee stays soft
       { const Lm = L.thigh + L.shin, dmax = Lm * .99; let need = 0;
-        for (const side of ["near", "far"]) { const f = this.ft[side], hard = 1 - smooth(0, 3, f.lift); if (hard <= 0) continue;   // same weight the soft IK hands over with
+        for (const side of ["near", "far"]) { const f = this.ft[side], hard = 1 - smooth(0, rig.def.dropLift || 3, f.lift); if (hard <= 0) continue;   // dropLift: 발이 닿기 전부터 골반을 미리 내림 (넓게 서는 캐릭터, opt-in)   // same weight the soft IK hands over with
           const H = apply(b.hip.m, L.hip[0] + L[side].x, L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           const nd_ = Math.hypot(dx, dy) > dmax ? hard * (dy - Math.sqrt(Math.max(0, dmax * dmax - dx * dx))) : 0;
           need = Math.max(need, nd_) }
@@ -743,6 +746,7 @@
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
+      if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       if (!act && rig.def.twoHand && !rig.def.spearGrip) { rig.swap.armL = null; this._nearToShaft(1, rig.def.twoHand.gap || 300); b.pauldron.ar = b.armU.ar * .3; rig.compute() }   // 니콜 스카이: 달릴 때도 창을 두 손으로
       const lp = {};
       for (const side of ["near", "far"]) {
@@ -769,8 +773,13 @@
         const H_ = rig.def.hemRun || { lift: 0, knee: .9, heel: .55, reach: 0 };
         let tx = -drag * (.6 + .4 * back), ty = A * bob * 5 - A * H_.lift * (.7 + .3 * Math.abs(bob));
         for (const side of ["near", "far"]) {
-          const P = lp[side], kneeFwd = Math.max(0, P.knee[0] - skPivot[0] - 20), kneeUp = Math.max(0, restKneeY - P.knee[1]);
-          const reach = Math.max(0, P.ankle[0] - skPivot[0] - 60), heelBack = Math.max(0, skPivot[0] - 40 - P.ankle[0]), heelUp = P.lift;
+          const P = lp[side]; let kneeFwd = Math.max(0, P.knee[0] - skPivot[0] - 20), kneeUp = Math.max(0, restKneeY - P.knee[1]);
+          let reach = Math.max(0, P.ankle[0] - skPivot[0] - 60), heelBack = Math.max(0, skPivot[0] - 40 - P.ankle[0]); const heelUp = P.lift;
+          if (rig.def.hemRest) {   // 서 있는 자세(첫 프레임) 기준으로만 밂: 코트 밑으로 다리가 보이게 넓게 서는 캐릭터 (opt-in, 18 네온)
+            const R0 = this.hemRef || (this.hemRef = {}), r0 = R0[side] || (R0[side] = { kx: P.knee[0] - skPivot[0], ky: P.knee[1] - apply(b.hip.m, 0, 0)[1], ax: P.ankle[0] - skPivot[0] });
+            const hy = apply(b.hip.m, 0, 0)[1];
+            kneeFwd = Math.max(0, P.knee[0] - skPivot[0] - r0.kx); kneeUp = Math.max(0, r0.ky + hy - P.knee[1]);
+            reach = Math.max(0, P.ankle[0] - skPivot[0] - r0.ax - 20); heelBack = Math.max(0, r0.ax - 20 - (P.ankle[0] - skPivot[0])) }
           const ak = 1 - actW * (1 - (H_.actKnee ?? 1));   // 공격·준비 자세 중 무릎이 치마 앞자락을 미는 양 (캐릭터별)
           tx += front * (kneeFwd * .8 * (H_.kneeX ?? 1) * ak + reach * .3) - back * heelBack * .35;
           ty -= front * kneeUp * H_.knee * ak + back * heelUp * H_.heel + front * reach * H_.reach * A;

@@ -1,0 +1,37 @@
+<!doctype html><meta charset=utf-8><script src="rig.js"></script><script>
+// 관절 검사 (팀원 audit_run.py 대신, 같은 기준 · 2026-10-17): 손목 ±35° / 가까운 팔꿈치 −150..+6 / 무릎 0..150(뒤집힘 금지) / 엉덩이 −125..35
+// 무기 끝 땅 아래 ≤ 12 / 동작 밖 한 프레임 튐 > 14° 금지 / 발 미끄러짐 ≤ 1.5 (120Hz)
+(async()=>{const rig=await CharacterRig.load("rig.json");
+const D=180/Math.PI,wrap=a=>Math.atan2(Math.sin(a),Math.cos(a)),ang=v=>Math.atan2(v[1],v[0]),sub=(a,b)=>[a[0]-b[0],a[1]-b[1]],wA=m=>Math.atan2(m[1],m[0]);
+const SC={idle:t=>({vx:0}),run:t=>({vx:t<.3?0:620}),runStop:t=>({vx:t>.2&&t<1.6?620:0}),walk:t=>({vx:t<.3?0:240}),turn:t=>({vx:t<1?620:t<2?-620:0}),
+ thrust:t=>({vx:0,atk:t>.3&&t<.32}),runThrust:t=>({vx:t<1.2?620:0,atk:t>1.2&&t<1.22}),chain:t=>({vx:0,atk:(t>.3&&t<.32)||(t>.86&&t<.88)}),
+ wave:t=>({vx:0,wave:t>.3&&t<.32}),runWave:t=>({vx:t<1?620:0,wave:t>1.0&&t<1.02})};
+window.audit=()=>{const R={};
+ for(const [name,f] of Object.entries(SC)){const an=new RunAnimator(rig);let v=0;const dt=1/120;
+  const r=R[name]={wrist:[1e9,-1e9],elbowN:[1e9,-1e9],knee:[1e9,-1e9],hip:[1e9,-1e9],tipBelow:-1e9,jump:0,jumpWhere:'',slide:0,viol:0,notes:[]};
+  let prev=null;const lock={};
+  for(let i=0;i<120*3.2;i++){const t=i*dt,s=f(t);const tgt=an.busy?0:s.vx;v+=(tgt-v)*(1-Math.exp(-(an.busy?16:tgt?4.2:6.5)*dt));
+   if(s.atk)an.attack(rig.def.ui&&rig.def.ui.attack||'thrust');if(s.wave)an.wave();an.update(dt,{vx:v});rig.compute();const b=rig.by;
+   const busy=an.busy;
+   // 손목
+   let wr=null;if(an.act&&an.act.def.kind!=='wave'&&an.wrist!=null)wr=an.gripOn?(an.handErr||0):an.wrist;else if((rig.alpha.fistF??1)>.5)wr=(b.fistF.rot+b.fistF.ar);
+   if(wr!=null){wr=wrap(wr)*D;r.wrist[0]=Math.min(r.wrist[0],wr);r.wrist[1]=Math.max(r.wrist[1],wr)}
+   // 가까운 팔꿈치
+   if((rig.alpha.armL??1)>.5){const pn=rig.def.parts[rig.swap.armL||'armL'],w=pn.grip||pn.wrist;if(w){const S=rig.point('armU'),E=rig.point('armL'),W=rig.partPoint('armL',...w);const e=wrap(ang(sub(W,E))-ang(sub(E,S)))*D;r.elbowN[0]=Math.min(r.elbowN[0],e);r.elbowN[1]=Math.max(r.elbowN[1],e)}}
+   // 다리
+   const tA=wA(b.torso.m);let kn={},hp={};
+   for(const sd of ['near','far']){const P=rig.legPose[sd];const k=wrap(ang(sub(P.ankle,P.knee))-ang(sub(P.knee,P.hip)))*D;kn[sd]=k;r.knee[0]=Math.min(r.knee[0],k);r.knee[1]=Math.max(r.knee[1],k);
+    const h=wrap(ang(sub(P.knee,P.hip))-(tA+Math.PI/2))*D;hp[sd]=h;r.hip[0]=Math.min(r.hip[0],h);r.hip[1]=Math.max(r.hip[1],h);
+    const ft=an.ft[sd];if(ft.planted&&!busy&&Math.abs(v)>300&&t>0.9&&!ft.step&&lock[sd]!=null){{const sl=Math.abs(an.odo+ft.x-lock[sd]);if(sl>r.slide){r.slide=sl;r.slideAt=sd+'@'+t.toFixed(3)+' lift'+ft.lift.toFixed(2)}}}lock[sd]=ft.planted?(lock[sd]!=null&&prev&&prev.pl[sd]?lock[sd]:an.odo+ft.x):null}
+   // 무기 끝
+   if((rig.alpha.weapon??1)>.5&&rig.def.parts.weapon.tips){const w=rig.images.weapon,p=rig.def.parts.weapon;for(const q of [[w.width/2,w.height],...p.tips]){const y=rig.partPoint('weapon',...q)[1];if(y>r.tipBelow){r.tipBelow=y;r.tipAt=t.toFixed(3)}}}
+   // 한 프레임 튐 (동작 밖)
+   const cur={a:{},k:kn,pl:{near:an.ft.near.planted,far:an.ft.far.planted}};for(const bn of rig.bones){if(!bn.part||(rig.alpha[bn.name]??1)<.5)continue;cur.a[bn.name]=wA(bn.m)}
+   if(prev&&!busy&&!prev.busy){for(const k in cur.a)if(prev.a[k]!=null){const d=Math.abs(wrap(cur.a[k]-prev.a[k]))*D;if(d>r.jump){r.jump=d;r.jumpWhere=k+'@'+t.toFixed(3)}}
+    for(const sd in kn){const d=Math.abs(kn[sd]-prev.k[sd]);if(d>r.jump){r.jump=d;r.jumpWhere='knee_'+sd+'@'+t.toFixed(3)}}}
+   cur.busy=busy;prev=cur}
+  const bad=[];if(r.wrist[0]<-35||r.wrist[1]>35)bad.push('손목');if(r.elbowN[0]<-150||r.elbowN[1]>6)bad.push('팔꿈치');if(r.knee[0]<-5||r.knee[1]>150)bad.push('무릎');
+  if(r.hip[0]<-125||r.hip[1]>35)bad.push('엉덩이');if(r.tipBelow>12)bad.push('무기땅');if(r.jump>14)bad.push('튐');if(r.slide>1.5)bad.push('미끄러짐');r.bad=bad;
+  for(const k of ['wrist','elbowN','knee','hip'])r[k]=r[k].map(x=>+x.toFixed(1));r.tipBelow=+r.tipBelow.toFixed(1);r.jump=+r.jump.toFixed(1);r.slide=+r.slide.toFixed(2);r.jumpWhere+=' '+(r.slideAt||'')+' tip@'+(r.tipAt||'')}
+ return R};window.rig=rig;window.ready=1})();
+</script>

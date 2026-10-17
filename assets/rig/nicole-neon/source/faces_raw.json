@@ -1,0 +1,106 @@
+{
+ "parts": {
+  "face_effort": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_shout": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_happy": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_sad": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_angry": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_grimace": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_focus": {
+   "x0": 101,
+   "y0": 93
+  },
+  "face_relaxed": {
+   "x0": 101,
+   "y0": 93
+  },
+  "blink_half": {
+   "x0": 101,
+   "y0": 93
+  },
+  "blink_closed": {
+   "x0": 101,
+   "y0": 93
+  }
+ },
+ "faces": {
+  "effort": "face_effort",
+  "shout": "face_shout",
+  "happy": "face_happy",
+  "sad": "face_sad",
+  "angry": "face_angry",
+  "grimace": "face_grimace",
+  "focus": "face_focus",
+  "relaxed": "face_relaxed"
+ },
+ "report": {
+  "face_effort": {
+   "iou": 0.89,
+   "ecc": 0.928,
+   "hairErr": 29.5
+  },
+  "face_shout": {
+   "iou": 0.886,
+   "ecc": 0.899,
+   "hairErr": 32.0
+  },
+  "face_happy": {
+   "iou": 0.887,
+   "ecc": 0.9,
+   "hairErr": 35.8
+  },
+  "face_sad": {
+   "iou": 0.889,
+   "ecc": 0.936,
+   "hairErr": 32.3
+  },
+  "face_angry": {
+   "iou": 0.889,
+   "ecc": 0.909,
+   "hairErr": 34.9
+  },
+  "face_grimace": {
+   "iou": 0.887,
+   "ecc": 0.932,
+   "hairErr": 31.2
+  },
+  "face_focus": {
+   "iou": 0.888,
+   "ecc": 0.927,
+   "hairErr": 30.5
+  },
+  "face_relaxed": {
+   "iou": 0.888,
+   "ecc": 0.925,
+   "hairErr": 30.0
+  },
+  "blink_half": {
+   "iou": 0.889,
+   "ecc": 0.941,
+   "hairErr": 33.8
+  },
+  "blink_closed": {
+   "iou": 0.89,
+   "ecc": 0.946,
+   "hairErr": 31.3
+  }
+ }
+}

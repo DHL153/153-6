@@ -1,0 +1,11 @@
+<!doctype html><meta charset=utf-8><script src="rig.js"></script><script>
+// 장면 재생 → 프레임 PNG(dataURL). spec = {scene, times[], W, H, ox, oy, scale, bg, debug, dt}
+(async()=>{const rig=await CharacterRig.load("rig.json");window.rig=rig;
+const SC={idle:t=>({vx:0}),run:t=>({vx:t<.3?0:620}),runStop:t=>({vx:t>.2&&t<1.6?620:0}),thrust:t=>({vx:0,atk:t>.3&&t<.32}),runThrust:t=>({vx:t<1.2?620:0,atk:t>1.2&&t<1.22}),
+ wave:t=>({vx:0,wave:t>.3&&t<.32}),walk:t=>({vx:t<.3?0:260}),
+ demo:t=>({vx:t>1&&t<3.2?620:0,atk:(t>4&&t<4.02)||(t>5.2&&t<5.22),wave:t>6.4&&t<6.42})};
+window.renderSeq=(spec)=>{const c=document.createElement('canvas');c.width=spec.W;c.height=spec.H;const g=c.getContext('2d');const an=new RunAnimator(rig);let v=0;const dt=spec.dt||1/120,f=SC[spec.scene],out=[];let ti=0;const times=spec.times.slice().sort((a,b)=>a-b);
+ for(let i=0;ti<times.length&&i<120*20;i++){const t=i*dt,s=f(t);const tgt=an.busy?0:s.vx;v+=(tgt-v)*(1-Math.exp(-(an.busy?16:tgt?4.2:6.5)*dt));if(s.atk)an.attack(rig.def.ui&&rig.def.ui.attack||'thrust');if(s.wave)an.wave();an.update(dt,{vx:v});
+  while(ti<times.length&&t>=times[ti]-1e-9){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);if(spec.bg){g.fillStyle=spec.bg;g.fillRect(0,0,c.width,c.height)}rig.debug=!!spec.debug;rig.draw(g,spec.ox,spec.oy,spec.scale||1,1);out.push(c.toDataURL('image/png'));ti++}}
+ return out};window.ready=1})();
+</script>
