@@ -117,15 +117,17 @@ legs = {'hip': [0, 2 * 5.0], 'thigh': TH, 'shin': SHN,
         'thighImg': {'part': 'thighN', 'a': [60, 25], 'b': [60, 185], 'w': 1.85},
         'shinImg': {'part': 'shinN', 'a': [50, 22], 'b': [55, 195], 'w': 1.75},
         'thighFirst': True, 'kneeImg': {'part': 'knee', 'mix': 0.5, 'dx': 6, 'dy': 0, 'rot': 0}, 'boot': {'part': 'boot', 'sole': [[-40, 82], [-35, 86], [120, 86], [130, 76]], 'ankleRange': [-0.45, 0.75]},
-        'near': {'x': -2 * 68.0, 'hipX': -2 * 27.0, 'runX': -10, 'shade': 0, 'thighImg': {'part': 'thighN', 'a': [60, 25], 'b': [60, 185], 'w': 1.85}, 'shinImg': {'part': 'shinN', 'a': [50, 22], 'b': [55, 195], 'w': 1.75}},
-        'far': {'x': 2 * 60.0, 'hipX': 2 * 23.0, 'runX': 10, 'shade': 0.25, 'thighImg': {'part': 'thighF', 'a': [60, 25], 'b': [60, 185], 'w': 1.85}, 'shinImg': {'part': 'shinF', 'a': [50, 22], 'b': [55, 195], 'w': 1.75}}}
+        'near': {'x': -110.0, 'hipX': -34.0, 'runX': -10, 'shade': 0, 'thighImg': {'part': 'thighN', 'a': [60, 25], 'b': [60, 185], 'w': 1.85}, 'shinImg': {'part': 'shinN', 'a': [50, 22], 'b': [55, 195], 'w': 1.75}},
+        'far': {'x': 100.0, 'hipX': 30.0, 'runX': 10, 'shade': 0.25, 'thighImg': {'part': 'thighF', 'a': [60, 25], 'b': [60, 185], 'w': 1.85}, 'shinImg': {'part': 'shinF', 'a': [50, 22], 'b': [55, 195], 'w': 1.75}}}
+# 걸음 (23:19 DHL '삐그덕'): 다리 뿌리를 발 자리의 1/4 안쪽(hipX −34/+30), 서 있는 발은 다리 길이 안(x −110/+100, 원화 −136/+120은 다리 180으로 안 닿아 발이 뜸)으로 — 원화 간격(±50)이면 먼 발이 엉덩이 뒤에 착지·땅에 1프레임만 닿아 절뚝임.
+#  다리(180)가 짧아 보폭·무릎 들기·뒤꿈치 차기를 줄임(무릎 튐 27°→15°/프레임, 굽힘 ≤138°)
 # 그리는 순서 (뒤 → 앞): 망토 꼬리 · 메는 팔(몸 뒤) · 뒷자락 · 다리 · 몸통 · 앞자락 · 칼(머리 뒤로 지나감) · 땋은 머리 · 머리 · 가까운 팔 · 어깨갑 · 메는 주먹(얼굴 앞)
 draw = ['tailB', 'tailA', 'foreF', 'skirtB', 'legFar', 'legNear', 'torso', 'skirt', 'weapon', 'braid', 'head', 'armU', 'armL', 'fistN', 'pauldron', 'fistF']
 rig = {'name': 'alonso-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0]), float(O[1])], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FN},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'metrics': {'bodyHeight': 2 * (477 - 88), 'note': 'rig units; 머리카락 중간(y88)~발바닥(477) ×2, 무기 제외'},
-       'armPhase': 0.5, 'gait': {'heelKick': 0.85, 'kneeLift': 0.9, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0}, 'carrySwing': 0.25, 'wristRange': 0.2,
+       'armPhase': 0.5, 'gait': {'heelKick': 0.3, 'kneeLift': 0.5, 'strideBase': 45, 'strideK': 0.12, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0}, 'carrySwing': 0.25, 'wristRange': 0.2,
        'ui': {'attack': 'smash', 'touch': 'hop'},
        'gameRef': {'refOrigin': [float(O[0] / 2), float(O[1] / 2)], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0021.png(512) = 원화'},
        'note': '21 스카이아크 알론소 (2026-10-17 밤, v1 대기 조립). 칼 = 원화 자리(칼날 머리 뒤·손잡이 얼굴 앞), 메는 팔은 몸 뒤·주먹만 얼굴 앞.'}

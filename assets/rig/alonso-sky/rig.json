@@ -1,6 +1,6 @@
 {
  "name": "alonso-sky",
- "version": "3935de78",
+ "version": "5d8173d5",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   720.0,
@@ -544,8 +544,8 @@
    ]
   },
   "near": {
-   "x": -136.0,
-   "hipX": -54.0,
+   "x": -110.0,
+   "hipX": -34.0,
    "runX": -10,
    "shade": 0,
    "thighImg": {
@@ -574,8 +574,8 @@
    }
   },
   "far": {
-   "x": 120.0,
-   "hipX": 46.0,
+   "x": 100.0,
+   "hipX": 30.0,
    "runX": 10,
    "shade": 0.25,
    "thighImg": {
@@ -641,8 +641,10 @@
  },
  "armPhase": 0.5,
  "gait": {
-  "heelKick": 0.85,
-  "kneeLift": 0.9,
+  "heelKick": 0.3,
+  "kneeLift": 0.5,
+  "strideBase": 45,
+  "strideK": 0.12,
   "swingReach": -0.05,
   "swingAng": 0.15,
   "landAng": 0
