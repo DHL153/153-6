@@ -381,10 +381,12 @@
     }
     _foot(phase, S) { // phase 0..1 of this foot's stride; returns [x (rel. hip), lift, angle, inStance]
       const st = this.stance, xc = .5 * S, xt = xc - S;   // foot lands half a stride ahead of the hip (no over-striding: knee stays ~15–20° bent at contact)
-      if (phase < st) { const u = phase / st; const ang = u < .16 ? lerp(-.22, 0, smooth(0, .16, u)) : u > .66 ? lerp(0, .7, smooth(.66, 1, u)) : 0; return [xc - S * u, 0, ang, true] }
+      if (phase < st) { const u = phase / st; const ang = u < .16 ? lerp(this.G.landAng ?? -.22, 0, smooth(0, .16, u)) : u > .66 ? lerp(0, .7, smooth(.66, 1, u)) : 0; return [xc - S * u, 0, ang, true] }
       const u = (phase - st) / (1 - st), g = this.G, H1 = (.3 * S + 24) * g.heelKick, H2 = (.42 * S + 30) * g.kneeLift, H3 = (.16 * S + 14) * g.kneeLift;
       const keys = [{ t: -.2, x: xt + .2 * S, y: 0, a: .45 }, { t: 0, x: xt, y: 0, a: .7 }, { t: .26, x: xt - .28 * S, y: H1, a: 1.15 }, { t: .52, x: -.08 * S, y: H2, a: .5 },
-        { t: .8, x: xc + .2 * S, y: H3, a: -.12 }, { t: 1, x: xc, y: 0, a: -.22 }, { t: 1.2, x: xc - .2 * S, y: 0, a: -.1 }];
+        { t: .8, x: xc + (g.swingReach ?? .2) * S, y: H3, a: g.swingAng ?? -.12 }, { t: 1, x: xc, y: 0, a: g.landAng ?? -.22 }, { t: 1.2, x: xc - .2 * S, y: 0, a: -.1 }];
+      // gait.swingReach/swingAng/landAng (opt-in, 알론소 v4): 동작 시트처럼 '무릎이 먼저 나가고 발은 무릎 밑에 접혀 따라와 평평하게 착지'
+      //   — 기본값(니콜)은 발이 착지점보다 앞으로 뻗었다가(0.2) 뒤꿈치로 닿음(-0.22)
       const [x, y, a] = pathAt(keys, u); return [x, Math.max(0, y), a, false];
     }
     // feet: running gait while moving; ground-locked during stance; settle steps when stopping
@@ -401,7 +403,10 @@
         if (moving) {
           f.step = null;
           const fp = (ph + (side === "far" ? .5 : 0)) % 1, [fx, lift, ang, stance] = this._foot(fp, S);
-          const gx = rest + fx * A, gl = lift * A, ga = ang * A;
+          // legs.near/far.runX (opt-in, 알론소 v4): 달릴 때 발이 지나가는 가운데 줄 — 서 있을 때의 넓은 발 자리(A자)를 달리기에 그대로 쓰면
+          // 먼 다리는 몸 훨씬 앞에, 가까운 다리는 몸 바로 밑에 착지해서 어긋나 보임 → 속도(A)에 따라 몸 가운데 줄로 모음
+          const Ls = this.rig.def.legs[side], runRest = Ls.runX != null ? this.rig.by.hip.pos[0] + this.rig.def.legs.hip[0] + Ls.runX : rest;
+          const gx = lerp(rest, runRest, A) + fx * A, gl = lift * A, ga = ang * A;
           if (f.settled) { f.settled = false; f.off = f.x - gx; f.planted = f.lift < .01 && gl < .5; if (f.planted) f.lockW = this.odo + f.x }   // 멈춤 발걸음 → 다시 달리기: 발 위치가 끊기지 않게 이어받음 (방향 바꿀 때 한 프레임 튐 수정)
           if ((stance && gl === 0) || (f.planted && gl < .5)) {   // a foot still touching the ground stays locked until it really lifts (no toe drag)
             if (!f.planted) { f.planted = true; f.lockW = this.odo + gx + f.off }
