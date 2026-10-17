@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "75f4cb0f",
+ "version": "58deb59d",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -1486,5 +1486,14 @@
   "fistF",
   "handL",
   "handR"
- ]
+ ],
+ "gameRef": {
+  "refOrigin": [
+   264.5,
+   500.0
+  ],
+  "refScale": 2.0,
+  "refLift": 0,
+  "note": "게임 그림 char_0006.png(512) = 원화. x 264.5 = 도감 칸(fitArt 중심 270.5)에서 골반이 가운데 (2026-10-18 DHL)"
+ }
 }

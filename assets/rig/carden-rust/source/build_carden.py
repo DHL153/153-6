@@ -276,6 +276,7 @@ th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
 if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armU', 'armL', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
+if T('gameRef', None): rig['gameRef'] = T('gameRef', None)   # 게임 그림(characters/char_0006.png) 위 발 자리 — 도감 칸에서 몸(골반)이 가운데 오게
 _h = hashlib.sha1()
 for _f in sorted(os.listdir(PARTS)): _h.update(_f.encode()); _h.update(open(os.path.join(PARTS, _f), 'rb').read())
 _h.update(json.dumps(rig, sort_keys=True).encode()); rig['version'] = _h.hexdigest()[:8]
