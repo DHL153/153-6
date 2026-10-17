@@ -1,6 +1,6 @@
 {
  "name": "alonso-sky",
- "version": "5d8173d5",
+ "version": "3703ed58",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   720.0,
@@ -72,10 +72,10 @@
   "fistF": {
    "src": "parts/fistF.png",
    "pivot": [
-    206.0,
-    77.0
+    37.0,
+    37.0
    ],
-   "scale": 1.24
+   "scale": 2.0
   },
   "weapon": {
    "src": "parts/weapon.png",
@@ -374,7 +374,7 @@
     180.9,
     8.5
    ],
-   "rot": 0.965,
+   "rot": 1.5071,
    "part": "fistF"
   },
   {
@@ -384,7 +384,7 @@
     0.0,
     0.0
    ],
-   "rot": -0.5818,
+   "rot": -1.124,
    "part": "weapon"
   },
   {
@@ -607,7 +607,6 @@
  "draw": [
   "tailB",
   "tailA",
-  "foreF",
   "skirtB",
   "legFar",
   "legNear",

@@ -42,6 +42,14 @@ cn = np.array(img(os.path.join(W, 'carry_nohilt.png')))
 a = cn.copy(); a[:, 186:, 3] = 0; Image.fromarray(a).save(os.path.join(W, 'carryFore.png'))
 b = cn.copy(); b[:, :176, 3] = 0; Image.fromarray(b).save(os.path.join(W, 'carryFist.png'))
 
+# 메는 손 (DHL 23:38 "원화·시트와 다르게 나왔어요"): 시트 메는 손은 쥔 각도·토시 모양이 원화와 달라 → 원화에서 주먹·손잡이 끝·폼멜·토시를 그대로 오려 씀
+#  (서 있기·달리기 동안 메는 손은 칼과 함께 거의 고정이라 원화 한 장이 가장 정확. 공격 때는 쥔 손 조각으로 바꿈)
+from PIL import ImageDraw
+_ref = img(os.path.join(HERE, 'ref512.png')); _m = Image.new('L', _ref.size, 0)
+ImageDraw.Draw(_m).polygon([(423, 236), (446, 233), (463, 239), (477, 251), (491, 257), (505, 260), (512, 283), (501, 303), (486, 297), (474, 287), (459, 285), (457, 300), (449, 312), (435, 318), (420, 315), (413, 301), (417, 285), (423, 270)], fill=255)
+_c = _ref.copy(); _c.putalpha(Image.fromarray(np.minimum(np.array(_ref)[..., 3], np.array(_m)))); _c.crop((405, 225, 512, 325)).save(os.path.join(W, 'carryArt.png'))
+# 칼: 폼멜은 원화 조각(carryArt)이 그림 → 칼 그림은 손잡이 끝(폼멜 고리 위)에서 자름
+_sl = np.array(img(os.path.join(W, 'sword_long.png'))); _sl[515 + EXT:, :, 3] = 0; Image.fromarray(_sl).save(os.path.join(W, 'sword_long.png'))
 # ---------------- 원화 관절 (512 → ref1024) ----------------
 HIP = P2(362, 360); NECK = P2(375, 246)
 SH_N, EL_N, WR_N = P2(294, 262), P2(273, 306), P2(268, 345)       # 가까운(자유) 팔: 어깨(어깨갑 안)·팔꿈치·손목
@@ -68,7 +76,7 @@ parts['armF'] = dict(file=os.path.join(PC, 'armFdown.png'), M=sim2((48, 20), (48
 parts['foreF'] = dict(file=os.path.join(W, 'carryFore.png'), M=sim2((35, 60), (180, 70), EL_F, WR_F), at=EL_F)
 # 주먹: 손잡이 축(조각 57°)을 원화 칼 축에 맞춤
 ax_piece = math.degrees(math.atan2(130, 85)); ax_ref = math.degrees(math.atan2(UAX[1], UAX[0]))
-parts['fistF'] = dict(file=os.path.join(W, 'carryFist.png'), M=srt(1.24, ax_ref - ax_piece, (206, 77), GRIP), at=GRIP)
+parts['fistF'] = dict(file=os.path.join(W, 'carryArt.png'), M=srt(2.0, 0, (0, 0), P2(405, 225)), at=GRIP)   # 원화 오림 (512 → 리그 ×2)
 # 칼: 칼끝·폼멜 → 원화 칼끝·폼멜
 parts['weapon'] = dict(file=os.path.join(W, 'sword_long.png'), M=sim2(SW_TIP, SW_POM, SW_T, SW_P), at=GRIP)
 
@@ -122,7 +130,7 @@ legs = {'hip': [0, 2 * 5.0], 'thigh': TH, 'shin': SHN,
 # 걸음 (23:19 DHL '삐그덕'): 다리 뿌리를 발 자리의 1/4 안쪽(hipX −34/+30), 서 있는 발은 다리 길이 안(x −110/+100, 원화 −136/+120은 다리 180으로 안 닿아 발이 뜸)으로 — 원화 간격(±50)이면 먼 발이 엉덩이 뒤에 착지·땅에 1프레임만 닿아 절뚝임.
 #  다리(180)가 짧아 보폭·무릎 들기·뒤꿈치 차기를 줄임(무릎 튐 27°→15°/프레임, 굽힘 ≤138°)
 # 그리는 순서 (뒤 → 앞): 망토 꼬리 · 메는 팔(몸 뒤) · 뒷자락 · 다리 · 몸통 · 앞자락 · 칼(머리 뒤로 지나감) · 땋은 머리 · 머리 · 가까운 팔 · 어깨갑 · 메는 주먹(얼굴 앞)
-draw = ['tailB', 'tailA', 'foreF', 'skirtB', 'legFar', 'legNear', 'torso', 'skirt', 'weapon', 'braid', 'head', 'armU', 'armL', 'fistN', 'pauldron', 'fistF']
+draw = ['tailB', 'tailA', 'skirtB', 'legFar', 'legNear', 'torso', 'skirt', 'weapon', 'braid', 'head', 'armU', 'armL', 'fistN', 'pauldron', 'fistF']
 rig = {'name': 'alonso-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0]), float(O[1])], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': out_bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FN},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
