@@ -1,6 +1,6 @@
 {
  "name": "alonso-sky",
- "version": "734dbd42",
+ "version": "200f0b23",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   720.0,
@@ -306,8 +306,8 @@
     127.0
    ],
    "elbow": [
-    27.0,
-    127.0
+    18.0,
+    78.0
    ],
    "grip": [
     37.0,
@@ -395,53 +395,29 @@
    ],
    "scale": 0.5
   },
-  "cN": {
-   "src": "parts/cN.png",
+  "armUs": {
+   "src": "parts/armUs.png",
    "pivot": [
-    303.8,
-    293.4
+    50.0,
+    22.0
    ],
    "elbow": [
-    303.8,
-    293.4
-   ],
-   "grip": [
-    512.4,
-    202.4
-   ],
-   "wrist": [
-    512.4,
-    202.4
-   ],
-   "shaftDir": [
-    -0.4907366578952571,
-    -0.8713079436099463
-   ],
-   "scale": 0.5
-  },
-  "armFup": {
-   "src": "parts/armFup.png",
-   "pivot": [
-    28.3,
-    150.0
-   ],
-   "elbow": [
-    74.0,
-    32.0
-   ],
-   "scale": 1.017
-  },
-  "armNup": {
-   "src": "parts/armNup.png",
-   "pivot": [
-    78.0,
-    146.0
-   ],
-   "elbow": [
-    29.0,
-    33.0
+    48.0,
+    104.0
    ],
    "scale": 0.7332
+  },
+  "armFw": {
+   "src": "parts/armF.png",
+   "pivot": [
+    48.0,
+    20.0
+   ],
+   "elbow": [
+    48.0,
+    138.0
+   ],
+   "scale": 1.017
   },
   "pommel": {
    "src": "parts/pommel.png",
@@ -911,7 +887,9 @@
    -110,
    -40
   ],
-  "pauldronFollow": 1
+  "pauldronFollow": 1,
+  "stretchMax": 2.4,
+  "shoulderPush": 0
  },
  "drawA": [
   "tailB",
@@ -946,8 +924,8 @@
   "braid",
   "head",
   "foreF",
-  "armU",
   "armL",
+  "armU",
   "fistN",
   "pauldron"
  ],
@@ -966,8 +944,8 @@
   "weapon",
   "pommel",
   "foreF",
-  "armU",
   "armL",
+  "armU",
   "fistN",
   "pauldron"
  ],
@@ -975,6 +953,7 @@
   "tailB",
   "tailA",
   "armF",
+  "foreF",
   "skirtB",
   "legFar",
   "legNear",
@@ -985,8 +964,47 @@
   "hiltW",
   "weapon",
   "pommel",
-  "foreF",
+  "armL",
   "armU",
+  "fistN",
+  "pauldron"
+ ],
+ "drawStrike2": [
+  "tailB",
+  "tailA",
+  "armF",
+  "skirtB",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "braid",
+  "hiltW",
+  "weapon",
+  "pommel",
+  "foreF",
+  "head",
+  "armL",
+  "armU",
+  "fistN",
+  "pauldron"
+ ],
+ "drawSwing": [
+  "tailB",
+  "tailA",
+  "armF",
+  "foreF",
+  "skirtB",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "braid",
+  "armU",
+  "head",
+  "hiltW",
+  "weapon",
+  "pommel",
   "armL",
   "fistN",
   "pauldron"
@@ -1066,10 +1084,6 @@
      80
     ],
     [
-     0.46,
-     80
-    ],
-    [
      0.66,
      80
     ]
@@ -1077,18 +1091,6 @@
    "nPiece": [
     [
      0,
-     "cArt"
-    ],
-    [
-     0.2,
-     "cN"
-    ],
-    [
-     0.41,
-     "cSI"
-    ],
-    [
-     0.72,
      "cArt"
     ]
    ],
@@ -1098,7 +1100,7 @@
      "fU"
     ],
     [
-     0.4,
+     0.41,
      "fSI"
     ]
    ],
@@ -1108,7 +1110,7 @@
      "drawA"
     ],
     [
-     0.2,
+     0.14,
      "drawUp"
     ],
     [
@@ -1116,11 +1118,23 @@
      "drawOver"
     ],
     [
-     0.41,
+     0.395,
+     "drawSwing"
+    ],
+    [
+     0.43,
      "drawStrike"
     ],
     [
-     0.72,
+     0.62,
+     "drawStrike2"
+    ],
+    [
+     0.745,
+     "drawUp"
+    ],
+    [
+     0.8,
      "drawA"
     ]
    ],
@@ -1508,15 +1522,7 @@
    "nUpper": [
     [
      0,
-     "armF"
-    ],
-    [
-     0.2,
-     "armFup"
-    ],
-    [
-     0.41,
-     "armF"
+     "armFw"
     ]
    ],
    "fUpper": [
@@ -1525,11 +1531,11 @@
      "armU"
     ],
     [
-     0.22,
-     "armNup"
+     0.18,
+     "armUs"
     ],
     [
-     0.41,
+     0.7,
      "armU"
     ]
    ],
@@ -1540,21 +1546,69 @@
       1
      ],
      [
-      0.205,
+      0.18,
       1,
       "io"
      ],
      [
-      0.23,
+      0.2,
       0
      ],
      [
-      0.4,
+      0.43,
       0,
       "io"
      ],
      [
-      0.44,
+      0.45,
+      1
+     ]
+    ],
+    "foreF": [
+     [
+      0,
+      1
+     ],
+     [
+      0.397,
+      1,
+      "lin"
+     ],
+     [
+      0.4,
+      0
+     ],
+     [
+      0.62,
+      0,
+      "io"
+     ],
+     [
+      0.65,
+      1
+     ]
+    ],
+    "armF": [
+     [
+      0,
+      1
+     ],
+     [
+      0.397,
+      1,
+      "lin"
+     ],
+     [
+      0.4,
+      0
+     ],
+     [
+      0.62,
+      0,
+      "io"
+     ],
+     [
+      0.65,
       1
      ]
     ]

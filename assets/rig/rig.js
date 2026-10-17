@@ -839,9 +839,9 @@
       // 윗팔 그림: 어깨(S)→팔꿈치(E), 축 방향으로만 늘임
       const upper = (bone, pn, S, E) => { const p = P[pn], k = p.scale || 1, ax = [p.elbow[0] - p.pivot[0], p.elbow[1] - p.pivot[1]], L = Math.hypot(...ax) * k;
         // 팔꿈치가 너무 멀면 어깨를 그쪽으로 내밂(최대 60, 어깨를 앞으로 뻗는 것처럼) → 윗팔 늘이기는 1.25배까지만
-        let d = [E[0] - S[0], E[1] - S[1]], dl = Math.hypot(...d); const over = Math.min(60, Math.max(0, dl - L * 1.25));
+        let d = [E[0] - S[0], E[1] - S[1]], dl = Math.hypot(...d); const over = Math.min(SG.shoulderPush ?? 60, Math.max(0, dl - L * 1.25));   // shoulderPush(opt-in, 21): 0이면 어깨를 내밀지 않고 소매를 늘림
         if (over > 0) { S = [S[0] + d[0] / dl * over, S[1] + d[1] / dl * over]; d = [E[0] - S[0], E[1] - S[1]]; dl -= over }
-        const st = clamp(dl / L, .7, 1.4), phi = ang(ax), rot = ang(d) - phi;
+        const st = clamp(dl / L, .7, SG.stretchMax || 1.4), phi = ang(ax), rot = ang(d) - phi;   // stretchMax(opt-in, 21 'DHL 01:54 팔꿈치까지 그림을 늘려서'): 윗팔(소매) 그림을 더 늘여 팔뚝까지 닿게
         const R = (t) => [Math.cos(t), Math.sin(t), -Math.sin(t), Math.cos(t), 0, 0];
         let M = mul(R(rot + phi), [st, 0, 0, 1, 0, 0]); M = mul(M, R(-phi)); M[4] = S[0]; M[5] = S[1];
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = M; return st };
@@ -887,6 +887,7 @@
         b.armU.ar += wrapA(tU - wAng(b.armU.m)); rig.compute();
         const E = apply(b.armL.m, 0, 0), tL = Math.atan2(Tg[1] - E[1], Tg[0] - E[0]) - Math.atan2(fv[1], fv[0]);
         b.armL.ar += wrapA(tL - wAng(b.armL.m)); b.pauldron.ar = b.armU.ar * .3 }
+      if (D.reachIK && reach <= 0 && D.fUpper) { const fu = step("fUpper", SG.far.upper); rig.swap.armU = fu === b.armU.part ? null : fu }   // (opt-in) 손을 안 쥔 구간의 윗팔 그림도 키대로(흔드는 팔뚝과 맞는 원래 소매로 되돌림)
       if (D.reachIK && b.fistN) rig.alpha.fistN = reach > 0 ? 0 : 1;   // 쥔 팔 조각이 팔뚝을 대신하는 동안 흔들던 주먹은 숨김
       const ord = step("order", null);
       rig.drawOrder = (reach > .3 || w > .2 || D.orderAlways) ? (rig.def[ord || "drawSword"] || null) : null;   // orderAlways(opt-in): 쥔 팔 조각이 처음부터 바뀌는 리그(21) — 기본 순서의 메는 주먹이 떠 보이지 않게

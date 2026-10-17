@@ -63,11 +63,14 @@ ATK = json.load(open(os.path.join(HERE, 'attack_keys.json'), encoding='utf-8'))
 _o = np.array(P2(405, 225), float); _px = lambda p: [round(float(v), 1) for v in (np.array(p, float) - _o) / 2.0]
 def_parts['cArt'] = {'src': 'parts/fistF.png', 'pivot': _px(EL_F), 'elbow': _px(EL_F), 'grip': _px(GRIP), 'wrist': _px(GRIP), 'shaftDir': [float(-UAX[0]), float(-UAX[1])], 'scale': 2.0}
 for nm, (fist, fore, rel, *Lx) in ATK['pieces'].items(): compose(nm, fist, fore, rel, *(Lx[:1] or []))
-# 머리 위로 든 윗팔 소매(시트 armFup·armNup, DHL 01:26 '팔이 2개'): 내린 소매를 거꾸로 세우면 소매 밑단이 위로 뒤집혀 보임 → 든 팔 전용 그림
-#  pivot = 어깨 쪽 살(아래), elbow = 팔꿈치 쪽 살(위) — 살 덩어리 중심(tools 측정)
-for nm, pv, el in [('armFup', (28.3, 150.0), (74.0, 32.0)), ('armNup', (78.0, 146.0), (29.0, 33.0))]:
-    img(os.path.join(PC, nm + '.png')).save(os.path.join(OUT, 'parts', nm + '.png'))
-    def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': list(pv), 'elbow': list(el), 'scale': def_parts['armF']['scale'] if nm == 'armFup' else def_parts['armU']['scale']}
+# 팔 = '팔꿈치까지 그림을 늘려서' (DHL 01:54): 조각을 여러 장 잇지 않음
+#  · 가까운 팔: 소매를 밑단에서 자른 armUs(어깨→팔꿈치, 늘임) + 쥔 팔뚝 조각(팔꿈치 살은 소매 안으로 — 그리는 순서 armL 다음 armU)
+#  · 먼 팔(칼 메는 팔): 처음 그림(원화 손 cArt) 그대로 + 내린 소매 armF 통째(어깨→소매→팔뚝 살→손목 띠)를 늘여 원화 손 토시 안까지
+exec(open(os.path.join(HERE, 'sleeve_crop.py'), encoding='utf-8').read().split("if __name__")[0])
+crop_hem(os.path.join(PC, 'armNdown.png'), os.path.join(OUT, 'parts', 'armUs.png'))
+def_parts['armUs'] = {'src': 'parts/armUs.png', 'pivot': [50.0, 22.0], 'elbow': [48.0, 104.0], 'scale': def_parts['armU']['scale']}
+def_parts['armFw'] = {'src': def_parts['armF']['src'], 'pivot': [48.0, 20.0], 'elbow': [48.0, 138.0], 'scale': def_parts['armF']['scale']}
+def_parts['cArt']['elbow'] = [float(v) for v in ATK.get('cArtCuff', [18, 78])]   # 원화 손 토시 구멍(팔뚝이 들어가는 곳) — 먼 소매 끝이 여기 닿음
 # 칼 폼멜: 공격 때만(메는 손 원화 그림이 없을 때) 그림 — 칼 그림의 잘린 아래쪽
 _full = img(os.path.join(W, 'sword_full.png')); _top = 515 + EXT; _full.crop((0, _top, _full.width, _full.height)).save(os.path.join(OUT, 'parts', 'pommel.png'))
 _wp = def_parts['weapon']; def_parts['pommel'] = {'src': 'parts/pommel.png', 'pivot': [_wp['pivot'][0], _wp['pivot'][1] - _top], 'scale': _wp['scale']}
@@ -76,6 +79,8 @@ rig['hidden'] = []
 rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': ATK['carry0']}, 'far': {'upper': 'armU', 'pieces': [ATK['far0']], 'sPref': ATK['sF']},
                    'shoulderN': ATK['shoulderN'], 'shoulderF': ATK['shoulderF'], 'pauldronFollow': ATK.get('pauldronFollow', 1)}
 if ATK.get('reachBulge'): rig['swordGrip']['far']['reachBulge'] = ATK['reachBulge']
+for _k in ('stretchMax', 'shoulderPush'):
+    if _k in ATK: rig['swordGrip'][_k] = ATK[_k]
 D0 = rig['draw']
 for k, L in ATK['orders'].items(): rig[k] = L if 'hiltW' in L else [x for n in L for x in (['hiltW', n] if n == 'weapon' else [n])]
 act = dict(ATK['action']); act.update({'kind': 'sword', 'rigid': True, 'reachIK': True, 'hiltSlide': ['hiltW', 'pommel'], 'orderAlways': True})   # 자유 손 잡기·놓기 = 두 관절 IK(원래 팔 그림, 팔꿈치 위/아래는 reachUp 키) → 손에 닿은 뒤 쥔 팔 조각
