@@ -1044,7 +1044,6 @@
   "tailB",
   "tailA",
   "pauldron",
-  "armU",
   "legFar",
   "legNear",
   "torso",
@@ -1052,8 +1051,25 @@
   "pouch",
   "scarf",
   "head",
+  "armU",
   "armL",
-  "headFront_face",
+  "armF",
+  "pauldronF",
+  "weapon",
+  "farFist",
+  "foreF"
+ ],
+ "drawSwordGrab": [
+  "tailB",
+  "tailA",
+  "pauldron",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "pouch",
+  "scarf",
+  "head",
   "armF",
   "pauldronF",
   "weapon",
@@ -1064,7 +1080,6 @@
   "tailB",
   "tailA",
   "pauldron",
-  "armU",
   "legFar",
   "legNear",
   "torso",
@@ -1075,7 +1090,7 @@
   "armF",
   "pauldronF",
   "weapon",
-  "armL",
+  "farFist",
   "foreF"
  ],
  "headFront_face": {
@@ -1165,7 +1180,6 @@
   "tailB",
   "tailA",
   "pauldron",
-  "armU",
   "legFar",
   "legNear",
   "torso",
@@ -1173,7 +1187,6 @@
   "pouch",
   "scarf",
   "head",
-  "armL",
   "armF",
   "pauldronF",
   "weapon",
@@ -1199,7 +1212,7 @@
      "io"
     ],
     [
-     0.1,
+     0.04,
      1
     ],
     [
@@ -1460,10 +1473,14 @@
    "order": [
     [
      0,
+     "drawSwordGrab"
+    ],
+    [
+     0.1,
      "drawSwordUp"
     ],
     [
-     0.2,
+     0.3,
      "drawSwordUp2"
     ],
     [
