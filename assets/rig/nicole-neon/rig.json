@@ -760,6 +760,7 @@
   "kneeUp": 0.008,
   "lunge": 0.009
  },
+ "releaseOpen": true,
  "dropLift": 16,
  "hemRest": true,
  "idleStance": {
@@ -1070,12 +1071,12 @@
      1
     ],
     [
-     0.54,
+     0.44,
      1,
      "io"
     ],
     [
-     0.7,
+     0.54,
      0
     ]
    ],

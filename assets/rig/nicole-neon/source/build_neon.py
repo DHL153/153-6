@@ -184,7 +184,7 @@ rig = {'name': 'nicole-neon', 'version': 1, 'units': 'rig px (reference x2)', 'r
        'hemRun': T('hemRun', {'lift': 22, 'knee': 1.2, 'heel': .9, 'reach': .4}),
        'hemLimit': T('hemLimit', {'up': .32, 'x': .45}),
        'flap': {'part': 'coatFlap', 'off': FOFF, **T('flap', {'openX': 46, 'openY': 18, 'knee': .012, 'kneeUp': .008, 'lunge': .009})},
-       'dropLift': T('dropLift', 16), 'hemRest': True, 'idleStance': T('idleStance', {'near': 40, 'far': -80}),
+       'releaseOpen': True, 'dropLift': T('dropLift', 16), 'hemRest': True, 'idleStance': T('idleStance', {'near': 40, 'far': -80}),
        'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': .35}],
        'runForeBend': T('runForeBend', -0.45), 'wristRange': T('wristRange', .55), 'runTilt': T('runTilt', 0),
        'metrics': {'bodyHeight': round(GROUND - 226), 'heightWithWeapon': round(GROUND - 3), 'note': 'rig units. bodyHeight = 머리카락 위 ~ 발바닥(대기), 무기 제외',

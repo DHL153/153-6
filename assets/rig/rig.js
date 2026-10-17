@@ -483,7 +483,7 @@
         if (!on) {   // reaching: upper arm swings toward the grip pose, the running fist's forearm aims along the drawn forearm
           b.armU.ar = lerp(base, b.armU.ar, wn); rig.compute();
           const pl2 = P.armLF, gv = [(pl2.grip[0] - pl2.pivot[0]), (pl2.grip[1] - pl2.pivot[1])], fa = Math.atan2(-off[1], -off[0]);
-          const tL = fa - Math.atan2(gv[1], gv[0]) - wAng(b.armU.m) - b.armL.rot; b.armL.ar = b.armL.ar + wrapA(tL - b.armL.ar) * wn; rig.swap.armL = P.armL.alt }
+          const tL = fa - Math.atan2(gv[1], gv[0]) - wAng(b.armU.m) - b.armL.rot; b.armL.ar = b.armL.ar + wrapA(tL - b.armL.ar) * wn; rig.swap.armL = (rig.def.releaseOpen && t > (D.hitAt || .3)) ? null : P.armL.alt }   // releaseOpen: 찌른 뒤 자루를 놓을 땐 손을 펴서 내림 (주먹→편 손 한 번에 바뀌는 것 방지, 18 네온 opt-in)
         rig.alpha.handR = on ? 1 : 0; rig.alpha.armL = on ? 0 : 1;
         b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax;
       } else { rig.alpha.handR = 0; rig.alpha.armL = 1 }
