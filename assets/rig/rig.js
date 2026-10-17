@@ -846,8 +846,8 @@
         let M = mul(R(rot + phi), [st, 0, 0, 1, 0, 0]); M = mul(M, R(-phi)); M[4] = S[0]; M[5] = S[1];
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = M; return st };
       { const tp = step("tPiece", null); rig.swap.torso = tp && tp !== b.torso.part ? tp : null;
-        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }
-      if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
+        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
+      if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
       const EN = fore("foreF", nP, this._tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
