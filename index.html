@@ -10434,8 +10434,7 @@ function createSocialDataFoundation(assets, emojis) {
                 }
                 if(hasActor){
                     const hitLevel=window.__mrHitLevel||0;
-                    // Normal attack swish only ('삭삭'); the heavier skill-hit sound stays off.
-                    if(state!=='skill') playSfx('attack',{minGap:80});
+                    // 2026-10-17: 일반 공격 '슥슥' 소리도 끔 (DHL 요청). 스킬 타격음은 예전부터 꺼져 있음
                     window.MRFX?.enemyHit(hitLevel,state,!!gameSettings.screenShake);
                 }
                 hit++;
