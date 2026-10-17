@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "55dc3aac",
+ "version": "3583c502",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -168,7 +168,7 @@
    "src": "parts/handR.png",
    "pivot": [
     191,
-    146.5
+    241.5
    ],
    "scale": 0.5376,
    "shaftDir": [
@@ -177,7 +177,7 @@
    ],
    "wrist": [
     6,
-    185
+    203
    ]
   },
   "armLS": {
@@ -226,12 +226,12 @@
    "scale": 1
   },
   "boot": {
-   "src": "parts/boot.png",
+   "src": "parts/bootR.png",
    "pivot": [
-    19,
-    6
+    42,
+    31
    ],
-   "scale": 2.3575
+   "scale": 1
   },
   "face_happy": {
    "src": "parts/face_happy.png",
@@ -272,6 +272,26 @@
     76.5
    ],
    "scale": 2.0581
+  },
+  "skirt": {
+   "src": "parts/pants.png",
+   "pivot": [
+    208.0,
+    0.0
+   ],
+   "scale": 1,
+   "mesh": {
+    "cols": 8,
+    "rows": 6
+   }
+  },
+  "shinR": {
+   "src": "parts/shinR.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1
   }
  },
  "bones": [
@@ -297,7 +317,8 @@
    "pos": [
     0.0,
     0.0
-   ]
+   ],
+   "part": "skirt"
   },
   {
    "name": "cape",
@@ -469,10 +490,10 @@
  "legs": {
   "hip": [
    0,
-   46.0
+   70
   ],
-  "thigh": 102.5,
-  "shin": 77.0,
+  "thigh": 80,
+  "shin": 78,
   "thighImg": {
    "part": "thighN",
    "a": [
@@ -501,20 +522,20 @@
    "part": "boot",
    "sole": [
     [
-     -18,
-     19
+     -37,
+     28
     ],
     [
-     -15,
-     21
+     -30,
+     33
     ],
     [
-     22,
-     21
+     45,
+     33
     ],
     [
-     25,
-     18
+     65,
+     22
     ]
    ],
    "ankleRange": [
@@ -523,7 +544,7 @@
    ]
   },
   "near": {
-   "x": -50.0,
+   "x": -130,
    "shade": 0,
    "thighImg": {
     "part": "thighN",
@@ -535,25 +556,23 @@
      36,
      55
     ],
-    "w": 1.33
+    "w": 0.001
    },
    "shinImg": {
-    "part": "shinN",
+    "part": "shinR",
     "a": [
-     19,
-     3
+     26,
+     0
     ],
     "b": [
-     18,
-     43
+     26,
+     72
     ],
-    "w": 1.385
-   },
-   "runX": -20,
-   "kneeOut": 1
+    "w": 0.923
+   }
   },
   "far": {
-   "x": 64.0,
+   "x": 110,
    "shade": 0.22,
    "thighImg": {
     "part": "thighF",
@@ -565,21 +584,20 @@
      40,
      55
     ],
-    "w": 1.328
+    "w": 0.001
    },
    "shinImg": {
-    "part": "shinF",
+    "part": "shinR",
     "a": [
-     19,
-     3
+     26,
+     0
     ],
     "b": [
-     19,
-     43
+     26,
+     72
     ],
-    "w": 1.384
-   },
-   "runX": 20
+    "w": 0.923
+   }
   }
  },
  "draw": [
@@ -587,7 +605,7 @@
   "legFar",
   "legNear",
   "armF",
-  "hips",
+  "skirt",
   "torso",
   "pouch",
   "foreF",
@@ -617,23 +635,25 @@
   "effort": "face_angry"
  },
  "idleStance": {
-  "near": -90,
-  "far": 48
+  "near": -20,
+  "far": -5
  },
  "gait": {
-  "stance": 0.42,
-  "strideBase": 40,
+  "stance": 0.18,
+  "strideBase": 20,
   "strideK": 0.1,
   "hipBase": 0,
   "bob": 12,
   "lean": 0.12,
   "waddle": 0.05,
   "headBob": 4,
-  "kneeLift": 0.55,
-  "heelKick": 0.25,
+  "kneeLift": 0.25,
+  "heelKick": 0.05,
   "dropCap": 20,
   "swingReach": 0.05,
-  "landAng": -0.08
+  "landAng": -0.08,
+  "angK": 0.45,
+  "elbowRun": 0.8
  },
  "weaponRaise": 40,
  "releaseOpen": true,
@@ -647,18 +667,13 @@
  ],
  "rearBlend": 0.1,
  "runSlide": 110,
+ "upperRun": 100,
+ "hemGain": 0.15,
+ "seamInterior": true,
  "runForeBend": -0.35,
  "wristRange": 0.55,
  "runTilt": 0,
  "bounce": [
-  {
-   "bone": "pouch",
-   "stiff": 220,
-   "damp": 8,
-   "y": 0.6,
-   "rot": 0.005,
-   "max": 10
-  },
   {
    "bone": "tuftL",
    "stiff": 160,
@@ -716,6 +731,16 @@
    ]
   ],
   "facesFree": true
+ },
+ "hemRun": {
+  "lift": 10,
+  "knee": 0.5,
+  "heel": 0.3,
+  "reach": 0.2
+ },
+ "hemLimit": {
+  "up": 0.25,
+  "x": 0.3
  },
  "actions": {
   "thrust": {
@@ -1143,26 +1168,21 @@
     ],
     [
      0.18,
-     -42.5,
+     -24,
      "s"
     ],
     [
      0.24,
-     -65,
+     60,
      "io"
     ],
     [
      0.3,
-     111.19999999999999
-    ],
-    [
-     0.42,
-     66.19999999999999,
-     "io"
+     215
     ],
     [
      0.46,
-     41.2,
+     215,
      "io"
     ],
     [
@@ -1177,37 +1197,36 @@
      "io"
     ],
     [
-     0.03,
-     0,
+     0.15,
+     -10,
      "io"
     ],
     [
-     0.15,
-     -27.9
-    ],
-    [
      0.18,
-     -51.3375,
+     -30,
      "io"
     ],
     [
      0.24,
-     -95.4,
+     -10,
      "io"
     ],
     [
      0.3,
-     -52.275,
+     90
+    ],
+    [
+     0.36,
+     90,
      "io"
     ],
     [
-     0.42,
-     -59.775,
-     "io"
+     0.44,
+     10
     ],
     [
      0.62,
-     -27.9,
+     10,
      "io"
     ],
     [
@@ -1266,6 +1285,34 @@
     ],
     [
      0.15,
+     0
+    ],
+    [
+     0.22,
+     0,
+     "io"
+    ],
+    [
+     0.27,
+     14,
+     "io"
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.36,
+     0,
+     "io"
+    ],
+    [
+     0.4,
+     10,
+     "io"
+    ],
+    [
+     0.44,
      0
     ],
     [
@@ -1370,7 +1417,7 @@
   "legFar",
   "legNear",
   "armF",
-  "hips",
+  "skirt",
   "torso",
   "pouch",
   "foreF",

@@ -421,7 +421,7 @@
           // legs.near/far.runX (opt-in, 알론소 v4): 달릴 때 발이 지나가는 가운데 줄 — 서 있을 때의 넓은 발 자리(A자)를 달리기에 그대로 쓰면
           // 먼 다리는 몸 훨씬 앞에, 가까운 다리는 몸 바로 밑에 착지해서 어긋나 보임 → 속도(A)에 따라 몸 가운데 줄로 모음
           const Ls = this.rig.def.legs[side], runRest = Ls.runX != null ? this.rig.by.hip.pos[0] + this.rig.def.legs.hip[0] + Ls.runX : rest;
-          const gx = lerp(rest, runRest, A) + fx * A, gl = lift * A, ga = ang * A;
+          const gx = lerp(rest, runRest, A) + fx * A, gl = lift * A, ga = ang * A * (this.G.angK ?? 1);   // gait.angK (opt-in, 6 카르덴): 발목 꺾임 줄임 — 짧은 다리가 바짓단 밑에서 종종걸음
           if (f.settled) { f.settled = false; f.off = f.x - gx; f.planted = f.lift < .01 && gl < .5; if (f.planted) f.lockW = this.odo + f.x }   // 멈춤 발걸음 → 다시 달리기: 발 위치가 끊기지 않게 이어받음 (방향 바꿀 때 한 프레임 튐 수정)
           if ((stance && gl === 0) || (f.planted && gl < .5)) {   // a foot still touching the ground stays locked until it really lifts (no toe drag)
             if (!f.planted) { f.planted = true; f.lockW = this.odo + gx + f.off }
@@ -934,6 +934,7 @@
       b.armU.ax = -twist * 12; b.armF.ax = twist * 15; b.armU.ay = b.armF.ay = act ? -this._tr('breath') * 4 : 0;   // shoulders follow the chest turn / breath
       b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax; b.pauldron.ay = b.armU.ay;   // guard rides on the shoulder, turning with the upper arm
       if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
+      if (rig.def.upperRun) { const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1, k_ = (rig.def.upperRun / l_ - 1) * smooth(.3, .8, A); b.armL.ax += p_[0] * k_; b.armL.ay += p_[1] * k_ }   // upperRun(opt-in, 6 카르덴): 달릴 때 윗팔 뼈를 이 길이로 — 서 있을 땐 원화처럼 짧게(화면 쪽으로 줄어든 팔), 옆으로 흔들 땐 먼 팔만큼 길게
       rig.swap.armL = this.fist ? rig.def.parts.armL.alt : null;
       // ---------- far arm + spear: the shaft is locked in the fist; the arm lifts it so the butt clears the ground ----------
       const CS = rig.def.carrySwing ?? 1;   // 무기 팔을 달릴 때 뒤로 젖히는 양 (0 = 서 있을 때 각도 유지)
@@ -1019,7 +1020,7 @@
       this.hemC = this.hemC || []; for (let i = 0; i <= cols; i++) { const x = hem[i][0].x, y = hem[i][1].x; this.hemC[i] = rig.def.hemLimit ? [soft(x, lx), y < 0 ? soft(y, lyU) : y] : [x, y] }   // hemLimit 이 있는 캐릭터만 (8 니콜 원본 동작은 그대로)
       const hc = this.hemC;
       rig.meshFx.skirt = (u, v, x, y) => { const w = v * v * (1.4 - .4 * v), f = u * cols, i = Math.min(cols - 1, Math.floor(f)), t = f - i;
-        const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); return [hx * w + x * flare * w, hy * w + y * (rig.def.skirtStretch || 0) * v] };   // skirtStretch: 치마 길이만 늘림 (허리띠를 벨트 뒤로 올린 만큼)
+        const hx = lerp(hc[i][0], hc[i + 1][0], t), hy = lerp(hc[i][1], hc[i + 1][1], t); const HG = rig.def.hemGain ?? 1; return [(hx * w + x * flare * w) * HG, hy * w * HG + y * (rig.def.skirtStretch || 0) * v] };   // hemGain(opt-in, 6 카르덴): 원화 바지를 치마 뼈에 얹은 캐릭터 — 바지는 몸처럼 거의 안 늘어남   // skirtStretch: 치마 길이만 늘림 (허리띠를 벨트 뒤로 올린 만큼)
       // 코트 앞자락(앞트임 오른쪽, opt-in rig.def.flap): 같은 코트 변형을 따르고, 앞 무릎·런지만큼 트임 쪽 가장자리가 앞으로 벌어짐 → 안감(뒤판)이 보임
       if (rig.def.flap) { const FL = rig.def.flap, fim = rig.images[FL.part], sim = rig.images.skirt, skFx = rig.meshFx.skirt;
         this.flapOpen = this.flapOpen || new Spring(90, 12);
