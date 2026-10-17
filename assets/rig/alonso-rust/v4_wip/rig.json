@@ -938,6 +938,23 @@
   "farFist",
   "foreF"
  ],
+ "drawSwordUp2": [
+  "cape",
+  "pauldron",
+  "armU",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "pouch",
+  "scarf",
+  "head",
+  "armF",
+  "pauldronF",
+  "weapon",
+  "armL",
+  "foreF"
+ ],
  "headFront_face": {
   "clip": [
    [
@@ -1254,6 +1271,10 @@
     [
      0,
      "drawSwordUp"
+    ],
+    [
+     0.2,
+     "drawSwordUp2"
     ],
     [
      0.41,
