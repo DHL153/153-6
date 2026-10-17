@@ -13,8 +13,18 @@ for old in ['armL', 'fistN', 'foreF', 'armU']: P.pop(old, None)
 P['handN0'] = hand('handN0', 'handN0'); P['armL'] = hand('armL', 'handN1'); P['handN2'] = hand('handN2', 'handN2')
 P['armU3'] = dict(src=g['armU3']['src'], pivot=g['armU3']['shoulder'], elbow=g['armU3']['elbow'], scale=g['armU3']['scale'])
 P['foreF'] = hand('foreF', 'handF0'); P['handF1'] = hand('handF1', 'handF1'); P['handF2'] = hand('handF2', 'handF2')
+# 앞손 = 원본 그림의 손 그대로 (DHL 2026-10-18 "이 손을 그대로"): orig_hand.py 가 원본에서 팔뚝+손을 오림. 팔뚝은 창 뒤, 손가락만 창 앞(fingersF)
+OH = os.environ.get('SKY_OH', '1') == '1'
+if OH:
+    oh = json.load(open(os.path.join(HERE, 'orig_hand.json')))
+    P['foreF'] = dict(src=oh['src'], pivot=oh['pivot'], scale=oh['scale'], grip=oh['grip'], wrist=oh['wrist'], shaftDir=oh['shaftDir'], elbow=oh['elbow'])
+    P['fingersF'] = dict(src=oh['fingers'], pivot=oh['pivot'], scale=oh['scale'])
+    for _k in ('handF1', 'handF2'): P.pop(_k, None)
 t = g['armTH']; P['armTH'] = dict(src=t['src'], pivot=t['shoulder'], scale=t['scale'], grip=t['grip'], shaftDir=t['shaftDir'], elbow=t['elbow'])
 P['armF']['elbow'] = [round(45 + 48 / .55, 1), round(30 + 83.3 / .55, 1)]       # v2 뼈 길이 그대로 (먼 윗팔은 몸 뒤)
+if os.environ.get('SKY_OH', '1') == '1':   # 원본 손: 원본처럼 팔뚝이 자루와 거의 나란해지려면 먼 윗팔 뼈가 짧아야 함 (대기 때 손목 꺾임 0이 되는 길이, 리그 단위)
+    _L = float(os.environ.get('SKY_OH_UL', '68')); _v = [48 / .55, 83.3 / .55]; _n = math.hypot(*_v) * .55
+    P['armF']['elbow'] = [round(45 + _v[0] * _L / _n, 1), round(30 + _v[1] * _L / _n, 1)]
 P['torso'] = dict(src=g['torso3']['src'], pivot=g['torso3']['pivot'], scale=g['torso3']['scale'])
 # 허리 (DHL 2026-10-16 "상체·하체가 붙어 있지 않음"): 원본엔 치마 남색 허리띠가 안 보이고 벨트 바로 아래서 치마 판이 시작.
 #  → 상체를 치마 위에 그리고, 상체는 벨트 아래 TCUT px에서 자름(T 시트의 늘린 튜닉이 앞치마처럼 보이지 않게), 치마는 SKUP만큼 올려 허리띠를 벨트 뒤로 숨김
@@ -38,6 +48,7 @@ bones = [b for b in d['bones'] if b['name'] != 'fistN']
 bones.insert([b['name'] for b in bones].index('cape'), dict(name='pouch', parent='torso', pos=[0, 0], part='pouch'))
 bones.append(dict(name='armTH', parent='torso', pos=[-80, -117], part='armTH'))
 bones.insert([b['name'] for b in bones].index('torso') + 1, dict(name='torsoUnder', parent='torso', pos=[0, 0], part='torsoFull'))   # 늘린 튜닉 전체를 치마 밑에 한 번 더 (몸을 숙여도 벨트 옆 빈틈 없음)
+if OH: bones.insert([b['name'] for b in bones].index('foreF') + 1, dict(name='fingersF', parent='foreF', pos=[0, 0], part='fingersF'))
 d['bones'] = bones
 d['hidden'] = ['fistF', 'armTH']
 # 찌른 팔(TH): 원본 그림에서 자루가 팔뚝 앞을 지나므로 팔은 창 뒤, 주먹만 창 앞 (v3.1)
@@ -47,6 +58,7 @@ from measure import masks as _masks
 _a, _al, _br, _sk = _masks(os.path.join(HERE, '..', 'parts', 'armTH.png')); _ys, _xs = np.nonzero(_sk)
 d['overlays'] = {'armTHfist': {'bone': 'armTH', 'rect': [int(_xs.min()) - 10, int(_ys.min()) - 12, int(np.ptp(_xs)) + 24, int(np.ptp(_ys)) + 26]}}
 d['draw'] = ['cape', 'armF', 'pauldronF', 'legFar', 'legNear'] + ['torsoUnder', 'skirt', 'torso'] + ['pouch', 'pony', 'head', 'armTH', 'weapon', 'foreF', 'fistF', 'armU', 'armL', 'pauldron', 'armTHfist']
+if OH: d['draw'] = [n for n in d['draw'] if n != 'foreF']; d['draw'].insert(d['draw'].index('weapon'), 'foreF'); d['draw'].insert(d['draw'].index('weapon') + 1, 'fingersF')
 d.pop('drawSmash', None); d.pop('twoHand', None); d.pop('smashHand2', None); d.pop('smashShoulder', None)
 # 다리: L 시트 측정 (엉덩이 관절 높이 기준 배율) 허벅지 111 · 정강이 122
 d['legs']['thigh'] = 111; d['legs']['shin'] = 122
@@ -56,7 +68,7 @@ d['spearGrip'] = {
     'carry': {'x': 178.1, 'y': -132.0 - RAISE, 'a': round(math.radians(-30.96), 4)},
     'carryRun': {'x': 182.0, 'y': -126.0 - RAISE, 'a': round(math.radians(-24.0) - .28, 4)},     # K-달리기 24° (달릴 때 몸 숙임 .28 을 뺀 몸통 기준 각도)
     'tiltFollow': 1, 'maxWrist': .35,
-    'far': {'pieces': ['foreF', 'handF1', 'handF2'], 'sPref': float(os.environ.get('SKY_FPREF', '0')), 'sSig': 25, 'sMin': -300, 'sMax': 25, 'dMax': 50},
+    'far': {'pieces': ['foreF'] if OH else ['foreF', 'handF1', 'handF2'], 'sPref': float(os.environ.get('SKY_FPREF', '0')), 'sSig': 25, 'sMin': -300, 'sMax': 25, 'dMax': 50},
     'near': {'pieces': ['handN0', 'armL', 'handN2'], 'upper': 'armU3', 'sPref': float(os.environ.get('SKY_NPREF', '-360')), 'sSig': float(os.environ.get('SKY_NSIG', '70')), 'sMin': -560, 'sMax': -90, 'restUp': 2.24, 'pauldronFollow': .35, 'dMin': float(os.environ.get('SKY_DMIN', '115'))},
     'th': {'piece': 'armTH'},
 }

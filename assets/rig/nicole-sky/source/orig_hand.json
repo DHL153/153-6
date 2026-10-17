@@ -1,0 +1,29 @@
+{
+ "src": "parts/origHandF.png",
+ "fingers": "parts/origFingersF.png",
+ "scale": 0.5,
+ "pivot": [
+  52.0,
+  220.0
+ ],
+ "elbow": [
+  52.0,
+  220.0
+ ],
+ "grip": [
+  209.3,
+  103.2
+ ],
+ "wrist": [
+  209.3,
+  103.2
+ ],
+ "shaftDir": [
+  0.8346,
+  -0.5508
+ ],
+ "origGrip": [
+  344.3,
+  263.8
+ ]
+}

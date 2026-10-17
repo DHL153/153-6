@@ -73,8 +73,8 @@
    ],
    "scale": 0.55,
    "elbow": [
-    132.3,
-    181.5
+    106.7,
+    137.1
    ]
   },
   "fistF": {
@@ -292,76 +292,36 @@
    "scale": 0.5
   },
   "foreF": {
-   "src": "parts/handF0.png",
-   "pivot": [
-    45.0,
-    160.0
-   ],
-   "scale": 0.335,
-   "grip": [
-    299.2,
-    71.8
-   ],
-   "wrist": [
-    299.2,
-    71.8
-   ],
-   "shaftDir": [
-    1.0,
-    0.0039
-   ],
-   "elbow": [
-    45.0,
-    160.0
-   ]
-  },
-  "handF1": {
-   "src": "parts/handF1.png",
+   "src": "parts/origHandF.png",
    "pivot": [
     52.0,
-    170.0
+    220.0
    ],
-   "scale": 0.335,
+   "scale": 0.5,
    "grip": [
-    297.4,
-    71.8
+    209.3,
+    103.2
    ],
    "wrist": [
-    297.4,
-    71.8
+    209.3,
+    103.2
    ],
    "shaftDir": [
-    1.0,
-    0.0028
+    0.8346,
+    -0.5508
    ],
    "elbow": [
     52.0,
-    170.0
+    220.0
    ]
   },
-  "handF2": {
-   "src": "parts/handF2.png",
+  "fingersF": {
+   "src": "parts/origFingersF.png",
    "pivot": [
-    60.0,
-    200.0
+    52.0,
+    220.0
    ],
-   "scale": 0.335,
-   "grip": [
-    300.4,
-    71.5
-   ],
-   "wrist": [
-    300.4,
-    71.5
-   ],
-   "shaftDir": [
-    1.0,
-    0.007
-   ],
-   "elbow": [
-    60.0,
-    200.0
-   ]
+   "scale": 0.5
   },
   "armTH": {
    "src": "parts/armTH.png",
@@ -548,6 +508,15 @@
    "part": "foreF"
   },
   {
+   "name": "fingersF",
+   "parent": "foreF",
+   "pos": [
+    0,
+    0
+   ],
+   "part": "fingersF"
+  },
+  {
    "name": "fistF",
    "parent": "foreF",
    "pos": [
@@ -666,8 +635,9 @@
   "pony",
   "head",
   "armTH",
-  "weapon",
   "foreF",
+  "weapon",
+  "fingersF",
   "fistF",
   "armU",
   "armL",
@@ -1219,9 +1189,7 @@
   "maxWrist": 0.35,
   "far": {
    "pieces": [
-    "foreF",
-    "handF1",
-    "handF2"
+    "foreF"
    ],
    "sPref": 0.0,
    "sSig": 25,
