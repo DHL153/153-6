@@ -4034,8 +4034,9 @@ window.MRBattleFX=(()=>{
    if(job.elapsed<job.delay)return;
    const q=clamp((job.elapsed-job.delay)/(job.duration-job.delay),0,1);
    // 2026-10-16: 번개를 전투 화면 전체 폭으로 — 왼쪽 아래에서 오른쪽 위로 길게 가로지름 (예전: 가운데를 짧고 가파르게 내리긋는 모양)
-   // 그림(8:1)은 왼쪽 끝부터 자라므로 시작점 = 왼쪽 아래
-   const ax=-width*.02,ay=height*.95,bx=width*1.02,by=height*.05;
+   // 그림(8:1)은 왼쪽 끝부터 자라므로 시작점 = a
+   // 2026-10-18 DHL: 오른쪽 위에서 왼쪽 아래로 (예전: 왼쪽 아래 → 오른쪽 위)
+   const ax=width*1.02,ay=height*.05,bx=-width*.02,by=height*.95;
    const length=Math.hypot(bx-ax,by-ay)*1.14; // 그림 속 번개는 프레임 폭의 약 89%만 차지 → 늘려서 양 끝 모서리까지 닿게
    // Grow once, hold the fully formed bolt, then dissolve. No looping flashes.
    const frame=q<.4?Math.floor(q/.4*7):q<.66?7:Math.min(11,8+Math.floor((q-.66)/.34*4));
@@ -4111,7 +4112,9 @@ window.MRBattleFX=(()=>{
   skill(duration){
    clearSkill();if(!sheets.lightning.ready)return;
    const quiet=reduced.matches;
-   const played=add({type:'skill',duration:quiet?Math.min(duration,260):duration*.96,delay:quiet?0:duration*.18,reduced:quiet});
+   // 2026-10-18 DHL: 번개가 보이는 시간을 예전의 2/3로 (시작 시점은 같고 더 빨리 자라고 사라짐)
+   const delay=quiet?0:duration*.18,span=(duration*.96-duration*.18)*2/3;
+   const played=add({type:'skill',duration:quiet?Math.min(duration,260):delay+span,delay,reduced:quiet});
    if(played)stage.dataset.mrSkillFx='on';
   },
   attack(sourceId='hero'){
