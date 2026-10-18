@@ -299,6 +299,12 @@ print('  gaps (원화 불투명인데 조각이 안 덮음):', int(_gap.sum()), 
 if _gap.any():
     _v = RA.copy(); _v[_gap] = (255, 0, 255, 255); Image.fromarray(_v).save(os.path.join(W, '_gaps.png'))
 exec(open(os.path.join(HERE, 'attack_neon.py'), encoding='utf-8').read())   # 내려찍기 (키: attack_keys.json)
+# (10-19 DHL 03:09 게임 쪽 요청 '머리 85~90%로 — 1 러스트·21 스카이 알론소와 등신 맞추기') 머리·표정·깜빡임을 목(NECK = 머리 pivot) 중심으로 HEAD_K 배.
+#   대기 자세 머리/키: 러스트 0.40 · 스카이 0.45 · 네온 0.59(1.70등신) → 0.85 에서 0.53. bodyHeight(머리카락 가운데~발바닥)도 다시 재서 게임 키를 다른 알론소와 같게
+HEAD_K = 0.85
+for _n in def_parts:
+    if _n == 'head' or _n.startswith('face_'): def_parts[_n]['scale'] = round(def_parts[_n]['scale'] * HEAD_K, 5)
+rig['metrics'] = {'bodyHeight': round(2 * ((482 - NECK[1]) + HEAD_K * (NECK[1] - 95)), 1), 'note': f'rig units; 머리카락 가운데(원화 y95)~발바닥(482) ×2, 머리 {HEAD_K}배(목 y{NECK[1]:.0f} 중심), 무기 제외'}
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
 rig['version'] = _h.hexdigest()[:8]
