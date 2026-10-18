@@ -1,0 +1,14 @@
+<!doctype html><meta charset=utf-8><body style="margin:0;background:#fff"><canvas id=c></canvas>
+<script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// swordGrip.guard 엔진 시험 (21 조각으로): guardtest.html?g={json}&vx=0&ts=..
+(async()=>{const Q=new URLSearchParams(location.search),def=JSON.parse(JSON.stringify(window.MR_RIG_DEFS['alonso-sky'])),base='../../';
+def.swordGrip.guard=JSON.parse(Q.get('g'));
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});
+const TS=(Q.get('ts')||'0').split(',').map(Number),K=+(Q.get('k')||.45),VX=+(Q.get('vx')||0),FW=1100*K,FH=1000*K,C=TS.length;
+const c=document.getElementById('c');c.width=FW*C;c.height=FH;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+let t=0;for(let k=0;k<TS.length;k++){while(t<TS[k]-1e-6){an.update(1/120,{vx:VX,facing:1});t+=1/120}
+ g.save();rig.draw(g,FW*k+450*K,950*K,K,1);g.restore();g.setTransform(1,0,0,1,0,0);g.fillStyle='#c00';g.font='16px sans-serif';g.fillText(TS[k].toFixed(2)+' st '+(an.stN||0).toFixed(2)+'/'+(an.stF||0).toFixed(2),FW*k+6,18)}
+document.title='done'})().catch(e=>document.title='ERR '+e.stack);
+</script>

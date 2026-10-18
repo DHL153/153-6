@@ -813,17 +813,18 @@
        어떤 그림을 쓸지는 키(nPiece·fPiece·nUpper·fUpper, 구간별 고정)로 정해서 프레임마다 바뀌지 않음. 그리는 순서도 키(order). */
     _swordRigid(D, at, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, SG = rig.def.swordGrip, act = this.act;
-      const w = this._tr("w"), reach = this._tr("reach"), step = (k, d) => { const K = D[k]; if (!K) return d; let v = d; for (const [t, n] of K) if (at >= t) v = n; return v };
-      { const SN_ = SG.shoulderN, SF_ = SG.shoulderF, kN = SN_ ? this._tr("shN") : 0, kF = SF_ ? this._tr("shF") : 0;   // (opt-in, 21 알론소) 어깨 옮기기: 몸을 튼 것처럼 가까운 어깨(+어깨갑)·먼 어깨를 키만큼 이동 — 3/4 보기에서 두 손이 한 손잡이에 닿게
+      const tr = D.trk || (n => this._tr(n));   // D.trk(opt-in): 동작 없이 키 값을 주는 읽기 함수 (swordGrip.guard: 두 손으로 쥔 채 대기·달리기)
+      const w = tr("w"), reach = tr("reach"), step = (k, d) => { const K = D[k]; if (!K) return d; let v = d; for (const [t, n] of K) if (at >= t) v = n; return v };
+      { const SN_ = SG.shoulderN, SF_ = SG.shoulderF, kN = SN_ ? tr("shN") : 0, kF = SF_ ? tr("shF") : 0;   // (opt-in, 21 알론소) 어깨 옮기기: 몸을 튼 것처럼 가까운 어깨(+어깨갑)·먼 어깨를 키만큼 이동 — 3/4 보기에서 두 손이 한 손잡이에 닿게
         if (kN) { b.armU.ax += SN_[0] * kN; b.armU.ay += SN_[1] * kN; const pf = SG.pauldronFollow ?? 1; b.pauldron.ax += SN_[0] * kN * pf; b.pauldron.ay += SN_[1] * kN * pf }
         if (kF) { b.armF.ax += SF_[0] * kF; b.armF.ay += SF_[1] * kF } }
       rig.compute();
       const Wm = b.weapon.m, G0 = [Wm[4], Wm[5]], a0 = Math.atan2(-Wm[3], -Wm[2]);
       const SN = apply(b.armF.m, 0, 0), SF = apply(b.armU.m, 0, 0);
-      const Gk = apply(b.hip.m, this._tr("gx"), this._tr("gy")), ak = this._tr("sa") + this._tr("shake") * Math.sin(T * 95) * .03;
+      const Gk = apply(b.hip.m, tr("gx"), tr("gy")), ak = tr("sa") + tr("shake") * Math.sin(T * 95) * .03;
       const wp = P.weapon, kW = wp.scale || 1, tipL = Math.hypot(wp.tip[0] - wp.pivot[0], wp.tip[1] - wp.pivot[1]) * kW;
       let G = [lerp(G0[0], Gk[0], w), lerp(G0[1], Gk[1], w)], a = a0 + wrapA(ak - a0) * w;
-      const hs = D.hiltSlide ? this._tr("hilt") : 0, tL = tipL - hs;   // (opt-in) 긴 손잡이 줄이기: 칼날(+날밑)이 손 쪽으로 hs만큼 미끄러짐, 손잡이 감은 부분·폼멜은 손에 그대로
+      const hs = D.hiltSlide ? tr("hilt") : 0, tL = tipL - hs;   // (opt-in) 긴 손잡이 줄이기: 칼날(+날밑)이 손 쪽으로 hs만큼 미끄러짐, 손잡이 감은 부분·폼멜은 손에 그대로
       const ty = G[1] + Math.sin(a) * tL, td = SG.tipDepth ?? 6; if (ty > td && Math.cos(a) > 0) a = Math.asin(clamp((td - G[1]) / tL, -1, 1));
       const U = [Math.cos(a), Math.sin(a)];
       this.swordA = a; this.swordG = G; this.swordPull = 0; this.swordMiss = 0;
@@ -849,21 +850,21 @@
         const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
-      const EN = fore("foreF", nP, this._tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
+      const EN = fore("foreF", nP, tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
       if (reach > .985) {   // 먼 손도 칼에 붙음
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper);
-        const EF = fore("armL", fP, this._tr("sF") || SG.far.sPref || 0); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
+        const EF = fore("armL", fP, tr("sF") || SG.far.sPref || 0); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
       } else if (reach > 0 && D.reachIK) {   // (opt-in, 21 알론소) 먼 손 잡기·놓기 = 두 관절 IK: 윗팔(어깨→팔꿈치) + 쥔 팔 조각(팔꿈치→주먹)을 진짜 관절처럼 — 손이 막대처럼 미끄러지지 않음.
         //  시작(reach≈0)은 흔들던 팔뚝 방향 그대로, 끝(reach=1)은 칼에 붙은 rigid 자리와 같음(팔 길이 1.0이면 IK 팔꿈치 = rigid 팔꿈치)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
-        const F0 = apply(b.armL.m, fv[0], fv[1]), E0 = apply(b.armL.m, 0, 0), sF = this._tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
+        const F0 = apply(b.armL.m, fv[0], fv[1]), E0 = apply(b.armL.m, 0, 0), sF = tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper), p = P[fP], k = p.scale || 1, el = p.elbow || p.pivot, pu = P[fU];
         const gv = [(p.grip[0] - el[0]) * k, (p.grip[1] - el[1]) * k], L2 = Math.hypot(...gv), L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1);
         const e = smooth(0, 1, reach), Tg = [lerp(F0[0], Gf[0], e), lerp(F0[1], Gf[1], e)], bv = SG.far.reachBulge;
-        if (bv) { const v = bv[this._tr("reachUp") > .5 ? 0 : 1], C = [Gf[0] + v[0], Gf[1] + v[1]], a_ = (1 - e) * (1 - e), b_ = 2 * e * (1 - e), c_ = e * e;   // (opt-in) 손 경로 = 2차 곡선(흔들던 주먹 → 조절점 → 손잡이). 조절점 = 손잡이 + [잡을 때, 놓을 때] 오프셋 — 얼굴 앞을 지나지 않고 옆·위에서 손잡이로
+        if (bv) { const v = bv[tr("reachUp") > .5 ? 0 : 1], C = [Gf[0] + v[0], Gf[1] + v[1]], a_ = (1 - e) * (1 - e), b_ = 2 * e * (1 - e), c_ = e * e;   // (opt-in) 손 경로 = 2차 곡선(흔들던 주먹 → 조절점 → 손잡이). 조절점 = 손잡이 + [잡을 때, 놓을 때] 오프셋 — 얼굴 앞을 지나지 않고 옆·위에서 손잡이로
           Tg[0] = a_ * F0[0] + b_ * C[0] + c_ * Gf[0]; Tg[1] = a_ * F0[1] + b_ * C[1] + c_ * Gf[1] }
-        const [eLo, eHi] = solve2(SF, Tg, L1, L2), Ei = this._tr("reachUp") > .5 ? eHi : eLo;
+        const [eLo, eHi] = solve2(SF, Tg, L1, L2), Ei = tr("reachUp") > .5 ? eHi : eLo;
         const rho0 = ang([F0[0] - E0[0], F0[1] - E0[1]]) - ang(gv), rhoI = ang([Tg[0] - Ei[0], Tg[1] - Ei[1]]) - ang(gv), rho1 = ang(U) - ang(p.shaftDir);
         let rho = rho0 + wrapA(rhoI - rho0) * smooth(0, .35, e); rho += wrapA(rho1 - rho) * Math.pow(e, 3);   // 시작: 흔들던 팔뚝 방향 → 중간: IK → 끝: 칼 축(손목이 손잡이에 맞춤)
         const c = Math.cos(rho), s_ = Math.sin(rho), dx = (p.grip[0] - p.pivot[0]) * k, dy = (p.grip[1] - p.pivot[1]) * k, X = [Tg[0] - (c * dx - s_ * dy), Tg[1] - (s_ * dx + c * dy)];
@@ -871,7 +872,7 @@
         const ex = (el[0] - p.pivot[0]) * k, ey = (el[1] - p.pivot[1]) * k; this.stF = upper("armU", fU, SF, [X[0] + c * ex - s_ * ey, X[1] + s_ * ex + c * ey]); b.pauldron.ar = 0;
       } else if (reach > 0 && D.reachPiece) {   // (opt-in) 먼 손: 처음부터 쥔 팔뚝 그림으로 바꾸고, 흔들던 주먹 자리·팔뚝 방향 → 손잡이로 옮겨 감(IK→그림 바뀜 튐 없음)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
-        const F0 = apply(b.armL.m, fv[0], fv[1]), E0 = apply(b.armL.m, 0, 0), sF = this._tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
+        const F0 = apply(b.armL.m, fv[0], fv[1]), E0 = apply(b.armL.m, 0, 0), sF = tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper), p = P[fP], k = p.scale || 1, el = p.elbow || p.pivot;
         const e = smooth(0, 1, reach), rho0 = ang([F0[0] - E0[0], F0[1] - E0[1]]) - ang([p.grip[0] - el[0], p.grip[1] - el[1]]), rho1 = ang(U) - ang(p.shaftDir);
         const rho = rho0 + wrapA(rho1 - rho0) * e, Gp = [lerp(F0[0], Gf[0], e), lerp(F0[1], Gf[1], e)], c = Math.cos(rho), s_ = Math.sin(rho);
@@ -880,9 +881,9 @@
         const ex = (el[0] - p.pivot[0]) * k, ey = (el[1] - p.pivot[1]) * k; this.stF = upper("armU", fU, SF, [X[0] + c * ex - s_ * ey, X[1] + s_ * ex + c * ey]); b.pauldron.ar = 0;
       } else if (reach > 0) {   // 먼 손이 흔들던 주먹 → 손잡이 아래쪽으로 다가감 (2관절 IK, 주먹 그림 그대로, 팔꿈치 방향 고정)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
-        const F0 = apply(b.armL.m, fv[0], fv[1]), sF = this._tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
+        const F0 = apply(b.armL.m, fv[0], fv[1]), sF = tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
         const Tg = [lerp(F0[0], Gf[0], reach), lerp(F0[1], Gf[1], reach)], L1 = Math.hypot(...b.armL.pos), L2 = Math.hypot(...fv);
-        const [eLow, eHigh] = solve2(SF, Tg, L1, L2), e = (D.reachUp ? this._tr("reachUp") > .5 : SG.far.reachElbowUp) ? eHigh : eLow;   // reachUp(opt-in 키): 구간마다 팔꿈치 위/아래
+        const [eLow, eHigh] = solve2(SF, Tg, L1, L2), e = (D.reachUp ? tr("reachUp") > .5 : SG.far.reachElbowUp) ? eHigh : eLow;   // reachUp(opt-in 키): 구간마다 팔꿈치 위/아래
         const tU = Math.atan2(e[1] - SF[1], e[0] - SF[0]) - Math.atan2(b.armL.pos[1], b.armL.pos[0]);
         b.armU.ar += wrapA(tU - wAng(b.armU.m)); rig.compute();
         const E = apply(b.armL.m, 0, 0), tL = Math.atan2(Tg[1] - E[1], Tg[0] - E[0]) - Math.atan2(fv[1], fv[0]);
@@ -893,6 +894,19 @@
       rig.drawOrder = (reach > .3 || w > .2 || D.orderAlways) ? (rig.def[ord || "drawSword"] || null) : null;   // orderAlways(opt-in): 쥔 팔 조각이 처음부터 바뀌는 리그(21) — 기본 순서의 메는 주먹이 떠 보이지 않게
       rig.compute();
       if (act && !act.hit && at >= D.hitAt) { act.hit = true; if (D.hitStop) act.freeze = D.hitStop; const p = this.tip(); this.events.push({ type: "hit", x: p[0], y: p[1] }) }   // hitStop(초, opt-in): 칼이 땅에 닿는 순간 잠깐 멈춤(묵직함)
+    }
+    /* (opt-in, 11 네온 알론소) swordGrip.guard: 동작이 없을 때(대기·달리기·몸 반응)도 두 손이 손잡이를 쥔 채 칼을 몸 앞에 듦.
+       _swordRigid를 그대로 씀 — 칼 손잡이 자리(gx·gy, 골반 기준)·각도(sa)·쥔 자리(sN·sF)·어깨 옮김(shN·shF)은 guard 값,
+       달리기 흔들림 run.{gx,gy,sa} = [진폭, 위상](걸음 반 주기마다), 숨쉬기 breath.{gy,sa} = 진폭. 손은 늘 쥠(reach 1, w 1). */
+    _swordGuard(T) {
+      const G_ = this.rig.def.swordGrip.guard, A = this.A, I = 1 - A, psi = (this.cyc * 2) % 1, br = Math.sin(T * TAU / 2.9);
+      const val = n => { let v = n === "w" || n === "reach" ? 1 : (G_[n] ?? 0); const r = G_.run && G_.run[n], q = G_.breath && G_.breath[n];
+        if (r) v += A * r[0] * Math.sin(TAU * (psi + (r[1] || 0))); if (q) v += I * q * br; return v };
+      const k1 = (n, d) => [[0, G_[n] ?? d]];
+      const D = this._guardD || (this._guardD = { kind: "sword", rigid: true, orderAlways: !!G_.order, nPiece: k1("nPiece", null), fPiece: k1("fPiece", null), nUpper: k1("nUpper", null), fUpper: k1("fUpper", null), order: G_.order ? k1("order") : null, fade: G_.fade || null });
+      D.trk = val;
+      if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) this.rig.alpha[n] = clamp(track(D.fade[n], 0), 0, 1) }
+      this._swordRigid(D, 0, T);
     }
     _waveArms(D, t, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, pA = wAng(b.torso.m);
@@ -1020,13 +1034,13 @@
           if (Math.hypot(dx, dy) > Lm_ && Math.abs(dy) < Lm_) { const nx = Math.sign(dx) * Math.sqrt(Lm_ * Lm_ - dy * dy); f.x += nx - dx } } }
       if (this._fadeN && !(act && D.kind === "sword" && D.rigid && D.fade)) { for (const n of this._fadeN) rig.alpha[n] = 1; this._fadeN = null }   // fade(opt-in) 동작이 끝나거나 끊기면 숨겼던 조각을 되돌림
       if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
-      else if (act && D.kind === "wave" && !rig.def.waveImg) { }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작)
+      else if (act && D.kind === "wave" && !rig.def.waveImg) { if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작) — guard(opt-in)면 두 손 쥔 칼 그대로
       else if (act && D.kind === "wave") this._waveArms(D, at, T);
       else if (act && D.kind === "sword" && rig.def.swordGrip) this._swordArms(D, at, T);
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act && D.kind === "staff") this._staffArms(D, at, T, act);   // 봉 키 찌르기 (6 카르덴 opt-in)
       else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
-      else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null }
+      else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null; if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // guard(opt-in, 11 네온 알론소): 대기·달리기도 두 손으로 칼을 쥠
       if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       // weaponFloor (opt-in, 6 카르덴 10-18): 봉 끝(그림 아래 가운데)이 땅 위 weaponFloor 보다 내려가면 봉을 손 안에서 그만큼 위로 밀어 올림
       //   — 서 있기·달리기 모두 집게를 땅 바로 위까지 내리되(DHL '표시한 곳까지') 팔 흔들림·가속에서 땅을 뚫지 않게. 봉 키 찌르기(staff) 중엔 키가 봉을 정함
