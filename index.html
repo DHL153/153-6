@@ -10934,17 +10934,25 @@ function createSocialDataFoundation(assets, emojis) {
         if(!mergeRingRAF){mergeRingLast=performance.now();mergeRingRAF=requestAnimationFrame(tickMergeRing);}
     }
     // 개발 모드(?dev=1) 전용 테스트 바: 링 1(확정)·2 / 보스 풍차 A·B·C(C 확정)·▶ 미리보기 — 일반 플레이에서는 CSS로 숨김, 값도 무시
+    // 2026-10-18 개발 모드: 등급별 실제 뽑기 연출 미리보기 (보유 아이템·재화는 바뀌지 않음)
+    function previewGachaReveal(tier){
+        const cats={C:['item'],U:['skin','char','char_bg','bg_battle','bg_merge'],R:['char','battle_char','char_bg','bg_battle','skin','bg_merge'],E:['char','battle_char','bg_battle'],L:['battle_char']}[tier];
+        const pick=cats&&pickUniformInTier(cats,tier);if(!pick||!window.MRFX?.reveal)return;
+        setGlobalPause(true);
+        window.MRFX.reveal({source:'gacha',title:tier==='C'?'😊 이모지 뽑기!':'✨ PREMIUM DRAW!',items:[getRevealItem({...pick,tier},true)],lite:!gameSettings.ssEffect,onClose:()=>setGlobalPause(false)});
+    }
     function mountMergeRingTest(){
         const box=document.getElementById('merge-box');if(!box||document.getElementById('mr-merge-ring-test'))return;
         const bar=document.createElement('div');bar.id='mr-merge-ring-test';bar.setAttribute('data-no-i18n','');
         bar.innerHTML='<span>링</span><button type="button" data-v="dash">1</button><button type="button" data-v="solid">2</button>'+
-            '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-b="C" title="컷신 먼저 → 풍차 폭발·바람 → 다음 하늘">C</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span>';
+            '<span id="mr-boss-fx-test"><span>보스</span><button type="button" data-b="A">A</button><button type="button" data-b="B">B</button><button type="button" data-b="C" title="컷신 먼저 → 풍차 폭발·바람 → 다음 하늘">C</button><button type="button" data-p="1" title="보스 연출 미리보기">▶</button></span><span id="mr-reveal-test"><span>뽑기</span><button type="button" data-g="C">C</button><button type="button" data-g="U">U</button><button type="button" data-g="R">R</button><button type="button" data-g="E">E</button><button type="button" data-g="L">L</button></span>';
         const bossMode=()=>{try{const v=localStorage.getItem('mr-boss-fx-test');return v==='A'||v==='B'?v:'C';}catch(_){return 'C';}};
         const sync=()=>{bar.querySelectorAll('button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===mergeRingVariant()));
             bar.querySelectorAll('button[data-b]').forEach(b=>b.classList.toggle('on',b.dataset.b===bossMode()));};
         bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();
             try{if(b.dataset.v)localStorage.setItem(MERGE_RING_KEY,b.dataset.v);if(b.dataset.b)localStorage.setItem('mr-boss-fx-test',b.dataset.b);}catch(_){}
-            if(b.dataset.p)window.mrBossFxPreview?.();sync();});
+            if(b.dataset.p)window.mrBossFxPreview?.();
+            if(b.dataset.g)previewGachaReveal(b.dataset.g);sync();});
         ['pointerdown','mousedown','touchstart'].forEach(t=>bar.addEventListener(t,e=>e.stopPropagation(),{passive:true}));
         box.appendChild(bar);sync();
     }
