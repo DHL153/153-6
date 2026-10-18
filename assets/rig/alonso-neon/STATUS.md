@@ -124,3 +124,4 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - 먼 팔은 원래 어깨 자리에서(shFx·shFy 0) — 어깨갑 밑에서 나와 가까운 팔뚝 뒤로 먼 주먹까지. 조각 배율 0.75(fST2·armFst, 원화 먼 팔 길이 158 과 비슷), 먼 팔 IK 는 0.3601~0.395 에 서서히 켬(첫 휘두름 프레임에서 먼 주먹이 63° 꺾이던 것 → 30°)
 - 보이는 팔 늘임 1.00 유지(가까운 팔 1.00 · 먼 팔 0.395~0.72 1.00). 게이트 m11 11.3° IoU 0.59 · m12 6.9° IoU 0.70 · m13 10.5° IoU 0.50. 엔진 안 바꿈
 - rig version 0c048ff2
+- 편집 툴 v89 (1792342919-1749) 게시: rig.js?v=f940060(26 카르덴 braid2 포함 main 본) · rig.def.js?v=0c048ff2 · parts/pauldronFst.png · progress/alonso11_v54.jpg
