@@ -3920,7 +3920,7 @@ window.MRBattleFX=(()=>{
   lightning:{file:'fx_battle_skill_lightning_0001.png',cols:2,rows:8,frames:[0,1,2,3,5,6,8,9,11,12,14,15]},
   // 2026-10-16 DHL 시트: 공격 = 트레일(5×5), 피격 = 버스트 흰색(보통)·주황(보스·스킬) (4×4)
   trail:{file:'fx_battle_attack_trail_0001.png',cols:5,rows:5,frames:Array.from({length:25},(_,i)=>i)},
-  burstWhite:{file:'fx_battle_hit_burst_white_0001.png',cols:4,rows:4,frames:Array.from({length:16},(_,i)=>i)},
+  burstWhite:{file:'fx_battle_hit_burst_white_0001.png',idle:true,cols:4,rows:4,frames:Array.from({length:16},(_,i)=>i)},
   burstOrange:{file:'fx_battle_hit_burst_orange_0001.png',cols:4,rows:4,frames:Array.from({length:16},(_,i)=>i)},
   // ↓ 예전 공격·피격 시트: 파일은 보존, 지금은 쓰지 않아 불러오지 않음 (idle:true 를 지우면 다시 사용 가능)
   slash:{file:'fx_battle_attack_slash_0001.png',idle:true,cols:5,rows:5,frames:Array.from({length:24},(_,i)=>i+1)},
@@ -4128,9 +4128,10 @@ window.MRBattleFX=(()=>{
   hit(state){
    // 2026-10-16: 피격은 버스트 시트로 — 보통 타격 = 흰색, 보스·스킬 타격 = 주황 (예전 5종 무작위는 중단, 시트 파일은 보존)
    const quiet=reduced.matches,boss=stage.dataset.enemyKind==='boss',strong=boss||state==='skill';
-   const name=strong&&sheets.burstOrange.ready?'burstOrange':(sheets.burstWhite.ready?'burstWhite':(sheets.burstOrange.ready?'burstOrange':''));
+   // 2026-10-18 DHL: 흰색 버스트는 빼고 모든 타격 = 노랑(주황) 버스트 0.3초
+   const name=sheets.burstOrange.ready?'burstOrange':'';
    if(!name)return false;
-   return add({type:'hit',name,duration:quiet?180:(strong?460:380),delay:0,opacity:1,anchor:target('enemy'),follow:true,strong,reduced:quiet,
+   return add({type:'hit',name,duration:quiet?180:300,delay:0,opacity:1,anchor:target('enemy'),follow:true,strong,reduced:quiet,
     angle:quiet?0:Math.random()*Math.PI*2});
   },clear,clearSkill
  };
@@ -13297,6 +13298,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
   if(window.__mrQuiet)return;
   // Skip during the boss WARNING overlay: the burst is a body-level fixed element and would draw over it.
   if(!r||warnUntil>performance.now())return;
+  return; // 2026-10-18 DHL: 맞는 순간 처음 터지던 흰 번쩍임(흰 중심 원)은 뺌 — 노랑 버스트 시트만
   const el=document.createElement('div');el.className='mrfx-hitburst t'+t;
   const size=34+t*22;
   Object.assign(el.style,{left:(r.left+r.width*.45)+'px',top:(r.top+r.height*.5)+'px',width:size+'px',height:size+'px',marginLeft:(-size/2)+'px',marginTop:(-size/2)+'px'});
