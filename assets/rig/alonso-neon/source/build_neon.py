@@ -228,6 +228,15 @@ for c_ in range(3): RA_tF[..., c_] = (RA_tF[..., c_] * (1 - _lc) + 26 * _lc).ast
 RA_tF[..., 3] = np.where(_upm, 0, np.maximum(RA_tF[..., 3], (_lc * 255).astype(np.uint8)))
 o_lg = {n: crop(pmask(n), n + 'Art', src=(RA_tF if n == 'thighF' else RA_body) if n.startswith('thigh') else None) for n in ['thighN', 'thighF', 'shinN', 'shinF', 'bootN', 'bootF']}
 for n in o_lg: shutil.copy(os.path.join(W, n + 'Art.png'), os.path.join(OUT, 'parts', n + '.png')); def_parts[n] = dict(src=f'parts/{n}.png', pivot=[0, 0], scale=1.0)
+for _sn, _bn in [('shinN', 'bootN'), ('shinF', 'bootF')]:   # (10-18 16:58 DHL '발 중복 없이') 서 있는 정강이 조각 아래쪽이 부츠 목·버클(원화에서 부츠와 같은 자리)까지 들고 있어,
+    #   내려찍기에서 무릎이 굽어 정강이가 돌면 부츠 목·노란 버클이 두 겹으로 보였음 → 부츠 윗선 + 3px 아래 정강이 픽셀은 지움(부츠가 그 자리를 그림)
+    _s = np.array(Image.open(os.path.join(OUT, 'parts', _sn + '.png'))); _b = np.array(Image.open(os.path.join(OUT, 'parts', _bn + '.png')))[..., 3] > 128
+    _so, _bo = o_lg[_sn].astype(int), o_lg[_bn].astype(int)
+    for _x in range(_s.shape[1]):
+        _gx = _x + _so[0] - _bo[0]
+        if 0 <= _gx < _b.shape[1] and _b[:, _gx].any():
+            _top = int(np.nonzero(_b[:, _gx])[0].min()) + _bo[1] - _so[1]; _s[max(0, _top + 3):, _x, 3] = 0
+    Image.fromarray(_s).save(os.path.join(OUT, 'parts', _sn + '.png'))
 def sole(n, ank):   # 부츠 그림의 바닥 점(발목 기준, 원화 px): 맨 아래 줄 양 끝 + 그 위 4px 양 끝
     a = np.array(Image.open(os.path.join(W, n + 'Art.png')))[..., 3] > 128; o = o_lg[n]; ys = np.nonzero(a.any(1))[0]; yb = ys.max(); out = []
     for y in (yb - 4, yb):

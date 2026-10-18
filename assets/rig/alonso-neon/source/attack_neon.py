@@ -14,9 +14,9 @@ FISTS = {   # stub: 지울 손잡이 토막 직사각형 [x0, y0, x1, y1] (그 �
     'gNh': dict(grip=(62.0, 37.0), sd=(1.0, 0.0), wrist=(6.0, 39.0), stub=[(102, 20, 139, 52)]),
     'gFh': dict(grip=(62.0, 36.0), sd=(1.0, 0.0), wrist=(6.0, 38.0), stub=[(102, 20, 138, 52)]),
 }
-FORES = {   # 팔뚝: 팔꿈치·손목 마디 가운데 (시트 px)
-    'N': dict(file='foreN.png', el=(26.0, 27.0), wr=(89.0, 137.0)),
-    'F': dict(file='foreF.png', el=(29.2, 26.7), wr=(63.6, 127.7)),
+FORES = {   # 팔뚝: 팔꿈치·손목 마디 가운데 (시트 px) · capE = 팔꿈치 덮개 끝(팔꿈치에서 축 방향 px) · wcut = 손목 쪽 띠 시작 — 그 사이(몸통)만 늘임
+    'N': dict(file='foreN.png', el=(26.0, 27.0), wr=(89.0, 137.0), capE=4, wcut=110),
+    'F': dict(file='foreF.png', el=(29.2, 26.7), wr=(63.6, 127.7), capE=16, wcut=90),
 }
 def unstub(im, spec):
     """주먹 그림에서 삐져나온 손잡이 토막 지움 — 칼 그림이 손잡이를 그림"""
@@ -28,20 +28,30 @@ def unstub(im, spec):
     return Image.fromarray(a)
 def compose(name, fist, fore, rel_deg, L=None, inset=8.0):
     """쥔 팔 조각: 주먹 + 팔뚝. rel_deg = 손목→팔꿈치 방향(칼끝 방향 기준, 화면 각도·시계 +).
-    L = 팔꿈치~손목 길이(리그, 없으면 그림 그대로) — 팔뚝 그림을 축 방향으로만 늘임(굵기 그대로)"""
+    L = 팔꿈치~손목 길이(리그). (16:58 DHL '팔·발 중복 없이') 팔뚝 그림을 통째로 늘이면 끝의 검은 덮개·손목 띠까지 3~4배로 늘어나
+    주먹 밖으로 검은 덩어리가 삐져나와 '주먹이 하나 더'처럼 보였음 → 팔꿈치 덮개·손목 띠는 그대로, 그 사이 몸통만 늘이고 손목(wr) 밖은 자름"""
+    import cv2
     F, Fo = FISTS[fist], FORES[fore]
-    fim = unstub(img(os.path.join(PC, fist + '.png')), F['stub']); oim = img(os.path.join(PC, Fo['file']))
+    fim = unstub(img(os.path.join(PC, fist + '.png')), F['stub']); oa = np.asarray(img(os.path.join(PC, Fo['file']))).astype(np.float32)
     k = FS * R2; sd = np.array(F['sd'], float); a_sd = math.atan2(sd[1], sd[0]); d = np.array([math.cos(a_sd + math.radians(rel_deg)), math.sin(a_sd + math.radians(rel_deg))])
-    el, wr = np.array(Fo['el']), np.array(Fo['wr']); L0 = float(np.linalg.norm(el - wr)) * FS; L = L or L0
-    Wc = np.array(F['wrist']) * k; Wi = Wc - d * inset * R2; Ec = Wi + d * L * R2   # 팔뚝 손목 끝은 토시 안으로 inset만큼
-    # 팔뚝 그림 → 캔버스: 축(wr→el)을 d 방향으로, 축 방향 배율 L/L0·k, 옆 방향 k
-    ax = (el - wr) / np.linalg.norm(el - wr); nx = np.array([-ax[1], ax[0]]); dn = np.array([-d[1], d[0]])
-    sA, sN = k * L / L0, k
-    A = np.outer(d, ax) * sA + np.outer(dn, nx) * sN; t = Wi - A @ wr
-    cs = [A @ np.array(c, float) + t for c in [(0, 0), (oim.width, 0), (0, oim.height), (oim.width, oim.height)]] + [np.array([0, 0]), np.array([fim.width * k, fim.height * k])]
+    el, wr = np.array(Fo['el']), np.array(Fo['wr']); Lw = float(np.linalg.norm(wr - el)); L0 = Lw * FS; L = L or L0
+    ax = (wr - el) / Lw; nx = np.array([-ax[1], ax[0]]); cE, wc = Fo['capE'], Fo['wcut']
+    Lpx = L / FS; s_ = max(.3, (Lpx - cE - (Lw - wc)) / (wc - cE)); vW = cE + (wc - cE) * s_ + (Lw - wc)   # 늘인 뒤 손목 자리(= Lpx)
+    U0, V0, Wd = 60, 40, 120; H = int(V0 + vW + 3)
+    vv, uu = np.mgrid[0:H, 0:Wd].astype(np.float32); vo = vv - V0; uo = uu - U0
+    vin = np.where(vo <= cE, vo, np.where(vo <= cE + (wc - cE) * s_, cE + (vo - cE) / s_, wc + (vo - cE - (wc - cE) * s_)))
+    mx_ = (el[0] + ax[0] * vin + nx[0] * uo).astype(np.float32); my_ = (el[1] + ax[1] * vin + nx[1] * uo).astype(np.float32)
+    pre = oa.copy(); pre[..., :3] *= pre[..., 3:4] / 255
+    st = cv2.remap(pre, mx_, my_, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    st[..., 3] *= np.clip((V0 + vW + 2 - vv) / 2, 0, 1)   # 손목 밖은 자름(주먹이 덮는 자리)
+    Wc = np.array(F['wrist']) * k; Wi = Wc - d * inset * R2; Ec = Wi + d * L * R2
+    perp = np.array([d[1], -d[0]]); A = np.stack([perp * k, -d * k], 1); t = Ec - A @ np.array([U0, V0], float)
+    cs = [A @ np.array(c, float) + t for c in [(0, 0), (Wd, 0), (0, H), (Wd, H)]] + [np.array([0, 0]), np.array([fim.width * k, fim.height * k])]
     mn = np.floor(np.min(cs, 0)) - 4; mx = np.ceil(np.max(cs, 0)) + 4; size = tuple((mx - mn).astype(int))
-    Ai = np.linalg.inv(A); bi = -Ai @ (t - mn)
-    canvas = oim.transform(size, Image.AFFINE, (Ai[0, 0], Ai[0, 1], bi[0], Ai[1, 0], Ai[1, 1], bi[1]), resample=Image.BICUBIC)
+    M = np.c_[A, t - mn].astype(np.float64)
+    cv_ = cv2.warpAffine(st, M, size, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    al = cv_[..., 3:4]; cv_[..., :3] = np.where(al > 1e-3, cv_[..., :3] / np.maximum(al, 1e-3) * 255, 0)
+    canvas = Image.fromarray(np.clip(cv_, 0, 255).astype(np.uint8), 'RGBA')
     fs = fim.resize((round(fim.width * k), round(fim.height * k)), Image.LANCZOS); canvas.alpha_composite(fs, (int(-mn[0]), int(-mn[1])))
     canvas.save(os.path.join(OUT, 'parts', name + '.png'))
     g = np.array(F['grip']) * k - mn; e = Ec - mn; r = lambda v: [round(float(v[0]), 1), round(float(v[1]), 1)]
@@ -50,7 +60,9 @@ for nm, spec in ATK['pieces'].items(): compose(nm, *spec)
 # 든 윗팔(시트 armNup·armFup): pivot = 어깨 마디, elbow = 팔꿈치 마디 (엔진이 어깨→팔꿈치로 돌리고 축 방향으로만 늘임)
 #   먼 팔 어깨 마디는 덮개 위쪽 끝 — 검은 어깨 덮개가 몸통 뒤로 숨음(먼 어깨갑은 공격 동안 숨김: 칼날 자리를 오려 냄)
 for nm, src, sh, el in [('armNup', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFup', 'armFup.png', (59.3, 99.7), (29.1, 29.2))]:   # 든 팔 배율 UPS
-    shutil.copy(os.path.join(PC, src), os.path.join(OUT, 'parts', nm + '.png'))
+    _u = np.array(img(os.path.join(PC, src))); _sh, _el = np.array(sh), np.array(el); _ax = (_el - _sh) / np.linalg.norm(_el - _sh)   # (16:58) 팔꿈치 쪽 검은 덮개는 지움 — 팔뚝 조각의 덮개(위에 그림) 하나만 보이게(두 덮개가 '주먹'처럼 보였음)
+    _yy, _xx = np.mgrid[0:_u.shape[0], 0:_u.shape[1]]; _t = (_xx - _sh[0]) * _ax[0] + (_yy - _sh[1]) * _ax[1]; _L = float(np.linalg.norm(_el - _sh))
+    _u[..., 3] = (_u[..., 3] * np.clip((_L + ATK.get('upperCut', 0) - _t) / 2, 0, 1)).astype(np.uint8); Image.fromarray(_u).save(os.path.join(OUT, 'parts', nm + '.png'))
     def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': list(sh), 'elbow': list(el), 'scale': ATK.get('upScale', FS)}
 # 공격용 칼 weaponA: 원화 칼의 손잡이·폼멜 자리(원화에서 아래 주먹이 덮어 폼멜이 조각나 있고 손잡이와 떨어져 있음)를
 #   시트 칼의 손잡이·폼멜로 바꾼 그림 — 주먹 조각(gNh 등)은 원화 주먹보다 작아 공격 중에 조각난 폼멜이 보였음. 대기·달리기는 원화 칼 그대로
