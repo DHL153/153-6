@@ -303,6 +303,17 @@ if WV:   # 인사(손 흔들기, DHL 10-18 02:02) — 8 니콜과 같은 엔진 
     rig['drawWave'] = WV.get('draw') or ['cape', 'legFar', 'legNear', 'armF', 'wSleeve', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront',
                                           'weapon', 'fistF', 'wFore', 'handL', 'armU', 'armL', 'pauldron', 'handR', 'wHand']
     rig['hidden'] = rig['hidden'] + ['wSleeve', 'wFore', 'wHand']; rig['ui']['touch'] = 'wave'
+    SP_ = WV.get('splitY')
+    if SP_ is not None:   # 팔뚝을 둘로(DHL 10-18 09:50 '손목 쪽은 좋다, 팔꿈치 쪽은 수염 아래로'): 손목 쪽 = 수염 앞(wFore), 팔꿈치 쪽 = 수염 뒤(wCuff 뼈 — 엔진이 인사 동안 wSleeve 와 같이 켜고 끔)
+        q_ = np.asarray(Image.open(os.path.join(PARTS, 'waveFore.png')).convert('RGBA')).copy()
+        Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'waveForeLo.png'))   # 뒤 조각 = 팔뚝 전체(수염 밖으로 나온 곳은 앞 조각과 같은 그림)
+        yy_ = np.arange(q_.shape[0])[:, None]; fd_ = WV.get('splitFade', 8)
+        q_[..., 3] = (q_[..., 3] * np.clip((yy_ - (SP_ - fd_ / 2)) / fd_, 0, 1)).astype(np.uint8)   # 앞 조각 = 손목 쪽만(팔꿈치 쪽은 부드럽게 사라짐)
+        Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'waveFore.png'))
+        parts['waveForeLo'] = dict(parts['waveFore']); parts['waveForeLo']['src'] = 'parts/waveForeLo.png'
+        out_bones.append({'name': 'wCuff', 'parent': 'wFore', 'pos': [0, 0], 'part': 'waveForeLo'})
+        rig['hidden'] = rig['hidden'] + ['wCuff']
+        if 'wCuff' not in rig['drawWave']: rig['drawWave'].insert(rig['drawWave'].index(WV.get('splitAfter', 'pouch')) + 1, 'wCuff')
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)

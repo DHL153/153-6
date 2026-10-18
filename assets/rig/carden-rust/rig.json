@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "eb77ba1c",
+ "version": "0232d33f",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -840,13 +840,13 @@
   "upper": 1.5708,
   "fore": 1.5708,
   "hand": -1.6092,
-  "handRest": 0.0,
+  "handRest": -0.15,
   "shoulderShift": [
-   0,
-   0
+   35,
+   -60
   ],
-  "up": 1.75,
-  "fore0": -1.25,
+  "up": 2.05,
+  "fore0": -0.85,
   "openAt": 0.02,
   "openWa": 0.6,
   "note": "먼 팔(봉 팔) 손 흔들기: 소매는 상체 뒤, 팔뚝은 수염 옆, 편 손은 맨 앞"
@@ -860,13 +860,13 @@
   "skirt",
   "torso",
   "pouch",
+  "wFore",
   "foreF",
   "tuftL",
   "tuftR",
   "head",
   "beard",
   "headFront",
-  "wFore",
   "weapon",
   "fistF",
   "handL",
