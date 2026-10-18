@@ -17163,7 +17163,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  background:radial-gradient(circle,color-mix(in srgb,var(--cc1) 70%,transparent) 0%,color-mix(in srgb,var(--cc2) 45%,transparent) 30%,transparent 64%);}
 #mr-crest.charging .cr-charge{animation:mrCrestCharge .9s ease-in-out infinite;}
 #mr-crest .cr-fuel{position:absolute;left:0;top:0;width:var(--fs,18px);height:var(--fs,18px);object-fit:contain;pointer-events:none;filter:drop-shadow(0 0 6px var(--cc2));z-index:5;}
-#mr-crest .cr-swirl{position:absolute;left:49.46%;top:42.3%;width:150%;height:auto;aspect-ratio:1;opacity:0;pointer-events:none;z-index:5;transform:translate(-50%,-50%);filter:drop-shadow(0 0 3px rgba(255,255,255,.45));}
+#mr-crest .cr-swirl{position:absolute;left:49.46%;top:42.3%;width:150%;height:auto;aspect-ratio:1;opacity:0;pointer-events:none;z-index:5;transform:translate(-50%,-50%);filter:drop-shadow(0 0 3px rgba(255,255,255,.45));}#mr-crest .cr-swirl.thin,#mr-crest .cr-swirl.thin2{filter:drop-shadow(0 0 2px rgba(255,255,255,.35));}#mr-crest .cr-swirl.thick{filter:drop-shadow(0 0 6px rgba(255,255,255,.7)) drop-shadow(0 0 14px rgba(255,236,190,.45));}
 #mr-crest .cr-flash{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
  background:radial-gradient(circle,#fff 0%,#fff 18%,var(--cc1) 34%,color-mix(in srgb,var(--cc2) 60%,transparent) 52%,transparent 70%);}
 #mr-crest .cr-shock{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
@@ -17295,18 +17295,38 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  }
  function addWind(v,cap){wind=Math.min(cap||CAP,wind+v);lastWind=performance.now();kick();}
  // 머지마다 호출 (level = 합쳐져 새로 생긴 구슬 단계, 0부터)
- // 2026-10-19 DHL: 회오리가 돌면서 작아지는 이펙트 — DHL 회오리 그림(흰색, 검은 배경 → 투명), 색은 필요하면 filter로 바꿈
+ // 2026-10-19 DHL: 회오리가 돌면서 작아지는 이펙트 — DHL 회오리 그림(흰색, 검은 배경 → 투명)
+ // 08:32 DHL: 약할 땐 얇고 작게, 연속 머지면 점점 크게(얇은 그림 유지), 보스 처치(스테이지 바뀜)는 가장 크게 — 진한 그림 + 얇은 그림 두 겹
+ //   얇은 그림 = 원본에서 흐린 덩어리를 빼고 붓결만 남긴 것 (fx_swirl_white_thin_0001)
  function makeSwirl(){
-  const img=new Image();img.src='assets/effects/fx_swirl_white_0001.webp';img.className='cr-swirl';img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');
-  return img;
+  const f=document.createDocumentFragment();
+  for(const [cls,src] of [['thin','fx_swirl_white_thin_0001'],['thin2','fx_swirl_white_thin_0001'],['thick','fx_swirl_white_0001']]){
+   const img=new Image();img.src=`assets/effects/${src}.webp`;img.className='cr-swirl '+cls;img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');f.appendChild(img);
+  }
+  return f;
  }
- let lastSwirl=0;
- function swirl(big){
-  const el=crest?.querySelector('.cr-swirl');if(!el||!shown()||quiet()||reduce())return;
-  const now=performance.now();if(!big&&now-lastSwirl<1400)return;lastSwirl=now;
-  el.getAnimations().forEach(a=>a.cancel());
-  const s0=big?1.45:1.15,dur=big?1200:900;
-  el.animate([{transform:`translate(-50%,-50%) rotate(0deg) scale(${s0})`,opacity:0},{opacity:.85,offset:.18},{opacity:.6,offset:.7},{transform:`translate(-50%,-50%) rotate(${big?540:360}deg) scale(.3)`,opacity:0}],{duration:dur,easing:'cubic-bezier(.45,.05,.55,.95)'});
+ let lastSwirl=0,lastSwirlHit=0,swirlStreak=0;
+ const SW_EASE='cubic-bezier(.45,.05,.55,.95)';
+ function swirlRun(el,s0,s1,rot,peak,dur,delay=0){
+  if(!el)return;el.getAnimations().forEach(a=>a.cancel());
+  el.animate([{transform:`translate(-50%,-50%) rotate(0deg) scale(${s0})`,opacity:0},{opacity:peak,offset:.18},{opacity:peak*.7,offset:.7},{transform:`translate(-50%,-50%) rotate(${rot}deg) scale(${s1})`,opacity:0}],{duration:dur,delay,easing:SW_EASE,fill:'backwards'});
+ }
+ // kind: 'gust'(바람만) | 'merge'(머지, 연속이면 커짐) | 'boss' — 예전 호출 true=boss, false=merge
+ function swirl(kind){
+  if(kind===true)kind='boss';else if(!kind)kind='merge';
+  if(!crest||!shown()||quiet()||reduce())return;
+  const q=c=>crest.querySelector('.cr-swirl.'+c),now=performance.now();
+  if(kind==='boss'){
+   swirlStreak=0;lastSwirl=now;
+   swirlRun(q('thick'),1.25,.12,720,1,1300);
+   swirlRun(q('thin2'),1.6,.4,420,.75,1250,90);
+   swirlRun(q('thin'),.9,.1,900,.9,1100,180);
+   return;
+  }
+  if(kind==='merge'){swirlStreak=now-lastSwirlHit<1600?swirlStreak+1:0;lastSwirlHit=now;}
+  if(now-lastSwirl<220)return;lastSwirl=now;
+  const n=kind==='merge'?Math.min(swirlStreak,6):0;
+  swirlRun(q('thin'),.62+n*.11,.22,300+n*40,(kind==='gust'?.3:.38)+n*.07,750+n*60);
  }
  window.mrCrestSwirl=swirl;
  window.mrCrestWind=function(level){
@@ -17352,7 +17372,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(bossMode()!=='A'){startCharge(3600);setTimeout(doKill,3500);}else doKill();
  };
  function gust(){
-  if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');swirl(false);}
+  if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');swirl('gust');}
   schedule();
  }
  function schedule(){clearTimeout(gustTimer);gustTimer=setTimeout(gust,9000+Math.random()*6000);}
