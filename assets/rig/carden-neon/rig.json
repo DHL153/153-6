@@ -1,6 +1,6 @@
 {
  "name": "carden-neon",
- "version": "c607212a",
+ "version": "ae700f10",
  "units": "rig px (reference x2)",
  "refOrigin": [
   236.0,
@@ -181,14 +181,14 @@
    "noAxis": true,
    "grip": [
     55.5,
-    205.8
+    183.5
    ]
   },
   "armUS": {
    "src": "parts/armUS.png",
    "pivot": [
     55.5,
-    20.5
+    32.5
    ],
    "scale": 1.0
   },
@@ -1424,7 +1424,8 @@
   "foreFromHand": true,
   "foreK": 1.25,
   "reachK": 0,
-  "upperSleeve": "armUS"
+  "upperSleeve": "armUS",
+  "rigidArm": true
  },
  "drawStaff": [
   "cape",

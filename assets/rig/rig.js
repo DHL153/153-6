@@ -632,7 +632,14 @@
         // staffKey.upperLen / fit (opt-in, 6 카르덴 10-18): 윗팔을 어깨갑 밖으로 빼고(upperLen), 소매를 어깨→손목 거리에 맞춰 늘임(fit = 펴짐 정도)
         //   → 팔꿈치가 윗팔 끝에 딱 붙고 손목이 뒷주먹 소매 테에 딱 닿음 (짧은 소매로는 팔이 봉 뒤에 숨거나 모자랐음)
         let n2 = N2;
-        if (SK.foreFromHand && hr.toElbow) {   // staffKey.foreFromHand (opt-in, 6 카르덴 10-18 00:59 '손-팔꿈치-어깨가 다 나오게'): 팔뚝은 뒷주먹 소매 테가 향한 쪽으로 그대로 이어지고(팔꿈치 = 손목 + 소매 방향 × 팔뚝 길이),
+        if (SK.rigidArm) {   // staffKey.rigidArm (opt-in, 16 네온 10-18 DHL '팔이 길어지지 않고 길이는 유지, 움직임만'): 윗팔(upperLen)·팔뚝(소매 그림 길이) 길이 고정, 어깨→손목 두 관절 IK 로 각도만 바뀜
+          const L1 = SK.upperLen || 78, p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1; b.armL.ax = p_[0] * (L1 / l_ - 1); b.armL.ay = p_[1] * (L1 / l_ - 1); b.armL.asy = 1;
+          rig.compute(); const E0_ = apply(b.armL.m, 0, 0), M_ = b.armL.m, kL_ = Math.sqrt(Math.abs(M_[0] * M_[3] - M_[1] * M_[2]));   // 숨쉬기로 몸통 배율이 1±2% → 세계 길이로 풀어야 손목에 딱 닿음
+          const eN = pick(SN, WN, solve2(SN, WN, Math.hypot(E0_[0] - SN[0], E0_[1] - SN[1]), N2 * kL_));
+          b.armU.ar += wrapA(Math.atan2(eN[1] - SN[1], eN[0] - SN[0]) - Math.atan2(p_[1], p_[0]) - wAng(b.armU.m)); rig.compute();
+          const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m)); rig.compute();
+          { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }
+        } else if (SK.foreFromHand && hr.toElbow) {   // staffKey.foreFromHand (opt-in, 6 카르덴 10-18 00:59 '손-팔꿈치-어깨가 다 나오게'): 팔뚝은 뒷주먹 소매 테가 향한 쪽으로 그대로 이어지고(팔꿈치 = 손목 + 소매 방향 × 팔뚝 길이),
           //   윗팔은 어깨→그 팔꿈치를 잇도록 길이만 맞춤 → 니콜처럼 어깨 밑으로 내려온 윗팔 + 앞으로 뻗은 팔뚝 + 손이 한 줄로 보임
           const tx_ = hr.toElbow[0], ty_ = hr.toElbow[1], dW = [cR * tx_ - sR2 * ty_, sR2 * tx_ + cR * ty_], ULn = SK.upperLen || 78;
           // 팔뚝 길이 배율 fk 를 0.85~1.4 에서 골라: 윗팔(어깨→팔꿈치)이 upperLen 에 가깝고 팔꿈치가 -20°~-150° 로 굽는 것 (돌아올 때 팔꿈치가 어깨에 붙어 접히던 것 방지)

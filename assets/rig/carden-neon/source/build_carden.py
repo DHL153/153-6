@@ -289,7 +289,16 @@ if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼�
                 pm = _cut3(up3['box']); xs_ = np.nonzero(pm[pm.shape[0] // 2, :, 3] > 128)[0]; q_ = _fit3(pm, Wd / (xs_.max() - xs_.min() + 1))
                 ys_, xs_ = np.nonzero(q_[..., 3] > 128); cx_ = (xs_.min() + xs_.max()) / 2; R_ = (xs_.max() - xs_.min()) / 2; ec_ = ys_.max() - R_   # 팔꿈치 원 가운데
                 py_ = ec_ - up3.get('len', 75); y0_ = int(max(0, py_ - up3.get('above', 20)))
-                yy_ = np.arange(q_.shape[0])[:, None]; q_[..., 3] = (q_[..., 3] * np.clip((yy_ - y0_) / 6, 0, 1)).astype(np.uint8)
+                yy_ = np.arange(q_.shape[0])[:, None]
+                RT = up3.get('roundTop', 0)
+                if RT:   # 위 끝(어깨 쪽)을 둥근 어깨 + 외곽선으로: 팔 IK 각도에 따라 위 끝 모서리가 어깨갑 옆(가슴 쪽)으로 나와 곧게 잘린 면이 보였음 (16 네온 10-18 16:45)
+                    from scipy import ndimage as _nd
+                    xx_ = np.arange(q_.shape[1])[None, :]; ry_ = R_ * RT; top_ = py_ - ry_ + 2
+                    inside_ = (yy_ >= py_) | (((xx_ - cx_) / (R_ + .5)) ** 2 + ((yy_ - py_) / ry_) ** 2 <= 1)
+                    sm_ = _nd.gaussian_filter(inside_.astype(np.float32), .7); q_[..., 3] = (q_[..., 3] * np.clip(sm_ * 1.6 - .3, 0, 1)).astype(np.uint8)
+                    ed_ = inside_ & ~_nd.binary_erosion(inside_, iterations=4) & (yy_ < py_ + 2) & (q_[..., 3] > 30)
+                    q_[ed_, :3] = np.array([24, 21, 16], np.uint8); y0_ = int(max(0, top_ - 3))
+                else: q_[..., 3] = (q_[..., 3] * np.clip((yy_ - y0_) / 6, 0, 1)).astype(np.uint8)
                 # 아래 둥근 끝(검은 팔꿈치 덮개)은 지움: 팔꿈치 원은 팔뚝 둥근 끝이 덮고, 윗팔 뼈 길이(57~99)가 그림(75)보다 짧을 땐 팔뚝 밑으로 삐져나왔음
                 xx_ = np.arange(q_.shape[1])[None, :]; ye_ = ec_ - R_ * up3.get('cutK', .3) + R_ * .35 * np.sqrt(np.clip(1 - ((xx_ - cx_) / (R_ + 1)) ** 2, 0, 1))
                 q_[..., 3] = (q_[..., 3] * np.clip((ye_ - yy_) / 3, 0, 1)).astype(np.uint8); q_ = q_[y0_:int(ec_ + 2)]

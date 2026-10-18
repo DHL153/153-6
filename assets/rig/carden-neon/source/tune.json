@@ -759,7 +759,8 @@
   "foreFromHand": true,
   "foreK": 1.25,
   "reachK": 0,
-  "upperSleeve": "armUS"
+  "upperSleeve": "armUS",
+  "rigidArm": true
  },
  "closeArmhole": false,
  "pts": {
@@ -1111,7 +1112,8 @@
     405,
     720,
     619
-   ]
+   ],
+   "len": 128
   },
   "upper": {
    "box": [
@@ -1120,8 +1122,9 @@
     1292,
     809
    ],
-   "len": 75,
-   "above": 20
+   "len": 78,
+   "above": 20,
+   "roundTop": 0.6
   }
  }
 }
