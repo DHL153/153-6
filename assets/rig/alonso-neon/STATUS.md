@@ -143,3 +143,4 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - build_neon.py HEAD_K 0.85: 머리·표정·깜빡임 조각을 목(NECK y312 = 머리 pivot) 중심으로 줄임, metrics.bodyHeight 774 → 709(머리카락 가운데가 내려온 만큼) → 게임에서 키(머리카락 가운데~발바닥 69px)는 같고 몸이 커지고 머리가 작아짐
 - 머리 위 내려찍기: 머리카락 끝이 68 내려와 주먹이 머리 위로 떠 보여서 팔도 머리와 같이 줄임(overheadKit.armK·farArmK 0.8 → 0.68) — 손잡이가 머리카락 끝 아래 94(전 103)
 - 달리기·대기 목·어깨 확대 확인(빈 곳 없음), 게임 1280×800 세 알론소 한 팀·컷인·도감 확인, 오류 0. 엔진 안 바꿈. rig version b56b19ea(다른 세션 컷인 .39 포함)
+- 편집 툴 v93 (1792357162-2940): rig.def.js?v=b56b19ea, progress/alonso11_head.jpg(세 알론소 한 팀 전·지금). claude/rig-requests.md 요청 '완료'로
