@@ -48,13 +48,13 @@ def outline_cut(name, i0, i1, lim, thr=40):
     keep_in = cv2.dilate((m & ~line & ~rem).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0   # 외곽선은 남은 안쪽에서 2px 안만 (떨어진 선 부스러기 지움)
     return rem | (m & line & pmask(lim) & ~keep_in)
 COVER = np.zeros((512, 512), np.uint8)   # 오린 조각들의 알파 합(대기 자리) — 원화에 있는데 아무 조각도 안 덮는 틈 찾기
-def crop(mask, name, grow=0, cut=None):
+def crop(mask, name, grow=0, cut=None, src=None):
     """원화에서 mask 부분만 오려 work/name.png 로. 반환: 오린 칸 왼쪽 위(원화 px).
     grow: 위에 그리는 조각은 2px 넓혀 밑 조각과 겹치게 — 맞닿은 가장자리의 반투명 줄(틈)이 안 보이게"""
     if grow: mask = cv2.dilate(mask.astype(np.uint8), np.ones((2 * grow + 1, 2 * grow + 1), np.uint8)).astype(bool)
     if cut is not None: mask = mask & ~cut
-    ys, xs = np.nonzero(mask & (RA[..., 3] > 0)); x0, y0, x1, y1 = xs.min() - 2, ys.min() - 2, xs.max() + 3, ys.max() + 3
-    a = RA.copy(); a[..., 3] = np.where(mask, a[..., 3], 0); a = islands(a, name); COVER[:] = np.maximum(COVER, a[..., 3]); Image.fromarray(a[y0:y1, x0:x1]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
+    ys, xs = np.nonzero(mask & ((RA if src is None else src)[..., 3] > 0)); x0, y0, x1, y1 = xs.min() - 2, ys.min() - 2, xs.max() + 3, ys.max() + 3
+    a = (RA if src is None else src).copy(); a[..., 3] = np.where(mask, a[..., 3], 0); a = islands(a, name); COVER[:] = np.maximum(COVER, a[..., 3]); Image.fromarray(a[y0:y1, x0:x1]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
 
 # ---------------- 원화 관절 (512 px) ----------------
 O = np.array([208.0, 486.0])          # 뿌리: 두 발목 가운데 땅(부츠 바닥)
@@ -130,12 +130,26 @@ yy, xx = np.mgrid[0:512, 0:512]; tt = (xx - B[0]) * U[0] + (yy - B[1]) * U[1]; n
 mk['sword'] = ((tt > -40) & (np.abs(nn) < 42)) | ((tt > -120) & (np.abs(nn) < 14))   # 칼날·날밑(넓게) + 손잡이·폼멜(좁게)
 # 겹침(밑에 그리는 조각이 위 조각 밑으로 몇 px 더 들어감) — 숨쉬기·달리기에서 조각끼리 1~3px 움직여도 경계에 배경(흰 줄)이 안 비치게 (DHL 10-18 12:03)
 #   머리 → 가까운 어깨갑(위) 밑으로 5px · 먼 어깨갑 → 머리(위) 밑으로 5px · 머리·먼 어깨갑은 칼날 외곽선 2px 밑까지(칼이 위)
-_d11 = np.ones((11, 11), np.uint8); _bladeIn = cv2.erode(BLADE_O.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+_d11 = np.ones((11, 11), np.uint8); _bladeIn = cv2.dilate(BLADE_O.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0   # 칼날 자리 + 1px — 칼 외곽선을 머리·어깨갑에 남기지 않음(공격 때 칼이 떠나면 검은 줄로 보였음, 10-18 15:30). 서 있을 땐 칼이 위라 경계 안 보임
 o_head = crop(mk['head'] | ((cv2.dilate(mk['head'].astype(np.uint8), _d11) > 0) & mk['pauldronN']), 'headArt', 2, cut=_bladeIn)   # 칼날 자리만 뺌(전: 칼 띠 |n|<42 → 칼날 옆 머리카락 끝이 칼 그림으로 감)
 o_pN = crop(mk['pauldronN'], 'pauldronNArt', 2); o_pF = crop(mk['pauldronF'] | ((cv2.dilate(mk['pauldronF'].astype(np.uint8), _d11) > 0) & mk['head']), 'pauldronFArt', 2, cut=_bladeIn)
 o_nUp = crop(mk['nUp'] & ~mk['pauldronN'], 'nUpArt', 2)
 o_nArt = crop(mk['nArt'], 'nArt', 2, cut=outline_cut('nArt', 11, 21, [[238, 392], [280, 375], [280, 420], [225, 420], [225, 400]])); o_fArt = crop(mk['fArt'] & ~mk['nArt'], 'fArt', 2)
-o_hips = crop(mk['hips'] & ~mk['nArt'] & ~mk['sword'], 'hipsArt')
+# 공격용 깨끗한 몸(10-18 15:30): 원화에서 두 주먹·토시·손잡이·폼멜이 덮던 골반·허벅지 자리를 바지로 메움(inpaint) — 서 있을 땐 팔·칼이 위에 있어 안 보이고,
+#   공격에서 팔·칼이 떠나도 주먹 부스러기(먼 허벅지 조각 속 아래 주먹·폼멜)가 남지 않음
+_occ = mk['nArt'] | mk['fArt'] | pmask(POMMEL) | (mk['sword'] & (tt < -30))
+_occ = cv2.dilate(_occ.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+_body = mk['hips'] | pmask('thighF') | pmask('thighN')
+_fill = _occ & _body
+_rgb = RA[..., :3].copy(); _rgb[RA[..., 3] < 100] = (58, 58, 66)
+_ring = (cv2.dilate(_fill.astype(np.uint8), np.ones((11, 11), np.uint8)) > 0) & ~_fill
+_hsv2 = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV); _pants = _ring & (_hsv2[..., 1] < 60) & (_hsv2[..., 2] > 35) & (_hsv2[..., 2] < 120)
+_pc = np.median(RA[..., :3][_pants], 0).astype(np.uint8) if _pants.any() else np.array([58, 58, 66], np.uint8)
+_rgb[_ring & ~_pants] = _pc   # 둘레의 금색·파랑·검은 선은 바지색으로 바꾼 뒤 메움(노란 번짐 없게)
+_inp = cv2.inpaint(np.ascontiguousarray(_rgb), _fill.astype(np.uint8) * 255, 7, cv2.INPAINT_TELEA)
+RA_body = RA.copy(); RA_body[..., :3][_fill] = _inp[_fill]; RA_body[..., 3][_fill] = 255
+print('  body fill px', int(_fill.sum()))
+o_hips = crop(mk['hips'], 'hipsArt', src=RA_body)
 # 몸통: 시트 몸통(3점 아핀으로 원화 자리에) 위에 원화 몸통(머리·어깨갑·팔·주먹·칼 뺀 곳)
 ex = mk['head'] | mk['pauldronN'] | mk['pauldronF'] | mk['nUp'] | mk['nArt'] | mk['fArt'] | mk['sword']
 _hin = cv2.erode(mk['head'].astype(np.uint8), np.ones((9, 9), np.uint8)) > 0   # 머리 가장자리 4px 띠는 몸통에도 남김: 숨쉬기·달리기에 머리가 1~3px 움직여도 머리 밑 경계에 흰 줄(배경)이 안 보이게(DHL 10-18 12:03 목 왼쪽 흰 선)
@@ -147,6 +161,14 @@ ov = RA.copy(); ov[..., 3] = np.where(tm, ov[..., 3], 0)
 tc = Image.fromarray(st); tc.alpha_composite(Image.fromarray(ov)); tca = islands(slivers(np.array(tc), 9), 'torsoArt'); COVER[:] = np.maximum(COVER, tca[..., 3])
 ys, xs = np.nonzero(tca[..., 3] > 0); o_torso = np.array([xs.min() - 2, ys.min() - 2], float)
 Image.fromarray(tca[ys.min() - 2:ys.max() + 3, xs.min() - 2:xs.max() + 3]).save(os.path.join(W, 'torsoArt.png'))
+# 공격용 몸통 torsoS = 시트 몸통 통째(위와 같은 3점 아핀): 팔을 들면 원화 몸통의 팔 자리(오린 자리)가 드러나므로 공격 동안 이 그림으로 바꿈(겹쳐 바뀜)
+_tsa = cv2.warpAffine(np.array(img(os.path.join(PC, 'torso.png'))), TA, (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+#   (10-18 내려찍기 v2) 원화 몸통 밑에 깔고(그리는 순서 torsoS < torso) 원화 몸통이 옅어지며 바뀜 → 배경이 비치지 않게:
+#   · 원화 몸통에만 있는 곳(가까운 허리)은 원화 몸통 그림으로 채움  · 원화 몸통 밖으로 나온 허리 밑단(벨트 위로 겹침)은 지움
+_tin = (_tsa[..., 3] < 200) & (tca[..., 3] > 128) & (np.arange(512)[None, :] < 200); _tsa[_tin] = tca[_tin]   # 가까운 쪽만(먼 쪽 옆구리 원화는 팔·칼을 오린 톱니 경계가 남아 있음)
+_tsa[(tca[..., 3] == 0) & (np.arange(512)[:, None] > 392)] = 0
+ys, xs = np.nonzero(_tsa[..., 3] > 0); o_torsoS = np.array([xs.min() - 2, ys.min() - 2], float)
+Image.fromarray(_tsa[ys.min() - 2:ys.max() + 3, xs.min() - 2:xs.max() + 3]).save(os.path.join(W, 'torsoSArt.png'))
 # 먼 윗팔(엔진 armF): 대기·달리기에선 몸통 뒤로 안 보임 → 시트 armFdown을 어깨→팔꿈치 길이에 맞춰
 # 가까운 윗팔: 원화 살색 부분(어깨갑 밑~팔꿈치 덮개)
 
@@ -158,6 +180,7 @@ def part(name, src, pivot, scale=2.0, **kw):
     shutil.copy(src, os.path.join(OUT, 'parts', name + '.png')); def_parts[name] = dict(src=f'parts/{name}.png', pivot=pivot, scale=scale, **kw)
 part('head', os.path.join(W, 'headArt.png'), pc(NECK, o_head))
 part('torso', os.path.join(W, 'torsoArt.png'), pc(HIP, o_torso))
+part('torsoS', os.path.join(W, 'torsoSArt.png'), pc(HIP, o_torsoS))
 part('hips', os.path.join(W, 'hipsArt.png'), pc(HIP, o_hips))
 part('pauldron', os.path.join(W, 'pauldronNArt.png'), pc(SH_N, o_pN))
 part('pauldronF', os.path.join(W, 'pauldronFArt.png'), pc(SH_F, o_pF))
@@ -179,7 +202,7 @@ def bone(name, parent, at, parent_at, part_=None, rot=0.0):
     if rot: b['rot'] = round(rot, 4)
     if part_: b['part'] = part_
     bones.append(b)
-bone('hips', 'hip', HIP, HIP, 'hips'); bone('torso', 'hip', HIP, HIP, 'torso'); bone('head', 'torso', NECK, HIP, 'head')
+bone('hips', 'hip', HIP, HIP, 'hips'); bone('torso', 'hip', HIP, HIP, 'torso'); bones.append(dict(name='torsoS', parent='torso', pos=[0, 0], part='torsoS')); bone('head', 'torso', NECK, HIP, 'head')
 # 먼 팔: armF는 그림 축(아래로)과 어깨→팔꿈치 각도 차만큼 돎
 rF = ang(EL_F - SH_F) - ang(np.array([38 - 36, 145 - 25.0]))
 bone('armF', 'torso', SH_F, HIP, 'armF', rF)
@@ -195,7 +218,15 @@ for n in ['cape', 'scarf', 'pouch', 'skirt', 'skirtB']: bones.append(dict(name=n
 # 원화 관절: 가까운 엉덩이(172,402)·무릎(150,426)·발목(144,454) / 먼 엉덩이(214,404)·무릎(268,428)·발목(271,464)
 LJ = {'near': dict(h=np.array([172.0, 402]), k=np.array([150.0, 426]), a=np.array([144.0, 454])),
       'far': dict(h=np.array([214.0, 404]), k=np.array([268.0, 428]), a=np.array([271.0, 464]))}
-o_lg = {n: crop(pmask(n), n + 'Art') for n in ['thighN', 'thighF', 'shinN', 'shinF', 'bootN', 'bootF']}
+# 먼 허벅지 윗선(10-18 내려찍기): 원화에선 아래 주먹·폼멜이 덮어 윗선이 없음 → 메운 자리 위가 평평하게 잘려 보였음(머리 위로 칼을 들 때).
+#   벨트 끝(226,404) → 원화에 남아 있는 허벅지 윗선 시작(266,401)까지 곡선 위는 지우고, 그 선을 검은 외곽선으로 그림
+RA_tF = RA_body.copy(); _tc = [(222, 405.5), (232, 404.2), (244, 403.0), (255, 402.0), (266, 401.0)]
+_ss = 4; _lm = Image.new('L', (512 * _ss, 512 * _ss), 0); ImageDraw.Draw(_lm).line([(x * _ss, (y + 1.0) * _ss) for x, y in _tc], fill=255, width=int(2.3 * _ss))
+_lc = np.array(_lm.resize((512, 512), Image.LANCZOS)).astype(float) / 255
+_up = Image.new('L', (512, 512), 0); ImageDraw.Draw(_up).polygon([(222, 380), (282, 380), (282, 400.2), (266, 400.2)] + _tc[::-1], fill=255); _upm = np.array(_up) > 0
+for c_ in range(3): RA_tF[..., c_] = (RA_tF[..., c_] * (1 - _lc) + 26 * _lc).astype(np.uint8)
+RA_tF[..., 3] = np.where(_upm, 0, np.maximum(RA_tF[..., 3], (_lc * 255).astype(np.uint8)))
+o_lg = {n: crop(pmask(n), n + 'Art', src=(RA_tF if n == 'thighF' else RA_body) if n.startswith('thigh') else None) for n in ['thighN', 'thighF', 'shinN', 'shinF', 'bootN', 'bootF']}
 for n in o_lg: shutil.copy(os.path.join(W, n + 'Art.png'), os.path.join(OUT, 'parts', n + '.png')); def_parts[n] = dict(src=f'parts/{n}.png', pivot=[0, 0], scale=1.0)
 def sole(n, ank):   # 부츠 그림의 바닥 점(발목 기준, 원화 px): 맨 아래 줄 양 끝 + 그 위 4px 양 끝
     a = np.array(Image.open(os.path.join(W, n + 'Art.png')))[..., 3] > 128; o = o_lg[n]; ys = np.nonzero(a.any(1))[0]; yb = ys.max(); out = []
@@ -240,24 +271,25 @@ legs = {'hip': [0, 10], 'thigh': TH_R, 'shin': SH_R,   # 달리기(두 다리 �
 print('legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['far']['thigh'], legs['far']['shin'], 'run', rseg, 'soleR', legs['boot']['sole'])
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 # 원화: 다리 < 바지 위 < 먼 윗팔(몸 뒤) < 몸통 < 먼 어깨갑 < 머리 < 칼(위 주먹 뒤) < 위 주먹·먼 팔뚝 < 가까운 윗팔 < 가까운 어깨갑 < 가까운 토시·아래 주먹
-draw = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'pauldronF', 'head', 'weapon', 'foreF', 'armU', 'pauldron', 'armL']
+draw = ['legFar', 'legNear', 'hips', 'armF', 'torsoS', 'torso', 'pauldronF', 'head', 'weapon', 'foreF', 'armU', 'pauldron', 'armL']   # torsoS(공격용 몸통)는 원화 몸통 밑 — 원화 몸통이 옅어지며 드러남
 GX, GY = (G_U - HIP) * 2
 guard = {'gx': round(float(GX), 1), 'gy': round(float(GY), 1), 'sa': round(ang(U), 4), 'sN': 0, 'sF': round(S_LOW, 1),
          'nPiece': 'foreF', 'fPiece': 'armL', 'nUpper': 'armF', 'fUpper': 'armU', 'order': 'drawA',
          'frame': 'torso'}   # 팔뚝 고정(DHL 13:25): 칼·두 팔을 상체에 붙여 한 덩어리로 — 달릴 때 팔이 상체와 따로 흔들리면 오린 팔꿈치·어깨 경계가 벌어져 깨져 보였음. 움직임은 상체 기울기·오르내림·숨쉬기가 줌
 rig = {'name': 'alonso-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
-       'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'drawA': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N if n not in ('half', 'closed')}, 'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
+       'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'drawA': draw, 'hidden': ['torsoS'], 'faces': {n: f'face_{n}' for n in FACE_N if n not in ('half', 'closed')}, 'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'metrics': {'bodyHeight': 2 * (482 - 95), 'note': 'rig units; 머리카락 가운데(y95)~발바닥(482) ×2, 무기 제외'},
        'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -44, 'bob': 10, 'lean': 0.1, 'headRun': 0.04},
        'carrySwing': 0.25, 'wristRange': 0.2,
        'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
-       'ui': {'attack': None, 'touch': 'hop', 'note': '내려찍기(actions.smash)를 만들기 전엔 공격 없음 — 엔진 기본 smash는 이 칼 쥐는 방식과 안 맞음'},
+       'ui': {'attack': None, 'touch': 'hop'},   # attack = 'smash' 는 attack_neon.py 가 넣음(actions.smash)
        'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0011.png(512) = 원화'},
        'note': '11 네온 알론소 (2026-10-18, v1 대기·달리기). 두 손으로 칼을 몸 앞에 쥠(swordGrip.guard), 손·팔뚝·머리·어깨갑은 원화를 그대로 오려 씀.'}
 _gap = (RA[..., 3] > 200) & (COVER < 200); _gap[440:] = False   # 다리 아래(부츠 자리)는 달리기 조각이라 뺌
 print('  gaps (원화 불투명인데 조각이 안 덮음):', int(_gap.sum()), 'px')
 if _gap.any():
     _v = RA.copy(); _v[_gap] = (255, 0, 255, 255); Image.fromarray(_v).save(os.path.join(W, '_gaps.png'))
+exec(open(os.path.join(HERE, 'attack_neon.py'), encoding='utf-8').read())   # 내려찍기 (키: attack_keys.json)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
 rig['version'] = _h.hexdigest()[:8]

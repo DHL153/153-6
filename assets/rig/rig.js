@@ -387,7 +387,7 @@
     /* 다리 길이: legs.near/far.thigh·shin (opt-in, 11 네온 알론소) = 서 있을 때(동작 포함) 쪽마다 다른 길이 — 3/4 보기 원화처럼 앞으로 뻗은 다리가 길게.
        달릴수록(this.A) 공통 길이(legs.thigh·shin)로 → 달리기는 두 다리 같은 길이 */
     _legLen(side) { const L = this.L, S = side && L[side]; if (!S || (S.thigh == null && S.shin == null)) return [L.thigh, L.shin];
-      const a = this.A || 0; return [lerp(S.thigh ?? L.thigh, L.thigh, a), lerp(S.shin ?? L.shin, L.shin, a)] }
+      const a = Math.max(this.A || 0, this.legRunV || 0); return [lerp(S.thigh ?? L.thigh, L.thigh, a), lerp(S.shin ?? L.shin, L.shin, a)] }
     _ik(H, A, soft = 0, kw = 0, side = null) { // two-bone IK, knee bends forward (+x); kw>0 = knee turned outward (kneeOut)
       const [L1, L2] = this._legLen(side); let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
       // soft IK for a foot in the air: near full extension the knee angle changes infinitely fast (acos singularity),
@@ -404,7 +404,7 @@
     /* legs.near/far.stand = {until, boot:{part, sole}, thighImg, shinImg, kneeImg} (opt-in, 11 네온 알론소): 서 있을 때(달리기 정도 A < until) 그 쪽 다리 그림 —
        원화를 그대로 오린 벌린 다리·부츠(가까운 발끝이 뒤를 봄), 달리면 시트의 곧은 다리 조각으로. kneeImg 없으면 무릎 덮개 안 그림(원화 조각에 이미 있음) */
     //   stand.fade = [lo, hi] (opt-in): A 가 lo→hi 동안 서 있는 그림이 달리기 그림 위에서 옅어짐(바꿔 그리기 튐 없음) · 발목 높이(두 부츠 밑창)도 같이 섞임
-    _standW(side) { const S = side && this.L[side], st = S && S.stand; if (!st) return 0; const A = this.A || 0;
+    _standW(side) { const S = side && this.L[side], st = S && S.stand; if (!st) return 0; const A = Math.max(this.A || 0, this.legRunV || 0);
       return st.fade ? 1 - smooth(st.fade[0], st.fade[1], A) : (A < (st.until ?? .35) ? 1 : 0) }
     _stand(side) { return this._standW(side) > 0 ? this.L[side].stand : null }
     _boot(side) { const st = this._stand(side); return st && st.boot ? st.boot : this.L.boot }
@@ -851,7 +851,7 @@
       if (D.hiltSlide) for (const n of D.hiltSlide) if (b[n]) b[n].wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0], G[1]];
       const ang = v => Math.atan2(v[1], v[0]);
       // 쥔 팔뚝 그림을 칼에 붙임 → 팔꿈치 점 반환
-      const fore = (bone, pn, s) => { const p = P[pn], k = p.scale || 1, gp = p.grip, el = p.elbow || p.pivot, rho = ang(U) - ang(p.shaftDir);
+      const fore = (bone, pn, s, tw = 0) => { const p = P[pn], k = p.scale || 1, gp = p.grip, el = p.elbow || p.pivot, rho = ang(U) - ang(p.shaftDir) + tw;   // tw(opt-in 키 nTw·fTw, 11 네온 알론소): 쥔 팔 조각을 손잡이 쥔 점 둘레로 더 돌림(손목 비틀기) — 조각을 바꾸기 전후에 팔뚝 방향을 서서히 맞춰 바뀜 튐을 없앰
         const GN = [G[0] + U[0] * s, G[1] + U[1] * s], c = Math.cos(rho), s_ = Math.sin(rho), dx = (gp[0] - p.pivot[0]) * k, dy = (gp[1] - p.pivot[1]) * k;
         const X = [GN[0] - (c * dx - s_ * dy), GN[1] - (s_ * dx + c * dy)];   // 그림 pivot(=팔꿈치)이 놓일 자리
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = [c, s_, -s_, c, X[0], X[1]];
@@ -869,11 +869,11 @@
         const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
-      const EN = fore("foreF", nP, tr("sN") || 0); this.stN = upper("armF", nU, SN, EN);
+      const EN = fore("foreF", nP, tr("sN") || 0, tr("nTw")); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
       if (reach > .985) {   // 먼 손도 칼에 붙음
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper);
-        const EF = fore("armL", fP, tr("sF") || SG.far.sPref || 0); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
+        const EF = fore("armL", fP, tr("sF") || SG.far.sPref || 0, tr("fTw")); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
       } else if (reach > 0 && D.reachIK) {   // (opt-in, 21 알론소) 먼 손 잡기·놓기 = 두 관절 IK: 윗팔(어깨→팔꿈치) + 쥔 팔 조각(팔꿈치→주먹)을 진짜 관절처럼 — 손이 막대처럼 미끄러지지 않음.
         //  시작(reach≈0)은 흔들던 팔뚝 방향 그대로, 끝(reach=1)은 칼에 붙은 rigid 자리와 같음(팔 길이 1.0이면 IK 팔꿈치 = rigid 팔꿈치)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];
@@ -992,6 +992,7 @@
       const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
       const D = act && act.def, at = act ? act.t : 0;
       this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? 14 : 8, dt);
+      this.legRunV = act && D.legRun ? clamp(this._tr("legRun"), 0, 1) : 0;   // legRun(opt-in 동작 트랙, 11 네온 알론소 런지): 다리 길이·그림을 달리기 쪽(A)으로 — 서 있는 원화 다리는 짧아 런지 뒷다리가 못 뻗음
       const G = this.G, A = this.A, I = 1 - A, S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
       if (!act) this.cyc = (this.cyc + dt * (sp * this.stance / S)) % 1;          // cadence chosen so the planted foot moves exactly with the ground
       // body velocity from the action's hip drive (feeds cape / skirt / hem drag like real forward motion)
@@ -1053,7 +1054,7 @@
       if (act && rig.def.footReach) {
         for (const side of ["near", "far"]) { const LL_ = this._legLen(side), Lm_ = (LL_[0] + LL_[1]) * rig.def.footReach; const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           if (Math.hypot(dx, dy) > Lm_ && Math.abs(dy) < Lm_) { const nx = Math.sign(dx) * Math.sqrt(Lm_ * Lm_ - dy * dy); f.x += nx - dx } } }
-      if (this._fadeN && !(act && D.kind === "sword" && D.rigid && D.fade)) { for (const n of this._fadeN) rig.alpha[n] = 1; this._fadeN = null }   // fade(opt-in) 동작이 끝나거나 끊기면 숨겼던 조각을 되돌림
+      if (this._fadeN && !(act && D.kind === "sword" && D.rigid && D.fade)) { const hd = rig.def.hidden || []; for (const n of this._fadeN) rig.alpha[n] = hd.includes(n) ? 0 : 1; this._fadeN = null }   // fade(opt-in) 동작이 끝나거나 끊기면 숨겼던 조각을 되돌림 — hidden 에 든 조각(공격 때만 보이는 몸 조각 등)은 다시 숨김
       if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
       else if (act && D.kind === "wave" && !rig.def.waveImg) { if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // 손 흔들기 그림이 없는 캐릭터: 몸·표정 트랙만 (반응 동작) — guard(opt-in)면 두 손 쥔 칼 그대로
       else if (act && D.kind === "wave") this._waveArms(D, at, T);
