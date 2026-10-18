@@ -144,28 +144,32 @@
       const L = this.def.legs, P = this.legPose && this.legPose[side]; if (!L || !P) return;
       const S = L[side], dark = S.shade || 0, useF = dark && "filter" in ctx;
       if (useF) ctx.filter = `brightness(${1 - dark})`;
-      const bd = L.boot, bp = this.def.parts[bd.part], kb = bp.scale || 1;
-      const Bk = mul(mul(R, rotT(P.ankle[0], P.ankle[1], P.foot)), [kb, 0, 0, kb, 0, 0]);
-      const boot = (n) => { const p = this.def.parts[n], im = this.images[n]; if (im) { set(ctx, Bk); ctx.drawImage(im, -p.pivot[0], -p.pivot[1]) } };
+      const bd = L.boot, SW = S.stand ? (P.standW || 0) : 0;   // stand(opt-in): 서 있는 다리 그림 비율 (0 달리기 그림만 · 1 서 있는 그림만 · 사이 = 달리기 위에 옅게)
+      const boot = (n, sc = n) => { const p = this.def.parts[n], im = this.images[n], kb = this.def.parts[sc].scale || 1; if (im) { set(ctx, mul(mul(R, rotT(P.ankle[0], P.ankle[1], P.foot)), [kb, 0, 0, kb, 0, 0])); ctx.drawImage(im, -p.pivot[0], -p.pivot[1]) } };
       // boot inside/back rim → shin (enters the opening) → boot front (its rim line overlaps the shin) → thigh
       // legs.thighFirst (opt-in, 알론소 v4): 허벅지를 먼저 → 무릎 보호대가 붙은 정강이 그림이 무릎 위를 덮음
       // S.thighImg / S.shinImg (opt-in): 가까운·먼 다리에 다른 그림. L.kneeImg / S.kneeImg (opt-in): 무릎 덮개(보호대)를 무릎 위에 따로 — 허벅지·정강이 가운데 각도
       if (L.tube) {   // legs.tube (opt-in, 6 카르덴 10-18): 다리 = 엉덩이→발목 곧은 바지 통 하나(무릎에서 꺾이지 않음, 굵기 고정) + 부츠 — 바지가 몸처럼 고정인 캐릭터에서 무릎이 바지 밖으로 튀어나와 '떨어진 다리'로 보이던 것
         const T_ = L.tube, im_ = this.images[T_.part], il_ = Math.hypot(T_.b[0] - T_.a[0], T_.b[1] - T_.a[1]), wl_ = Math.hypot(P.ankle[0] - P.hip[0], P.ankle[1] - P.hip[1]) || 1;
-        set(ctx, this._seg(R, T_.a, T_.b, P.hip, P.ankle, (T_.k || 1) * il_ / wl_)); ctx.drawImage(im_, 0, 0); boot(bd.part);
+        set(ctx, this._seg(R, T_.a, T_.b, P.hip, P.ankle, (T_.k || 1) * il_ / wl_)); ctx.drawImage(im_, 0, 0); boot(P.boot || bd.part);
         if (useF) ctx.filter = "none"; return }
-      const th = S.thighImg || L.thighImg, thigh = () => { set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0) };
-      if (L.thighFirst) thigh();
-      if (bd.back) boot(bd.back);
-      const sh = S.shinImg || L.shinImg; set(ctx, this._seg(R, sh.a, sh.b, P.knee, P.ankle, sh.w)); ctx.drawImage(this.images[sh.part], 0, 0);
-      boot(bd.part);
-      if (!L.thighFirst) thigh();
-      const kc = S.kneeImg || L.kneeImg;
-      if (kc && this.images[kc.part]) {
-        const at = Math.atan2(P.knee[1] - P.hip[1], P.knee[0] - P.hip[0]), as = Math.atan2(P.ankle[1] - P.knee[1], P.ankle[0] - P.knee[0]);
-        const am = at + wrapA(as - at) * (kc.mix ?? .5) - Math.PI / 2 + (kc.rot || 0), kp = this.def.parts[kc.part], k = kp.scale || 1;
-        set(ctx, mul(mul(R, rotT(P.knee[0] + (kc.dx || 0), P.knee[1] + (kc.dy || 0), am)), [k, 0, 0, k, 0, 0])); ctx.drawImage(this.images[kc.part], -kp.pivot[0], -kp.pivot[1]);
-      }
+      const drawSet = (ST) => {
+        const bpn = ST ? ((ST.boot && ST.boot.part) || bd.part) : bd.part;
+        const th = (ST && ST.thighImg) || S.thighImg || L.thighImg, thigh = () => { set(ctx, this._seg(R, th.a, th.b, P.hip, P.knee, th.w)); ctx.drawImage(this.images[th.part], 0, 0) };
+        if (L.thighFirst) thigh();
+        if (bd.back && !ST) boot(bd.back, bpn);   // 뒤 테두리는 앞 부츠 배율로 (전과 같음)
+        const sh = (ST && ST.shinImg) || S.shinImg || L.shinImg; set(ctx, this._seg(R, sh.a, sh.b, P.knee, P.ankle, sh.w)); ctx.drawImage(this.images[sh.part], 0, 0);
+        boot(bpn);
+        if (!L.thighFirst) thigh();
+        const kc = ST ? ST.kneeImg : (S.kneeImg || L.kneeImg);
+        if (kc && this.images[kc.part]) {
+          const at = Math.atan2(P.knee[1] - P.hip[1], P.knee[0] - P.hip[0]), as = Math.atan2(P.ankle[1] - P.knee[1], P.ankle[0] - P.knee[0]);
+          const am = at + wrapA(as - at) * (kc.mix ?? .5) - Math.PI / 2 + (kc.rot || 0), kp = this.def.parts[kc.part], k = kp.scale || 1;
+          set(ctx, mul(mul(R, rotT(P.knee[0] + (kc.dx || 0), P.knee[1] + (kc.dy || 0), am)), [k, 0, 0, k, 0, 0])); ctx.drawImage(this.images[kc.part], -kp.pivot[0], -kp.pivot[1]);
+        }
+      };
+      if (SW < 1) drawSet(null);
+      if (SW > 0) { const ga = ctx.globalAlpha; if (SW < 1) ctx.globalAlpha = ga * SW; drawSet(S.stand); ctx.globalAlpha = ga }
       if (useF) ctx.filter = "none";
     }
     // ---- textured triangle mesh: every grid cell = 2 triangles, each drawn with its own affine map (no strip seams)
@@ -380,8 +384,12 @@
     /** root-space point between the two prong tips */
     tip() { const p = this.rig.def.parts.weapon.tips; const a = this.rig.partPoint("weapon", ...p[0]), c = this.rig.partPoint("weapon", ...p[1]); return [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2] }
     get facingScale() { const k = this.turnT > 0 ? .72 + .28 * Math.abs(Math.cos((1 - this.turnT / .16) * Math.PI)) : 1; return this.facing * k }
-    _ik(H, A, soft = 0, kw = 0) { // two-bone IK, knee bends forward (+x); kw>0 = knee turned outward (kneeOut)
-      const L1 = this.L.thigh, L2 = this.L.shin; let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
+    /* 다리 길이: legs.near/far.thigh·shin (opt-in, 11 네온 알론소) = 서 있을 때(동작 포함) 쪽마다 다른 길이 — 3/4 보기 원화처럼 앞으로 뻗은 다리가 길게.
+       달릴수록(this.A) 공통 길이(legs.thigh·shin)로 → 달리기는 두 다리 같은 길이 */
+    _legLen(side) { const L = this.L, S = side && L[side]; if (!S || (S.thigh == null && S.shin == null)) return [L.thigh, L.shin];
+      const a = this.A || 0; return [lerp(S.thigh ?? L.thigh, L.thigh, a), lerp(S.shin ?? L.shin, L.shin, a)] }
+    _ik(H, A, soft = 0, kw = 0, side = null) { // two-bone IK, knee bends forward (+x); kw>0 = knee turned outward (kneeOut)
+      const [L1, L2] = this._legLen(side); let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
       // soft IK for a foot in the air: near full extension the knee angle changes infinitely fast (acos singularity),
       // which shows as a one-frame knee snap at toe-off. Ease the reach so the leg straightens smoothly (the foot lags a hair).
       if (soft > 0) { const Lm = (L1 + L2) * .995, ds = (L1 + L2) * .975; if (d > ds) { const ds2 = ds + (Lm - ds) * (1 - Math.exp(-(d - ds) / (Lm - ds))), dd = lerp(d, ds2, soft);
@@ -393,9 +401,17 @@
         knee = [F[0] + (knee[0] - F[0]) * c, F[1] + (knee[1] - F[1]) * c] }   // kneeOut (opt-in, 6 카르덴): 무릎이 바깥(뒤)으로 — 다리가 엉덩이-발목 축으로 돈 것처럼 수직 거리만 cos 로 줄임(3D 회전의 그림자)
       return { hip: H, knee, ankle };
     }
-    _ankleFor(gx, lift, ang) { // ankle height so the lowest sole point (heel / ball / toe tip) touches the ground
-      const c = Math.cos(ang), s = Math.sin(ang); let low = -1e9;
-      for (const [x, y] of this.L.boot.sole) low = Math.max(low, (x * s + y * c) * this.kb);
+    /* legs.near/far.stand = {until, boot:{part, sole}, thighImg, shinImg, kneeImg} (opt-in, 11 네온 알론소): 서 있을 때(달리기 정도 A < until) 그 쪽 다리 그림 —
+       원화를 그대로 오린 벌린 다리·부츠(가까운 발끝이 뒤를 봄), 달리면 시트의 곧은 다리 조각으로. kneeImg 없으면 무릎 덮개 안 그림(원화 조각에 이미 있음) */
+    //   stand.fade = [lo, hi] (opt-in): A 가 lo→hi 동안 서 있는 그림이 달리기 그림 위에서 옅어짐(바꿔 그리기 튐 없음) · 발목 높이(두 부츠 밑창)도 같이 섞임
+    _standW(side) { const S = side && this.L[side], st = S && S.stand; if (!st) return 0; const A = this.A || 0;
+      return st.fade ? 1 - smooth(st.fade[0], st.fade[1], A) : (A < (st.until ?? .35) ? 1 : 0) }
+    _stand(side) { return this._standW(side) > 0 ? this.L[side].stand : null }
+    _boot(side) { const st = this._stand(side); return st && st.boot ? st.boot : this.L.boot }
+    _ankleFor(gx, lift, ang, side = null) { // ankle height so the lowest sole point (heel / ball / toe tip) touches the ground
+      const c = Math.cos(ang), s = Math.sin(ang), lowOf = (bt, kb) => { let lo = -1e9; for (const [x, y] of bt.sole) lo = Math.max(lo, (x * s + y * c) * kb); return lo };
+      let low = lowOf(this.L.boot, this.kb); const w = this._standW(side), sb = w > 0 && this.L[side].stand.boot;
+      if (sb) low = lerp(low, lowOf(sb, this.rig.def.parts[sb.part].scale || 1), w);
       return [gx, -low - lift];
     }
     _foot(phase, S) { // phase 0..1 of this foot's stride; returns [x (rel. hip), lift, angle, inStance]
@@ -897,11 +913,11 @@
     }
     /* (opt-in, 11 네온 알론소) swordGrip.guard: 동작이 없을 때(대기·달리기·몸 반응)도 두 손이 손잡이를 쥔 채 칼을 몸 앞에 듦.
        _swordRigid를 그대로 씀 — 칼 손잡이 자리(gx·gy, 골반 기준)·각도(sa)·쥔 자리(sN·sF)·어깨 옮김(shN·shF)은 guard 값,
-       달리기 흔들림 run.{gx,gy,sa} = [진폭, 위상](걸음 반 주기마다), 숨쉬기 breath.{gy,sa} = 진폭. 손은 늘 쥠(reach 1, w 1). */
+       달리기 흔들림 run.{gx,gy,sa} = [진폭, 위상](걸음 반 주기마다), 달릴 때 자리 runAt.{gx,gy,sa} = 더할 값(A 비율), 숨쉬기 breath.{gy,sa} = 진폭. 손은 늘 쥠(reach 1, w 1). */
     _swordGuard(T) {
       const G_ = this.rig.def.swordGrip.guard, A = this.A, I = 1 - A, psi = (this.cyc * 2) % 1, br = Math.sin(T * TAU / 2.9);
       const val = n => { let v = n === "w" || n === "reach" ? 1 : (G_[n] ?? 0); const r = G_.run && G_.run[n], q = G_.breath && G_.breath[n];
-        if (r) v += A * r[0] * Math.sin(TAU * (psi + (r[1] || 0))); if (q) v += I * q * br; return v };
+        if (r) v += A * r[0] * Math.sin(TAU * (psi + (r[1] || 0))); if (q) v += I * q * br; if (G_.runAt && G_.runAt[n]) v += A * G_.runAt[n]; return v };   // runAt(opt-in): 달릴 때 옮겨 쥐는 자리·각도
       const k1 = (n, d) => [[0, G_[n] ?? d]];
       const D = this._guardD || (this._guardD = { kind: "sword", rigid: true, orderAlways: !!G_.order, nPiece: k1("nPiece", null), fPiece: k1("fPiece", null), nUpper: k1("nUpper", null), fUpper: k1("fUpper", null), order: G_.order ? k1("order") : null, fade: G_.fade || null });
       D.trk = val;
@@ -1021,16 +1037,16 @@
       rig.compute();
       // a standing leg never locks fully straight (that is where IK snaps): if a planted foot would need more than ~16° short of
       // full extension, the pelvis sinks instead (rises back slowly) — the body lowers, the knee stays soft
-      { const Lm = L.thigh + L.shin, dmax = Lm * .99; let need = 0;
-        for (const side of ["near", "far"]) { const f = this.ft[side], hard = 1 - smooth(0, rig.def.dropLift || 3, f.lift); if (hard <= 0) continue;   // dropLift: 발이 닿기 전부터 골반을 미리 내림 (넓게 서는 캐릭터, opt-in)   // same weight the soft IK hands over with
-          const H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1])   /* hipX: 알론소 v4 다리 뿌리 안쪽(opt-in) */, Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
+      { let need = 0;
+        for (const side of ["near", "far"]) { const LL_ = this._legLen(side), Lm = LL_[0] + LL_[1], dmax = Lm * .99, f = this.ft[side], hard = 1 - smooth(0, rig.def.dropLift || 3, f.lift); if (hard <= 0) continue;   // dropLift: 발이 닿기 전부터 골반을 미리 내림 (넓게 서는 캐릭터, opt-in)   // same weight the soft IK hands over with
+          const H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1])   /* hipX: 알론소 v4 다리 뿌리 안쪽(opt-in) */, Ak = this._ankleFor(f.x, f.lift, f.ang, side), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           const nd_ = Math.hypot(dx, dy) > dmax ? hard * (dy - Math.sqrt(Math.max(0, dmax * dmax - dx * dx))) : 0;
           need = Math.max(need, nd_) }
         need = Math.min(need, this.G.dropCap); this.hipDrop = Math.max(need, damp(this.hipDrop || 0, need, 10, dt));   // sinks at once, rises back gently
         if (this.hipDrop > .01) { b.hip.ay += this.hipDrop; rig.compute() } }
       // footReach (opt-in, 6 카르덴 10-18): 동작 중 발이 다리 길이 밖이면(런지 뒤 몸이 돌아올 때) 발을 엉덩이 쪽으로 당김 — 다리와 부츠가 떨어져 보이지 않게
-      if (act && rig.def.footReach) { const Lm_ = (L.thigh + L.shin) * rig.def.footReach;
-        for (const side of ["near", "far"]) { const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
+      if (act && rig.def.footReach) {
+        for (const side of ["near", "far"]) { const LL_ = this._legLen(side), Lm_ = (LL_[0] + LL_[1]) * rig.def.footReach; const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]), Ak = this._ankleFor(f.x, f.lift, f.ang), dx = Ak[0] - H[0], dy = Ak[1] - H[1];
           if (Math.hypot(dx, dy) > Lm_ && Math.abs(dy) < Lm_) { const nx = Math.sign(dx) * Math.sqrt(Lm_ * Lm_ - dy * dy); f.x += nx - dx } } }
       if (this._fadeN && !(act && D.kind === "sword" && D.rigid && D.fade)) { for (const n of this._fadeN) rig.alpha[n] = 1; this._fadeN = null }   // fade(opt-in) 동작이 끝나거나 끊기면 숨겼던 조각을 되돌림
       if (rig.def.spearGrip && !(act && D.kind === "wave" && rig.def.waveImg)) { this.wl = wl; this._spearArms(D, at, T) }   // 창 먼저 + 두 손 자루 위 (반응 동작 중에도)
@@ -1056,10 +1072,10 @@
         const [r0, r1] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9];   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
         const kw = L[side].kneeOut ? L[side].kneeOut * this.koW : 0;   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게)
-        let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft, kw);
+        let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
-          if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang), soft, kw) }
-        sol.foot = ang; sol.lift = f.lift; lp[side] = sol;
+          if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side) }
+        sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
       }
       rig.legPose = lp;
 

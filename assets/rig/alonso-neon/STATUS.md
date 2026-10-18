@@ -13,5 +13,18 @@
 - 직접 정리 2곳: 지운 은색 고리가 남긴 검은 가시 지움 · 손목과 주먹 사이 작은 구멍 메움
 - 손·손잡이 관절점 다시 잼 (measure.json)
 
+## 10:51~ v1 대기·달리기 조립 (DHL 10:51 동작 시트·조각 시트 받음)
+- 조립 `source/build_neon.py` (실행: `cd source && python3 -I build_neon.py`): 머리·몸통·골반·어깨갑·두 팔·주먹·다리는 **원화를 오려** 씀(`polys.json` 다각형), 칼 = 원화 칼날·날밑을 세워서 + 시트 손잡이(폼멜은 원화 것 하나)
+  - 몸통 = 시트 몸통(3점 아핀, 원화 몸통 자리 안) 위에 원화 몸통. 떨어진 섬·가는 띠는 지움(`islands`·`slivers` — 대기엔 안 보이다 달리기에서 떠 보였음)
+  - 아래 주먹 = 원화 외곽선 밖 바지·폼멜 고리는 `outline_cut`으로 뺌(달리기에서 주먹 밑 회색 띠·톱니)
+- 대기 = 원화 (jprobe: 골반·머리·어깨·손잡이·무릎 원화 자리). 두 손은 `swordGrip.guard`로 늘 칼을 쥠
+- 달리기 다리 = **시트의 곧은 다리 조각**(허벅지·정강이·무릎 덮개·부츠, 1.15배) — 원화 벌린 다리 조각은 옆으로 누워 달리기에 못 씀
+  - 엔진 opt-in `legs.near/far.stand = {fade:[lo,hi], boot:{part,sole}, thighImg, shinImg, kneeImg}`: 서 있을 때(A<lo)는 원화 다리, A가 lo→hi 동안 달리기 다리 위에서 옅어짐, 발목 높이(두 부츠 밑창)도 같이 섞임
+  - 엔진 opt-in `legs.near/far.thigh·shin`(쪽별 서 있는 길이, A 따라 공통 길이로) — 원화 다리 길이 그대로 대기
+  - 엔진 opt-in `swordGrip.guard.runAt.{gx,gy,sa}`: 달릴 때 손잡이 자리를 옮김(손을 가슴 쪽으로)
+  - gait: 골반 hipBase −44(다리가 몸 밑으로 모이면 골반이 올라감), strideBase 80·strideK .2, kneeLift .35, heelKick .5, lean .1 — probe: 무릎 뒤집힘 0, 무릎이 엉덩이 위로 0
+- 표정 `source/faces11.py`: 시트 face_*(머리 통째) → 머리카락으로 ECC 맞춤 → 눈·입 3점 아핀으로 원화 얼굴 자리 → 얼굴 피부 안만(코 표시 남김). 깜빡임(half·closed)은 **두 눈 자리만**(눈썹 원화 그대로)
+- 회귀: 다른 리그 6종 대기·달리기·멈춤·모든 동작·뒤돌기 픽셀 해시 차이 0 (Math.random·시간 고정한 `_reg.html`)
+
 ## 다음
-손 고친 원화·조각·동작 시트 받으면 → 검수(손가락·겹침·비율) → 조각 이름 붙이기 → 관절점 다시 재기 → 대기 조립(guard) → 달리기(probe.py) → 내려찍기 → 게임 연결(game_check.py)
+DHL v1(대기·달리기) 확인 → 내려찍기(동작 시트 2줄: 머리 위로 들기 → 내려찍기 → 런지 → 돌아오기) → 게임 연결(REGISTRY 11, gameRef 가운데, cutHold, game_check.py)

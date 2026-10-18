@@ -1,0 +1,13 @@
+<!doctype html><meta charset=utf-8><canvas id=c width=10 height=10></canvas>
+<script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+(async()=>{const def=window.MR_RIG_DEFS['alonso-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const Q=new URLSearchParams(location.search);if(Q.get('patch'))Object.assign(def,JSON.parse(Q.get('patch')));if(Q.get('gait'))def.gait=Object.assign({},def.gait,JSON.parse(Q.get('gait')));if(Q.get('legs')){const L=JSON.parse(Q.get('legs'));for(const k in L){if(typeof L[k]==='object'&&!Array.isArray(L[k]))Object.assign(def.legs[k],L[k]);else def.legs[k]=L[k]}}
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620}),g=document.getElementById('c').getContext('2d');
+const out=[];const ang=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0]),W=x=>Math.atan2(Math.sin(x),Math.cos(x));
+for(let i=0;i<300;i++){an.update(1/60,{vx:i<20?0:620,facing:1});rig.draw(g,0,0,.01,1);
+ if(i<120)continue;const P=rig.legPose,r={};for(const s of['near','far']){const p=P[s];r[s]={k:+(W(ang(p.hip,p.knee)-ang(p.knee,p.ankle))*57.3).toFixed(1),a:p.ankle.map(v=>+v.toFixed(1)),kn:p.knee.map(v=>+v.toFixed(1)),f:+(W(p.foot)*57.3).toFixed(1),hip:p.hip.map(v=>+v.toFixed(1))}}
+ r.hipY=+rig.by.hip.pos[1].toFixed(1);out.push(r)}
+window.R=out;document.title='done'})().catch(e=>document.title='ERR '+e.stack)
+</script>

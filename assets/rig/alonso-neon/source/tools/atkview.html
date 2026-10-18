@@ -1,0 +1,17 @@
+<!doctype html><meta charset=utf-8><body style="margin:0;background:#fff"><canvas id=c></canvas>
+<script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 공격 프레임 지정 시각 보기: atkview.html?ts=0,0.1,..&k=0.5&cols=6  (시각 = 동작 시간 a.t, 1/240초 간격으로 진행)
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['alonso-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});
+const TS=(Q.get('ts')||'0').split(',').map(Number),K=+(Q.get('k')||.5),C=+(Q.get('cols')||TS.length),FW=(+(Q.get('fw')||1500))*K,FH=(+(Q.get('fh')||1000))*K,OX=+(Q.get('ox')||520),OY=+(Q.get('oy')||900),R=Math.ceil(TS.length/C);
+const c=document.getElementById('c');c.width=FW*C;c.height=FH*R;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+for(let i=0;i<60;i++)an.update(1/60,{vx:0,facing:1});an.attack(Q.get('atk')||'smash');
+const tOf=()=>an.act?an.act.t:9;
+for(let k=0;k<TS.length;k++){let guard=0;while(tOf()<TS[k]-1e-4&&guard++<2000)an.update(1/240,{vx:0,facing:1});
+  const x0=FW*(k%C),y0=FH*Math.floor(k/C);g.strokeStyle='#ddd';g.strokeRect(x0,y0,FW,FH);
+  const HID=(Q.get('hide')||'').split(',').filter(Boolean),sv=HID.map(n=>rig.alpha[n]);HID.forEach(n=>rig.alpha[n]=0);g.save();rig.draw(g,x0+OX*K,y0+OY*K,K,1);g.restore();HID.forEach((n,i)=>rig.alpha[n]=sv[i]);if(Q.get('mark')&&an.swordG){const G=an.swordG,A=an.swordA,sF=an._tr?an._tr('sF'):0,P=(x,y)=>[x0+OX*K+x*K,y0+OY*K+y*K];g.setTransform(1,0,0,1,0,0);for(const [pt,col] of [[G,'#f00'],[[G[0]+Math.cos(A)*sF,G[1]+Math.sin(A)*sF],'#0a0']]){const q=P(...pt);g.fillStyle=col;g.beginPath();g.arc(q[0],q[1],6,0,7);g.fill()}}g.setTransform(1,0,0,1,0,0);
+  g.fillStyle='#c00';g.font=(40*K|0)+'px sans-serif';if(!Q.get('nolab'))g.fillText(TS[k].toFixed(2)+' st '+(an.stN||0).toFixed(2)+'/'+(an.stF||0).toFixed(2),x0+10,y0+44*K)}
+document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>

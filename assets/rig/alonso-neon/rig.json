@@ -1,0 +1,856 @@
+{
+ "name": "alonso-neon",
+ "version": "d033534c",
+ "units": "rig px (원화 512 ×2)",
+ "refOrigin": [
+  416.0,
+  972.0
+ ],
+ "refScale": 1.0,
+ "refLift": 0,
+ "parts": {
+  "head": {
+   "src": "parts/head.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "torso": {
+   "src": "parts/torso.png",
+   "pivot": [
+    66.0,
+    100.0
+   ],
+   "scale": 2.0
+  },
+  "hips": {
+   "src": "parts/hips.png",
+   "pivot": [
+    34.0,
+    1.0
+   ],
+   "scale": 2.0
+  },
+  "pauldron": {
+   "src": "parts/pauldron.png",
+   "pivot": [
+    45.0,
+    44.0
+   ],
+   "scale": 2.0
+  },
+  "pauldronF": {
+   "src": "parts/pauldronF.png",
+   "pivot": [
+    21.0,
+    28.0
+   ],
+   "scale": 2.0
+  },
+  "armU": {
+   "src": "parts/armU.png",
+   "pivot": [
+    4.0,
+    4.0
+   ],
+   "scale": 2.0,
+   "elbow": [
+    20.0,
+    30.0
+   ]
+  },
+  "armL": {
+   "src": "parts/armL.png",
+   "pivot": [
+    15.0,
+    16.0
+   ],
+   "scale": 2.0,
+   "elbow": [
+    15.0,
+    16.0
+   ],
+   "grip": [
+    101.7,
+    46.5
+   ],
+   "wrist": [
+    101.7,
+    46.5
+   ],
+   "shaftDir": [
+    0.6051086267486272,
+    -0.7961429204824914
+   ]
+  },
+  "foreF": {
+   "src": "parts/foreF.png",
+   "pivot": [
+    3.0,
+    28.0
+   ],
+   "scale": 2.0,
+   "elbow": [
+    3.0,
+    28.0
+   ],
+   "grip": [
+    39.8,
+    28.0
+   ],
+   "wrist": [
+    39.8,
+    28.0
+   ],
+   "shaftDir": [
+    0.6051086267486272,
+    -0.7961429204824914
+   ]
+  },
+  "armF": {
+   "src": "parts/armF.png",
+   "pivot": [
+    36,
+    25
+   ],
+   "scale": 0.7063,
+   "elbow": [
+    38,
+    145
+   ]
+  },
+  "weapon": {
+   "src": "parts/weapon.png",
+   "pivot": [
+    100,
+    396.4641362222595
+   ],
+   "scale": 2.0,
+   "tip": [
+    100,
+    16
+   ],
+   "tips": [
+    [
+     92,
+     10
+    ],
+    [
+     108,
+     10
+    ]
+   ],
+   "guard": [
+    100,
+    370
+   ],
+   "pommel": [
+    100,
+    463
+   ]
+  },
+  "face_effort": {
+   "src": "parts/face_effort.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_surprised": {
+   "src": "parts/face_surprised.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_grimace": {
+   "src": "parts/face_grimace.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_closed": {
+   "src": "parts/face_closed.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "face_half": {
+   "src": "parts/face_half.png",
+   "pivot": [
+    146.0,
+    249.0
+   ],
+   "scale": 2.0
+  },
+  "thighN": {
+   "src": "parts/thighN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "thighF": {
+   "src": "parts/thighF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "shinN": {
+   "src": "parts/shinN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "shinF": {
+   "src": "parts/shinF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "bootN": {
+   "src": "parts/bootN.png",
+   "pivot": [
+    52.0,
+    2.0
+   ],
+   "scale": 2.0
+  },
+  "bootF": {
+   "src": "parts/bootF.png",
+   "pivot": [
+    20.0,
+    9.0
+   ],
+   "scale": 2.0
+  },
+  "rthighN": {
+   "src": "parts/rthighN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "rthighF": {
+   "src": "parts/rthighF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "rshinN": {
+   "src": "parts/rshinN.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "rshinF": {
+   "src": "parts/rshinF.png",
+   "pivot": [
+    0,
+    0
+   ],
+   "scale": 1.0
+  },
+  "rkneeN": {
+   "src": "parts/rkneeN.png",
+   "pivot": [
+    49.5,
+    50.5
+   ],
+   "scale": 0.8
+  },
+  "rkneeF": {
+   "src": "parts/rkneeF.png",
+   "pivot": [
+    49.5,
+    50.5
+   ],
+   "scale": 0.8
+  },
+  "rboot": {
+   "src": "parts/rboot.png",
+   "pivot": [
+    46.0,
+    30.0
+   ],
+   "scale": 1.12
+  }
+ },
+ "bones": [
+  {
+   "name": "root",
+   "parent": null,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "hip",
+   "parent": "root",
+   "pos": [
+    -32.0,
+    -176.0
+   ]
+  },
+  {
+   "name": "hips",
+   "parent": "hip",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "hips"
+  },
+  {
+   "name": "torso",
+   "parent": "hip",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "torso"
+  },
+  {
+   "name": "head",
+   "parent": "torso",
+   "pos": [
+    26.0,
+    -172.0
+   ],
+   "part": "head"
+  },
+  {
+   "name": "armF",
+   "parent": "torso",
+   "pos": [
+    110.0,
+    -124.0
+   ],
+   "rot": 0.3533,
+   "part": "armF"
+  },
+  {
+   "name": "foreF",
+   "parent": "armF",
+   "pos": [
+    1.4,
+    84.7
+   ],
+   "rot": -0.3533,
+   "part": "foreF"
+  },
+  {
+   "name": "fistF",
+   "parent": "foreF",
+   "pos": [
+    73.7,
+    -0.1
+   ]
+  },
+  {
+   "name": "weapon",
+   "parent": "fistF",
+   "pos": [
+    0,
+    0
+   ],
+   "rot": 0.6499,
+   "part": "weapon"
+  },
+  {
+   "name": "armU",
+   "parent": "torso",
+   "pos": [
+    -84.0,
+    -112.0
+   ],
+   "part": "armU"
+  },
+  {
+   "name": "armL",
+   "parent": "armU",
+   "pos": [
+    32.0,
+    52.0
+   ],
+   "part": "armL"
+  },
+  {
+   "name": "fistN",
+   "parent": "armL",
+   "pos": [
+    173.3,
+    61.1
+   ]
+  },
+  {
+   "name": "pauldron",
+   "parent": "torso",
+   "pos": [
+    -84.0,
+    -112.0
+   ],
+   "part": "pauldron"
+  },
+  {
+   "name": "pauldronF",
+   "parent": "torso",
+   "pos": [
+    110.0,
+    -124.0
+   ],
+   "part": "pauldronF"
+  },
+  {
+   "name": "cape",
+   "parent": "torso",
+   "pos": [
+    0,
+    -200
+   ]
+  },
+  {
+   "name": "scarf",
+   "parent": "torso",
+   "pos": [
+    0,
+    -200
+   ]
+  },
+  {
+   "name": "pouch",
+   "parent": "torso",
+   "pos": [
+    0,
+    -200
+   ]
+  },
+  {
+   "name": "skirt",
+   "parent": "torso",
+   "pos": [
+    0,
+    -200
+   ]
+  },
+  {
+   "name": "skirtB",
+   "parent": "torso",
+   "pos": [
+    0,
+    -200
+   ]
+  }
+ ],
+ "legs": {
+  "hip": [
+   0,
+   10
+  ],
+  "thigh": 108.0,
+  "shin": 78.0,
+  "thighImg": {
+   "part": "rthighF",
+   "a": [
+    34.2,
+    21.6
+   ],
+   "b": [
+    39.7,
+    133.9
+   ],
+   "w": 1.197
+  },
+  "shinImg": {
+   "part": "rshinF",
+   "a": [
+    28.5,
+    22.3
+   ],
+   "b": [
+    46.0,
+    131.1
+   ],
+   "w": 1.625
+  },
+  "thighFirst": false,
+  "boot": {
+   "part": "rboot",
+   "sole": [
+    [
+     -46.0,
+     49.0
+    ],
+    [
+     84.0,
+     49.0
+    ],
+    [
+     -34.0,
+     56.0
+    ],
+    [
+     84.0,
+     56.0
+    ],
+    [
+     26.0,
+     63.0
+    ],
+    [
+     52.0,
+     63.0
+    ]
+   ],
+   "ankleRange": [
+    -0.45,
+    0.75
+   ]
+  },
+  "near": {
+   "x": -96.0,
+   "hipX": -40.0,
+   "runX": -10,
+   "shade": 0,
+   "kneeOut": 1,
+   "thigh": 65.1,
+   "shin": 57.3,
+   "thighImg": {
+    "part": "rthighN",
+    "a": [
+     47.1,
+     21.8
+    ],
+    "b": [
+     48.1,
+     129.7
+    ],
+    "w": 1.149
+   },
+   "shinImg": {
+    "part": "rshinN",
+    "a": [
+     34.2,
+     21.6
+    ],
+    "b": [
+     24.7,
+     127.2
+    ],
+    "w": 1.563
+   },
+   "kneeImg": {
+    "part": "rkneeN",
+    "mix": 0.5
+   },
+   "stand": {
+    "fade": [
+     0.05,
+     0.1
+    ],
+    "boot": {
+     "part": "bootN",
+     "sole": [
+      [
+       -46.0,
+       28.0
+      ],
+      [
+       3.0,
+       28.0
+      ],
+      [
+       -35.0,
+       32.0
+      ],
+      [
+       -16.0,
+       32.0
+      ]
+     ]
+    },
+    "thighImg": {
+     "part": "thighN",
+     "a": [
+      63.0,
+      8.0
+     ],
+     "b": [
+      41.0,
+      32.0
+     ],
+     "w": 1.0
+    },
+    "shinImg": {
+     "part": "shinN",
+     "a": [
+      35.0,
+      -12.0
+     ],
+     "b": [
+      29.0,
+      16.0
+     ],
+     "w": 1.0
+    },
+    "kneeImg": null
+   }
+  },
+  "far": {
+   "x": 158.0,
+   "hipX": 44.0,
+   "runX": 10,
+   "shade": 0,
+   "thigh": 118.2,
+   "shin": 72.2,
+   "thighImg": {
+    "part": "rthighF",
+    "a": [
+     34.2,
+     21.6
+    ],
+    "b": [
+     39.7,
+     133.9
+    ],
+    "w": 1.197
+   },
+   "shinImg": {
+    "part": "rshinF",
+    "a": [
+     28.5,
+     22.3
+    ],
+    "b": [
+     46.0,
+     131.1
+    ],
+    "w": 1.625
+   },
+   "kneeImg": {
+    "part": "rkneeF",
+    "mix": 0.5
+   },
+   "stand": {
+    "fade": [
+     0.05,
+     0.1
+    ],
+    "boot": {
+     "part": "bootF",
+     "sole": [
+      [
+       -1.0,
+       18.0
+      ],
+      [
+       55.0,
+       18.0
+      ],
+      [
+       26.0,
+       22.0
+      ],
+      [
+       41.0,
+       22.0
+      ]
+     ]
+    },
+    "thighImg": {
+     "part": "thighF",
+     "a": [
+      27.0,
+      10.0
+     ],
+     "b": [
+      81.0,
+      34.0
+     ],
+     "w": 1.0
+    },
+    "shinImg": {
+     "part": "shinF",
+     "a": [
+      11.0,
+      -11.0
+     ],
+     "b": [
+      14.0,
+      25.0
+     ],
+     "w": 1.0
+    },
+    "kneeImg": null
+   }
+  }
+ },
+ "draw": [
+  "legFar",
+  "legNear",
+  "hips",
+  "armF",
+  "torso",
+  "pauldronF",
+  "head",
+  "weapon",
+  "foreF",
+  "armU",
+  "pauldron",
+  "armL"
+ ],
+ "drawA": [
+  "legFar",
+  "legNear",
+  "hips",
+  "armF",
+  "torso",
+  "pauldronF",
+  "head",
+  "weapon",
+  "foreF",
+  "armU",
+  "pauldron",
+  "armL"
+ ],
+ "hidden": [],
+ "faces": {
+  "effort": "face_effort",
+  "shout": "face_shout",
+  "focus": "face_focus",
+  "happy": "face_happy",
+  "surprised": "face_surprised",
+  "grimace": "face_grimace"
+ },
+ "blinkFaces": {
+  "half": "face_half",
+  "closed": "face_closed"
+ },
+ "metrics": {
+  "bodyHeight": 774,
+  "note": "rig units; 머리카락 가운데(y95)~발바닥(482) ×2, 무기 제외"
+ },
+ "armPhase": 0.5,
+ "gait": {
+  "heelKick": 0.5,
+  "kneeLift": 0.35,
+  "strideBase": 80,
+  "strideK": 0.2,
+  "swingReach": -0.05,
+  "swingAng": 0.15,
+  "landAng": 0,
+  "hipBase": -44,
+  "bob": 10,
+  "lean": 0.1
+ },
+ "carrySwing": 0.25,
+ "wristRange": 0.2,
+ "swordGrip": {
+  "tipDepth": 6,
+  "near": {
+   "upper": "armF",
+   "carry": "foreF"
+  },
+  "far": {
+   "upper": "armU",
+   "pieces": [
+    "armL"
+   ],
+   "sPref": -56.8
+  },
+  "guard": {
+   "gx": 155.7,
+   "gy": -44.1,
+   "sa": -0.9209,
+   "sN": 0,
+   "sF": -56.8,
+   "nPiece": "foreF",
+   "fPiece": "armL",
+   "nUpper": "armF",
+   "fUpper": "armU",
+   "order": "drawA",
+   "run": {
+    "gx": [
+     6,
+     0.15
+    ],
+    "gy": [
+     7,
+     0.1
+    ],
+    "sa": [
+     0.04,
+     0.35
+    ]
+   },
+   "runAt": {
+    "gx": 12,
+    "gy": -22,
+    "sa": -0.05
+   },
+   "breath": {
+    "gy": 3,
+    "sa": 0.01
+   }
+  }
+ },
+ "ui": {
+  "attack": "smash",
+  "touch": "hop"
+ },
+ "gameRef": {
+  "refOrigin": [
+   208.0,
+   486.0
+  ],
+  "refScale": 2.0,
+  "refLift": 0,
+  "note": "게임 그림 char_0011.png(512) = 원화"
+ },
+ "note": "11 네온 알론소 (2026-10-18, v1 대기·달리기). 두 손으로 칼을 몸 앞에 쥠(swordGrip.guard), 손·팔뚝·머리·어깨갑은 원화를 그대로 오려 씀."
+}

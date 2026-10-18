@@ -1,0 +1,11 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 관절 위치 찍기(리그 단위, 뿌리 기준): jprobe.html?pre=90&vx=0
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['alonso-neon'];
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src='../../'+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});const VX=+(Q.get('vx')||0);
+for(let i=0;i<+(Q.get('pre')||90);i++)an.update(1/60,{vx:VX,facing:1});
+const P=n=>{const m=rig.by[n].m;return [Math.round(m[4]),Math.round(m[5])]};
+window.R={hip:P('hip'),torso:P('torso'),head:P('head'),armU:P('armU'),armF:P('armF'),armL:P('armL'),foreF:P('foreF'),weapon:P('weapon'),G:an.swordG&&an.swordG.map(Math.round),a:an.swordA,legs:rig.legPose,st:[an.stN,an.stF],A:an.A};
+document.title='done'})().catch(e=>document.title='ERR '+e.stack);
+</script>

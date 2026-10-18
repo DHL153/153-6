@@ -1,0 +1,12 @@
+<!doctype html><meta charset=utf-8><canvas id=c width=10 height=10></canvas>
+<script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+(async()=>{const def=window.MR_RIG_DEFS['alonso-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620}),g=document.getElementById('c').getContext('2d');
+for(let i=0;i<60;i++)an.update(1/60,{vx:0,facing:1});an.attack('smash');const out=[];
+for(let i=0;i<70;i++){an.update(1/60,{vx:0,facing:1});rig.draw(g,0,0,.01,1);const a=an.act;
+ const by=rig.by,sv=['armF','armU','foreF','armL'].map(n=>by[n].wm);by.armF.wm=by.armU.wm=null;rig.compute();const SN0=rig.point('armF').map(Math.round),SF0=rig.point('armU').map(Math.round);by.armF.wm=sv[0];by.armU.wm=sv[1];rig.compute();const SN=rig.point('armF'),SF=rig.point('armU'),EN=rig.point('foreF'),EF=rig.point('armL');
+ out.push([a?+a.t.toFixed(3):null,+(an.stN||0).toFixed(2),+(an.stF||0).toFixed(2),SN.map(Math.round),EN.map(Math.round),SF.map(Math.round),EF.map(Math.round),an.swordG&&an.swordG.map(Math.round),+(an.swordA||0).toFixed(2),SN0,SF0])}
+window.R=out;document.title='done'})().catch(e=>document.title='ERR '+e.stack)
+</script>
