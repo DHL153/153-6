@@ -13,5 +13,13 @@
 - 투명 배경, 가장자리 어두운 테(흰 테 없음), 덩어리 1개
 - 게임 마이룸 그림 char_0016.png 교체(11과 같은 방식). 받은 그림 = source/ref512_received.png, 작업본 = source/ref512.png, 예전 대각선 원화 = source/orig_char_0016_diagonal.png
 
+## 11:28 2번 찌르기 쥔 손 받음 — 합격
+- 러스트 grip2_both 와 실루엣이 거의 겹침(자루 y 392~490 / 러스트 395~488, 자루 수평 기울기 ≈0.1°, 두 자루 굵기 94~99px 같음) → 러스트 grip2.py 점을 그대로 씀
+- 두 주먹 손가락 4 + 엄지(엄지 위), 소매 방향 러스트와 같음(앞 = 왼쪽 아래, 뒤 = 왼쪽), 장갑 노란 테·줄무늬 소매 원화와 같음, 자홍 고름, 두 손 안 붙음
+- `source/grip2.py` → `parts_work/handL2.png`·`handR2.png` + `hands2.json`
+  - 배율 0.533 = 주먹 길이 기준(원화 봉 쥔 주먹 76px@512 = 152 리그 / 시트 285px). 자루 굵기 기준(48/98 = 0.49)이면 주먹이 대기보다 8% 작아짐 — 네온 원화 봉이 주먹에 비해 가늘어서. 자루 토막은 봉보다 약 2 리그 px 굵음(화면에선 1px 아래)
+  - 자르는 띠 y 388~492 (러스트 386~496 그대로면 뒷주먹 엄지 끝·앞 소매 윗선이 잘림)
+- 원본 = `source/sheets/grip2_both.png`, 비교 = `source/review/grip_vs_rust.png`, 자른 결과 = `source/review/grip_cut.png`
+
 ## 다음
-1번 조각 시트·2번 쥔 손 받으면 → 검수 → carden-rust 빌드 복사(build_carden.py·tune.json, wave 블록 뺌) → 조각 자르기·관절점 → 조립 → tools/check.sh → 게임 연결(REGISTRY 16)
+1번 조각 시트 받으면 → 검수 → carden-rust 빌드 복사(build_carden.py·tune.json, wave 블록 뺌) → 조각 자르기·관절점 → 조립 → tools/check.sh → 게임 연결(REGISTRY 16)

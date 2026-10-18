@@ -1,0 +1,46 @@
+{
+ "handL": {
+  "file": "parts_work/handL2.png",
+  "grip": [
+   279,
+   146.0
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "scale": 0.5333,
+  "off": [
+   101,
+   295
+  ],
+  "wrist": [
+   64,
+   297
+  ],
+  "toElbow": [
+   -0.8,
+   0.6
+  ]
+ },
+ "handR": {
+  "file": "parts_work/handR2.png",
+  "grip": [
+   413,
+   146.0
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "scale": 0.5333,
+  "off": [
+   747,
+   295
+  ],
+  "elbow": [
+   13,
+   250
+  ]
+ }
+}
