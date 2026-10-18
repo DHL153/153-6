@@ -1,0 +1,22 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 관절점(리그 단위, 땅 기준 root 좌표): poseprobe.html?ts=0,0.17,0.3 (실제 시간 초, 1배속·타격 정지 포함)
+// → window.R = [{t, pelvis, hairTop, eye, chin, SN, EN, SF, EF, grip, guard, tip, kneeN, ankleN, kneeF, ankleF}]
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['alonso-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});
+for(let i=0;i<90;i++)an.update(1/60,{vx:0,facing:1});
+const ts=(Q.get('ts')||'0').split(',').map(Number),out=[];let f=0;an.attack(Q.get('atk')||'smash');
+const r=a=>a.map(v=>Math.round(v));
+for(const t of ts){const tf=Math.round(t*60);while(f<tf){an.update(1/60,{vx:0,facing:1});f++}
+  const b=rig.by,P=def.parts,pt=(bn,x,y)=>{const m=b[bn].m;return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]};
+  const ppt=(bn,px,py)=>{const p=P[rig.swap[bn]||b[bn].part];return pt(bn,(px-p.pivot[0])*(p.scale||1),(py-p.pivot[1])*(p.scale||1))};
+  const R0=b.root.m,ap=(x,y)=>[R0[0]*x+R0[2]*y+R0[4],R0[1]*x+R0[3]*y+R0[5]],L=rig.legPose||{};
+  const W=P.weapon;
+  out.push({t,pelvis:r(pt('hip',0,0)),hairTop:r(ppt('head',150,20)),eye:r(ppt('head',200,150)),chin:r(ppt('head',150,240)),
+    SN:r(pt('armF',0,0)),EN:r(pt('foreF',0,0)),SF:r(pt('armU',0,0)),EF:r(pt('armL',0,0)),grip:r(an.swordG||[0,0]),
+    guard:r(ppt('weapon',...W.guard)),tip:r(ppt('weapon',...W.tip)),
+    kneeN:L.near?r(ap(...L.near.knee)):null,ankleN:L.near?r(ap(...L.near.ankle)):null,kneeF:L.far?r(ap(...L.far.knee)):null,ankleF:L.far?r(ap(...L.far.ankle)):null,
+    pN:rig.swap.foreF,pF:rig.swap.armL})}
+window.R=out;document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>

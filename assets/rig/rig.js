@@ -1084,7 +1084,7 @@
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
         const [r0, r1] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9];   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
-        const kw = L[side].kneeOut ? L[side].kneeOut * this.koW : 0;   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게)
+        const kN_ = side === "near" ? "kneeOutN" : "kneeOutF", kw = act && D[kN_] ? clamp(this._tr(kN_), 0, 1) : (L[side].kneeOut ? L[side].kneeOut * this.koW : 0);   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게) · kneeOutN/F(opt-in 동작 트랙, 11 네온 알론소 런지): 쪽별 무릎 돌림 — 앞다리 무릎이 화면 쪽으로 나와 허벅지가 짧아 보이게(원근), 시작·끝 값은 평소 값과 같게
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
           if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side) }
