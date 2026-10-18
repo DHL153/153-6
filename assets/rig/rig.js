@@ -853,10 +853,15 @@
       const wp = P.weapon, kW = wp.scale || 1, tipL = Math.hypot(wp.tip[0] - wp.pivot[0], wp.tip[1] - wp.pivot[1]) * kW;
       let G = [lerp(G0[0], Gk[0], w), lerp(G0[1], Gk[1], w)], a = a0 + wrapA(ak - a0) * w;
       const hs = D.hiltSlide ? tr("hilt") : 0, tL = tipL - hs;   // (opt-in) 긴 손잡이 줄이기: 칼날(+날밑)이 손 쪽으로 hs만큼 미끄러짐, 손잡이 감은 부분·폼멜은 손에 그대로
-      const ty = G[1] + Math.sin(a) * tL, td = SG.tipDepth ?? 6; if (ty > td && Math.cos(a) > 0) a = Math.asin(clamp((td - G[1]) / tL, -1, 1));
+      const ty = G[1] + Math.sin(a) * tL, td = SG.tipDepth ?? 6, GS = SG.groundShorten; let kB = 1;
+      // groundShorten(opt-in, 3 러스트 산초 올려베기 10-19): 칼끝이 땅을 뚫을 각도면 칼 각도를 바꾸지 않고 칼날을 날밑 기준으로 짧게(화면 쪽으로 돌아 나온 것처럼, 3/4 보기 원근) —
+      //   아주 긴 칼을 몸 앞 아래로 한 바퀴 돌리는 올려베기에서 6시 근처 칼끝이 땅 밑으로 크게 내려가던 것. {guard: 쥔 점→날밑 아래 끝 거리(리그), kMin, handle: 안 줄이는 손잡이 뼈}
+      if (GS) { const sA = Math.sin(a), gd = GS.guard || 0; if (sA > .02) kB = clamp(((td - G[1]) / sA - gd) / Math.max(1, tipL - gd), GS.kMin ?? .3, 1) }
+      else if (ty > td && Math.cos(a) > 0) a = Math.asin(clamp((td - G[1]) / tL, -1, 1));
       const U = [Math.cos(a), Math.sin(a)];
-      this.swordA = a; this.swordG = G; this.swordPull = 0; this.swordMiss = 0;
+      this.swordA = a; this.swordG = G; this.swordPull = 0; this.swordMiss = 0; this.bladeK = kB;
       const rw = a + Math.PI / 2; b.weapon.wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0] - U[0] * hs, G[1] - U[1] * hs];
+      if (GS) { if (GS.handle && b[GS.handle]) b[GS.handle].wm = b.weapon.wm.slice(); if (kB < 1) b.weapon.wm = mul(b.weapon.wm, [1, 0, 0, kB, 0, -(GS.guard || 0) * (1 - kB)]) }
       if (D.hiltSlide) for (const n of D.hiltSlide) if (b[n]) b[n].wm = [Math.cos(rw), Math.sin(rw), -Math.sin(rw), Math.cos(rw), G[0], G[1]];
       const ang = v => Math.atan2(v[1], v[0]);
       // 쥔 팔뚝 그림을 칼에 붙임 → 팔꿈치 점 반환
@@ -882,7 +887,21 @@
       //   팔꿈치 = 어깨 원(윗팔 길이) ∩ 주먹 원(팔뚝 길이), 쥔 팔 조각은 주먹 둘레로만 돌아 그 팔꿈치를 가리킴(손목 꺾임 = this.wrN·wrF).
       //   닿지 않으면 팔을 곧게 펴고 남는 만큼만 윗팔이 늘어남(this.stN·stF 로 확인). ikSide {N,F}: +1 = 어깨→주먹 선의 시계 방향 쪽 팔꿈치, 없으면 칼에 붙인 팔꿈치에 가까운 쪽
       const ikA = D.armIK ? clamp(tr("armIK"), 0, 1) : 0;   // 쪽별로 armIKN·armIKF 트랙이 있으면 그것
-      const ikArm = (bone, pn, s, tw, S, uPn, side) => { const E0 = fore(bone, pn, s, tw), ikW = D["armIK" + side] ? clamp(tr("armIK" + side), 0, 1) : ikA; if (!(ikW > 0)) { this["wr" + side] = 0; return E0 }
+      // (opt-in 부품 키 fore·foreBone·foreDir, 3 러스트 산초 올려베기 10-19) 손목 마디: 쥔 팔 조각 = 주먹(손잡이에 그대로 붙음, 그림 elbow = 손목 점) + 팔뚝 그림 P[fore](pivot = 손목, elbow = 팔꿈치, 뼈 foreBone).
+      //   팔꿈치 = 어깨 원(윗팔 길이) ∩ 손목 원(팔뚝 길이), 팔뚝 그림은 손목 둘레로 돌아 그 팔꿈치를 가리킴 — 칼이 한 바퀴 돌아도 주먹은 손잡이에 그대로, 조각 바꾸기 없이 이어짐.
+      //   팔꿈치 둘 중 = ikSide, 없으면 원화 방향(foreDir)으로 곧게 이은 팔꿈치에 가까운 쪽. this.wr* = 팔뚝이 원화 방향에서 돈 각(손목 꺾임)
+      const wristArm = (bone, pn, s, tw, S, uPn, side) => { const p = P[pn], Wp = fore(bone, pn, s, tw), fo = P[p.fore], kf = fo.scale || 1, wmF = b[bone].wm, pu = P[uPn];
+        const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), L2 = Math.hypot(fo.elbow[0] - fo.pivot[0], fo.elbow[1] - fo.pivot[1]) * kf, d0 = p.foreDir;
+        const E0 = [Wp[0] + (wmF[0] * d0[0] + wmF[2] * d0[1]) * L2, Wp[1] + (wmF[1] * d0[0] + wmF[3] * d0[1]) * L2], dx = Wp[0] - S[0], dy = Wp[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
+        let E; if (d >= L1 + L2) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];
+        else { const dd = Math.max(d, Math.abs(L1 - L2) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - L2 * L2) / (2 * L1 * dd), -1, 1)), sd = D.ikSide && D.ikSide[side];
+          const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1];
+          E = sd ? (sd > 0 ? e2 : e1) : (Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2) }
+        const aE = Math.atan2(E[1] - Wp[1], E[0] - Wp[0]), rot = aE - Math.atan2(fo.elbow[1] - fo.pivot[1], fo.elbow[0] - fo.pivot[0]), c = Math.cos(rot), s_ = Math.sin(rot);
+        rig.swap[p.foreBone] = p.fore === b[p.foreBone].part ? null : p.fore; b[p.foreBone].wm = [c, s_, -s_, c, Wp[0], Wp[1]];
+        this["wr" + side] = wrapA(aE - Math.atan2(E0[1] - Wp[1], E0[0] - Wp[0])); return E };
+      const ikArm = (bone, pn, s, tw, S, uPn, side) => { if (P[pn].fore && b[P[pn].foreBone]) return wristArm(bone, pn, s, tw, S, uPn, side);
+        const E0 = fore(bone, pn, s, tw), ikW = D["armIK" + side] ? clamp(tr("armIK" + side), 0, 1) : ikA; if (!(ikW > 0)) { this["wr" + side] = 0; return E0 }
         const pu = P[uPn], GN = [G[0] + U[0] * s, G[1] + U[1] * s], r = Math.hypot(E0[0] - GN[0], E0[1] - GN[1]);
         const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), dx = GN[0] - S[0], dy = GN[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
         let E; if (d >= L1 + r) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];

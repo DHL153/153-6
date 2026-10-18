@@ -117,7 +117,15 @@ _rgb = np.ascontiguousarray(RA[..., :3].copy()); _rgb[~AL] = (40, 38, 30)
 _inp = cv2.inpaint(_rgb, (_hole.astype(np.uint8) * 255), 6, cv2.INPAINT_TELEA)
 _inner = ero((RA[..., 3] > 200) & mk['torso'], 2)   # 메운 자리 불투명은 몸 안쪽만 — 실루엣 가장자리(어깨갑·소매 끝 반투명)에 진한 테두리가 생겼었음(10-19 대기 비교)
 TORSOA = RA.copy(); TORSOA[..., :3][_hole] = _inp[_hole]; TORSOA[..., 3] = np.where(_tor, np.where(_hole & _inner, 255, RA[..., 3]), 0)
-print('  torso fill px', int(_hole.sum()))
+# (10-19 올려베기) 팔이 가슴에서 떠나면 메운 자리가 흐린 얼룩으로 보였음 → 메운 자리는 조각 시트 상체(팔 없는 깨끗한 가슴)를 3점 아핀으로 원화 몸통 자리에 깐 것
+#   (목깃 위 끝·버클·왼쪽 가슴 끝: 시트 (50,8)(57,70)(5,30) → 원화 (296,320)(291,398)(232,340)). 시트 목 구멍(분홍)은 목 그늘색. 시트가 안 덮는 곳만 위 inpaint
+TA = cv2.getAffineTransform(np.float32([[50, 8], [57, 70], [5, 30]]), np.float32([[296, 320], [291, 398], [232, 340]]))
+_st = np.array(img(os.path.join(PC, 'torso.png'))).astype(np.int16); _m = np.clip(np.minimum(_st[..., 0], _st[..., 2]) - _st[..., 1], 0, None); _st[..., 0] -= _m; _st[..., 2] -= _m
+_hs = cv2.cvtColor(np.clip(_st[..., :3], 0, 255).astype(np.uint8), cv2.COLOR_RGB2HSV); _pink = (_hs[..., 0] > 150) | ((_hs[..., 0] < 8) & (_hs[..., 1] > 90) & (np.arange(_st.shape[0])[:, None] < 16))
+_st[..., :3][_pink] = (120, 72, 46)
+_sw = cv2.warpAffine(np.clip(_st, 0, 255).astype(np.uint8), TA, (512, 512), flags=cv2.INTER_LANCZOS4)
+_use = _hole & (_sw[..., 3] > 200); TORSOA[..., :3][_use] = _sw[..., :3][_use]
+print('  torso fill px', int(_hole.sum()), 'from sheet torso', int(_use.sum()))
 o_torso = save_crop(TORSOA, 'torsoArt', sl=5)
 o_hips = crop(mk['hips'] & AL, 'hipsArt', sl=3)
 o_nUp = crop(A_nearUp, 'nUpArt'); o_nF = crop(A_nearFore, 'nForeArt'); o_fF = crop(A_farFore, 'fForeArt'); o_fUp = crop(A_farUp, 'fUpArt'); o_pd = crop(A_pd, 'pauldronArt')
@@ -152,8 +160,23 @@ SD = [float(U[0]), float(U[1])]
 part('armF', os.path.join(W, 'nUpArt.png'), pc(SH_N, o_nUp), elbow=pc(EL_N, o_nUp))
 part('foreF', os.path.join(W, 'nForeArt.png'), pc(EL_N, o_nF), elbow=pc(EL_N, o_nF), grip=pc(G_U, o_nF), wrist=pc(G_U, o_nF), shaftDir=SD)
 part('armU', os.path.join(W, 'fUpArt.png'), pc(SH_F, o_fUp), elbow=pc(EL_F, o_fUp))
-part('armL', os.path.join(W, 'fForeArt.png'), pc(EL_F, o_fF), elbow=pc(EL_F, o_fF), grip=pc(G_L, o_fF), wrist=pc(G_L, o_fF), shaftDir=SD)
-part('weapon', os.path.join(W, 'sword.png'), r1(SW_PIV * K2), scale=2.0 / K2, tip=r1(SW_TIP * K2), tips=[[round(SW_TIP[0] * K2 - 16, 1), round(SW_TIP[1] * K2 + 20, 1)], [round(SW_TIP[0] * K2 + 16, 1), round(SW_TIP[1] * K2 + 20, 1)]], guard=r1(SW_GRD * K2), pommel=r1(SW_POM * K2))
+# 먼 쥔 팔 = 주먹(armL, 손잡이에 붙음) + 팔뚝(armLf, 손목 마디에서 돎 — 엔진 wristArm). 손목 점 WR_F = 장갑 끝·붕대 손목 가운데(원화)
+#   (10-19 올려베기) 칼이 한 바퀴 도는 동안 원화 팔뚝 각도 그대로면 손목 꺾임이 ±100° 넘어 조각을 바꿔야 했음(바꿀 때 주먹이 튐) → 팔뚝만 손목 둘레로 돌게
+WR_F = np.array([275.0, 351.0]); _fa = np.array(Image.open(os.path.join(W, 'fForeArt.png'))).astype(np.float32); _wi = WR_F - o_fF; _ei = EL_F - o_fF
+_ax = (_ei - _wi) / np.linalg.norm(_ei - _wi); _yy, _xx = np.mgrid[0:_fa.shape[0], 0:_fa.shape[1]]; _t = (_xx - _wi[0]) * _ax[0] + (_yy - _wi[1]) * _ax[1]
+_fist = _fa.copy(); _fist[..., 3] *= np.clip((4 - _t) / 2, 0, 1); _fore = _fa.copy(); _fore[..., 3] *= np.clip((_t + 6) / 2, 0, 1) * np.clip((np.hypot(_xx - _wi[0], _yy - _wi[1]) - 2) / 2 + (_t > 0), 0, 1)
+Image.fromarray(_fist.astype(np.uint8)).save(os.path.join(W, 'fFistArt.png')); Image.fromarray(_fore.astype(np.uint8)).save(os.path.join(W, 'fForeOnly.png'))
+part('armL', os.path.join(W, 'fFistArt.png'), pc(EL_F, o_fF), elbow=pc(WR_F, o_fF), grip=pc(G_L, o_fF), wrist=pc(G_L, o_fF), shaftDir=SD, fore='armLf', foreBone='armLf', foreDir=[round(float(_ax[0]), 5), round(float(_ax[1]), 5)])
+part('armLf', os.path.join(W, 'fForeOnly.png'), pc(WR_F, o_fF), elbow=pc(EL_F, o_fF))
+# 칼을 날+날밑(weapon)과 손잡이·폼멜(weaponH) 두 그림으로 — 올려베기에서 칼끝이 땅을 뚫을 각도면 날만 날밑 기준으로 짧게(엔진 groundShorten, 손잡이는 그대로 주먹 속)
+_wf = np.array(Image.open(os.path.join(W, 'sword.png'))); _wid = (_wf[..., 3] > 128).sum(1); _piv = int(SW_PIV[1] * K2)
+GROW = int(max(r for r in range(_piv - 140, _piv) if _wid[r] > 100)) + 1   # 날밑 아래 끝 다음 줄(2배 그림, 날밑 폭 150 · 손잡이 40~80)
+_wb = _wf.copy(); _wb[GROW:, :, 3] = 0; _wh = _wf.copy(); _wh[:GROW - 10, :, 3] = 0   # 손잡이 그림은 날밑 밑으로 10줄 겹침(먼저 그림)
+Image.fromarray(_wb).save(os.path.join(W, 'swordBlade.png')); Image.fromarray(_wh).save(os.path.join(W, 'swordHandle.png'))
+GUARD_D = round(float(_piv - GROW) * (2.0 / K2) / 1, 1)   # 쥔 점 → 날밑 아래 끝(리그)
+print('  sword split row', GROW, 'grip→guard', GUARD_D)
+part('weapon', os.path.join(W, 'swordBlade.png'), r1(SW_PIV * K2), scale=2.0 / K2, tip=r1(SW_TIP * K2), tips=[[round(SW_TIP[0] * K2 - 16, 1), round(SW_TIP[1] * K2 + 20, 1)], [round(SW_TIP[0] * K2 + 16, 1), round(SW_TIP[1] * K2 + 20, 1)]], guard=r1(SW_GRD * K2), pommel=r1(SW_POM * K2))
+part('weaponH', os.path.join(W, 'swordHandle.png'), r1(SW_PIV * K2), scale=2.0 / K2)
 # ---------------- 표정 (faces3.py) ----------------
 exec(open(os.path.join(HERE, 'faces3.py'), encoding='utf-8').read())
 for n in FACE_N: part(f'face_{n}', os.path.join(W, f'face_{n}.png'), def_parts['head']['pivot'])
@@ -168,7 +191,8 @@ def bone(name, parent, at, parent_at, part_=None, rot=0.0):
 bone('hips', 'hip', HIP, HIP, 'hips'); bone('torso', 'hip', HIP, HIP, 'torso'); bone('head', 'torso', NECK, HIP, 'head')
 bone('armF', 'torso', SH_N, HIP, 'armF'); bone('foreF', 'armF', EL_N, SH_N, 'foreF'); bone('fistF', 'foreF', G_U, EL_N)
 bones.append(dict(name='weapon', parent='fistF', pos=[0, 0], rot=round(ang(U) + math.pi / 2, 4), part='weapon'))
-bone('armU', 'torso', SH_F, HIP, 'armU'); bone('armL', 'armU', EL_F, SH_F, 'armL'); bone('fistN', 'armL', G_L, EL_F)
+bones.append(dict(name='weaponH', parent='fistF', pos=[0, 0], rot=round(ang(U) + math.pi / 2, 4), part='weaponH'))
+bone('armU', 'torso', SH_F, HIP, 'armU'); bone('armL', 'armU', EL_F, SH_F, 'armL'); bone('fistN', 'armL', G_L, EL_F); bone('armLf', 'armU', EL_F, SH_F, 'armLf')   # armLf 자리는 엔진이 손목에 놓음
 bone('pauldron', 'torso', SH_F, HIP, 'pauldron')
 for n in ['cape', 'scarf', 'pouch', 'skirt', 'skirtB', 'pauldronF']: bones.append(dict(name=n, parent='torso', pos=[0, -200]))   # 그림 없는 뼈: 엔진이 이름으로 찾음
 # ---------------- 다리 — 서 있을 때 = 원화 다리(오림), 달릴 때 = 조각 시트 곧은 다리 ----------------
@@ -233,7 +257,7 @@ legs = {'hip': [0, 10], 'thigh': TH_R, 'shin': SH_R,
 print('  legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['far']['thigh'], legs['far']['shin'], 'run w', {k: v['w'] for k, v in rseg.items()}, 'rboot', RBA)
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 # 원화: 다리 < 몸통 < 벨트·앞자락 < 먼 윗팔 < 어깨갑 < 가까운 소매 < 머리 < 칼(머리카락 앞) < 위 주먹·가까운 팔뚝 < 아래 주먹·먼 팔뚝(가슴 앞)
-draw = ['legFar', 'legNear', 'torso', 'hips', 'armU', 'pauldron', 'armF', 'head', 'weapon', 'foreF', 'armL']
+draw = ['legFar', 'legNear', 'torso', 'hips', 'armU', 'pauldron', 'armF', 'head', 'weaponH', 'weapon', 'foreF', 'armLf', 'armL']
 GX, GY = (G_U - HIP) * 2
 guard = {'gx': round(float(GX), 1), 'gy': round(float(GY), 1), 'sa': round(ang(U), 4), 'sN': 0, 'sF': round(S_LOW, 1),
          'nPiece': 'foreF', 'fPiece': 'armL', 'nUpper': 'armF', 'fUpper': 'armU', 'order': 'drawA', 'frame': 'torso'}   # 11 교훈: 칼·두 팔을 상체에 붙여 한 덩어리
@@ -243,11 +267,12 @@ rig = {'name': 'sancho-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'metrics': {'bodyHeight': round(2 * (O[1] - _top), 1), 'note': f'rig units; 머리카락 끝(원화 y{_top})~발바닥(494) ×2, 무기 제외'},
        'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -24, 'bob': 10, 'lean': 0.1, 'headRun': 0.04},
        'carrySwing': 0.25, 'wristRange': 0.2,
-       'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
+       'swordGrip': {'tipDepth': 6, 'groundShorten': {'guard': GUARD_D, 'kMin': 0.3, 'handle': 'weaponH'}, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
        'ui': {'attack': None, 'touch': 'hop'},
        'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0003.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)'},
        'note': '3 러스트 산초 (2026-10-19, v1 대기·달리기). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨갑·다리는 원화를 그대로 오려 씀.'}
 if BLINK: rig['blinkFaces'] = BLINK
+exec(open(os.path.join(HERE, 'attack_sancho.py'), encoding='utf-8').read())   # 올려베기 (attack_keys.json)
 _gap = (RA[..., 3] > 200) & (COVER < 200); _gap[480:] = False
 print('  gaps (원화 불투명인데 조각이 안 덮음):', int(_gap.sum()), 'px')
 _v = RA.copy(); _v[_gap] = (255, 0, 255, 255); Image.fromarray(_v).save(os.path.join(W, '_gaps.png'))
