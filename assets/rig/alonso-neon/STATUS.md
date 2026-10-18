@@ -125,3 +125,8 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - 보이는 팔 늘임 1.00 유지(가까운 팔 1.00 · 먼 팔 0.395~0.72 1.00). 게이트 m11 11.3° IoU 0.59 · m12 6.9° IoU 0.70 · m13 10.5° IoU 0.50. 엔진 안 바꿈
 - rig version 0c048ff2
 - 편집 툴 v89 (1792342919-1749) 게시: rig.js?v=f940060(26 카르덴 braid2 포함 main 본) · rig.def.js?v=0c048ff2 · parts/pauldronFst.png · progress/alonso11_v54.jpg
+
+## 02:15 (10-19) 게임 반영 (DHL 02:04 '좋습니다, 인게임에 반영해 봅시다')
+- index.html: REGISTRY 11:'alonso-neon', rig.def 스크립트(?v=fb224888), rig.js ?v=20261019a11(armIK·26 braid2 포함)
+- gameRef x 208 → 281.7: 도감 칸(fitArt 중심 265.7 — index.html measureBox 와 같은 계산, 21 은 275.7 로 검산)에서 골반(hip x −32)이 가운데. 컷인 cutHold .55(런지 버팀 가운데)
+- 확인(tools/game_check.py · game_attack.py): 1280×800 · 390×844 — 전투 달리기·공격(머리 위 → 내려찍기 → 버팀 → 돌아오기)·스킬 컷인(런지 유지, 칼끝 칸 안)·도감 2장(골반 = 칸 가운데, 1장 누르면 반응·2장 누르면 내려찍기), 페이지 오류 0

@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "0c048ff2",
+ "version": "fb224888",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -1108,12 +1108,12 @@
  },
  "gameRef": {
   "refOrigin": [
-   208.0,
+   281.7,
    486.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0011.png(512) = 원화"
+  "note": "게임 그림 char_0011.png(512) 발 높이 = 원화. x 281.7 = 도감 칸(fitArt 중심 265.7, index.html measureBox 와 같은 계산)에서 골반(hip x −32 → −16px)이 가운데 (21 알론소와 같은 규칙, 2026-10-18 02:20 DHL \"도감 위치 가운데\")"
  },
  "note": "11 네온 알론소 (2026-10-18, v1 대기·달리기). 두 손으로 칼을 몸 앞에 쥠(swordGrip.guard), 손·팔뚝·머리·어깨갑은 원화를 그대로 오려 씀.",
  "drawOH": [

@@ -292,7 +292,7 @@ rig = {'name': 'alonso-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'carrySwing': 0.25, 'wristRange': 0.2,
        'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
        'ui': {'attack': None, 'touch': 'hop'},   # attack = 'smash' 는 attack_neon.py 가 넣음(actions.smash)
-       'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0011.png(512) = 원화'},
+       'gameRef': {'refOrigin': [281.7, float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0011.png(512) 발 높이 = 원화. x 281.7 = 도감 칸(fitArt 중심 265.7, index.html measureBox 와 같은 계산)에서 골반(hip x −32 → −16px)이 가운데 (21 알론소와 같은 규칙, 2026-10-18 02:20 DHL "도감 위치 가운데")'},
        'note': '11 네온 알론소 (2026-10-18, v1 대기·달리기). 두 손으로 칼을 몸 앞에 쥠(swordGrip.guard), 손·팔뚝·머리·어깨갑은 원화를 그대로 오려 씀.'}
 _gap = (RA[..., 3] > 200) & (COVER < 200); _gap[440:] = False   # 다리 아래(부츠 자리)는 달리기 조각이라 뺌
 print('  gaps (원화 불투명인데 조각이 안 덮음):', int(_gap.sum()), 'px')
