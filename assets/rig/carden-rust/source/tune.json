@@ -2316,13 +2316,13 @@
   "note": "게임 그림 char_0006.png(512) = 원화. x 264.5 = 도감 칸(fitArt 중심 270.5)에서 골반이 가운데 (2026-10-18 DHL)"
  },
  "wave": {
-  "note": "인사(10-18 02:02) — 8 니콜 waveImg 경로. 02:17 DHL 팔꿈치 길게·뒤 그림 안 보이게: 윗팔 소매 숨김(hideSleeve) + 팔꿈치를 수염 밑으로(up 1.9) + 팔뚝이 수염 뒤에서 나옴(draw). elbowExt 는 늘이면 팔꿈치 끝이 수염 아래로 삐져나와 0",
+  "note": "인사(10-18 02:02) 8 니콜 waveImg 경로. 02:17 윗팔 토막 숨김(hideSleeve). 09:34 DHL 팔-손 연결: 장갑 소매 테의 열린 입구 잘라냄(handCutY 84) + 소매 끝(손목 살 입구)을 장갑 밑으로(foreWristY 42) + 손목 꺾임 0(handRest) + 팔뚝 1.2배(장갑 손목 폭) + 팔뚝을 수염 앞으로·니콜처럼 세움(up 1.75, fore0 -1.25)",
   "openAt": 0.02,
   "openWa": 0.6,
   "elbowExt": 0,
   "hideSleeve": true,
-  "up": 1.9,
-  "fore0": -1.0,
+  "up": 1.75,
+  "fore0": -1.25,
   "draw": [
    "cape",
    "legFar",
@@ -2332,13 +2332,13 @@
    "skirt",
    "torso",
    "pouch",
-   "wFore",
    "foreF",
    "tuftL",
    "tuftR",
    "head",
    "beard",
    "headFront",
+   "wFore",
    "weapon",
    "fistF",
    "handL",
@@ -2347,6 +2347,14 @@
    "pauldron",
    "handR",
    "wHand"
-  ]
+  ],
+  "handCutY": 84,
+  "foreWristY": 42,
+  "wristImg": [
+   45,
+   80
+  ],
+  "handRest": 0.0,
+  "foreScale": 1.2
  }
 }

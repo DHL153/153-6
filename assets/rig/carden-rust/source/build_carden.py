@@ -276,9 +276,14 @@ WV = T('wave', None)
 if WV:   # 인사(손 흔들기, DHL 10-18 02:02) — 8 니콜과 같은 엔진 경로(waveImg): 봉이 사라지고 먼 팔(봉 팔)이 올라와 편 손을 흔듦
     # 그림 = 조각 시트의 먼 윗팔 소매(armF) · 먼 팔뚝 소매(foreF) · 편 장갑 손(waveHand, 손바닥이 보는 쪽·엄지 왼쪽 = 왼손 손바닥)
     sA, sB = A(PT['armF'][0]), A(PT['armF'][1]); fE, fW = A(PT['foreF'][0]), A(PT['foreF'][1])
+    if WV.get('foreWristY'): fW = A([fW[0], WV['foreWristY']])   # 손목 점을 소매 끝보다 위로 → 소매 끝(손목 살이 보이는 입구)이 장갑 밑으로 들어감 (DHL 10-18 09:34 '팔과 손 연결 자연스럽게')
     hW, hT = A(WV.get('wristImg', [45, 84])), A(WV.get('tipImg', [42, 2])); kH = K * WV.get('handScale', 1.0); kU = K * WV.get('upperScale', 1.0); kF = K * WV.get('foreScale', 1.0)
     for nm, src, piv, sc in [('waveSleeve', 'cut/armF.png', sA, kU), ('waveFore', 'cut/foreF.png', fE, kF), ('waveHandW', 'cut/waveHand.png', hW, kH)]:
         shutil.copy(os.path.join(HERE, src), os.path.join(PARTS, nm + '.png')); parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [round(float(piv[0]), 1), round(float(piv[1]), 1)], 'scale': round(sc, 4)}
+    HC = WV.get('handCutY')
+    if HC:   # 장갑 소매 테의 아래쪽 '열린 입구'(안쪽 타원) 를 잘라 냄 — 장갑 테 = 소매와 같은 올리브 천이라 소매 위에 겹치면 한 팔로 이어짐(입구 두 개가 마주 보이지 않게)
+        q_ = np.asarray(Image.open(os.path.join(PARTS, 'waveHandW.png')).convert('RGBA')).copy(); yy_ = np.arange(q_.shape[0])[:, None]
+        q_[..., 3] = (q_[..., 3] * np.clip((HC - yy_) / WV.get('handCutFade', 3), 0, 1)).astype(np.uint8); Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'waveHandW.png'))
     if WV.get('hideSleeve'):   # 먼 윗팔 소매는 수염·몸 뒤 — 밖으로 삐져나온 토막이 '뒤의 그림'처럼 보여 안 그림(팔뚝 팔꿈치 끝이 몸 뒤로 들어감)
         q_ = np.asarray(Image.open(os.path.join(PARTS, 'waveSleeve.png')).convert('RGBA')).copy(); q_[..., 3] = 0; Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'waveSleeve.png'))
     EX = WV.get('elbowExt', 0)

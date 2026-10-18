@@ -1,6 +1,6 @@
 {
  "name": "carden-rust",
- "version": "0f7ad643",
+ "version": "eb77ba1c",
  "units": "rig px (reference x2)",
  "refOrigin": [
   234.0,
@@ -323,17 +323,17 @@
     17.0,
     2.0
    ],
-   "scale": 2.05,
+   "scale": 2.46,
    "wrist": [
     17.0,
-    52.0
+    42.0
    ]
   },
   "waveHandW": {
    "src": "parts/waveHandW.png",
    "pivot": [
     45.0,
-    84.0
+    80.0
    ],
    "scale": 2.05,
    "tip": [
@@ -557,7 +557,7 @@
    "parent": "wFore",
    "pos": [
     0.0,
-    102.5
+    98.4
    ],
    "part": "waveHandW"
   }
@@ -839,14 +839,14 @@
  "waveImg": {
   "upper": 1.5708,
   "fore": 1.5708,
-  "hand": -1.6074,
-  "handRest": -0.357,
+  "hand": -1.6092,
+  "handRest": 0.0,
   "shoulderShift": [
    0,
    0
   ],
-  "up": 1.9,
-  "fore0": -1.0,
+  "up": 1.75,
+  "fore0": -1.25,
   "openAt": 0.02,
   "openWa": 0.6,
   "note": "먼 팔(봉 팔) 손 흔들기: 소매는 상체 뒤, 팔뚝은 수염 옆, 편 손은 맨 앞"
@@ -860,13 +860,13 @@
   "skirt",
   "torso",
   "pouch",
-  "wFore",
   "foreF",
   "tuftL",
   "tuftR",
   "head",
   "beard",
   "headFront",
+  "wFore",
   "weapon",
   "fistF",
   "handL",
