@@ -47,13 +47,14 @@ def outline_cut(name, i0, i1, lim, thr=40):
     n, lab = cv2.connectedComponents(free, connectivity=4); ids = np.unique(lab[seeds > 0]); ids = ids[ids > 0]; rem = np.isin(lab, ids)
     keep_in = cv2.dilate((m & ~line & ~rem).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0   # 외곽선은 남은 안쪽에서 2px 안만 (떨어진 선 부스러기 지움)
     return rem | (m & line & pmask(lim) & ~keep_in)
+COVER = np.zeros((512, 512), np.uint8)   # 오린 조각들의 알파 합(대기 자리) — 원화에 있는데 아무 조각도 안 덮는 틈 찾기
 def crop(mask, name, grow=0, cut=None):
     """원화에서 mask 부분만 오려 work/name.png 로. 반환: 오린 칸 왼쪽 위(원화 px).
     grow: 위에 그리는 조각은 2px 넓혀 밑 조각과 겹치게 — 맞닿은 가장자리의 반투명 줄(틈)이 안 보이게"""
     if grow: mask = cv2.dilate(mask.astype(np.uint8), np.ones((2 * grow + 1, 2 * grow + 1), np.uint8)).astype(bool)
     if cut is not None: mask = mask & ~cut
     ys, xs = np.nonzero(mask & (RA[..., 3] > 0)); x0, y0, x1, y1 = xs.min() - 2, ys.min() - 2, xs.max() + 3, ys.max() + 3
-    a = RA.copy(); a[..., 3] = np.where(mask, a[..., 3], 0); a = islands(a, name); Image.fromarray(a[y0:y1, x0:x1]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
+    a = RA.copy(); a[..., 3] = np.where(mask, a[..., 3], 0); a = islands(a, name); COVER[:] = np.maximum(COVER, a[..., 3]); Image.fromarray(a[y0:y1, x0:x1]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
 
 # ---------------- 원화 관절 (512 px) ----------------
 O = np.array([208.0, 486.0])          # 뿌리: 두 발목 가운데 땅(부츠 바닥)
@@ -86,14 +87,40 @@ for v in range(V0, V0 + 53):   # 주먹에 가려진 곳만 채움: ① 거울 �
             if 0 <= m < 200 and sw[v, m, 3] >= 200 and not _srcU[v, m]: sw[v, u] = sw[v, m]
             elif sw[v - 1, u, 3] >= 200 and v < V0 + 48: sw[v, u] = sw[v - 1, u]
 sw[V0 + 53:, :, 3] = 0
+# 칼날 왼쪽(머리 쪽) 외곽선은 곧은 선 — 줄마다 왼쪽 끝을 재서 곧은 선(중앙값 맞춤) 밖으로 튀어나온 것(외곽선이 붙은 머리카락 끝, v≈270) 지움
+_al = sw[..., 3] > 60; _vs = np.arange(90, 331); _le = np.array([np.nonzero(_al[v])[0].min() if _al[v].any() else U0 for v in _vs], float)
+_A = np.vstack([_vs, np.ones_like(_vs)]).T; _ok = np.ones(len(_vs), bool)
+for _it in range(3):
+    _cf = np.linalg.lstsq(_A[_ok], _le[_ok], rcond=None)[0]; _ok = np.abs(_A @ _cf - _le) < 2.5
+for v in range(80, V0 - 4):
+    _cut = int(np.floor(_cf[0] * v + _cf[1] - 1.5))
+    if _cut > 0: sw[v, :_cut, 3] = 0
+print('  blade left edge', np.round(_cf, 4).tolist(), 'outliers', int((~_ok).sum()))
+# 칼날·날밑에 붙어 온 머리카락 끝(떨어진 섬) 지움 — 달릴 때 칼과 함께 움직여 '부서진 머리카락'으로 보였음(DHL 10-18 12:03)
+_on = (sw[..., 3] > 60).astype(np.uint8); _n, _lab, _st, _ct = cv2.connectedComponentsWithStats(_on, connectivity=8)
+_big = 1 + int(np.argmax(_st[1:, cv2.CC_STAT_AREA])); _keep = np.zeros(_n, bool); _keep[_big] = True
+for _k in range(1, _n):
+    if _k != _big and _ct[_k][1] > V0 + 10: _keep[_k] = True   # 날밑 아래(손잡이 쪽)는 남김
+sw[..., 3] = np.where(cv2.dilate(_keep[_lab].astype(np.uint8), np.ones((3, 3), np.uint8)) > 0, sw[..., 3], 0)
+print('  sword islands removed', int((~_keep[1:]).sum()))
+BLADE_O = cv2.warpAffine((sw[..., 3] > 60).astype(np.uint8), M, (512, 512), flags=cv2.INTER_NEAREST) > 0   # 칼날·날밑 자리(원화 좌표) — 머리는 이 자리만 뺌
 # 손잡이: 시트 칼(83×282)의 손잡이 y 204~262만 → 0.9배, 날밑 바로 밑(V0+46)부터. 폼멜은 원화 것 하나만
-ss = img(os.path.join(PC, 'sword.png')); gp = ss.crop((22, 204, 62, 252));   # 시트 손잡이 끝·폼멜 고리(252~)는 뺌 — 원화 폼멜과 두 개로 겹쳐 보였음(10-18 달리기 확인). 끝(V0+89)은 아래 주먹 속 gp = gp.resize((round(gp.width * .9), round(gp.height * .9)), Image.LANCZOS)
+ss = img(os.path.join(PC, 'sword.png')); gp = ss.crop((22, 204, 62, 252)); gp = gp.resize((round(gp.width * .9), round(gp.height * .9)), Image.LANCZOS)   # 시트 손잡이 끝·폼멜 고리(252~)는 뺌 — 원화 폼멜과 두 개로 겹쳐 보였음(10-18 달리기 확인). 끝(V0+89)은 아래 주먹 속
 swI = Image.fromarray(sw); gl = Image.new('RGBA', swI.size, (0, 0, 0, 0)); gl.alpha_composite(gp, (int(U0 - 20 * .9), V0 + 46)); gl.alpha_composite(swI); swI = gl
 # 폼멜: 원화 폼멜(아래 주먹 밑으로 보이는 흰 고리·금색)을 시트 폼멜 위에 — 대기 자세와 똑같게
-_pm = up.copy(); _vv, _uu = np.mgrid[0:470, 0:200]; _pmk = (_vv >= V0 + 96) & (_vv <= V0 + 128) & (np.abs(_uu - U0) <= 15) & ~_srcU
-_br = cv2.dilate((_pm[..., :3].max(-1) > 150).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0   # 흰 고리·금색 + 둘레 1px 선만 (뒤 바지는 빼기)
-_pm[..., 3] = np.where(_pmk & _br, _pm[..., 3], 0); swI.alpha_composite(Image.fromarray(_pm))
+#   원화 좌표 다각형(은색 목 + 금색 고리 + 검은 외곽선) 안에서, 바깥 변에서 번지는 바지 색(회색·어두움)만 뺌 → 외곽선이 닫힌 깨끗한 폼멜
+#   (전: 밝은 픽셀만 + 1px — 외곽선·그늘이 빠져 달릴 때 톱니처럼 깨지고 주먹과 떨어져 보였음, DHL 10-18 12:03)
+POMMEL = [(226, 395), (235, 394), (242, 399), (243, 406), (240, 413), (237, 421), (232, 426), (223, 426), (218, 420), (218, 412), (222, 404)]
+_pmO = pmask(POMMEL); _hsv = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV); _lum = RA[..., :3].max(-1)
+_pants = _pmO & (_lum >= 38) & (_lum < 125) & (_hsv[..., 1] < 90)   # 바지·손잡이 회색
+_n2, _lab2 = cv2.connectedComponents(_pants.astype(np.uint8), connectivity=4); _edge = _pmO & ~(cv2.erode(_pmO.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0)
+_ids = np.unique(_lab2[_edge & _pants]); _ids = _ids[_ids > 0]; _rem = np.isin(_lab2, _ids)
+_kin = cv2.dilate((_pmO & ~_rem & (_lum >= 38)).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+_pmO = _pmO & ~_rem & (_kin | (_lum >= 38))
+_pmU = cv2.warpAffine(_pmO.astype(np.uint8), M, (200, 470), flags=cv2.INTER_NEAREST | cv2.WARP_INVERSE_MAP) > 0
+_pm = up.copy(); _pm[..., 3] = np.where(_pmU, _pm[..., 3], 0); swI.alpha_composite(Image.fromarray(_pm))
 swI.save(os.path.join(W, 'sword.png'))
+COVER[:] = np.maximum(COVER, cv2.warpAffine(np.array(swI)[..., 3], M, (512, 512), flags=cv2.INTER_LINEAR))
 SW = dict(tip=(U0, V0 - 324), pivot=(U0, V0 - tOf((262, 370))), guard=(U0, V0 + 30), pommel=(U0, V0 + 123))
 
 # ---------------- 원화에서 오리는 조각 ----------------
@@ -101,19 +128,23 @@ mk = {n: pmask(n) for n in ['head', 'pauldronN', 'pauldronF', 'nUp', 'nArt', 'fA
 # 칼 띠(원화에서 칼이 있는 곳) — 몸통에서 빼기
 yy, xx = np.mgrid[0:512, 0:512]; tt = (xx - B[0]) * U[0] + (yy - B[1]) * U[1]; nn = (xx - B[0]) * NRM[0] + (yy - B[1]) * NRM[1]
 mk['sword'] = ((tt > -40) & (np.abs(nn) < 42)) | ((tt > -120) & (np.abs(nn) < 14))   # 칼날·날밑(넓게) + 손잡이·폼멜(좁게)
-o_head = crop(mk['head'] & ~mk['sword'], 'headArt', 2)
-o_pN = crop(mk['pauldronN'], 'pauldronNArt', 2); o_pF = crop(mk['pauldronF'] & ~mk['sword'], 'pauldronFArt', 2)
+# 겹침(밑에 그리는 조각이 위 조각 밑으로 몇 px 더 들어감) — 숨쉬기·달리기에서 조각끼리 1~3px 움직여도 경계에 배경(흰 줄)이 안 비치게 (DHL 10-18 12:03)
+#   머리 → 가까운 어깨갑(위) 밑으로 5px · 먼 어깨갑 → 머리(위) 밑으로 5px · 머리·먼 어깨갑은 칼날 외곽선 2px 밑까지(칼이 위)
+_d11 = np.ones((11, 11), np.uint8); _bladeIn = cv2.erode(BLADE_O.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+o_head = crop(mk['head'] | ((cv2.dilate(mk['head'].astype(np.uint8), _d11) > 0) & mk['pauldronN']), 'headArt', 2, cut=_bladeIn)   # 칼날 자리만 뺌(전: 칼 띠 |n|<42 → 칼날 옆 머리카락 끝이 칼 그림으로 감)
+o_pN = crop(mk['pauldronN'], 'pauldronNArt', 2); o_pF = crop(mk['pauldronF'] | ((cv2.dilate(mk['pauldronF'].astype(np.uint8), _d11) > 0) & mk['head']), 'pauldronFArt', 2, cut=_bladeIn)
 o_nUp = crop(mk['nUp'] & ~mk['pauldronN'], 'nUpArt', 2)
 o_nArt = crop(mk['nArt'], 'nArt', 2, cut=outline_cut('nArt', 11, 21, [[238, 392], [280, 375], [280, 420], [225, 420], [225, 400]])); o_fArt = crop(mk['fArt'] & ~mk['nArt'], 'fArt', 2)
 o_hips = crop(mk['hips'] & ~mk['nArt'] & ~mk['sword'], 'hipsArt')
 # 몸통: 시트 몸통(3점 아핀으로 원화 자리에) 위에 원화 몸통(머리·어깨갑·팔·주먹·칼 뺀 곳)
 ex = mk['head'] | mk['pauldronN'] | mk['pauldronF'] | mk['nUp'] | mk['nArt'] | mk['fArt'] | mk['sword']
-tm = mk['torso'] & ~ex   # 가장자리 틈 없이(넓히지 않음) — 틈이 있으면 밑 시트 몸통의 흰색이 선으로 보임
+_hin = cv2.erode(mk['head'].astype(np.uint8), np.ones((9, 9), np.uint8)) > 0   # 머리 가장자리 4px 띠는 몸통에도 남김: 숨쉬기·달리기에 머리가 1~3px 움직여도 머리 밑 경계에 흰 줄(배경)이 안 보이게(DHL 10-18 12:03 목 왼쪽 흰 선)
+tm = mk['torso'] & ~((ex & ~mk['head']) | _hin)   # 가장자리 틈 없이(넓히지 않음) — 틈이 있으면 밑 시트 몸통의 흰색이 선으로 보임
 TA = cv2.getAffineTransform(np.float32([[45, 53], [120, 52], [88, 148]]), np.float32([[168, 332], [220, 334], [198, 401]]))
 st = cv2.warpAffine(np.array(img(os.path.join(PC, 'torso.png'))), TA, (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
 st[..., 3] = np.where(mk['torso'] & (RA[..., 3] > 0), st[..., 3], 0)   # 시트 몸통은 원화 몸통 자리 안에서만(밑으로 삐져나온 허리 장식 지움)
 ov = RA.copy(); ov[..., 3] = np.where(tm, ov[..., 3], 0)
-tc = Image.fromarray(st); tc.alpha_composite(Image.fromarray(ov)); tca = islands(slivers(np.array(tc), 9), 'torsoArt')
+tc = Image.fromarray(st); tc.alpha_composite(Image.fromarray(ov)); tca = islands(slivers(np.array(tc), 9), 'torsoArt'); COVER[:] = np.maximum(COVER, tca[..., 3])
 ys, xs = np.nonzero(tca[..., 3] > 0); o_torso = np.array([xs.min() - 2, ys.min() - 2], float)
 Image.fromarray(tca[ys.min() - 2:ys.max() + 3, xs.min() - 2:xs.max() + 3]).save(os.path.join(W, 'torsoArt.png'))
 # 먼 윗팔(엔진 armF): 대기·달리기에선 몸통 뒤로 안 보임 → 시트 armFdown을 어깨→팔꿈치 길이에 맞춰
@@ -217,12 +248,16 @@ guard = {'gx': round(float(GX), 1), 'gy': round(float(GY), 1), 'sa': round(ang(U
 rig = {'name': 'alonso-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'drawA': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N if n not in ('half', 'closed')}, 'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'metrics': {'bodyHeight': 2 * (482 - 95), 'note': 'rig units; 머리카락 가운데(y95)~발바닥(482) ×2, 무기 제외'},
-       'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -44, 'bob': 10, 'lean': 0.1},
+       'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -44, 'bob': 10, 'lean': 0.1, 'headRun': 0.04},
        'carrySwing': 0.25, 'wristRange': 0.2,
        'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
        'ui': {'attack': None, 'touch': 'hop', 'note': '내려찍기(actions.smash)를 만들기 전엔 공격 없음 — 엔진 기본 smash는 이 칼 쥐는 방식과 안 맞음'},
        'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0011.png(512) = 원화'},
        'note': '11 네온 알론소 (2026-10-18, v1 대기·달리기). 두 손으로 칼을 몸 앞에 쥠(swordGrip.guard), 손·팔뚝·머리·어깨갑은 원화를 그대로 오려 씀.'}
+_gap = (RA[..., 3] > 200) & (COVER < 200); _gap[440:] = False   # 다리 아래(부츠 자리)는 달리기 조각이라 뺌
+print('  gaps (원화 불투명인데 조각이 안 덮음):', int(_gap.sum()), 'px')
+if _gap.any():
+    _v = RA.copy(); _v[_gap] = (255, 0, 255, 255); Image.fromarray(_v).save(os.path.join(W, '_gaps.png'))
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
 rig['version'] = _h.hexdigest()[:8]

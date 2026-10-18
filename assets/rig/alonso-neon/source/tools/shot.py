@@ -11,5 +11,9 @@ with sync_playwright() as p:
     pg.goto(f'http://127.0.0.1:{port}/assets/rig/alonso-neon/source/tools/view.html?'+sys.argv[1])
     pg.wait_for_function("document.title==='done'||document.title.startsWith('ERR')",timeout=20000)
     if pg.title()!='done':print(pg.title())
-    pg.locator('#c').screenshot(path=sys.argv[2]);print('ERR',errs);b.close()
+    import os,base64
+    if os.environ.get('RAW'):   # 캔버스 그대로(투명 알파 유지)
+        d=pg.evaluate("document.getElementById('c').toDataURL('image/png')");open(sys.argv[2],'wb').write(base64.b64decode(d.split(',')[1]))
+    else: pg.locator('#c').screenshot(path=sys.argv[2])
+    print('ERR',errs);b.close()
 srv.shutdown()

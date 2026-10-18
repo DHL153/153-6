@@ -15,5 +15,7 @@ with sync_playwright() as p:
         for s in ['near','far']:
             L=R['legs'][s];print(s,{k:to(L[k]) for k in ['hip','knee','ankle']},'foot',round(L['foot'],3),L.get('boot'))
         print('a',R['a'],'st',R['st'],'A',R['A'])
+        for k in ['pommel','wGrip','armLgrip','armLpiv']: print(k,to(R[k]))
+        print('armLrot',R['armLrot'],'wRot',R['wRot'],'swapL',R['swapL'])
     b.close()
 srv.shutdown()

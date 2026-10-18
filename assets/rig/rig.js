@@ -1003,7 +1003,7 @@
       b.torso.asy = 1 + I * br * .013 - A * bob * .01; b.torso.asx = 1 - I * br * .006;
       const hipY = b.hip.ay; this.hipVy = damp(this.hipVy, (hipY - this.prevHipY) / Math.max(dt, 1e-4), 20, dt); this.prevHipY = hipY;
       const hl = this.headLag.step(this.hipVy * .006, dt);
-      b.head.ar = I * Math.sin(T * .8) * .025 - A * .15 - leanA * .6 + hl * .02;
+      b.head.ar = I * Math.sin(T * .8) * .025 - A * (G.headRun ?? .15) - leanA * .6 + hl * .02;   // gait.headRun(opt-in, 11 네온 알론소): 달릴 때 머리 앞 숙임(기본 .15) — 원화를 오린 머리는 많이 돌면 목·어깨 경계가 벌어짐
       b.head.ay = -I * br * 1.4 + hl * 2.5 + A * G.headBob * bob;
       b.skirt.ar = -leanA * .25 - A * .03;
       let twist = 0;

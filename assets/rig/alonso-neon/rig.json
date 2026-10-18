@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "58921514",
+ "version": "0202857a",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -21,7 +21,7 @@
    "src": "parts/torso.png",
    "pivot": [
     66.0,
-    100.0
+    102.0
    ],
    "scale": 2.0
   },
@@ -44,41 +44,41 @@
   "pauldronF": {
    "src": "parts/pauldronF.png",
    "pivot": [
-    21.0,
-    28.0
+    26.0,
+    33.0
    ],
    "scale": 2.0
   },
   "armU": {
    "src": "parts/armU.png",
    "pivot": [
-    4.0,
+    7.0,
     4.0
    ],
    "scale": 2.0,
    "elbow": [
-    20.0,
+    23.0,
     30.0
    ]
   },
   "armL": {
    "src": "parts/armL.png",
    "pivot": [
-    15.0,
-    16.0
+    13.0,
+    17.0
    ],
    "scale": 2.0,
    "elbow": [
-    15.0,
-    16.0
+    13.0,
+    17.0
    ],
    "grip": [
-    101.7,
-    46.5
+    99.7,
+    47.5
    ],
    "wrist": [
-    101.7,
-    46.5
+    99.7,
+    47.5
    ],
    "shaftDir": [
     0.6051086267486272,
@@ -786,7 +786,8 @@
   "landAng": 0,
   "hipBase": -44,
   "bob": 10,
-  "lean": 0.1
+  "lean": 0.1,
+  "headRun": 0.04
  },
  "carrySwing": 0.25,
  "wristRange": 0.2,

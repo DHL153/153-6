@@ -6,6 +6,7 @@ const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k
 const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});const VX=+(Q.get('vx')||0);
 for(let i=0;i<+(Q.get('pre')||90);i++)an.update(1/60,{vx:VX,facing:1});
 const P=n=>{const m=rig.by[n].m;return [Math.round(m[4]),Math.round(m[5])]};
-window.R={hip:P('hip'),torso:P('torso'),head:P('head'),armU:P('armU'),armF:P('armF'),armL:P('armL'),foreF:P('foreF'),weapon:P('weapon'),G:an.swordG&&an.swordG.map(Math.round),a:an.swordA,legs:rig.legPose,st:[an.stN,an.stF],A:an.A};
+const pp=(part,pt)=>{const v=rig.partPoint(part,pt[0],pt[1]);return v.map(Math.round)};const wp=def.parts.weapon,al=def.parts.armL;
+window.R={pommel:pp('weapon',wp.pommel),wGrip:pp('weapon',wp.pivot),armLgrip:pp('armL',al.grip),armLpiv:pp('armL',al.pivot),armLrot:+Math.atan2(rig.by.armL.m[1],rig.by.armL.m[0]).toFixed(3),wRot:+Math.atan2(rig.by.weapon.m[1],rig.by.weapon.m[0]).toFixed(3),swapL:rig.swap.armL,hip:P('hip'),torso:P('torso'),head:P('head'),armU:P('armU'),armF:P('armF'),armL:P('armL'),foreF:P('foreF'),weapon:P('weapon'),G:an.swordG&&an.swordG.map(Math.round),a:an.swordA,legs:rig.legPose,st:[an.stN,an.stF],A:an.A};
 document.title='done'})().catch(e=>document.title='ERR '+e.stack);
 </script>
