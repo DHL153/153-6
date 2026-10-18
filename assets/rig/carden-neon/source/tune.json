@@ -1104,7 +1104,7 @@
  "armLSscale": 2.9,
  "sleeveSheet": {
   "file": "sheets/sleeve3.png",
-  "width": 110,
+  "width": 104,
   "fore": {
    "box": [
     128,
