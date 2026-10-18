@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "d033534c",
+ "version": "58921514",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -840,8 +840,9 @@
   }
  },
  "ui": {
-  "attack": "smash",
-  "touch": "hop"
+  "attack": null,
+  "touch": "hop",
+  "note": "내려찍기(actions.smash)를 만들기 전엔 공격 없음 — 엔진 기본 smash는 이 칼 쥐는 방식과 안 맞음"
  },
  "gameRef": {
   "refOrigin": [
