@@ -1,0 +1,15 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 머리 위 자세 관절점: ohprobe.html?apre=16  → window.R = {G, EN, EF, SN, SF, neck, headBox, eye}
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['alonso-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});
+for(let i=0;i<30;i++)an.update(1/60,{vx:0,facing:1});an.attack('smash');const out=[];
+for(let i=0;i<+(Q.get('n')||40);i++){an.update(1/60,{vx:0,facing:1});const b=rig.by,P=def.parts;
+  const pt=(bn,x,y)=>{const m=b[bn].m;return [Math.round(m[0]*x+m[2]*y+m[4]),Math.round(m[1]*x+m[3]*y+m[5])]};
+  const ppt=(bn,px,py)=>{const p=P[rig.swap[bn]||b[bn].part];return pt(bn,(px-p.pivot[0])*(p.scale||1),(py-p.pivot[1])*(p.scale||1))};
+  const pf=P[rig.swap.foreF||b.foreF.part],pl=P[rig.swap.armL||b.armL.part];
+  out.push({i,t:+an.act.t.toFixed(3),G:an.swordG.map(Math.round),sa:+an.swordA.toFixed(2),EN:pt('foreF',0,0),EF:pt('armL',0,0),SN:pt('armF',0,0),SF:pt('armU',0,0),
+    gN:ppt('foreF',...pf.grip),gF:ppt('armL',...pl.grip),neck:pt('head',0,0),eyeL:ppt('head',100,150),eyeR:ppt('head',200,150),hairTop:ppt('head',150,20),chin:ppt('head',150,240),pN:rig.swap.foreF,pF:rig.swap.armL})}
+window.R=out;document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>

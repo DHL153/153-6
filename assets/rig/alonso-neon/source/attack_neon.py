@@ -57,10 +57,30 @@ def compose(name, fist, fore, rel_deg, L=None, inset=8.0):
     g = np.array(F['grip']) * k - mn; e = Ec - mn; r = lambda v: [round(float(v[0]), 1), round(float(v[1]), 1)]
     def_parts[name] = {'src': f'parts/{name}.png', 'pivot': r(e), 'elbow': r(e), 'grip': r(g), 'wrist': r(g), 'shaftDir': [float(sd[0]), float(sd[1])], 'scale': 1 / R2}
 for nm, spec in ATK['pieces'].items(): compose(nm, *spec)
-# 든 윗팔(시트 armNup·armFup): pivot = 어깨 마디, elbow = 팔꿈치 마디 (엔진이 어깨→팔꿈치로 돌리고 축 방향으로만 늘임)
-#   먼 팔 어깨 마디는 덮개 위쪽 끝 — 검은 어깨 덮개가 몸통 뒤로 숨음(먼 어깨갑은 공격 동안 숨김: 칼날 자리를 오려 냄)
-for nm, src, sh, el in [('armNup', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFup', 'armFup.png', (59.3, 99.7), (29.1, 29.2))]:   # 든 팔 배율 UPS
-    _u = np.array(img(os.path.join(PC, src))); _sh, _el = np.array(sh), np.array(el); _ax = (_el - _sh) / np.linalg.norm(_el - _sh)   # (16:58) 팔꿈치 쪽 검은 덮개는 지움 — 팔뚝 조각의 덮개(위에 그림) 하나만 보이게(두 덮개가 '주먹'처럼 보였음)
+# 든 윗팔(시트 armNup·armFup): long_upper — 어깨 덮개 그대로, 살 부분만 미리 늘임(엔진 늘임 ≈ 1)
+def long_upper(nm, src, sh, el, T, c0=-5.0, keepS=20.0, skinEnd=78.0, back=32, wk=1.0):
+    """(17:40 DHL '팔뚝이 얼굴을 가로지름') 머리 위 든 윗팔을 길이 T(리그)로 미리 늘인 그림.
+    엔진은 윗팔 그림을 축 방향으로 통째 늘여서 3배쯤 늘이면 어깨 쪽 검은 덮개가 긴 타원이 됐음 →
+    어깨 덮개(축 c0 둘레, keepS 까지)는 그대로, 살 부분(keepS~skinEnd)만 늘이고 팔꿈치 쪽 검은 덮개(skinEnd 뒤)는 지움 —
+    팔꿈치는 팔뚝 조각의 덮개 하나만(위에 그림). 그림 축 = 세로, pivot = 어깨 덮개 가운데, elbow = pivot + (0, T)"""
+    import cv2
+    a = np.asarray(img(os.path.join(PC, src))).astype(np.float32); pre = a.copy(); pre[..., :3] *= pre[..., 3:4] / 255
+    sh, el = np.array(sh), np.array(el); ax = (el - sh) / np.linalg.norm(el - sh); ux = np.array([ax[1], -ax[0]])
+    f = (T + 4 - (keepS - c0)) / (skinEnd - keepS); U0 = int(44 * wk); W = 2 * U0; H = int(back + T + 8)   # wk: 팔 굵기 배율(옆으로만) — 길게 늘인 팔이 막대처럼 가늘어 보이지 않게
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32); w = yy - back; u = (xx - U0) / wk
+    sv = np.where(w <= keepS - c0, w + c0, keepS + (w - (keepS - c0)) / f)
+    mx = (sh[0] + ax[0] * sv + ux[0] * u).astype(np.float32); my = (sh[1] + ax[1] * sv + ux[1] * u).astype(np.float32)
+    o = cv2.remap(pre, mx, my, cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    o[..., 3] *= np.clip((skinEnd + 1 - sv) / 1.5, 0, 1); o = np.clip(o, 0, 255)
+    al = o[..., 3:4]; o[..., :3] = np.where(al > 1e-3, o[..., :3] / np.maximum(al, 1e-3) * 255, 0)
+    Image.fromarray(np.clip(o, 0, 255).astype(np.uint8), 'RGBA').save(os.path.join(OUT, 'parts', nm + '.png'))
+    def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [U0, back], 'elbow': [U0, back + T], 'scale': ATK.get('upScale', 1.0)}
+_UL = ATK.get('upLen', {})
+for nm, src, sh, el in [('armNupL', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFupL', 'armFup.png', (68.0, 119.9), (29.1, 29.2))]:   # 머리 위 전용(긴 팔)
+    long_upper(nm, src, sh, el, _UL.get(nm, 98.6), wk=ATK.get('upWide', 1.0))
+# 휘두름·런지 윗팔 = 시트 armNup·armFup 그대로(짧음, v2) — 팔꿈치 쪽 검은 덮개는 지움(팔뚝 조각 덮개 하나만)
+for nm, src, sh, el in [('armNup', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFup', 'armFup.png', (59.3, 99.7), (29.1, 29.2))]:
+    _u = np.array(img(os.path.join(PC, src))); _sh, _el = np.array(sh), np.array(el); _ax = (_el - _sh) / np.linalg.norm(_el - _sh)
     _yy, _xx = np.mgrid[0:_u.shape[0], 0:_u.shape[1]]; _t = (_xx - _sh[0]) * _ax[0] + (_yy - _sh[1]) * _ax[1]; _L = float(np.linalg.norm(_el - _sh))
     _u[..., 3] = (_u[..., 3] * np.clip((_L + ATK.get('upperCut', 0) - _t) / 2, 0, 1)).astype(np.uint8); Image.fromarray(_u).save(os.path.join(OUT, 'parts', nm + '.png'))
     def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': list(sh), 'elbow': list(el), 'scale': ATK.get('upScale', FS)}
