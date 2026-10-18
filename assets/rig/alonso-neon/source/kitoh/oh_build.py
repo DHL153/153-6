@@ -23,19 +23,21 @@ def fore_piece(name, file, mk, rot_deg, sc):
     put(name, file); m = MET[mk]; sd = math.radians(Uk - rot_deg)
     def_parts[name] = {'src': f'parts/{name}.png', 'pivot': list(m['elbow']), 'elbow': list(m['elbow']), 'grip': list(m['grip']), 'wrist': list(m['grip']),
                        'shaftDir': [round(math.cos(sd), 5), round(math.sin(sd), 5)], 'scale': round(SR * sc, 5)}
-fore_piece('gN_OH', 'gN.png', 'gN', GEO['armN']['rotDeg'], GEO['armN']['scale'])
+AK = OHC.get('armK', 1.0)   # 머리 위 팔 크기(21:18 DHL '팔이 너무 길어요') — 어깨를 중심으로 팔 전체(팔뚝·윗팔·주먹)를 줄임
+fore_piece('gN_OH', 'gN.png', 'gN', GEO['armN']['rotDeg'], GEO['armN']['scale'] * AK)
 gF = MET['gF']; aF = math.degrees(math.atan2(gF['elbow'][1] - gF['grip'][1], gF['elbow'][0] - gF['grip'][0]))
-fore_piece('gF_OH', 'gF.png', 'gF', OHC.get('farForeDeg', 30) - aF, GEO['armN']['scale'] * OHC.get('farFistK', 1.0))
+fore_piece('gF_OH', 'gF.png', 'gF', OHC.get('farForeDeg', 30) - aF, GEO['armN']['scale'] * OHC.get('farFistK', 1.0) * AK)
 put('uN_OH', 'uN.png'); off = np.array(MET['uN']['off'])
-def_parts['uN_OH'] = {'src': 'parts/uN_OH.png', 'pivot': r1(np.array(MET['uN']['shoulder']) - off), 'elbow': r1(np.array(MET['uN']['elbowTop']) - off), 'scale': round(SR, 5)}
+def_parts['uN_OH'] = {'src': 'parts/uN_OH.png', 'pivot': r1(np.array(MET['uN']['shoulder']) - off), 'elbow': r1(np.array(MET['uN']['elbowTop']) - off), 'scale': round(SR * AK, 5)}
 # 먼 팔(보이는 윗팔): 상체 고정 조각 — 어깨 공을 먼 어깨갑 밑(키트 자리)에, 팔꿈치가 머리 오른쪽, 팔뚝 끝은 머리카락 뒤
 put('farArmOH', 'fArm.png'); _fa = MET['fArm']; _at = k2t(OHC.get('farArmAt', [640, 668]))
-def_parts['farArmOH'] = {'src': 'parts/farArmOH.png', 'pivot': list(_fa['shoulder']), 'scale': round(SR * GEO['armN']['scale'], 5)}
+def_parts['farArmOH'] = {'src': 'parts/farArmOH.png', 'pivot': list(_fa['shoulder']), 'scale': round(SR * GEO['armN']['scale'] * OHC.get('farArmK', 1.0), 5)}
 bones.append(dict(name='farArmOH', parent='torso', pos=r1(_at), rot=round(th + math.radians(OHC.get('farArmRot', -15)), 5), part='farArmOH'))
 rig.setdefault('overlays', {})['farFistOv'] = {'bone': 'foreF', 'rect': MET['gF']['fistRect']}
 rig['drawOH2'] = ['legFar', 'legNear', 'hips', 'foreF', 'farArmOH', 'torsoOH', 'head', 'weapon', 'weaponA', 'farFistOv', 'armU', 'armL']   # 먼 팔: 주먹만(팔뚝은 머리 뒤) — 큰 머리 3/4 보기에서 먼 팔은 머리에 가려짐
 # --- 머리 위 키: 가까운 주먹 = 키트 자리, 칼 방향 = 키트 칼날, 먼 주먹(G) = 날 쪽으로 |sF|
 MN = np.array(GEO['armN']['M']); Nk = MN @ np.array(MET['gN']['grip'] + [1.0]); Nt = k2t(Nk)
+S_t = k2t(MET['uN']['shoulder']); Nt = S_t + AK * (Nt - S_t)   # 팔을 줄이면 주먹도 어깨 쪽으로(팔 모양 그대로 작게)
 ua = math.radians(Uk + math.degrees(th)); u = np.array([math.cos(ua), math.sin(ua)]); sF = -ATK['action']['sF'][0][1] if ATK['action'].get('sF') else 56.8
 G = Nt + u * abs(ATK['action']['sF'][0][1]); sa0 = ua - 2 * math.pi   # 들어 올림은 각도가 줄어드는 쪽(칼끝 위→뒤로), 휘두름은 늘어나는 쪽
 S_t = k2t(MET['uN']['shoulder']); armU0 = np.array(next(b for b in bones if b['name'] == 'armU')['pos']); shO = S_t - armU0
