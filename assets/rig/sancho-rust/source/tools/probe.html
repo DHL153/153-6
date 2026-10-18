@@ -1,0 +1,9 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 사용: probe.html?mode=idle|run&n=프레임 — 프레임마다 팔 늘어남(stN·stF = 보이는 팔 길이 / 원래 길이)·손목 돌림(wrN·wrF) 기록 → window.R
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['sancho-rust'];
+const ims={};for(const k of Object.keys(def.parts)){ims[k]=document.createElement('canvas')}
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});const VX=Q.get('mode')==='run'?620:0,N=+(Q.get('n')||120);
+window.R=[];for(let i=0;i<N;i++){an.update(1/60,{vx:VX,facing:1});R.push({i,stN:an.stN,stF:an.stF,wrN:an.wrN,wrF:an.wrF,A:an.A})}
+document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>

@@ -1,0 +1,21 @@
+<!doctype html><meta charset=utf-8><body style="margin:0;background:#fff"><canvas id=c></canvas>
+<script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 사용: view.html?mode=idle|run|atk&t=초&n=장수&step=프레임&ov=1(원화 겹침)
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['sancho-rust'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const ref=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src='../ref512.png'});
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});if(Q.get('expr'))an.setExpression(Q.get('expr'));
+const N=+(Q.get('n')||1),STEP=+(Q.get('step')||6),VX=Q.get('mode')==='run'?620:0,K=+(Q.get('k')||1),ov=Q.get('ov');
+const c=document.getElementById('c');c.width=1024*K*N*(ov==='2'?2:1);const OY=+(Q.get('oy')||0),OX=+(Q.get('ox')||0);c.width+=OX*K;c.height=(1024+OY)*K;const g=c.getContext('2d');if(Q.get('bg')!=='0'){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height)}
+for(let i=0;i<+(Q.get('pre')||90);i++)an.update(1/60,{vx:VX,facing:1});
+if(Q.get('atk')){an.attack(Q.get('atk'));for(let i=0;i<+(Q.get('apre')||0);i++)an.update(1/60,{vx:VX,facing:1})}
+const VX2=Q.get('stop')?0:VX;for(let k=0;k<N;k++){if(k)for(let i=0;i<STEP;i++)an.update(1/60,{vx:VX2,facing:1});
+  const x0=1024*K*k*(ov==='2'?2:1);
+  if(ov==='2'){g.drawImage(ref,x0,0,1024*K,1024*K);}
+  const xr=ov==='2'?x0+1024*K:x0;
+  if(ov==='1'){g.globalAlpha=.35;g.drawImage(ref,xr,0,1024*K,1024*K);g.globalAlpha=1}
+  if(Q.get('blank'))for(const h of Q.get('blank').split(',')){const e=document.createElement('canvas');e.width=e.height=1;rig.images[h]=e}if(Q.get('hide'))for(const h of Q.get('hide').split(','))rig.alpha[h]=0;if(Q.get('show'))for(const h of Q.get('show').split(','))rig.alpha[h]=1;rig.draw(g,xr+(def.refOrigin[0]+OX)*K,(def.refOrigin[1]+OY)*K,K,1);g.setTransform(1,0,0,1,0,0);
+  if(ov==='1'){g.globalAlpha=.0;}g.globalAlpha=1}
+document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>
