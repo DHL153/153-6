@@ -130,3 +130,4 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - index.html: REGISTRY 11:'alonso-neon', rig.def 스크립트(?v=fb224888), rig.js ?v=20261019a11(armIK·26 braid2 포함)
 - gameRef x 208 → 281.7: 도감 칸(fitArt 중심 265.7 — index.html measureBox 와 같은 계산, 21 은 275.7 로 검산)에서 골반(hip x −32)이 가운데. 컷인 cutHold .55(런지 버팀 가운데)
 - 확인(tools/game_check.py · game_attack.py): 1280×800 · 390×844 — 전투 달리기·공격(머리 위 → 내려찍기 → 버팀 → 돌아오기)·스킬 컷인(런지 유지, 칼끝 칸 안)·도감 2장(골반 = 칸 가운데, 1장 누르면 반응·2장 누르면 내려찍기), 페이지 오류 0
+- 편집 툴 v91 (1792343731-09a2, 26 카르덴 v90 위에 합침): 11 단계 '확인·게임' 완료, progress/alonso11_game.jpg, rig.def.js?v=fb224888
