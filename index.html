@@ -10874,8 +10874,17 @@ function createSocialDataFoundation(assets, emojis) {
     function warmBeadColors(){try{(equippedSkins||[]).forEach(beadColorOf);}catch(e){}}
     const mergeRingEffects=[];
     let mergeRingRAF=0,mergeRingLast=0;
+    // 2026-10-18 DHL: 머지 이펙트는 가장 밝은 장면까지 그대로 재생한 뒤 0.3초 동안 부드럽게 사라짐
+    //  (예전: 시트 끝 2~3장에서 갑자기 꺼짐). 사라지는 동안 남은 장면을 천천히 넘기며 투명도를 부드러운 곡선으로 낮춤
+    const MERGE_FADE_MS=300;
+    function mergeRingFrame(fx){
+        if(!fx.playMs)return {frame:Math.min(15,Math.floor(Math.min(1,fx.age/fx.duration)*16)),alpha:1};
+        if(fx.age<fx.playMs)return {frame:Math.min(fx.peak,Math.floor(fx.age/fx.playMs*(fx.peak+1))),alpha:1};
+        const q=Math.min(1,(fx.age-fx.playMs)/MERGE_FADE_MS);
+        return {frame:Math.min(12,fx.peak+Math.floor(q*(12-fx.peak+1))),alpha:1-q*q*(3-2*q)};
+    }
     function drawMergeRing(fx){
-        const p=Math.min(1,fx.age/fx.duration);
+        const fr=mergeRingFrame(fx);
         const scale=fx.area.clientWidth/CANVAS_WIDTH;
         const point=window.mergeViewPoint?window.mergeViewPoint(fx.body.position.x,fx.body.position.y):fx.body.position;
         const css=Math.max(8,fx.diameter*scale*(fx.rare?MERGE_R_CELL:MERGE_RING_CELL));
@@ -10883,7 +10892,7 @@ function createSocialDataFoundation(assets, emojis) {
         const cv=fx.el;if(cv.width!==px){cv.width=cv.height=px;}
         cv.style.setProperty('--rs',css+'px');
         cv.style.setProperty('--rx',`${point.x/CANVAS_WIDTH*100}%`);cv.style.setProperty('--ry',`${point.y/CANVAS_HEIGHT*100}%`);
-        const im=fx.img,frame=Math.min(15,Math.floor(p*16));
+        const im=fx.img,frame=fr.frame;fx.el.style.opacity=fr.alpha.toFixed(3);
         if(!im.complete||!im.naturalWidth)return;
         const cw=im.naturalWidth/4,ch=im.naturalHeight/4;
         const ctx=cv.getContext('2d');
@@ -10916,6 +10925,7 @@ function createSocialDataFoundation(assets, emojis) {
         const rare=isRareBeadLevel(level);
         const fx={el,area,body,level,skin,rare,img:rare?MERGE_R_BURST:mergeRingImages[mergeRingVariant()],duration:rare?MERGE_R_DURATION:MERGE_RING_DURATION,
             diameter:LEVELS[level].radius*2,age:0,color:beadColorCache.get(skin)||null};
+        fx.peak=rare?7:9;fx.playMs=fx.duration*(fx.peak+1)/16;fx.duration=fx.playMs+MERGE_FADE_MS; // 가장 밝은 장면까지 재생 + 0.3초 사라짐
         drawMergeRing(fx);area.appendChild(el);mergeRingEffects.push(fx);
         if(!mergeRingRAF){mergeRingLast=performance.now();mergeRingRAF=requestAnimationFrame(tickMergeRing);}
     }
