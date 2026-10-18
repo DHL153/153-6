@@ -1016,7 +1016,11 @@
       const D = act && act.def, at = act ? act.t : 0;
       this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? 14 : 8, dt);
       this.legRunV = act && D.legRun ? clamp(this._tr("legRun"), 0, 1) : 0;   // legRun(opt-in 동작 트랙, 11 네온 알론소 런지): 다리 길이·그림을 달리기 쪽(A)으로 — 서 있는 원화 다리는 짧아 런지 뒷다리가 못 뻗음
-      const G = this.G, A = this.A, I = 1 - A, S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
+      const G = this.G, A = this.A, I = 1 - A; let S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
+      this.stance = G.stance;
+      // s.stepHz (opt-in, 게임 전투 2026-10-19 DHL '발걸음 속도를 배경에 맞춰'): 걸음/초를 배경 박자(그림 캐릭터 달리기 = 6프레임에 두 걸음)로 맞춤.
+      //   보폭 = 2·속도·stance ÷ 걸음/초 (디딘 발은 그대로 땅과 같이 감). 캐릭터 보폭에서 G.strideFlex 배(기본 0.75~1.35) 안으로만 바꾸고, 넘치면 땅에 닿는 몫(stance)을 바꿔 박자를 맞춤 — 짧은 다리가 못 닿는 보폭 금지
+      if (s.stepHz > 0 && sp > 14) { const fx_ = G.strideFlex || [.75, 1.35], Sc_ = 2 * sp * G.stance / s.stepHz, S2_ = clamp(Sc_, S * fx_[0], S * fx_[1]); this.stance = clamp(s.stepHz * S2_ / (2 * sp), .12, .6); S = S2_ }
       if (!act) this.cyc = (this.cyc + dt * (sp * this.stance / S)) % 1;          // cadence chosen so the planted foot moves exactly with the ground
       // body velocity from the action's hip drive (feeds cape / skirt / hem drag like real forward motion)
       const ax_ = act ? this._tr('hipX') : 0; this.actV = damp(this.actV, (ax_ - this.prevActX) / Math.max(dt, 1e-4), 25, dt); this.prevActX = ax_;
