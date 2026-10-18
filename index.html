@@ -18932,5 +18932,10 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
 #physics-bg{filter:saturate(.7);}
 #char-preview-bg,#mini-room .mrm-bg,.placed-emoji{filter:saturate(.7);}
 </style>
+<style id="mr-starter-noxscroll">
+/* 2026-10-19 DHL: 시작 선택 화면이 좌우로 드래그됨 (휴대폰·PC 모두) — 틀 장식(::before/::after)이 화면 밖으로 나가 가로 스크롤이 생겼음 → 가로는 잠그고 세로(카드 목록)만 */
+#mr-starter{overflow:hidden;overscroll-behavior:none;}
+#mr-starter .mr-starter-grid{overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;}
+</style>
 </body>
 </html>
