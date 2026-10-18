@@ -17163,6 +17163,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  background:radial-gradient(circle,color-mix(in srgb,var(--cc1) 70%,transparent) 0%,color-mix(in srgb,var(--cc2) 45%,transparent) 30%,transparent 64%);}
 #mr-crest.charging .cr-charge{animation:mrCrestCharge .9s ease-in-out infinite;}
 #mr-crest .cr-fuel{position:absolute;left:0;top:0;width:var(--fs,18px);height:var(--fs,18px);object-fit:contain;pointer-events:none;filter:drop-shadow(0 0 6px var(--cc2));z-index:5;}
+#mr-crest .cr-swirl{position:absolute;left:49.46%;top:42.3%;width:150%;height:auto;aspect-ratio:1;opacity:0;pointer-events:none;z-index:5;transform:translate(-50%,-50%);filter:drop-shadow(0 0 3px rgba(255,255,255,.45));}
 #mr-crest .cr-flash{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
  background:radial-gradient(circle,#fff 0%,#fff 18%,var(--cc1) 34%,color-mix(in srgb,var(--cc2) 60%,transparent) 52%,transparent 70%);}
 #mr-crest .cr-shock{position:absolute;left:49.46%;top:42.3%;width:60%;aspect-ratio:1;border-radius:50%;opacity:0;pointer-events:none;z-index:6;transform:translate(-50%,-50%) scale(.2);
@@ -17196,6 +17197,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
    '<div class="cr-rotor"><i class="cr-charge"></i><i class="cr-aura"></i><i class="cr-glow"></i><img class="cr-blades" src="assets/ui/ornament/crest_windmill_blades.webp" alt="" draggable="false"></div>'+
    '<i class="cr-flash"></i><i class="cr-shock"></i><i class="cr-shock s2"></i>'+
    '<i class="cr-spark" style="left:30%;top:30%"></i><i class="cr-spark" style="left:70%;top:22%"></i><i class="cr-spark" style="left:62%;top:62%"></i><i class="cr-spark" style="left:38%;top:70%"></i>';
+  crest.appendChild(makeSwirl());
   fr.appendChild(crest);blades=crest.querySelector('.cr-blades');sparks=[...crest.querySelectorAll('.cr-spark')];
  }
  function fit(){
@@ -17293,12 +17295,26 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
  }
  function addWind(v,cap){wind=Math.min(cap||CAP,wind+v);lastWind=performance.now();kick();}
  // 머지마다 호출 (level = 합쳐져 새로 생긴 구슬 단계, 0부터)
+ // 2026-10-19 DHL: 회오리가 돌면서 작아지는 이펙트 — DHL 회오리 그림(흰색, 검은 배경 → 투명), 색은 필요하면 filter로 바꿈
+ function makeSwirl(){
+  const img=new Image();img.src='assets/effects/fx_swirl_white_0001.webp';img.className='cr-swirl';img.alt='';img.draggable=false;img.setAttribute('aria-hidden','true');
+  return img;
+ }
+ let lastSwirl=0;
+ function swirl(big){
+  const el=crest?.querySelector('.cr-swirl');if(!el||!shown()||quiet()||reduce())return;
+  const now=performance.now();if(!big&&now-lastSwirl<1400)return;lastSwirl=now;
+  el.getAnimations().forEach(a=>a.cancel());
+  const s0=big?1.45:1.15,dur=big?1200:900;
+  el.animate([{transform:`translate(-50%,-50%) rotate(0deg) scale(${s0})`,opacity:0},{opacity:.85,offset:.18},{opacity:.6,offset:.7},{transform:`translate(-50%,-50%) rotate(${big?540:360}deg) scale(.3)`,opacity:0}],{duration:dur,easing:'cubic-bezier(.45,.05,.55,.95)'});
+ }
+ window.mrCrestSwirl=swirl;
  window.mrCrestWind=function(level){
   lastMerge=performance.now();
   if(!shown()||quiet())return;
   const lv=Math.max(0,Number(level)||0);
   const rare=!!window.mrIsRareBeadLevel?.(lv);
-  addWind(15+lv*10+(rare?60:0));pulse(.06+lv*.014+(rare?.06:0));
+  addWind(15+lv*10+(rare?60:0));pulse(.06+lv*.014+(rare?.06:0));swirl(false);
   if(lv>=6||rare){colors();sparkle(lv>=9?4:3,'gust');} // R등급 구슬 머지도 금빛 반짝이
  };
  // 보스 처치: 세계관 색 큰 바람
@@ -17308,7 +17324,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   colors(WORLD_COLORS[key]||WORLD_COLORS.rust);
   if(bossMode()!=='A'){
    // 시안 B·C: 충전된 힘이 한 번에 터짐 — 가장 빠른 회전 + 번쩍 + 충격파 고리 2개 + 큰 흔들림
-   stopCharge();addWind(2000,2600);sparkle(4,'boss');burst();pulse(.4);shake(true);
+   stopCharge();addWind(2000,2600);sparkle(4,'boss');burst();pulse(.4);shake(true);swirl(true);
   }else{
    addWind(1150,BOSS_CAP);sparkle(4,'boss');pulse(.28);shake();
   }
@@ -17336,7 +17352,7 @@ html.ui-t6.uk-framed #mr-crest{display:block;}
   if(bossMode()!=='A'){startCharge(3600);setTimeout(doKill,3500);}else doKill();
  };
  function gust(){
-  if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');}
+  if(shown()&&!quiet()&&!document.hidden&&performance.now()-lastMerge>30000){colors();addWind(240,BOSS_CAP);sparkle(4,'gust');swirl(false);}
   schedule();
  }
  function schedule(){clearTimeout(gustTimer);gustTimer=setTimeout(gust,9000+Math.random()*6000);}
