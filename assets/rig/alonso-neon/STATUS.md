@@ -150,3 +150,4 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - 머리를 줄이자 원화 머리 자리였던 턱 밑이 드러나 **턱 아래 흰·검은 선**(원화 턱 외곽선 띠·먼 어깨갑에 붙인 턱 살)이 보였음 → 몸통: 머리 가장자리 4px 띠 안 남김 + 줄인 머리 아래 드러난 자리(REVEAL)를 목깃 색으로 inpaint(356px), 먼 어깨갑: 머리 밑으로 넣던 턱 살 띠 뺌 (모두 HEAD_K < 1 일 때만). 대기·달리기 4장면 3배 확대·머리 숨긴 그림으로 확인
 - 게임 1280×900 세 알론소 한 팀·1280×800 전투·컷인·도감 확인, 오류 0. 엔진 안 바꿈
 - rig version 5b151b5d
+- 편집 툴 v94 (1792357645-1d48): rig.def.js 0.75배, parts torso·torsoS·pauldronF·pauldronFst, progress/alonso11_head75.jpg
