@@ -736,7 +736,9 @@
   0.95
  ],
  "legWidth": 1.3,
- "pieceScale": {},
+ "pieceScale": {
+  "armU": 1.3
+ },
  "bootScale": 1.15,
  "handRkeepX": 50,
  "thrustNote": "임시(23:00): 동작 시트 오기 전. thF 1.0(봉 허리 높이) — 앞 주먹 그림(handL)은 소매가 위라 먼 팔꿈치가 +39° 뒤로 꺾임(audit_extra 뒤집힘). thF .3 이면 꺾임 없지만 봉이 무릎 높이. 시트 받으면 fitpts 로 맞추고, 시트가 허리 찌르기면 앞 주먹(팔뚝이 아래에서 오는) 재요청",
@@ -1097,5 +1099,6 @@
   "fistF",
   "handL",
   "handR"
- ]
+ ],
+ "armLSscale": 2.9
 }

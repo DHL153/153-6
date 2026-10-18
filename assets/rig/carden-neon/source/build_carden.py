@@ -262,6 +262,7 @@ if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼�
             Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armLS.png'))
             parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': piv_, 'scale': parts['armLF']['scale'], 'noAxis': True, 'grip': grip_}
         if T('handRflip', False) and T('handRtoElbow', None): parts['handR']['toElbow'] = T('handRtoElbow', None)   # 뒷주먹 소매 테가 향한 쪽(그림 기준, 뒤집은 뒤)
+        if T('armLSscale', None) and 'armLS' in parts: parts['armLS']['scale'] = T('armLSscale', None)   # 찌르기 팔뚝 굵기 = 달릴 때 팔(원화 소매 약 105~120 리그)과 같게 (DHL 10-18 13:18 '손에서 팔꿈치까지 두께가 뛸 때와 달라')
 
 # 다리: 허벅지·정강이 = 가까운/먼 다리 다른 그림(S.thighImg), 뼈 길이에 맞춰 늘이되 굵기는 K 그대로(w = K/길이 배율)
 d2 = lambda a, b: float(np.linalg.norm(A(b) - A(a)))

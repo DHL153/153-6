@@ -1,6 +1,6 @@
 {
  "name": "carden-neon",
- "version": "dea88a72",
+ "version": "e89d8a4a",
  "units": "rig px (reference x2)",
  "refOrigin": [
   236.0,
@@ -47,7 +47,7 @@
     21.0,
     3.0
    ],
-   "scale": 2.05
+   "scale": 2.665
   },
   "armL": {
    "src": "parts/armL.png",
@@ -177,7 +177,7 @@
     41.2,
     3.3
    ],
-   "scale": 2.04,
+   "scale": 2.9,
    "noAxis": true,
    "grip": [
     37.5,
