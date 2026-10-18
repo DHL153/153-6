@@ -1,0 +1,14 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 상체 기준 조각 상대 움직임: 프레임마다 (조각 행렬)를 상체 행렬로 나눈 값의 범위 — 팔뚝 고정 확인
+(async()=>{const def=window.MR_RIG_DEFS['alonso-neon'];
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src='../../'+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620}),g=document.createElement('canvas').getContext('2d');
+const inv=m=>{const d=m[0]*m[3]-m[1]*m[2];return[m[3]/d,-m[1]/d,-m[2]/d,m[0]/d,(m[2]*m[5]-m[3]*m[4])/d,(m[1]*m[4]-m[0]*m[5])/d]};
+const mul=(m,n)=>[m[0]*n[0]+m[2]*n[1],m[1]*n[0]+m[3]*n[1],m[0]*n[2]+m[2]*n[3],m[1]*n[2]+m[3]*n[3],m[0]*n[4]+m[2]*n[5]+m[4],m[1]*n[4]+m[3]*n[5]+m[5]];
+const names=['head','pauldron','pauldronF','armU','armL','armF','foreF','weapon','hips'],R={};for(const n of names)R[n]={x:[1e9,-1e9],y:[1e9,-1e9],a:[1e9,-1e9]};
+for(let i=0;i<360;i++){const vx=i<60?0:(i<300?620:0);an.update(1/60,{vx,facing:1});rig.draw(g,0,0,.01,1);
+  const Ti=inv(rig.by.torso.m);for(const n of names){const bm=rig.by[n].wm||rig.by[n].m,m=mul(Ti,rig.by[n].m),r=R[n];
+    const v=[m[4],m[5],Math.atan2(m[1],m[0])];[['x',0],['y',1],['a',2]].forEach(([k,j])=>{r[k][0]=Math.min(r[k][0],v[j]);r[k][1]=Math.max(r[k][1],v[j])})}}
+window.R=R;document.title='done'})().catch(e=>document.title='ERR '+e.stack);
+</script>

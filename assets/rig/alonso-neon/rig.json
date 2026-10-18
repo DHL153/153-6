@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "0202857a",
+ "version": "cd5835ae",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -815,29 +815,7 @@
    "nUpper": "armF",
    "fUpper": "armU",
    "order": "drawA",
-   "run": {
-    "gx": [
-     6,
-     0.15
-    ],
-    "gy": [
-     7,
-     0.1
-    ],
-    "sa": [
-     0.04,
-     0.35
-    ]
-   },
-   "runAt": {
-    "gx": 12,
-    "gy": -22,
-    "sa": -0.05
-   },
-   "breath": {
-    "gy": 3,
-    "sa": 0.01
-   }
+   "frame": "torso"
   }
  },
  "ui": {

@@ -244,7 +244,7 @@ draw = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'pauldronF', 'head', 'weap
 GX, GY = (G_U - HIP) * 2
 guard = {'gx': round(float(GX), 1), 'gy': round(float(GY), 1), 'sa': round(ang(U), 4), 'sN': 0, 'sF': round(S_LOW, 1),
          'nPiece': 'foreF', 'fPiece': 'armL', 'nUpper': 'armF', 'fUpper': 'armU', 'order': 'drawA',
-         'run': {'gx': [6, 0.15], 'gy': [7, 0.1], 'sa': [0.04, 0.35]}, 'runAt': {'gx': 12, 'gy': -22, 'sa': -0.05}, 'breath': {'gy': 3, 'sa': 0.01}}
+         'frame': 'torso'}   # 팔뚝 고정(DHL 13:25): 칼·두 팔을 상체에 붙여 한 덩어리로 — 달릴 때 팔이 상체와 따로 흔들리면 오린 팔꿈치·어깨 경계가 벌어져 깨져 보였음. 움직임은 상체 기울기·오르내림·숨쉬기가 줌
 rig = {'name': 'alonso-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'drawA': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N if n not in ('half', 'closed')}, 'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'metrics': {'bodyHeight': 2 * (482 - 95), 'note': 'rig units; 머리카락 가운데(y95)~발바닥(482) ×2, 무기 제외'},

@@ -839,7 +839,8 @@
       rig.compute();
       const Wm = b.weapon.m, G0 = [Wm[4], Wm[5]], a0 = Math.atan2(-Wm[3], -Wm[2]);
       const SN = apply(b.armF.m, 0, 0), SF = apply(b.armU.m, 0, 0);
-      const Gk = apply(b.hip.m, tr("gx"), tr("gy")), ak = tr("sa") + tr("shake") * Math.sin(T * 95) * .03;
+      const FRm = D.frame === "torso" ? b.torso.m : b.hip.m;   // D.frame "torso"(opt-in, 11 네온 알론소 guard): 손잡이 자리·각도를 상체 기준으로 — 칼·두 팔이 상체와 한 덩어리로 움직여 오린 팔 조각 경계가 안 벌어짐
+      const Gk = apply(FRm, tr("gx"), tr("gy")), ak = tr("sa") + (D.frame === "torso" ? Math.atan2(FRm[1], FRm[0]) : 0) + tr("shake") * Math.sin(T * 95) * .03;
       const wp = P.weapon, kW = wp.scale || 1, tipL = Math.hypot(wp.tip[0] - wp.pivot[0], wp.tip[1] - wp.pivot[1]) * kW;
       let G = [lerp(G0[0], Gk[0], w), lerp(G0[1], Gk[1], w)], a = a0 + wrapA(ak - a0) * w;
       const hs = D.hiltSlide ? tr("hilt") : 0, tL = tipL - hs;   // (opt-in) 긴 손잡이 줄이기: 칼날(+날밑)이 손 쪽으로 hs만큼 미끄러짐, 손잡이 감은 부분·폼멜은 손에 그대로
@@ -915,14 +916,15 @@
     }
     /* (opt-in, 11 네온 알론소) swordGrip.guard: 동작이 없을 때(대기·달리기·몸 반응)도 두 손이 손잡이를 쥔 채 칼을 몸 앞에 듦.
        _swordRigid를 그대로 씀 — 칼 손잡이 자리(gx·gy, 골반 기준)·각도(sa)·쥔 자리(sN·sF)·어깨 옮김(shN·shF)은 guard 값,
-       달리기 흔들림 run.{gx,gy,sa} = [진폭, 위상](걸음 반 주기마다), 달릴 때 자리 runAt.{gx,gy,sa} = 더할 값(A 비율), 숨쉬기 breath.{gy,sa} = 진폭. 손은 늘 쥠(reach 1, w 1). */
+       달리기 흔들림 run.{gx,gy,sa} = [진폭, 위상](걸음 반 주기마다), 달릴 때 자리 runAt.{gx,gy,sa} = 더할 값(A 비율), frame 'torso' = 상체 기준(팔뚝 고정), 숨쉬기 breath.{gy,sa} = 진폭. 손은 늘 쥠(reach 1, w 1). */
     _swordGuard(T) {
       const G_ = this.rig.def.swordGrip.guard, A = this.A, I = 1 - A, psi = (this.cyc * 2) % 1, br = Math.sin(T * TAU / 2.9);
       const val = n => { let v = n === "w" || n === "reach" ? 1 : (G_[n] ?? 0); const r = G_.run && G_.run[n], q = G_.breath && G_.breath[n];
         if (r) v += A * r[0] * Math.sin(TAU * (psi + (r[1] || 0))); if (q) v += I * q * br; if (G_.runAt && G_.runAt[n]) v += A * G_.runAt[n]; return v };   // runAt(opt-in): 달릴 때 옮겨 쥐는 자리·각도
       const k1 = (n, d) => [[0, G_[n] ?? d]];
-      const D = this._guardD || (this._guardD = { kind: "sword", rigid: true, orderAlways: !!G_.order, nPiece: k1("nPiece", null), fPiece: k1("fPiece", null), nUpper: k1("nUpper", null), fUpper: k1("fUpper", null), order: G_.order ? k1("order") : null, fade: G_.fade || null });
+      const D = this._guardD || (this._guardD = { kind: "sword", rigid: true, frame: G_.frame || null, orderAlways: !!G_.order, nPiece: k1("nPiece", null), fPiece: k1("fPiece", null), nUpper: k1("nUpper", null), fUpper: k1("fUpper", null), order: G_.order ? k1("order") : null, fade: G_.fade || null });
       D.trk = val;
+      if (G_.frame === "torso") { const bd = this.rig.by; for (const n of ["pauldron", "pauldronF"]) if (bd[n]) bd[n].ar = bd[n].ax = bd[n].ay = 0 }   // 팔뚝 고정: 어깨갑도 달리기 팔 흔들림을 따르지 않음(상체에 붙음)
       if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) this.rig.alpha[n] = clamp(track(D.fade[n], 0), 0, 1) }
       this._swordRigid(D, 0, T);
     }
