@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "3fa3e05e",
+ "version": "0c048ff2",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -349,7 +349,7 @@
     1.0,
     0.0
    ],
-   "scale": 0.475
+   "scale": 0.375
   },
   "armFst": {
    "src": "parts/armFst.png",
@@ -357,11 +357,19 @@
     36,
     25
    ],
-   "scale": 0.670985,
+   "scale": 0.529725,
    "elbow": [
     38,
     145
    ]
+  },
+  "pauldronFst": {
+   "src": "parts/pauldronFst.png",
+   "pivot": [
+    26.0,
+    33.0
+   ],
+   "scale": 2.0
   },
   "weaponA": {
    "src": "parts/weaponA.png",
@@ -706,6 +714,15 @@
    ]
   },
   {
+   "name": "pauldronFs",
+   "parent": "torso",
+   "pos": [
+    110.0,
+    -124.0
+   ],
+   "part": "pauldronFst"
+  },
+  {
    "name": "weaponA",
    "parent": "weapon",
    "pos": [
@@ -1012,6 +1029,7 @@
  ],
  "hidden": [
   "torsoS",
+  "pauldronFs",
   "weaponA"
  ],
  "faces": {
@@ -1137,7 +1155,7 @@
   "torsoS",
   "torso",
   "armF",
-  "pauldronF",
+  "pauldronFs",
   "head",
   "weapon",
   "weaponA",
@@ -1735,6 +1753,30 @@
       0.721,
       0
      ]
+    ],
+    "pauldronFs": [
+     [
+      0,
+      0
+     ],
+     [
+      0.36,
+      0,
+      "lin"
+     ],
+     [
+      0.3601,
+      1
+     ],
+     [
+      0.72,
+      1,
+      "lin"
+     ],
+     [
+      0.721,
+      0
+     ]
     ]
    },
    "kneeOut": 1,
@@ -1782,47 +1824,11 @@
     [
      0,
      0
-    ],
-    [
-     0.36,
-     0,
-     "lin"
-    ],
-    [
-     0.3601,
-     -60
-    ],
-    [
-     0.72,
-     -60,
-     "lin"
-    ],
-    [
-     0.7201,
-     0
     ]
    ],
    "shFy": [
     [
      0,
-     0
-    ],
-    [
-     0.36,
-     0,
-     "lin"
-    ],
-    [
-     0.3601,
-     -34
-    ],
-    [
-     0.72,
-     -34,
-     "lin"
-    ],
-    [
-     0.7201,
      0
     ]
    ],
@@ -1866,6 +1872,11 @@
     ],
     [
      0.3601,
+     0,
+     "io"
+    ],
+    [
+     0.395,
      1
     ],
     [

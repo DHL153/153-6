@@ -68,6 +68,21 @@ if ATK.get('farUpperST'):
     _yy, _xx = np.mgrid[0:_u.shape[0], 0:_u.shape[1]]; _t = (_xx - _sh[0]) * _ax[0] + (_yy - _sh[1]) * _ax[1]
     _u[..., 3] = (_u[..., 3] * np.clip((_L + _fu.get('cut', 0) - _t) / 2, 0, 1)).astype(np.uint8)
     Image.fromarray(_u).save(os.path.join(OUT, 'parts', 'armFst.png')); def_parts['armFst'] = dict(_p, src='parts/armFst.png', scale=_p.get('scale', 1) * _fu.get('k', 1))
+# (10-19 01:54 DHL '휘두름·버팀 동안 사라지고 돌아올 때 다시 나오는 것 — 3번처럼 계속 나오게') 먼 어깨갑을 휘두름·버팀에도 보이게.
+#   원화 먼 어깨갑(pauldronF)은 턱 피부 조각이 붙어 있고 오른쪽이 칼날 자리로 잘려 있음(대기 땐 칼이 덮음) → 휘두름용 pauldronFst:
+#   피부·턱 외곽선 지움, 잘린 쪽은 검은 외곽선 1px. 같은 자리의 숨김 뼈 pauldronFs 로 fade 키에서 켬
+if ATK.get('pauldronFst'):
+    from scipy import ndimage as _nd
+    _a = np.array(img(os.path.join(OUT, 'parts', 'pauldronF.png'))).astype(int); _yy, _xx = np.mgrid[0:_a.shape[0], 0:_a.shape[1]]
+    _r, _g, _b, _al = _a[..., 0], _a[..., 1], _a[..., 2], _a[..., 3]
+    _skin = (_r > 170) & (_g > 110) & (_b < 160) & (_r > _b + 50)
+    _pad = ((_b > 150) & (_b > _r + 60)) | ((_r > 170) & (_g > 170) & (_b > 170)) | ((_r > 180) & (_g > 150) & (_b < 120) & ~_skin & (_yy > 14))
+    _padF = _nd.binary_fill_holes(_nd.binary_closing(_pad, iterations=2)); _top = ATK['pauldronFst'].get('top', 11)
+    _keep = (_al > 30) & ~_skin & ~(_yy < _top) & ~((_xx >= 35) & ~_padF & ~_nd.binary_dilation(_padF, iterations=1)); _keep |= _padF & (_al > 0)
+    _lab, _n = _nd.label(_keep); _keep = _lab == (1 + int(np.argmax(_nd.sum(_keep, _lab, range(1, _n + 1)))))
+    _o = _a.copy(); _o[..., 3] = np.where(_keep, _al, 0); _o[(_nd.binary_dilation(_keep, iterations=1) & ~_keep) & _nd.binary_dilation(_padF, iterations=1)] = [28, 28, 34, 255]
+    Image.fromarray(_o.astype(np.uint8), 'RGBA').save(os.path.join(OUT, 'parts', 'pauldronFst.png')); def_parts['pauldronFst'] = dict(def_parts['pauldronF'], src='parts/pauldronFst.png')
+    bones.append(dict(next(b_ for b_ in bones if b_['name'] == 'pauldronF'), name='pauldronFs', part='pauldronFst')); rig['hidden'] = rig.get('hidden', []) + ['pauldronFs']
 # 든 윗팔(시트 armNup·armFup): long_upper — 어깨 덮개 그대로, 살 부분만 미리 늘임(엔진 늘임 ≈ 1)
 def long_upper(nm, src, sh, el, T, c0=-5.0, keepS=20.0, skinEnd=78.0, back=32, wk=1.0):
     """(17:40 DHL '팔뚝이 얼굴을 가로지름') 머리 위 든 윗팔을 길이 T(리그)로 미리 늘인 그림.

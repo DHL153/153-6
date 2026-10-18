@@ -4,7 +4,7 @@
  "orders": {
   "drawOH": ["legFar", "legNear", "hips", "torsoS", "torso", "pauldronF", "head", "weapon", "armF", "armU", "foreF", "armL", "pauldron"],
   "drawSW": ["legFar", "legNear", "hips", "armF", "foreF", "armU", "armL", "torsoS", "torso", "pauldronF", "head", "weapon", "pauldron"],
-  "drawST": ["legFar", "legNear", "hips", "torsoS", "torso", "armF", "pauldronF", "head", "weapon", "foreF", "armU", "pauldron", "armL"]
+  "drawST": ["legFar", "legNear", "hips", "torsoS", "torso", "armF", "pauldronFs", "head", "weapon", "foreF", "armU", "pauldron", "armL"]
  },
  "shoulderN": [36, 6],
  "shoulderF": [-15, -5],
@@ -57,21 +57,23 @@
    "pauldron": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.36, 0, "lin"], [0.3601, 1]],
    "armF": [[0, 1]],
    "weapon": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.72, 0, "lin"], [0.721, 1]],
-   "weaponA": [[0, 0], [0.1, 0, "lin"], [0.1001, 1], [0.72, 1, "lin"], [0.721, 0]]
+   "weaponA": [[0, 0], [0.1, 0, "lin"], [0.1001, 1], [0.72, 1, "lin"], [0.721, 0]],
+   "pauldronFs": [[0, 0], [0.36, 0, "lin"], [0.3601, 1], [0.72, 1, "lin"], [0.721, 0]]
   },
   "kneeOut": 1,
   "ankleRange": [-0.45, 1.1],
   "fTw": [[0, 0]],
   "nTw": [[0, 0]],
   "kneeOutF": [[0, 0], [0.38, 0, "io"], [0.43, 0.35], [0.62, 0.35, "io"], [0.8, 0]],
-  "shFx": [[0, 0], [0.36, 0, "lin"], [0.3601, -60], [0.72, -60, "lin"], [0.7201, 0]],
-  "shFy": [[0, 0], [0.36, 0, "lin"], [0.3601, -34], [0.72, -34, "lin"], [0.7201, 0]],
+  "shFx": [[0, 0]],
+  "shFy": [[0, 0]],
   "armIK": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.36, 0, "lin"], [0.3601, 1]],
   "ikSide": {"N": 1, "F": 1},
-  "armIKN": [[0, 0], [0.36, 0, "lin"], [0.3601, 1], [0.72, 1, "lin"], [0.7201, 0]]
+  "armIKN": [[0, 0], [0.36, 0, "lin"], [0.3601, 0, "io"], [0.395, 1], [0.72, 1, "lin"], [0.7201, 0]]
  },
  "cutHold": 0.55,
  "overheadKit": {"on": true, "swordKitDeg": 126.5, "farForeDeg": 50, "farFistK": 1.0, "armK": 0.8, "farArmK": 0.8},
- "farUpperST": {"from": "armF", "cut": 0, "k": 0.95},
- "pieceK": {"fST2": 0.95}
+ "farUpperST": {"from": "armF", "cut": 0, "k": 0.75},
+ "pieceK": {"fST2": 0.75},
+ "pauldronFst": {"top": 11}
 }
