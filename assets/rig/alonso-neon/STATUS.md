@@ -8,5 +8,10 @@
 - 엔진 opt-in `swordGrip.guard` (rig.js `_swordGuard`): 동작이 없을 때(대기·달리기·몸 반응)도 `_swordRigid`로 두 손이 손잡이를 쥠. 값 gx·gy(골반 기준)·sa·sN·sF·shN·shF·조각 이름·order, 달리기 흔들림 run.{gx,gy,sa}=[진폭,위상], 숨쉬기 breath.{gy,sa}. 다른 리그 6종(대기·달리기·공격·반응) 픽셀 차이 0
 - 시험: `assets/rig/alonso-sky/source/tools/guardtest.html` + `guardtest.py` (21 조각으로 엔진만 확인)
 
+## 10:40 원화 손 수정본 받음 (0번) — 합격
+- 바뀐 곳은 손 둘레(225~281, 353~417)뿐, 두 주먹 모두 손가락 4개. 게임 마이룸 그림 char_0011.png 교체(21과 같은 방식), 원본 받은 그림 = source/ref512_received.png, 정리본 = source/ref512.png
+- 직접 정리 2곳: 지운 은색 고리가 남긴 검은 가시 지움 · 손목과 주먹 사이 작은 구멍 메움
+- 손·손잡이 관절점 다시 잼 (measure.json)
+
 ## 다음
 손 고친 원화·조각·동작 시트 받으면 → 검수(손가락·겹침·비율) → 조각 이름 붙이기 → 관절점 다시 재기 → 대기 조립(guard) → 달리기(probe.py) → 내려찍기 → 게임 연결(game_check.py)
