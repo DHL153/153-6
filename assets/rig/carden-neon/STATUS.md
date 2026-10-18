@@ -21,5 +21,17 @@
   - 자르는 띠 y 388~492 (러스트 386~496 그대로면 뒷주먹 엄지 끝·앞 소매 윗선이 잘림)
 - 원본 = `source/sheets/grip2_both.png`, 비교 = `source/review/grip_vs_rust.png`, 자른 결과 = `source/review/grip_cut.png`
 
-## 다음
-1번 조각 시트 받으면 → 검수 → carden-rust 빌드 복사(build_carden.py·tune.json, wave 블록 뺌) → 조각 자르기·관절점 → 조립 → tools/check.sh → 게임 연결(REGISTRY 16)
+
+## 12:01 1번 조각 시트 받음 — 합격 (31칸, 봉 비율 1.03, 표정 6장 같은 크기)
+- 시트 조각 배율이 조각마다 다름: 표정 얼굴 2.03·봉 2.04(원화와 거의 같은 그림), 머리·수염 1.84, 몸통 2.34 → K 하나로 못 씀. 자리 = 원화에 맞춘 변환(fix_result.json — fixmatch.py 배율 범위 맞춤, place_manual.py 두 점)
+- 허벅지 조각 비스듬(12~20°) — 러스트처럼 바지·부츠는 원화에서 오려 안 씀
+
+## 14:10 조립 v1 (`source/build_carden.py`, 러스트 v10 복사 + opt-in 몇 개)
+- 순서: `python3 -I grip2.py` → `python3 -I hands.py` → `python3 -I pants_ref.py` → `python3 -I faces.py` → `python3 -I build_carden.py` → `bash tools/check.sh` (16장면 통과)
+- 머리 = 표정 시트 무표정 얼굴 통째(headFace: 모자·옆머리·귀·고글·수염) — 시트 머리 조각엔 귀 둘레 옆머리가 없어 원화와 달랐음. 수염·옆머리 뼈 없음(skip), 땋은 끝만 braid 뼈(머리 아래, 출렁임)
+- 가까운 팔(대기) = 원화에서 통째 오림(nearArmRef: 어깨갑·소매·편 장갑, 다각형 review/g_neararm1024) + armLbind 0.3(엔진 대기의 팔 처짐 −0.3 을 미리 반대로) → 대기 = 원화. 달리기 주먹 팔은 시트(armLF, 배율 2.04)
+- 어깨갑 = 원화 오림(pauldronRef), 몸통 시트의 가까운 소매 토막 지움(torsoErase), 윗팔 소매 짧게·둥근 끝(armUfadeTop 10, armUcutBottom 34), 먼 팔 소매 끝 구멍 지움(endCuts), 봉 갈고리 얼룩 지움(weaponClean)
+- 바지·부츠·봉 쥔 주먹 = 원화 오림(러스트와 같은 방식, 네온 좌표), 정강이 통 0.72배(부츠 목보다 좁게)
+- 찌르기 = 러스트 thrustFull·staffKey 그대로(큰 머리 앞), 쥔 손 = grip2 (handR2keepX 232, wrist [242,192]), 팔꿈치 덮개 capFrom 24
+- 러스트와 같게 둔 것: weaponRaise 40(대기에서 봉이 원화보다 20px@512 위), 두 부츠 같은 그림(앞코 오른쪽 — 원화 가까운 발은 앞코 왼쪽)
+- 게임: index.html REGISTRY 16:'carden-neon', rig.def.js?v=6baeacbe. 도감(마이룸·전투 칸)·전투 확인 — review/v1_*.png
