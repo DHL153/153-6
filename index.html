@@ -18922,5 +18922,13 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   sync();addEventListener('load',sync);
 })();
 </script>
+<style id="mr-desat-bg">
+/* 2026-10-19 DHL: 캐릭터는 그대로, 배경·소품 채도 -30% (눈 피로 줄이기)
+   전투 하늘·땅, 머지 판 배경, 마이룸 배경·이모지 소품, 미니 마이룸 배경 */
+#battle-stage:not(.skill-cutscene) #battle-sky{filter:saturate(.7);}
+#battle-panorama{filter:saturate(.7);}
+#physics-bg{filter:saturate(.7);}
+#char-preview-bg,#mini-room .mrm-bg,.placed-emoji{filter:saturate(.7);}
+</style>
 </body>
 </html>
