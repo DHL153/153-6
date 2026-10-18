@@ -11652,6 +11652,17 @@ function createSocialDataFoundation(assets, emojis) {
                 tornadoTicks--; const cx = CANVAS_WIDTH / 2;
                 Composite.allBodies(window.world).filter(b => b.level !== undefined).forEach(b => { Matter.Body.applyForce(b, b.position, { x: (cx - b.position.x) * 0.00003 + (Math.random() - 0.5) * 0.0005 * b.mass, y: -0.0025 * b.mass }); });
             }
+            // 2026-10-19 DHL '아이템을 쓰고 구슬이 계속 굴러가고 흔들흔들': 거의 멈춘 구슬의 좌우 미끄러짐·회전만 빠르게 줄여 쌓인 구슬이 가만히 있게.
+            //  아래로 떨어지는 속도(세로)는 건드리지 않음 → 떨어지기·튀기·아이템 효과(빠른 움직임)는 그대로, 토네이도 중에는 끔
+            if (tornadoTicks <= 0) {
+                for (const b of Composite.allBodies(window.world)) {
+                    if (b.isStatic || b.level === undefined) continue;
+                    if (b.speed < 0.8 && Math.abs(b.angularVelocity) < 0.06) {
+                        Matter.Body.setAngularVelocity(b, b.angularVelocity * 0.5);
+                        if (Math.abs(b.velocity.x) < 0.6) Matter.Body.setVelocity(b, { x: b.velocity.x * 0.6, y: b.velocity.y });
+                    }
+                }
+            }
             if (mergeQueue.length > 0) {
                 mergeQueue.forEach(merge => {
                     const midX = (merge.bodyA.position.x + merge.bodyB.position.x) / 2; const midY = (merge.bodyA.position.y + merge.bodyB.position.y) / 2;
