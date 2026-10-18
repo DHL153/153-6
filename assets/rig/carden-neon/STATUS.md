@@ -26,7 +26,7 @@
 - 시트 조각 배율이 조각마다 다름: 표정 얼굴 2.03·봉 2.04(원화와 거의 같은 그림), 머리·수염 1.84, 몸통 2.34 → K 하나로 못 씀. 자리 = 원화에 맞춘 변환(fix_result.json — fixmatch.py 배율 범위 맞춤, place_manual.py 두 점)
 - 허벅지 조각 비스듬(12~20°) — 러스트처럼 바지·부츠는 원화에서 오려 안 씀
 
-## 14:10 조립 v1 (`source/build_carden.py`, 러스트 v10 복사 + opt-in 몇 개)
+## 12:40 조립 v1 (`source/build_carden.py`, 러스트 v10 복사 + opt-in 몇 개)
 - 순서: `python3 -I grip2.py` → `python3 -I hands.py` → `python3 -I pants_ref.py` → `python3 -I faces.py` → `python3 -I build_carden.py` → `bash tools/check.sh` (16장면 통과)
 - 머리 = 표정 시트 무표정 얼굴 통째(headFace: 모자·옆머리·귀·고글·수염) — 시트 머리 조각엔 귀 둘레 옆머리가 없어 원화와 달랐음. 수염·옆머리 뼈 없음(skip), 땋은 끝만 braid 뼈(머리 아래, 출렁임)
 - 가까운 팔(대기) = 원화에서 통째 오림(nearArmRef: 어깨갑·소매·편 장갑, 다각형 review/g_neararm1024) + armLbind 0.3(엔진 대기의 팔 처짐 −0.3 을 미리 반대로) → 대기 = 원화. 달리기 주먹 팔은 시트(armLF, 배율 2.04)
