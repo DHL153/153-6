@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""16 네온 카르덴 찌르기 쥔 손 시트(2026-10-18 11:28 받음, sheets/grip2_both.png) → parts_work/handL2·handR2 + hands2.json
+"""26 스카이아크 카르덴 찌르기 쥔 손 시트(2026-10-19 01:54 받음, sheets/grip2_both.png) → parts_work/handL2·handR2 + hands2.json
+- 스카이: 네온·러스트 grip2 와 실루엣 상자가 거의 같음(왼 x 73~668·y 295~681 / 네온 73~669·295~679) → 쥔 점·손목·방향은 네온 값 그대로
+- 쥔 점은 네온·러스트와 같은 자리(앞 380, 뒤 1160 — 주먹 가운데보다 손목 쪽, 10-19 01:58 확인: 1216 으로 두면 뒷손목이 어깨 옆까지 와서 가까운 팔꿈치가 위로 뒤집힘)
+- 다른 점: 자루에 황동 고리가 있어 자루 토막을 주먹 테두리까지 지움(왼 손 0~250·518~, 뒷손 1350~, 뒷손 소맷단~주먹 사이 고리 1052~1086)
+- 배율 = 주먹 길이: 원화 봉 쥔 주먹 150 리그(ref1024 y 540~690) / 시트 주먹 265px(x 252~517) → 0.566
+16 네온 카르덴 찌르기 쥔 손 시트(2026-10-18 11:28 받음, sheets/grip2_both.png) → parts_work/handL2·handR2 + hands2.json
 - 러스트 grip2_both 와 실루엣이 거의 같음(자루 y 392~490 / 러스트 395~488, 주먹 자리 같음) → 러스트 grip2.py 의 점을 그대로 씀
 - 배율 = 주먹 길이 기준: 원화 봉 쥔 주먹(손가락 4줄, 자루 방향) 76px@512 = 152 리그 / 시트 주먹 285px → 0.533
   (자루 굵기 기준이면 48/98 = 0.49 로 주먹이 원화보다 8% 작아짐 — 네온 원화 봉이 주먹에 비해 가늘어서. 주먹 크기가 대기↔찌르기에서 같아야 하므로 주먹 기준)
@@ -17,16 +22,18 @@ def key(a):
     bg = np.array([255., 0, 255]); col = np.clip(np.where(A > .02, (a[..., :3] - (1 - A) * bg) / np.maximum(A, 1e-3), 0), 0, 255)
     return np.dstack([col, alpha * 255]).astype(np.uint8), alpha
 
-SHAFT_Y = (392, 490); SHAFT_C = 441.0; FIST_SHEET = 285.0; FIST_RIG = 152.0; SCALE = FIST_RIG / FIST_SHEET
+SHAFT_Y = (393, 492); SHAFT_C = 441.5; FIST_SHEET = 265.0; FIST_RIG = 150.0; SCALE = FIST_RIG / FIST_SHEET
 # 자르는 띠 y 388~492: 자루 알파 391~490. 러스트 띠(386~496)를 그대로 쓰면 뒷주먹 엄지 끝(x1354, y≤386)과 앞 소매 윗선(x<166, y≥495)이 잘림 (11:35 확인)
-P = {'handL': dict(x=(0, 700), cut=[(0, 166, 388, 492), (527, 700, 388, 492)], grip=(380, SHAFT_C), wrist=(165, 592), toElbow=(-0.80, 0.60)),
-     'handR': dict(x=(700, 1536), cut=[(1354, 1536, 388, 492)], grip=(1160, SHAFT_C), elbow=(760, 545))}
+P = {'handL': dict(x=(0, 700), cut=[(0, 158, 386, 499), (158, 226, 386, 492), (226, 250, 396, 492), (518, 700, 386, 499)], grip=(380, SHAFT_C), wrist=(165, 592), toElbow=(-0.80, 0.60)),
+     'handR': dict(x=(700, 1536), cut=[(1350, 1536, 386, 499)], fill=[(1057, 1090, 430, 498, 1044)], grip=(1160, SHAFT_C), elbow=(760, 545))}
 if __name__ == '__main__':
     rgba, alpha = key(np.asarray(Image.open(os.path.join(HERE, 'sheets', 'grip2_both.png')).convert('RGB')))
     R = {}
     for nm, p in P.items():
         a = rgba.copy(); al = a[..., 3].astype(float); yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
         al[(xx < p['x'][0]) | (xx >= p['x'][1])] = 0
+        for x0, x1, y0, y1, xs in p.get('fill', []):   # 소맷단~주먹 사이 황동 고리 → 왼쪽 남색 자루 세로줄(xs)로 칠함: 지우면 구멍으로 배경이 비침, 그대로면 봉에 없는 고리가 손 따라 움직임 (10-19 01:58)
+            a[y0:y1 + 1, x0:x1 + 1] = a[y0:y1 + 1, xs:xs + 1]; al[y0:y1 + 1, x0:x1 + 1] = al[y0:y1 + 1, xs:xs + 1]
         for x0, x1, y0, y1 in p['cut']:
             al[(yy >= y0) & (yy <= y1) & (xx >= x0) & (xx < x1)] = 0
         a[..., 3] = al.astype(np.uint8); ys, xs = np.nonzero(a[..., 3] > 8); ox, oy = int(xs.min()), int(ys.min())

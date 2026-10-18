@@ -453,6 +453,8 @@ if WV:   # 인사(손 흔들기, DHL 10-18 02:02) — 8 니콜과 같은 엔진 
         out_bones.append({'name': 'wCuff', 'parent': 'wFore', 'pos': [0, 0], 'part': 'waveForeLo'})
         rig['hidden'] = rig['hidden'] + ['wCuff']
         if 'wCuff' not in rig['drawWave']: rig['drawWave'].insert(rig['drawWave'].index(WV.get('splitAfter', 'pouch')) + 1, 'wCuff')
+for nm_ in ['handL', 'handR']:   # 검사용(audit_extra 손-자루): 쥔 손의 자루 점 = 쥔 점(pivot) — 없으면 그림 가운데로 재서 소맷단까지 든 넓은 뒷손이 자루에서 떨어진 것처럼 나옴 (26 스카이 10-19 01:58)
+    if nm_ in parts: parts[nm_]['shaft'] = list(parts[nm_]['pivot'])
 th = T('thrustFull', None)
 if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
