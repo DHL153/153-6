@@ -20,6 +20,6 @@ ts.forEach((t,k)=>{const tf=Math.round(t*60);while(f<tf){an.update(1/60,{vx:0,fa
   function apply_(m,x,y){return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]}
   out.push({t,pelvis:r(pt('hip',0,0)),neck:r(pt('head',0,0)),hairTop:r(ppt('head',150,20)),chin:r(ppt('head',150,240)),
     SN:r(pt('armF',0,0)),EN:r(pt('foreF',0,0)),SF:r(pt('armU',0,0)),EF:r(pt('armL',0,0)),grip:r(an.swordG||[0,0]),sa:+(an.swordA||0).toFixed(3),
-    hipN:H('near'),kneeN:r(ap(...L.near.knee)),ankleN:r(ap(...L.near.ankle)),hipF:H('far'),kneeF:r(ap(...L.far.knee)),ankleF:r(ap(...L.far.ankle)),hipDrop:+(an.hipDrop||0).toFixed(1),legRun:+(an.legRunV||0).toFixed(2),torsoA:+Math.atan2(b.torso.m[1],b.torso.m[0]).toFixed(3)})});
+    hipN:H('near'),kneeN:r(ap(...L.near.knee)),ankleN:r(ap(...L.near.ankle)),hipF:H('far'),kneeF:r(ap(...L.far.knee)),ankleF:r(ap(...L.far.ankle)),hipDrop:+(an.hipDrop||0).toFixed(1),legRun:+(an.legRunV||0).toFixed(2),stN:+(an.stN||0).toFixed(3),stF:+(an.stF||0).toFixed(3),wrN:+(an.wrN||0).toFixed(3),wrF:+(an.wrF||0).toFixed(3),torsoA:+Math.atan2(b.torso.m[1],b.torso.m[0]).toFixed(3)})});
 window.R=out;document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
 </script>

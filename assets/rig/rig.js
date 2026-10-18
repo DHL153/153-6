@@ -877,12 +877,26 @@
       { const tp = step("tPiece", null); rig.swap.torso = tp && tp !== b.torso.part ? tp : null;
         const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)
+      // (opt-in 동작 트랙 armIK 0~1, 11 네온 알론소 10-18 DHL '고무줄처럼 늘어나지 말고 같은 길이의 팔이 내려치고 다시 올라가게'):
+      //   주먹(쥔 팔 조각의 손잡이 점)은 칼에 붙은 채, 윗팔 길이(그림 길이)·팔뚝 길이(조각의 손잡이→팔꿈치)를 고정한 두 관절 IK —
+      //   팔꿈치 = 어깨 원(윗팔 길이) ∩ 주먹 원(팔뚝 길이), 쥔 팔 조각은 주먹 둘레로만 돌아 그 팔꿈치를 가리킴(손목 꺾임 = this.wrN·wrF).
+      //   닿지 않으면 팔을 곧게 펴고 남는 만큼만 윗팔이 늘어남(this.stN·stF 로 확인). ikSide {N,F}: +1 = 어깨→주먹 선의 시계 방향 쪽 팔꿈치, 없으면 칼에 붙인 팔꿈치에 가까운 쪽
+      const ikA = D.armIK ? clamp(tr("armIK"), 0, 1) : 0;   // 쪽별로 armIKN·armIKF 트랙이 있으면 그것
+      const ikArm = (bone, pn, s, tw, S, uPn, side) => { const E0 = fore(bone, pn, s, tw), ikW = D["armIK" + side] ? clamp(tr("armIK" + side), 0, 1) : ikA; if (!(ikW > 0)) { this["wr" + side] = 0; return E0 }
+        const pu = P[uPn], GN = [G[0] + U[0] * s, G[1] + U[1] * s], r = Math.hypot(E0[0] - GN[0], E0[1] - GN[1]);
+        const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), dx = GN[0] - S[0], dy = GN[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
+        let E; if (d >= L1 + r) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];
+        else { const dd = Math.max(d, Math.abs(L1 - r) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - r * r) / (2 * L1 * dd), -1, 1));
+          const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1], sd = D.ikSide && D.ikSide[side];
+          E = sd ? (sd > 0 ? e2 : e1) : (Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2) }
+        const t2 = wrapA(Math.atan2(E[1] - GN[1], E[0] - GN[0]) - Math.atan2(E0[1] - GN[1], E0[0] - GN[0])) * ikW; this["wr" + side] = t2;
+        return fore(bone, pn, s, tw + t2) };
       const nP = step("nPiece", SG.near.carry), nU = step("nUpper", SG.near.upper);
-      const EN = fore("foreF", nP, tr("sN") || 0, tr("nTw")); this.stN = upper("armF", nU, SN, EN);
+      const EN = ikArm("foreF", nP, tr("sN") || 0, tr("nTw"), SN, nU, "N"); this.stN = upper("armF", nU, SN, EN);
       if (b.fistF) b.fistF.wm = null;
       if (reach > .985) {   // 먼 손도 칼에 붙음
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper);
-        const EF = fore("armL", fP, tr("sF") || SG.far.sPref || 0, tr("fTw")); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
+        const EF = ikArm("armL", fP, tr("sF") || SG.far.sPref || 0, tr("fTw"), SF, fU, "F"); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
       } else if (reach > 0 && D.reachIK) {   // (opt-in, 21 알론소) 먼 손 잡기·놓기 = 두 관절 IK: 윗팔(어깨→팔꿈치) + 쥔 팔 조각(팔꿈치→주먹)을 진짜 관절처럼 — 손이 막대처럼 미끄러지지 않음.
         //  시작(reach≈0)은 흔들던 팔뚝 방향 그대로, 끝(reach=1)은 칼에 붙은 rigid 자리와 같음(팔 길이 1.0이면 IK 팔꿈치 = rigid 팔꿈치)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];

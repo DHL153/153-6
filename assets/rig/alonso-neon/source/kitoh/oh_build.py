@@ -57,4 +57,13 @@ STK = OHC.get('strikeScale', 0.9)
 for name, file, mk in [('gN_ST', 'gNst.png', 'gNst'), ('gF_ST', 'gFst.png', 'gFst')]:
     put(name, file); m = MET[mk]
     def_parts[name] = {'src': f'parts/{name}.png', 'pivot': list(m['elbow']), 'elbow': list(m['elbow']), 'grip': list(m['grip']), 'wrist': list(m['grip']), 'shaftDir': list(m['shaftDir']), 'scale': STK}
-put('uN_ST', 'uNst.png'); def_parts['uN_ST'] = {'src': 'parts/uN_ST.png', 'pivot': list(MET['uNst']['shoulder']), 'elbow': list(MET['uNst']['elbow']), 'scale': STK}
+put('uN_ST', 'uNst.png')
+def _clean_uNst(path):   # (21:59 IK 로 윗팔이 더 숙으면 어깨갑 밖으로 나오는 위 끝 정리) 지운 파란 패드의 회색 찌꺼기·구멍·가는 외곽선 꼬리
+    from scipy import ndimage as _nd
+    a = np.array(Image.open(path).convert('RGBA')).astype(np.int32); H_, W_ = a.shape[:2]; yy_, xx_ = np.mgrid[0:H_, 0:W_]; al_ = a[..., 3]
+    light = (al_ > 0) & (a[..., :3].min(2) > 150) & ((a[..., :3].max(2) - a[..., :3].min(2)) < 45) & (xx_ < 130); al_ = np.where(light, 0, al_)
+    m_ = al_ > 40; m2 = np.where((xx_ < 85) | ((xx_ < 135) & (yy_ < 45)) | ((xx_ < 135) & (yy_ < 70)), _nd.binary_opening(m_, structure=np.ones((7, 7))), m_)
+    lab_, n_ = _nd.label(m2); keep = lab_ == (1 + int(np.argmax(_nd.sum(m2, lab_, range(1, n_ + 1))))); hole = _nd.binary_fill_holes(keep) & ~keep
+    a[..., 3] = np.where(keep, al_, 0); _sk = (a[..., 3] > 200) & (a[..., 0] > 200) & (a[..., 1] > 140) & (a[..., 1] < 210) & (a[..., 2] < 130); a[hole] = list(np.median(a[_sk][:, :3], 0).astype(int)) + [255]
+    Image.fromarray(a.astype(np.uint8), 'RGBA').save(path)   # 구멍 = 패드 밑 윗팔 살 → 살색
+_clean_uNst(os.path.join(OUT, 'parts', 'uN_ST.png')); def_parts['uN_ST'] = {'src': 'parts/uN_ST.png', 'pivot': list(MET['uNst']['shoulder']), 'elbow': list(MET['uNst']['elbow']), 'scale': STK}
