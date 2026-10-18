@@ -56,7 +56,18 @@ def compose(name, fist, fore, rel_deg, L=None, inset=8.0):
     canvas.save(os.path.join(OUT, 'parts', name + '.png'))
     g = np.array(F['grip']) * k - mn; e = Ec - mn; r = lambda v: [round(float(v[0]), 1), round(float(v[1]), 1)]
     def_parts[name] = {'src': f'parts/{name}.png', 'pivot': r(e), 'elbow': r(e), 'grip': r(g), 'wrist': r(g), 'shaftDir': [float(sd[0]), float(sd[1])], 'scale': 1 / R2}
-for nm, spec in ATK['pieces'].items(): compose(nm, *spec)
+for nm, spec in ATK['pieces'].items():
+    compose(nm, *spec)
+    if nm in ATK.get('pieceK', {}): def_parts[nm]['scale'] *= ATK['pieceK'][nm]   # 조각 전체 배율(주먹·팔뚝 함께 — 늘이기 아님)
+# (21:40 DHL 공격 0.56초 '표시한 곳(턱 밑 ~ 손)에 팔이 들어가야') 휘두름·런지 먼 팔: v5 는 먼 주먹만 손잡이에 있고 팔이 없어
+#   턱 밑 ~ 손 사이가 비었음(시트 m11·m12 는 먼 어깨(턱 밑) → 팔 → 손잡이 먼 주먹). fST2 = 시트 가로 주먹 gFh + 살색 팔뚝(compose),
+#   armFst = 원화 먼 윗팔(armF)에서 팔꿈치 쪽 검은 덮개를 지운 것 — 팔꿈치 덮개는 팔뚝 조각 것 하나(17:06 '덮개 두 겹' 규칙)
+if ATK.get('farUpperST'):
+    _fu = ATK['farUpperST']; _p = def_parts[_fu['from']]; _u = np.array(img(os.path.join(OUT, 'parts', _fu['from'] + '.png')))
+    _sh, _el = np.array(_p['pivot'], float), np.array(_p['elbow'], float); _ax = (_el - _sh) / np.linalg.norm(_el - _sh); _L = float(np.linalg.norm(_el - _sh))
+    _yy, _xx = np.mgrid[0:_u.shape[0], 0:_u.shape[1]]; _t = (_xx - _sh[0]) * _ax[0] + (_yy - _sh[1]) * _ax[1]
+    _u[..., 3] = (_u[..., 3] * np.clip((_L + _fu.get('cut', 0) - _t) / 2, 0, 1)).astype(np.uint8)
+    Image.fromarray(_u).save(os.path.join(OUT, 'parts', 'armFst.png')); def_parts['armFst'] = dict(_p, src='parts/armFst.png', scale=_p.get('scale', 1) * _fu.get('k', 1))
 # 든 윗팔(시트 armNup·armFup): long_upper — 어깨 덮개 그대로, 살 부분만 미리 늘임(엔진 늘임 ≈ 1)
 def long_upper(nm, src, sh, el, T, c0=-5.0, keepS=20.0, skinEnd=78.0, back=32, wk=1.0):
     """(17:40 DHL '팔뚝이 얼굴을 가로지름') 머리 위 든 윗팔을 길이 T(리그)로 미리 늘인 그림.

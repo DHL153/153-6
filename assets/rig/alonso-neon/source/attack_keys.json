@@ -1,9 +1,10 @@
 {
  "note": "11 네온 알론소 내려찍기 키 (2026-10-18 v5 — 머리 위·휘두름 팔을 DHL 키트 시트(20:38·20:48)로: kitoh/). grip = [t, gx, gy, sa, ease] (상체 기준, 골반 관절 원점, 리그 단위) — 칼날 쪽 주먹(먼 손) 자리·칼끝 각도(rad). 머리 위 구간(0.1001~0.36) grip·shNx/shNy 는 kitoh/oh_build.py 가 키트 그림에서 계산해 덮어씀",
- "pieces": {},
+ "pieces": {"fST2": ["gFh", "F", 215, 100]},
  "orders": {
   "drawOH": ["legFar", "legNear", "hips", "torsoS", "torso", "pauldronF", "head", "weapon", "armF", "armU", "foreF", "armL", "pauldron"],
-  "drawSW": ["legFar", "legNear", "hips", "armF", "foreF", "armU", "armL", "torsoS", "torso", "pauldronF", "head", "weapon", "pauldron"]
+  "drawSW": ["legFar", "legNear", "hips", "armF", "foreF", "armU", "armL", "torsoS", "torso", "pauldronF", "head", "weapon", "pauldron"],
+  "drawST": ["legFar", "legNear", "hips", "torsoS", "torso", "armF", "pauldronF", "head", "weapon", "foreF", "armU", "pauldron", "armL"]
  },
  "shoulderN": [36, 6],
  "shoulderF": [-15, -5],
@@ -44,17 +45,17 @@
   "nearDx": [[0, 0, "io"], [0.3, 0, "io"], [0.38, -60, "io"], [0.64, -60, "io"], [0.84, 0]],
   "shake": [[0, 0], [0.43, 0, "lin"], [0.44, 1], [0.53, 0]],
   "face": [[0, "effort"], [0.36, "shout"], [0.5, "focus"], [0.8, null]],
-  "nPiece": [[0, "foreF"], [0.1001, "gF_OH"], [0.3601, "gF_ST"], [0.72, "foreF"]],
+  "nPiece": [[0, "foreF"], [0.1001, "gF_OH"], [0.3601, "fST2"], [0.72, "foreF"]],
   "fPiece": [[0, "armL"], [0.1001, "gN_OH"], [0.3601, "gN_ST"], [0.72, "armL"]],
-  "nUpper": [[0, "armF"]],
+  "nUpper": [[0, "armF"], [0.3601, "armFst"], [0.72, "armF"]],
   "fUpper": [[0, "armU"], [0.1001, "uN_OH"], [0.3601, "uN_ST"], [0.72, "armU"]],
-  "order": [[0, "drawA"], [0.1001, "drawOH2"], [0.3601, "drawA"]],
+  "order": [[0, "drawA"], [0.1001, "drawOH2"], [0.3601, "drawST"], [0.72, "drawA"]],
   "fade": {
    "torso": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.72, 0, "lin"], [0.721, 1]],
    "torsoS": [[0, 1]],
    "pauldronF": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.72, 0, "lin"], [0.721, 1]],
    "pauldron": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.36, 0, "lin"], [0.3601, 1]],
-   "armF": [[0, 1], [0.36, 1, "lin"], [0.3601, 0], [0.72, 0, "lin"], [0.721, 1]],
+   "armF": [[0, 1]],
    "weapon": [[0, 1], [0.1, 1, "lin"], [0.1001, 0], [0.72, 0, "lin"], [0.721, 1]],
    "weaponA": [[0, 0], [0.1, 0, "lin"], [0.1001, 1], [0.72, 1, "lin"], [0.721, 0]]
   },
@@ -80,8 +81,12 @@
    [0.72, 0.42, "lin"],
    [0.7201, -0.42, "io"],
    [0.8, 0]],
-  "kneeOutF": [[0, 0], [0.38, 0, "io"], [0.43, 0.35], [0.62, 0.35, "io"], [0.8, 0]]
+  "kneeOutF": [[0, 0], [0.38, 0, "io"], [0.43, 0.35], [0.62, 0.35, "io"], [0.8, 0]],
+  "shFx": [[0, 0], [0.36, 0, "lin"], [0.3601, -38], [0.72, -38, "lin"], [0.7201, 0]],
+  "shFy": [[0, 0], [0.36, 0, "lin"], [0.3601, -24], [0.72, -24, "lin"], [0.7201, 0]]
  },
  "cutHold": 0.55,
- "overheadKit": {"on": true, "swordKitDeg": 126.5, "farForeDeg": 50, "farFistK": 1.0, "armK": 0.8, "farArmK": 0.8}
+ "overheadKit": {"on": true, "swordKitDeg": 126.5, "farForeDeg": 50, "farFistK": 1.0, "armK": 0.8, "farArmK": 0.8},
+ "farUpperST": {"from": "armF", "cut": 0, "k": 1.15},
+ "pieceK": {"fST2": 1.15}
 }
