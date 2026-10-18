@@ -842,7 +842,9 @@
       const w = tr("w"), reach = tr("reach"), step = (k, d) => { const K = D[k]; if (!K) return d; let v = d; for (const [t, n] of K) if (at >= t) v = n; return v };
       { const SN_ = SG.shoulderN, SF_ = SG.shoulderF, kN = SN_ ? tr("shN") : 0, kF = SF_ ? tr("shF") : 0;   // (opt-in, 21 알론소) 어깨 옮기기: 몸을 튼 것처럼 가까운 어깨(+어깨갑)·먼 어깨를 키만큼 이동 — 3/4 보기에서 두 손이 한 손잡이에 닿게
         if (kN) { b.armU.ax += SN_[0] * kN; b.armU.ay += SN_[1] * kN; const pf = SG.pauldronFollow ?? 1; b.pauldron.ax += SN_[0] * kN * pf; b.pauldron.ay += SN_[1] * kN * pf }
-        if (kF) { b.armF.ax += SF_[0] * kF; b.armF.ay += SF_[1] * kF } }
+        if (kF) { b.armF.ax += SF_[0] * kF; b.armF.ay += SF_[1] * kF }
+        if (D.shNx || D.shNy) { const ox = tr("shNx"), oy = tr("shNy"), pf = SG.pauldronFollow ?? 1; b.armU.ax += ox; b.armU.ay += oy; b.pauldron.ax += ox * pf; b.pauldron.ay += oy * pf }   // shNx·shNy·shFx·shFy(opt-in 동작 트랙, 11 네온 알론소 머리 위): 어깨를 상체 기준 좌표로 직접 옮김 — 팔을 머리 위로 들면 어깨가 올라감(시트 그림의 어깨 자리)
+        if (D.shFx || D.shFy) { b.armF.ax += tr("shFx"); b.armF.ay += tr("shFy") } }
       rig.compute();
       const Wm = b.weapon.m, G0 = [Wm[4], Wm[5]], a0 = Math.atan2(-Wm[3], -Wm[2]);
       const SN = apply(b.armF.m, 0, 0), SF = apply(b.armU.m, 0, 0);

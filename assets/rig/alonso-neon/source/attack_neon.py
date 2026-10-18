@@ -75,15 +75,7 @@ def long_upper(nm, src, sh, el, T, c0=-5.0, keepS=20.0, skinEnd=78.0, back=32, w
     al = o[..., 3:4]; o[..., :3] = np.where(al > 1e-3, o[..., :3] / np.maximum(al, 1e-3) * 255, 0)
     Image.fromarray(np.clip(o, 0, 255).astype(np.uint8), 'RGBA').save(os.path.join(OUT, 'parts', nm + '.png'))
     def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [U0, back], 'elbow': [U0, back + T], 'scale': ATK.get('upScale', 1.0)}
-_UL = ATK.get('upLen', {})
-for nm, src, sh, el in [('armNupL', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFupL', 'armFup.png', (68.0, 119.9), (29.1, 29.2))]:   # 머리 위 전용(긴 팔)
-    long_upper(nm, src, sh, el, _UL.get(nm, 98.6), wk=ATK.get('upWide', 1.0))
-# 휘두름·런지 윗팔 = 시트 armNup·armFup 그대로(짧음, v2) — 팔꿈치 쪽 검은 덮개는 지움(팔뚝 조각 덮개 하나만)
-for nm, src, sh, el in [('armNup', 'armNup.png', (31.0, 119.5), (70.6, 29.2)), ('armFup', 'armFup.png', (59.3, 99.7), (29.1, 29.2))]:
-    _u = np.array(img(os.path.join(PC, src))); _sh, _el = np.array(sh), np.array(el); _ax = (_el - _sh) / np.linalg.norm(_el - _sh)
-    _yy, _xx = np.mgrid[0:_u.shape[0], 0:_u.shape[1]]; _t = (_xx - _sh[0]) * _ax[0] + (_yy - _sh[1]) * _ax[1]; _L = float(np.linalg.norm(_el - _sh))
-    _u[..., 3] = (_u[..., 3] * np.clip((_L + ATK.get('upperCut', 0) - _t) / 2, 0, 1)).astype(np.uint8); Image.fromarray(_u).save(os.path.join(OUT, 'parts', nm + '.png'))
-    def_parts[nm] = {'src': f'parts/{nm}.png', 'pivot': list(sh), 'elbow': list(el), 'scale': ATK.get('upScale', FS)}
+# (v5) 머리 위·휘두름 팔은 kitoh/oh_build.py — 시트1 조각 합성(compose)·미리 늘인 윗팔(long_upper)은 더 안 씀(20:15 DHL '관 팔' — 실수 기록 23)
 # 공격용 칼 weaponA: 원화 칼의 손잡이·폼멜 자리(원화에서 아래 주먹이 덮어 폼멜이 조각나 있고 손잡이와 떨어져 있음)를
 #   시트 칼의 손잡이·폼멜로 바꾼 그림 — 주먹 조각(gNh 등)은 원화 주먹보다 작아 공격 중에 조각난 폼멜이 보였음. 대기·달리기는 원화 칼 그대로
 _wa = np.array(img(os.path.join(OUT, 'parts', 'weapon.png'))); _ss = np.array(img(os.path.join(PC, 'sword.png')))
@@ -109,3 +101,5 @@ act.update({'gx': gx, 'gy': gy, 'sa': sa})
 rig['actions'] = {'smash': act}
 rig['ui']['attack'] = 'smash'
 rig['cutHold'] = ATK.get('cutHold', .55)
+
+if ATK.get('overheadKit', {}).get('on'): exec(open(os.path.join(HERE, 'kitoh', 'oh_build.py'), encoding='utf-8').read())   # 머리 위 키트(20:38 DHL 시트) 조각·키
