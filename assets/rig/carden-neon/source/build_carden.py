@@ -79,6 +79,10 @@ if NR:   # 가까운 팔(어깨갑 아래 소매 + 편 장갑) = 원화(ref1024)
     _m = np.asarray(_m.resize((1024, 1024), Image.LANCZOS)).astype(np.float32) / 255; _a = np.asarray(_R).copy(); _a[..., 3] = (_a[..., 3] * _m).astype(np.uint8)
     from scipy import ndimage as _nd
     _k = _a[..., 3] > 20; _lb, _n = _nd.label(_k); _sz = _nd.sum(_k, _lb, range(1, _n + 1)); _a[..., 3] = np.where(_lb == 1 + int(np.argmax(_sz)), _a[..., 3], 0)
+    if NR.get('padCut') and T('pauldronRef', None) is not None:   # 어깨갑은 따로(pauldron 뼈) — 팔 그림에선 어깨갑 다각형을 PC px 줄여서 뺌(어깨갑 밑으로 팔이 조금 들어가 이음 안 비침). 달릴 때 팔이 흔들려도 어깨갑이 두 겹으로 안 보임 (16 네온 DHL 10-18 12:45)
+        _pm = Image.new('L', (4096, 4096), 0); _D.Draw(_pm).polygon([(x * 4, y * 4) for x, y in T('pauldronRef', None)['poly']], fill=255)
+        _pm = np.asarray(_pm.resize((1024, 1024), Image.LANCZOS)).astype(np.float32) / 255
+        _pm = _nd.grey_erosion(_pm, size=(2 * NR['padCut'] + 1, 2 * NR['padCut'] + 1)); _a[..., 3] = (_a[..., 3] * (1 - _pm)).astype(np.uint8)
     _ys, _xs = np.nonzero(_a[..., 3] > 2); _ox, _oy = int(_xs.min()), int(_ys.min()); _a = _a[_oy:_ys.max() + 1, _ox:_xs.max() + 1]
     Image.fromarray(_a, 'RGBA').save(os.path.join(HERE, 'parts_work/armL_ref.png'))
     EN = A(NR['elbow']); ML = A([[1, 0, _ox], [0, 1, _oy]]); PT['armL'] = ([NR['elbow'][0] - _ox, NR['elbow'][1] - _oy], [NR['hand'][0] - _ox, NR['hand'][1] - _oy])
@@ -194,7 +198,9 @@ if FS:   # 손~팔꿈치를 길게(DHL 10-18 00:21 '어깨·팔꿈치 그림과 
     sh_ = lambda v: v + add_ * min(1, max(0, (v - y0_) / (y1_ - y0_)))   # 늘인 줄 아래 점은 그만큼 내려감
     pLF = (pLF[0], sh_(pLF[1])); gLF = (gLF[0], sh_(gLF[1]))
     if False: gLF = (gLF[0], gLF[1] + add_ * min(1, (gLF[1] - y0_) / (y1_ - y0_)) if gLF[1] < y1_ else gLF[1] + add_)
-parts['armL']['alt'] = 'armLF'
+if T('runOpenHand', False):   # 달릴 때도 서 있는 팔 모양(원화 편 장갑) 그대로 흔듦 — 주먹 팔(armLF)로 안 바꿈 (16 네온 DHL 10-18 12:45 '차라리 저 모양으로 움직이는 것'). 찌르기 다가갈 때도 편 손이 자루로 감 → grip = 손바닥 가운데
+    if NR: parts['armL']['grip'] = [round(float(PT['armL'][1][0]), 1), round(float(PT['armL'][1][1]), 1)]
+else: parts['armL']['alt'] = 'armLF'
 parts['armLF'] = {'src': 'parts/armLF.png', 'pivot': [round(float(pLF[0]), 1), round(float(pLF[1]), 1)], 'scale': T('armLFscale', parts['armL']['scale']), 'grip': [round(float(gLF[0]), 1), round(float(gLF[1]), 1)]}
 
 # 찌르기 손: handL(앞 주먹, 자루 토막 지움) / handR(뒤 팔뚝+주먹) — 봉 뼈 원점(먼 주먹이 쥔 점)에 붙고 자루 방향을 따라 돎
@@ -383,6 +389,9 @@ if th: rig['actions'] = {'thrust': th}
 if T('staffKey', None): rig['staffKey'] = T('staffKey', None)
 if T('staffKey', None): rig['drawStaff'] = ['cape', 'legFar', 'legNear', 'armF', 'skirt' if T('pantsSkirt', False) else 'hips', 'torso', 'pouch', 'foreF', 'tuftL', 'tuftR', 'head', 'beard', 'headFront', 'weapon', 'armU', 'armL', 'pauldron', 'fistF', 'handL', 'handR']   # 봉 찌르기: 봉 < 가까운 팔 < 주먹 (DHL 10-18 00:21 '앞 팔이 무기 위로' — 23:50 의 '팔 < 봉'에서 바꿈)
 if T('gameRef', None): rig['gameRef'] = T('gameRef', None)
+DSO = T('drawStaffOrder', None)
+if DSO and 'drawStaff' in rig:   # 찌르기 팔 그리는 순서: 팔뚝(팔꿈치) > 어깨갑 > 윗팔 (DHL 10-18 12:45 '팔꿈치 레이어가 어깨보다 앞으로' — 이전부터 반복 지적, 메모)
+    i0 = rig['drawStaff'].index('weapon'); rig['drawStaff'] = rig['drawStaff'][:i0] + DSO
 for k_ in ['draw', 'drawStaff', 'drawWave']:
     if k_ in rig:
         rig[k_] = [x for x in rig[k_] if x not in SKIP]

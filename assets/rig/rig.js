@@ -660,6 +660,8 @@
         const EN = apply(b.armL.m, 0, 0); b.armL.ar += wrapA(Math.atan2(WN[1] - EN[1], WN[0] - EN[0]) - Math.atan2(sg[1] - sl.pivot[1], sg[0] - sl.pivot[0]) - wAng(b.armL.m)); rig.compute();
         { const tip = rig.partPoint('armL', sg[0], sg[1]); this.rearErr = Math.hypot(tip[0] - WN[0], tip[1] - WN[1]) }   // 팔이 안 닿은 거리(검사용)
         }
+      } else if (SK.reachK === 0) {   // staffKey.reachK 0 (opt-in, 16 네온 10-18 DHL '달릴 때도 서 있는 팔 모양'): 다가갈 때·놓을 때 팔을 뻗지 않음 — 서 있는/달리는 팔(원화 편 장갑) 그대로, 쥐는 순간(onN) 소매+뒷주먹으로 바뀜
+        rig.swap.armL = null; b.armL.ax = 0; b.armL.ay = 0; rig.compute();
       } else {   // 다가가기: 주먹 그림으로 바꾸고 팔을 그 손목 쪽으로 반쯤
         rig.swap.armL = P.armL.alt || null; const pl = P[P.armL.alt || 'armL'], gp = pl.grip || pl.pivot, M2 = Math.hypot(gp[0] - pl.pivot[0], gp[1] - pl.pivot[1]) * (pl.scale || 1);
         const eN = pick(SN, GN, solve2(SN, GN, n1, M2)), base = b.armU.ar;   // 주먹 그림(armLF)의 쥔 점 = 뒷주먹 쥔 점

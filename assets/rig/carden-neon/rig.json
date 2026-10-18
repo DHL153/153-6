@@ -1,6 +1,6 @@
 {
  "name": "carden-neon",
- "version": "6baeacbe",
+ "version": "dea88a72",
  "units": "rig px (reference x2)",
  "refOrigin": [
   236.0,
@@ -56,7 +56,10 @@
     55.0
    ],
    "scale": 1.0,
-   "alt": "armLF"
+   "grip": [
+    102.0,
+    215.0
+   ]
   },
   "pauldron": {
    "src": "parts/pauldron.png",
@@ -639,7 +642,9 @@
   "swingReach": 0.05,
   "landAng": -0.08,
   "angK": 0.45,
-  "elbowRun": 0.8
+  "elbowRun": 0.25,
+  "armSwing": 0.3,
+  "armBias": 0.0
  },
  "weaponRaise": 40,
  "releaseOpen": true,
@@ -653,7 +658,7 @@
  ],
  "rearBlend": 0.1,
  "runSlide": 0,
- "upperRun": 55,
+ "upperRun": null,
  "hemGain": 0.15,
  "seamInterior": true,
  "carryDrop": 9,
@@ -1409,7 +1414,8 @@
   "fitMin": 0.85,
   "fitMax": 1.7,
   "foreFromHand": true,
-  "foreK": 1.25
+  "foreK": 1.25,
+  "reachK": 0
  },
  "drawStaff": [
   "cape",
@@ -1425,8 +1431,8 @@
   "headFront",
   "weapon",
   "armU",
-  "armL",
   "pauldron",
+  "armL",
   "fistF",
   "handL",
   "handR"

@@ -35,3 +35,9 @@
 - 찌르기 = 러스트 thrustFull·staffKey 그대로(큰 머리 앞), 쥔 손 = grip2 (handR2keepX 232, wrist [242,192]), 팔꿈치 덮개 capFrom 24
 - 러스트와 같게 둔 것: weaponRaise 40(대기에서 봉이 원화보다 20px@512 위), 두 부츠 같은 그림(앞코 오른쪽 — 원화 가까운 발은 앞코 왼쪽)
 - 게임: index.html REGISTRY 16:'carden-neon', rig.def.js?v=6baeacbe. 도감(마이룸·전투 칸)·전투 확인 — review/v1_*.png
+
+## 12:45 DHL 지적 → v2
+- 지적: ①달릴 때 앞팔 — 팔꿈치 레이어가 어깨보다 앞으로 ②주먹이 반대 손 모양 ③'차라리 서 있을 때 팔 모양(편 장갑)으로 움직이면?' + **'이전부터 계속 말한 것 — 기억·메모'** (메모: 프로젝트 기억 preferences, claude/rig-mistakes-and-todo.md 22번)
+- 바꿈: 달리기·걷기도 원화 편 장갑 팔 그대로 흔듦(runOpenHand — 주먹 팔 armLF 안 씀, gait armSwing .3·armBias 0·elbowRun .25, upperRun 없음). 팔 그림에서 어깨갑을 빼고(padCut 4) 어깨갑은 따로 위에 → 흔들어도 두 겹 안 됨
+- 찌르기: 다가갈 때·놓을 때 팔을 뻗지 않음(엔진 opt-in staffKey.reachK 0 — 편 손이 그대로 있다가 쥐는 순간 소매+뒷주먹), 그리는 순서 윗팔 < 어깨갑 < 팔뚝(팔꿈치) (drawStaffOrder)
+- 검사 16장면 통과

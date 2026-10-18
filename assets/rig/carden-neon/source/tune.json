@@ -14,7 +14,9 @@
   "swingReach": 0.05,
   "landAng": -0.08,
   "angK": 0.45,
-  "elbowRun": 0.8
+  "elbowRun": 0.25,
+  "armSwing": 0.3,
+  "armBias": 0.0
  },
  "legs": {
   "near": {},
@@ -753,7 +755,8 @@
   "fitMin": 0.85,
   "fitMax": 1.7,
   "foreFromHand": true,
-  "foreK": 1.25
+  "foreK": 1.25,
+  "reachK": 0
  },
  "closeArmhole": false,
  "pts": {
@@ -808,7 +811,7 @@
    ]
   ]
  },
- "upperRun": 55,
+ "upperRun": null,
  "pantsSkirt": true,
  "legsPants": {
   "hipY": 70,
@@ -1043,7 +1046,8 @@
    230,
    760
   ],
-  "note": "원화 1024 가까운 팔 전체(어깨갑·소매·편 장갑) — review/g_neararm1024. 팔꿈치 = 어깨갑 아래(팔 전체가 어깨 근처에서 돎)"
+  "note": "원화 1024 가까운 팔 전체(어깨갑·소매·편 장갑) — review/g_neararm1024. 팔꿈치 = 어깨갑 아래(팔 전체가 어깨 근처에서 돎)",
+  "padCut": 4
  },
  "armLFscale": 2.04,
  "armLbind": 0.3,
@@ -1083,5 +1087,15 @@
   "foreF": {
    "top": 12
   }
- }
+ },
+ "runOpenHand": true,
+ "drawStaffOrder": [
+  "weapon",
+  "armU",
+  "pauldron",
+  "armL",
+  "fistF",
+  "handL",
+  "handR"
+ ]
 }
