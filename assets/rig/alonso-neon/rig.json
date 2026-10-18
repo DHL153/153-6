@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "b56b19ea",
+ "version": "5b151b5d",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -15,7 +15,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "torso": {
    "src": "parts/torso.png",
@@ -52,8 +52,8 @@
   "pauldronF": {
    "src": "parts/pauldronF.png",
    "pivot": [
-    26.0,
-    33.0
+    21.0,
+    28.0
    ],
    "scale": 2.0
   },
@@ -165,7 +165,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_shout": {
    "src": "parts/face_shout.png",
@@ -173,7 +173,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_focus": {
    "src": "parts/face_focus.png",
@@ -181,7 +181,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_happy": {
    "src": "parts/face_happy.png",
@@ -189,7 +189,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_surprised": {
    "src": "parts/face_surprised.png",
@@ -197,7 +197,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_grimace": {
    "src": "parts/face_grimace.png",
@@ -205,7 +205,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_closed": {
    "src": "parts/face_closed.png",
@@ -213,7 +213,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "face_half": {
    "src": "parts/face_half.png",
@@ -221,7 +221,7 @@
     146.0,
     249.0
    ],
-   "scale": 1.7
+   "scale": 1.5
   },
   "thighN": {
    "src": "parts/thighN.png",
@@ -366,8 +366,8 @@
   "pauldronFst": {
    "src": "parts/pauldronFst.png",
    "pivot": [
-    26.0,
-    33.0
+    21.0,
+    28.0
    ],
    "scale": 2.0
   },
@@ -431,7 +431,7 @@
     -0.60316,
     0.79762
    ],
-   "scale": 0.72783
+   "scale": 0.64221
   },
   "gF_OH": {
    "src": "parts/gF_OH.png",
@@ -455,7 +455,7 @@
     -0.90107,
     0.43367
    ],
-   "scale": 0.72783
+   "scale": 0.64221
   },
   "uN_OH": {
    "src": "parts/uN_OH.png",
@@ -467,7 +467,7 @@
     33.0,
     29.0
    ],
-   "scale": 0.73234
+   "scale": 0.64618
   },
   "farArmOH": {
    "src": "parts/farArmOH.png",
@@ -475,7 +475,7 @@
     43,
     318
    ],
-   "scale": 0.72783
+   "scale": 0.64221
   },
   "gN_ST": {
    "src": "parts/gN_ST.png",
@@ -1045,8 +1045,8 @@
   "closed": "face_closed"
  },
  "metrics": {
-  "bodyHeight": 708.9,
-  "note": "rig units; 머리카락 가운데(원화 y95)~발바닥(482) ×2, 머리 0.85배(목 y312 중심), 무기 제외"
+  "bodyHeight": 665.5,
+  "note": "rig units; 머리카락 가운데(원화 y95)~발바닥(482) ×2, 머리 0.75배(목 y312 중심), 무기 제외"
  },
  "armPhase": 0.5,
  "gait": {
@@ -1911,27 +1911,27 @@
     ],
     [
      0.1002,
-     -167.85,
+     -165.92,
      "o"
     ],
     [
      0.16,
-     -171.7,
+     -169.77,
      "io"
     ],
     [
      0.27,
-     -171.7,
+     -169.77,
      "io"
     ],
     [
      0.33,
-     -168.83,
+     -166.9,
      "io"
     ],
     [
      0.36,
-     -168.83,
+     -166.9,
      "lin"
     ],
     [
@@ -1978,27 +1978,27 @@
     ],
     [
      0.1002,
-     -476.88,
+     -439.01,
      "o"
     ],
     [
      0.16,
-     -479.29,
+     -441.42,
      "io"
     ],
     [
      0.27,
-     -479.29,
+     -441.42,
      "io"
     ],
     [
      0.33,
-     -477.45,
+     -439.58,
      "io"
     ],
     [
      0.36,
-     -477.45,
+     -439.58,
      "lin"
     ],
     [

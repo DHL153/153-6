@@ -59,6 +59,7 @@ def crop(mask, name, grow=0, cut=None, src=None):
 # ---------------- 원화 관절 (512 px) ----------------
 O = np.array([208.0, 486.0])          # 뿌리: 두 발목 가운데 땅(부츠 바닥)
 HIP = np.array([192.0, 398.0]); NECK = np.array([205.0, 312.0])
+HEAD_K = 0.75   # 머리·표정 배율(목 중심) — 10-19 게임 쪽 요청 0.85, 06:00 DHL "좀더 줄여" → 0.75. 아래 끝(HEAD_K 적용)·몸통 목 띠 참고
 SH_N, EL_N = np.array([150.0, 342.0]), np.array([166.0, 368.0])     # 가까운 팔(엔진 armU→armL): 어깨(어깨갑 안)·팔꿈치(검은 팔꿈치 덮개)
 SH_F, EL_F = np.array([247.0, 336.0]), np.array([233.0, 376.0])     # 먼 팔(엔진 armF→foreF): 어깨(먼 어깨갑 안)·팔꿈치(가까운 토시 뒤, 안 보임)
 B = np.array([304.0, 331.0]); U = np.array([0.605, -0.796]); U /= np.linalg.norm(U); NRM = np.array([-U[1], U[0]])   # 칼날 아래 끝·칼끝 방향(-52.8°)
@@ -132,7 +133,7 @@ mk['sword'] = ((tt > -40) & (np.abs(nn) < 42)) | ((tt > -120) & (np.abs(nn) < 14
 #   머리 → 가까운 어깨갑(위) 밑으로 5px · 먼 어깨갑 → 머리(위) 밑으로 5px · 머리·먼 어깨갑은 칼날 외곽선 2px 밑까지(칼이 위)
 _d11 = np.ones((11, 11), np.uint8); _bladeIn = cv2.dilate(BLADE_O.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0   # 칼날 자리 + 1px — 칼 외곽선을 머리·어깨갑에 남기지 않음(공격 때 칼이 떠나면 검은 줄로 보였음, 10-18 15:30). 서 있을 땐 칼이 위라 경계 안 보임
 o_head = crop(mk['head'] | ((cv2.dilate(mk['head'].astype(np.uint8), _d11) > 0) & mk['pauldronN']), 'headArt', 2, cut=_bladeIn)   # 칼날 자리만 뺌(전: 칼 띠 |n|<42 → 칼날 옆 머리카락 끝이 칼 그림으로 감)
-o_pN = crop(mk['pauldronN'], 'pauldronNArt', 2); o_pF = crop(mk['pauldronF'] | ((cv2.dilate(mk['pauldronF'].astype(np.uint8), _d11) > 0) & mk['head']), 'pauldronFArt', 2, cut=_bladeIn)
+o_pN = crop(mk['pauldronN'], 'pauldronNArt', 2); o_pF = crop(mk['pauldronF'] | (((cv2.dilate(mk['pauldronF'].astype(np.uint8), _d11) > 0) & mk['head']) if HEAD_K >= 1 else False), 'pauldronFArt', 2, cut=_bladeIn)   # (10-19) 머리를 줄이면 머리 밑으로 넣던 턱 살 띠가 드러나서 뺌
 o_nUp = crop(mk['nUp'] & ~mk['pauldronN'], 'nUpArt', 2)
 o_nArt = crop(mk['nArt'], 'nArt', 2, cut=outline_cut('nArt', 11, 21, [[238, 392], [280, 375], [280, 420], [225, 420], [225, 400]])); o_fArt = crop(mk['fArt'] & ~mk['nArt'], 'fArt', 2)
 # 공격용 깨끗한 몸(10-18 15:30): 원화에서 두 주먹·토시·손잡이·폼멜이 덮던 골반·허벅지 자리를 바지로 메움(inpaint) — 서 있을 땐 팔·칼이 위에 있어 안 보이고,
@@ -153,12 +154,22 @@ o_hips = crop(mk['hips'], 'hipsArt', src=RA_body)
 # 몸통: 시트 몸통(3점 아핀으로 원화 자리에) 위에 원화 몸통(머리·어깨갑·팔·주먹·칼 뺀 곳)
 ex = mk['head'] | mk['pauldronN'] | mk['pauldronF'] | mk['nUp'] | mk['nArt'] | mk['fArt'] | mk['sword']
 _hin = cv2.erode(mk['head'].astype(np.uint8), np.ones((9, 9), np.uint8)) > 0   # 머리 가장자리 4px 띠는 몸통에도 남김: 숨쉬기·달리기에 머리가 1~3px 움직여도 머리 밑 경계에 흰 줄(배경)이 안 보이게(DHL 10-18 12:03 목 왼쪽 흰 선)
-tm = mk['torso'] & ~((ex & ~mk['head']) | _hin)   # 가장자리 틈 없이(넓히지 않음) — 틈이 있으면 밑 시트 몸통의 흰색이 선으로 보임
+tm = mk['torso'] & ~((ex & ~mk['head']) | _hin) if HEAD_K >= 1 else mk['torso'] & ~ex   # (10-19) 머리를 줄이면 원화 머리 가장자리 4px 띠(턱 외곽선)가 턱 밑에 유령 선으로 남음 → 띠 없이, 그 자리는 밑의 시트 몸통 목깃   # 가장자리 틈 없이(넓히지 않음) — 틈이 있으면 밑 시트 몸통의 흰색이 선으로 보임
 TA = cv2.getAffineTransform(np.float32([[45, 53], [120, 52], [88, 148]]), np.float32([[168, 332], [220, 334], [198, 401]]))
 st = cv2.warpAffine(np.array(img(os.path.join(PC, 'torso.png'))), TA, (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
 st[..., 3] = np.where(mk['torso'] & (RA[..., 3] > 0), st[..., 3], 0)   # 시트 몸통은 원화 몸통 자리 안에서만(밑으로 삐져나온 허리 장식 지움)
 ov = RA.copy(); ov[..., 3] = np.where(tm, ov[..., 3], 0)
-tc = Image.fromarray(st); tc.alpha_composite(Image.fromarray(ov)); tca = islands(slivers(np.array(tc), 9), 'torsoArt'); COVER[:] = np.maximum(COVER, tca[..., 3])
+tc = Image.fromarray(st); tc.alpha_composite(Image.fromarray(ov))
+if HEAD_K < 1:   # (10-19) 머리를 줄이면 원화 머리 자리 중 새 턱 아래(목·목깃·먼 어깨 위)가 드러남 → 몸통에 목깃으로 메움(주변 몸통 색 inpaint)
+    _Hs = cv2.warpAffine(mk['head'].astype(np.uint8), np.float32([[HEAD_K, 0, NECK[0] * (1 - HEAD_K)], [0, HEAD_K, NECK[1] * (1 - HEAD_K)]]), (512, 512), flags=cv2.INTER_NEAREST) > 0   # 줄인 머리 자리
+    _yb = np.where(_Hs.any(0), 511 - np.argmax(_Hs[::-1], 0), 9999)   # 열마다 줄인 머리 아래 끝
+    REVEAL = mk['head'] & ~_Hs & (np.arange(512)[:, None] > _yb[None, :] - 3)   # 원화 머리 자리 중 줄인 머리 아래 (3px 겹침)
+    _tcn = np.array(tc); _m = (REVEAL | (mk['head'] & mk['torso'] & (_tcn[..., 3] < 250)))
+    _rgb3 = np.ascontiguousarray(_tcn[..., :3]); _rgb3[_tcn[..., 3] < 128] = (24, 23, 29)
+    _inp3 = cv2.inpaint(_rgb3, _m.astype(np.uint8) * 255, 5, cv2.INPAINT_TELEA)
+    _tcn[..., :3][_m] = _inp3[_m]; _tcn[..., 3][_m] = 255; tc = Image.fromarray(_tcn); print('  neck fill px', int(_m.sum()))
+else: REVEAL = np.zeros((512, 512), bool)
+tca = islands(slivers(np.array(tc), 9), 'torsoArt'); COVER[:] = np.maximum(COVER, tca[..., 3])
 ys, xs = np.nonzero(tca[..., 3] > 0); o_torso = np.array([xs.min() - 2, ys.min() - 2], float)
 Image.fromarray(tca[ys.min() - 2:ys.max() + 3, xs.min() - 2:xs.max() + 3]).save(os.path.join(W, 'torsoArt.png'))
 # 공격용 몸통 torsoS = 시트 몸통 통째(위와 같은 3점 아핀): 팔을 들면 원화 몸통의 팔 자리(오린 자리)가 드러나므로 공격 동안 이 그림으로 바꿈(겹쳐 바뀜)
@@ -301,7 +312,6 @@ if _gap.any():
 exec(open(os.path.join(HERE, 'attack_neon.py'), encoding='utf-8').read())   # 내려찍기 (키: attack_keys.json)
 # (10-19 DHL 03:09 게임 쪽 요청 '머리 85~90%로 — 1 러스트·21 스카이 알론소와 등신 맞추기') 머리·표정·깜빡임을 목(NECK = 머리 pivot) 중심으로 HEAD_K 배.
 #   대기 자세 머리/키: 러스트 0.40 · 스카이 0.45 · 네온 0.59(1.70등신) → 0.85 에서 0.53. bodyHeight(머리카락 가운데~발바닥)도 다시 재서 게임 키를 다른 알론소와 같게
-HEAD_K = 0.85
 for _n in def_parts:
     if _n == 'head' or _n.startswith('face_'): def_parts[_n]['scale'] = round(def_parts[_n]['scale'] * HEAD_K, 5)
 rig['metrics'] = {'bodyHeight': round(2 * ((482 - NECK[1]) + HEAD_K * (NECK[1] - 95)), 1), 'note': f'rig units; 머리카락 가운데(원화 y95)~발바닥(482) ×2, 머리 {HEAD_K}배(목 y{NECK[1]:.0f} 중심), 무기 제외'}
