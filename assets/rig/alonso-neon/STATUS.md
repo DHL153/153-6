@@ -131,3 +131,9 @@ DHL 내려찍기 확인 → 게임 연결(REGISTRY 11, gameRef 가운데, cutHol
 - gameRef x 208 → 281.7: 도감 칸(fitArt 중심 265.7 — index.html measureBox 와 같은 계산, 21 은 275.7 로 검산)에서 골반(hip x −32)이 가운데. 컷인 cutHold .55(런지 버팀 가운데)
 - 확인(tools/game_check.py · game_attack.py): 1280×800 · 390×844 — 전투 달리기·공격(머리 위 → 내려찍기 → 버팀 → 돌아오기)·스킬 컷인(런지 유지, 칼끝 칸 안)·도감 2장(골반 = 칸 가운데, 1장 누르면 반응·2장 누르면 내려찍기), 페이지 오류 0
 - 편집 툴 v91 (1792343731-09a2, 26 카르덴 v90 위에 합침): 11 단계 '확인·게임' 완료, progress/alonso11_game.jpg, rig.def.js?v=fb224888
+
+## 03:14 (10-19) 컷인 유지 자세 .55 → .39 (DHL 03:01 '네온 알론소 컷인이 이상')
+- 원인: 컷인은 공격을 재생하다 cutHold 자세에서 멈춤. .55 = 내려찍은 뒤 버팀(hipY +28 · kneeOutF .35 · 고개 숙임)이라 멈춰 크게 보면 양 무릎 벌리고 쪼그려 앉은 모습 + 몸통이 다리에 눌린 듯 보였음 (전투에선 순간이라 안 보임)
+- .39 = 휘두르는 순간(외침 얼굴, 골반 높음 hipY ≈ −8, 칼 오른쪽 아래로 뻗음, 먼 팔 IK 거의 다 켜짐) — 흔들림(.44~)·버팀 전. attack_keys.json cutHold 0.39 → build_neon.py 다시(바뀐 곳 cutHold·version 뿐) → rig version d189c84a, index.html rig.def.js?v=d189c84a
+- 같이 고침(index.html CSS): 컷인 중 전투 리그 캔버스(.mr-rig-slot-canvas)를 그림 캐릭터 .hero 처럼 숨김 — 안 숨기면 컷인 어두운 배경 뒤로 달리는 리그가 흐릿하게 비쳤음(1·11·18·21 등 리그 캐릭터 모두)
+- 확인: 1280×800 · 430×900 컷인 9명 전부(scratchpad allchk/v2p·v3p), 컷인 끝나면 리그 다시 보임, 오류 0

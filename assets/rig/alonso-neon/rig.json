@@ -1,6 +1,6 @@
 {
  "name": "alonso-neon",
- "version": "fb224888",
+ "version": "d189c84a",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   416.0,
@@ -2144,7 +2144,7 @@
    ]
   }
  },
- "cutHold": 0.55,
+ "cutHold": 0.39,
  "overlays": {
   "farFistOv": {
    "bone": "foreF",
