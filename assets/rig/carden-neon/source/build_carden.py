@@ -263,6 +263,39 @@ if T('grip2', False):   # 2차 쥔 손 시트(22:55): 앞 주먹 소매가 왼�
             parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': piv_, 'scale': parts['armLF']['scale'], 'noAxis': True, 'grip': grip_}
         if T('handRflip', False) and T('handRtoElbow', None): parts['handR']['toElbow'] = T('handRtoElbow', None)   # 뒷주먹 소매 테가 향한 쪽(그림 기준, 뒤집은 뒤)
         if T('armLSscale', None) and 'armLS' in parts: parts['armLS']['scale'] = T('armLSscale', None)   # 찌르기 팔뚝 굵기 = 달릴 때 팔(원화 소매 약 105~120 리그)과 같게 (DHL 10-18 13:18 '손에서 팔꿈치까지 두께가 뛸 때와 달라')
+        S3 = T('sleeveSheet', None)
+        if S3:   # 찌르기 팔 소매 = 원화 무늬로 새로 받은 소매 시트(DHL 10-18 15:25, sheets/sleeve3.png: 팔뚝 가로·윗팔 세로, 둥근 팔꿈치 끝) — 조각 시트 소매(크림이 많음) 대신
+            sh3 = np.asarray(Image.open(os.path.join(HERE, S3['file'])).convert('RGB')).astype(np.float32)
+            def _cut3(box):   # 자홍 빼기: 보라 기운(자홍 섞인 테두리)은 어두운 선 색으로 되돌리고 알파만 남김
+                c_ = sh3[box[1]:box[3], box[0]:box[2]]; r_, g_, b_ = c_[..., 0], c_[..., 1], c_[..., 2]
+                pur_ = (r_ - g_ > 40) & (b_ - g_ > 40); a_ = np.where(pur_, np.clip((255 - (r_ + b_) / 2) / 230, 0, 1), 1.0)
+                rgb_ = np.where(pur_[..., None], np.array([24, 21, 16], np.float32), c_)
+                return np.dstack([rgb_ * a_[..., None], a_ * 255])   # 미리 곱한 알파(줄일 때 가장자리 번짐 없음)
+            def _fit3(pm, f):   # 미리 곱한 RGBA 를 f 배로 줄이고 되돌림
+                h_, w_ = pm.shape[:2]; q = cv2.resize(pm, (max(1, round(w_ * f)), max(1, round(h_ * f))), interpolation=cv2.INTER_AREA)
+                al = q[..., 3:4] / 255; q[..., :3] = np.where(al > 1e-3, q[..., :3] / np.maximum(al, 1e-3), 0); return np.clip(q, 0, 255).astype(np.uint8)
+            Wd = S3.get('width', 110)   # 리그 굵기(달릴 때 원화 팔 약 110)
+            fo3 = S3['fore']; pm = _cut3(fo3['box']); pm = np.ascontiguousarray(np.rot90(pm, -1))   # 시계 방향 90° → 팔꿈치(둥근 끝) 위, 손목 아래
+            xs_ = np.nonzero(pm[pm.shape[0] // 2, :, 3] > 128)[0]; f3 = Wd / (xs_.max() - xs_.min() + 1); q_ = _fit3(pm, f3)
+            ys_, xs_ = np.nonzero(q_[..., 3] > 128); cx_ = (xs_.min() + xs_.max()) / 2; R_ = (xs_.max() - xs_.min()) / 2; top_ = ys_.min()
+            piv_ = [round(float(cx_), 1), round(float(top_ + R_ * fo3.get('pivotK', 1.0)), 1)]   # 팔꿈치 관절 = 둥근 끝 원의 가운데(pivotK 1) — 윗팔 둥근 끝과 같은 원
+            N2o = math.hypot(parts['armLS']['grip'][0] - parts['armLS']['pivot'][0], parts['armLS']['grip'][1] - parts['armLS']['pivot'][1]) * parts['armLS']['scale']   # 지금 팔뚝 길이(찌르기 팔꿈치 자리 그대로)
+            gy_ = piv_[1] + fo3.get('len', N2o); end_ = int(round(gy_ + fo3.get('past', 12)))   # 손목(뒷주먹 테 밑) + past 만큼 더 — 그 아래는 부드럽게 자름
+            yy_ = np.arange(q_.shape[0])[:, None]; q_[..., 3] = (q_[..., 3] * np.clip((end_ - yy_) / 3, 0, 1)).astype(np.uint8); q_ = q_[:end_ + 1]
+            Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armLS.png'))
+            parts['armLS'] = {'src': 'parts/armLS.png', 'pivot': piv_, 'scale': 1.0, 'noAxis': True, 'grip': [piv_[0], round(float(gy_), 1)]}
+            up3 = S3.get('upper')
+            if up3:   # 윗팔(찌를 때만 armU 를 바꿈 — staffKey.upperSleeve): 어깨 = pivot, 팔꿈치 원 가운데까지 len. 위쪽(어깨 너머)은 fadeTop 부터 흐림
+                pm = _cut3(up3['box']); xs_ = np.nonzero(pm[pm.shape[0] // 2, :, 3] > 128)[0]; q_ = _fit3(pm, Wd / (xs_.max() - xs_.min() + 1))
+                ys_, xs_ = np.nonzero(q_[..., 3] > 128); cx_ = (xs_.min() + xs_.max()) / 2; R_ = (xs_.max() - xs_.min()) / 2; ec_ = ys_.max() - R_   # 팔꿈치 원 가운데
+                py_ = ec_ - up3.get('len', 75); y0_ = int(max(0, py_ - up3.get('above', 20)))
+                yy_ = np.arange(q_.shape[0])[:, None]; q_[..., 3] = (q_[..., 3] * np.clip((yy_ - y0_) / 6, 0, 1)).astype(np.uint8)
+                # 아래 둥근 끝(검은 팔꿈치 덮개)은 지움: 팔꿈치 원은 팔뚝 둥근 끝이 덮고, 윗팔 뼈 길이(57~99)가 그림(75)보다 짧을 땐 팔뚝 밑으로 삐져나왔음
+                xx_ = np.arange(q_.shape[1])[None, :]; ye_ = ec_ - R_ * up3.get('cutK', .3) + R_ * .35 * np.sqrt(np.clip(1 - ((xx_ - cx_) / (R_ + 1)) ** 2, 0, 1))
+                q_[..., 3] = (q_[..., 3] * np.clip((ye_ - yy_) / 3, 0, 1)).astype(np.uint8); q_ = q_[y0_:int(ec_ + 2)]
+                Image.fromarray(q_, 'RGBA').save(os.path.join(PARTS, 'armUS.png'))
+                # armU 그림 축 = 아래(+y) — 원래 armU 처럼 pivot 아래로 팔꿈치
+                parts['armUS'] = {'src': 'parts/armUS.png', 'pivot': [round(float(cx_), 1), round(float(py_ - y0_), 1)], 'scale': 1.0}
 
 # 다리: 허벅지·정강이 = 가까운/먼 다리 다른 그림(S.thighImg), 뼈 길이에 맞춰 늘이되 굵기는 K 그대로(w = K/길이 배율)
 d2 = lambda a, b: float(np.linalg.norm(A(b) - A(a)))

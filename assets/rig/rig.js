@@ -628,7 +628,7 @@
       let n1 = N1;   // staffKey.upperLen: 다가갈 때·쥘 때 모두 같은 윗팔 길이(바꾸는 순간 팔꿈치 안 튐)
       if (SK.upperLen) { const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1, l0_ = Math.hypot(p_[0] + b.armL.ax, p_[1] + b.armL.ay); n1 = lerp(l0_, SK.upperLen, smooth(0, .6, w)); b.armL.ax = p_[0] * (n1 / l_ - 1); b.armL.ay = p_[1] * (n1 / l_ - 1) }   // 공격 시작·끝에 0.05초 동안 이어서 바꿈
       if (onN) {
-        rig.swap.armL = SK.sleeve || null;
+        rig.swap.armL = SK.sleeve || null; if (SK.upperSleeve) rig.swap.armU = SK.upperSleeve;   // staffKey.upperSleeve (opt-in, 16 네온 10-18): 쥐는 동안 윗팔도 소매 시트 그림으로
         // staffKey.upperLen / fit (opt-in, 6 카르덴 10-18): 윗팔을 어깨갑 밖으로 빼고(upperLen), 소매를 어깨→손목 거리에 맞춰 늘임(fit = 펴짐 정도)
         //   → 팔꿈치가 윗팔 끝에 딱 붙고 손목이 뒷주먹 소매 테에 딱 닿음 (짧은 소매로는 팔이 봉 뒤에 숨거나 모자랐음)
         let n2 = N2;
@@ -1026,6 +1026,7 @@
       if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
       if (rig.def.upperRun) { const p_ = b.armL.pos, l_ = Math.hypot(p_[0], p_[1]) || 1, k_ = (rig.def.upperRun / l_ - 1) * smooth(.3, .8, A); b.armL.ax += p_[0] * k_; b.armL.ay += p_[1] * k_ }   // upperRun(opt-in, 6 카르덴): 달릴 때 윗팔 뼈를 이 길이로 — 서 있을 땐 원화처럼 짧게(화면 쪽으로 줄어든 팔), 옆으로 흔들 땐 먼 팔만큼 길게
       rig.swap.armL = this.fist ? rig.def.parts.armL.alt : null;
+      if (rig.def.staffKey && rig.def.staffKey.upperSleeve) rig.swap.armU = null;   // 찌르기 윗팔 그림(upperSleeve)은 쥘 때만 — 매 프레임 되돌림
       // ---------- far arm + spear: the shaft is locked in the fist; the arm lifts it so the butt clears the ground ----------
       const CS = rig.def.carrySwing ?? 1;   // 무기 팔을 달릴 때 뒤로 젖히는 양 (0 = 서 있을 때 각도 유지)
       b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) * CS - leanA * .3;

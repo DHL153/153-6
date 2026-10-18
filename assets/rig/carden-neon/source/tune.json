@@ -758,7 +758,8 @@
   "fitMax": 1.7,
   "foreFromHand": true,
   "foreK": 1.25,
-  "reachK": 0
+  "reachK": 0,
+  "upperSleeve": "armUS"
  },
  "closeArmhole": false,
  "pts": {
@@ -1100,5 +1101,27 @@
   "handL",
   "handR"
  ],
- "armLSscale": 2.9
+ "armLSscale": 2.9,
+ "sleeveSheet": {
+  "file": "sheets/sleeve3.png",
+  "width": 110,
+  "fore": {
+   "box": [
+    128,
+    405,
+    720,
+    619
+   ]
+  },
+  "upper": {
+   "box": [
+    1078,
+    219,
+    1292,
+    809
+   ],
+   "len": 75,
+   "above": 20
+  }
+ }
 }
