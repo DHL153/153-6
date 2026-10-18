@@ -1,0 +1,57 @@
+{
+ "handL": {
+  "file": "parts_work/handL.png",
+  "grip": [
+   52.5,
+   35.5
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "off": [
+   9,
+   0
+  ],
+  "fistX": [
+   0,
+   105
+  ],
+  "thick": 24.0
+ },
+ "handR": {
+  "file": "parts_work/handR.png",
+  "grip": [
+   131.5,
+   35.5
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "off": [
+   0,
+   0
+  ],
+  "fistX": [
+   0,
+   154
+  ],
+  "thick": 24.0
+ },
+ "fistF": {
+  "file": "parts_work/fistF.png",
+  "origin": [
+   751,
+   528
+  ],
+  "gripRef": [
+   816,
+   615
+  ],
+  "wristRef": [
+   778,
+   684
+  ]
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "_note": "임시(10-18 22:27): 쥔 손 시트(2번) 오기 전 — 조각 시트 15·16칸(hands.py 로 자루 토막 지운 것). 배율 = 원화 봉 쥔 주먹 길이 150 리그 / 시트 주먹 68px. 2번 시트 오면 grip2.py 로 교체",
+ "handL": {
+  "file": "parts_work/handL.png",
+  "grip": [
+   71,
+   36.5
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "scale": 2.2,
+  "wrist": [
+   20,
+   72
+  ],
+  "toElbow": [
+   -0.75,
+   0.66
+  ]
+ },
+ "handR": {
+  "file": "parts_work/handR.png",
+  "grip": [
+   112.5,
+   36.5
+  ],
+  "shaftDir": [
+   1,
+   0
+  ],
+  "scale": 2.2,
+  "elbow": [
+   6,
+   60
+  ]
+ }
+}

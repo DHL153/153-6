@@ -14,3 +14,18 @@
 - 투명 배경, 가장자리 어두운 테(흰 테 없음), 덩어리 1개
 - 게임 마이룸 그림 char_0026.png 교체(16과 같은 방식). 받은 그림 = source/ref512_received.png, 작업본 = source/ref512.png, 예전 가리키는 원화 = source/orig_char_0026_pointing.png, 비교 = source/review/art_vs_rust.png
 - 다음: 1번 조각 시트·2번 쥔 손 (이 원화를 첨부 1로)
+
+## 22:08 1번 조각 시트 받음 (3072, 34칸) — 합격 (22:10)
+- 34칸 순서대로(조각 상자 자리가 배치도와 같음), 표정 6장 같은 크기 223×221, 봉 비율 원화 대비 0.997(봉 길이 ÷ 나침반 고리 폭), 손 전부 손가락 4 + 엄지
+- 소매 33·34: 굵기 86 = 86, 팔뚝 길이 1.92배·윗팔 1.30배, 팔꿈치 끝만 둥근 테두리, 손목·어깨 끝 곧게 잘림, 손·소맷단 없음
+- 자동 검사 걸림: 허벅지 2 기울어짐(31.7°·22.4°)·달리기 주먹 팔 8.6° — 네온도 허벅지 같음, 바지 고정·편 장갑 달리기라 안 씀
+- `source/cut_sheet.py`(34칸 이름) → `cut/`, 검수 그림 `review/overview.png`·`hands_zoom`·`sleeves_zoom`·`hair_zoom`·`faces`
+
+## 22:27 조립 v1 진행 중 (`source/build_sky.py` = 네온 build_carden.py 복사 + opt-in)
+- 순서: `python3 -I hands.py` → `python3 -I pants_ref.py` → `python3 -I faces.py` → `python3 -I build_sky.py` → `bash tools/check.sh`
+- 자리: 무표정 얼굴·봉·몸통 = SIFT(sift_result.json, 얼굴 1.998·봉 2.051), 주머니·어깨 가죽띠·가까운 팔(편 장갑) = 원화 다각형 오림(pouchRef·pauldronRef·nearArmRef), 바지·부츠·봉 쥔 주먹 = 원화 오림(좌표 스카이로 다시 잼)
+- 땋은 수염 두 갈래 = 무표정 얼굴 조각의 끈 아래를 오려 braid·braid2 뼈(엔진 opt-in braid2 — 같은 스프링, 박자만 다름)
+- 찌르기 소매 = 조각 시트 33·34칸(sleeveSheet.fromCut, 굵기 104·윗팔 78·팔뚝 128 고정 = 네온과 같음)
+- 다리: 먼 다리가 원화에서 더 벌어져 legsPants farX 145(네온 117)·idleStance near −25/far −5. 부츠 앞코가 길어(124) 발목 범위 [-1.1, 1.6] — 좁으면 달리기 뒤꿈치 차기 때 무릎 170° 접힘(넓힌 뒤 최대 130, 튐 5.5)
+- 대기 = 원화와 나란히 비교해 거의 같음, 달리기 8장 확인. **찌르기는 2번 쥔 손 시트 오면 마무리** — 지금은 조각 시트 쥔 손(15·16칸)으로 임시라 주먹이 크고 가까운 팔꿈치가 위로 뒤집힘
+- 게임 연결 아직 안 함(찌르기 끝난 뒤)

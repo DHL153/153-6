@@ -1171,7 +1171,8 @@
       // ---------- braid (optional part): trails back a little, bounces with the steps ----------
       if (b.braid) { const bra = this.braid.step(clamp(lvx * .00022 + accel * .00006 - this.hipVy * .0012, -.12, .2), dt);
         b.braid.ar += clamp(bra, -.12, .2) * .5 + I * Math.sin(T * 1.6) * .02;
-        rig.meshFx.braid = (u, v) => [-bra * 30 * v * v, -Math.abs(bra) * 5 * v] }
+        rig.meshFx.braid = (u, v) => [-bra * 30 * v * v, -Math.abs(bra) * 5 * v];
+        if (b.braid2) { b.braid2.ar += clamp(bra, -.12, .2) * .45 + I * Math.sin(T * 1.6 + .9) * .02; rig.meshFx.braid2 = rig.meshFx.braid } }   // 26 스카이 카르덴: 땋은 수염 두 번째 갈래(opt-in 뼈 braid2) — 같은 스프링, 살짝 다른 박자
 
       // ---------- ponytail (optional bone 'pony'): swings back with speed, bounces with each step ----------
       if (b.pony && rig.def.ponySway) { const k = rig.def.ponySway, po = this.pony.step(clamp(lvx * .0005 + accel * .00012 - this.hipVy * .002, -.3, .45), dt);
