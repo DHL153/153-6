@@ -1,0 +1,12 @@
+{
+ "note": "3 러스트 산초 원화 char_0003.png(512) 관절점 1차 — 눈대중 격자(2026-10-19 02:55), 손 고친 원화가 오면 다시 잼",
+ "sword": {"tip": [105.5, 1], "guard": [215, 270], "pommel": [258, 388], "axisDegFromVertical": -21.5, "clock": "11시 (칼날 왼쪽 위)"},
+ "fists": {"near_upper_guardSide": [228, 318], "far_lower_pommelSide": [258, 345]},
+ "nearArm": {"note": "가까운 팔(오른팔) = 위 주먹(날밑 쪽), 붕대 팔뚝이 화면 왼쪽 아래로 — 팔꿈치 ≈ [210, 360], 녹색 찢어진 소매"},
+ "farArm": {"note": "먼 팔(왼팔) = 아래 주먹(폼멜 쪽), 팔뚝이 가슴 앞을 지나 화면 오른쪽 먼 어깨로", "shoulder": [345, 335]},
+ "pauldron": {"side": "far (화면 오른쪽, 쇠·띠)", "center": [347, 345]},
+ "head": {"hairTop": [313, 150], "chin": [300, 322]},
+ "feet": {"nearAnkle": [205, 470], "farAnkle": [350, 470], "sole": 492},
+ "belt": [290, 400],
+ "battleIdle": {"tip": [495.5, 4], "pommel": [268, 352], "axisDegFromVertical": 32.3, "clock": "1시", "warn": "어깨갑이 가까운 어깨(화면 왼쪽)에 그려져 있음 — 원화(먼 어깨)와 반대"}
+}
