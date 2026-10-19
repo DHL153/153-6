@@ -29,9 +29,10 @@ def match(n, region=None):
     bg = Image.new('RGBA', (512, 512), (255, 255, 255, 255)); bg.alpha_composite(out); bg.alpha_composite(ov); os.makedirs(os.path.join(HERE, 'review'), exist_ok=True); bg.save(os.path.join(HERE, 'review', f'reg_{n}.png'))
     return dict(M=M.tolist(), inl=int(inl.sum()), good=len(good), scale=round(math.hypot(M[0, 0], M[1, 0]), 4), rot=round(math.degrees(math.atan2(M[1, 0], M[0, 0])), 2),
                 xy=[round(float(M[0, 2]), 1), round(float(M[1, 2]), 1)], diff=round(d, 1))
-REG = {'head': [130, 60, 340, 260], 'face_neutral': [130, 60, 340, 260], 'torso': [150, 205, 340, 335], 'hips': [140, 285, 330, 375], 'padN': [120, 205, 215, 280],
-       'upperN': [110, 220, 185, 310], 'foreN': [95, 270, 165, 340], 'fistN': [90, 290, 165, 360], 'foreF': [255, 270, 335, 335], 'gFv': [270, 280, 340, 345],
-       'thighN': [150, 330, 230, 400], 'thighF': [230, 330, 300, 400], 'bootN': [80, 340, 210, 490], 'bootF': [220, 340, 360, 490], 'hammer': [250, 60, 512, 380], 'pose': [0, 0, 512, 512]}
+# (10-20 08:43) 새 원화 자리로 고침(seg12 부품 칸 범위 + 여유)
+REG = {'head': [118, 108, 335, 272], 'face_neutral': [118, 108, 335, 272], 'torso': [160, 242, 272, 332], 'hips': [138, 305, 270, 382], 'padN': [118, 232, 197, 312],
+       'upperN': [118, 268, 172, 318], 'foreN': [88, 284, 162, 348], 'fistN': [84, 318, 162, 382], 'foreF': [232, 292, 298, 345], 'gFv': [268, 284, 332, 356],
+       'thighN': [138, 338, 218, 398], 'thighF': [212, 344, 298, 402], 'bootN': [78, 358, 218, 492], 'bootF': [218, 368, 362, 492], 'hammer': [238, 100, 492, 392], 'pose': [0, 0, 512, 512]}
 if __name__ == '__main__':
     out = {}
     for n, rg in REG.items():

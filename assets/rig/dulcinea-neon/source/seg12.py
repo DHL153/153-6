@@ -19,10 +19,24 @@ NAMES = list(MAP); LID = {n: i + 1 for i, n in enumerate(NAMES)}
 def ero(m, r): return cv2.erode(m.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))) > 0 if r > 0 else m
 def dil(m, r): return cv2.dilate(m.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))) > 0
 M = {n: np.logical_or.reduce([L[k] for k in ks]) for n, ks in MAP.items()}
+POLYS = os.environ.get('POLYS')   # (10-20 08:43) 네온 새 원화용: 러스트 칸 대신 polys12.json 다각형을 씨앗으로 (POLYS=polys12.json)
 RER = {'foreF': 2, 'upperN': 2, 'thighN': 3, 'thighF': 3, 'fistF': 4}   # 가는 부품은 조금만 깎음
 seeds = np.zeros((512, 512), np.int32)
-for n in NAMES:
-    s = ero(M[n], RER.get(n, ER)) & A & (seeds == 0); seeds[s] = LID[n]
+if POLYS:
+    from PIL import ImageDraw
+    PJ = json.load(open(os.path.join(HERE, POLYS)))
+    def pm(pts):
+        im_ = Image.new('L', (512, 512), 0); ImageDraw.Draw(im_).polygon([tuple(p) for p in pts], fill=255); return np.array(im_) > 0
+    for n in NAMES: seeds[pm(PJ[n]) & A & (seeds == 0)] = LID[n]
+    sh = PJ.get('_shaft')
+    if sh:   # 자루 띠(축 위 구간 [t0, t1, 반폭]) = 망치 씨앗 — 주먹 위·아래로 보이는 자루
+        yy_, xx_ = np.mgrid[0:512, 0:512].astype(float); Gs = np.array(sh['G'], float); Us = np.array(sh['U'], float); Us /= np.linalg.norm(Us)
+        tu = (xx_ - Gs[0]) * Us[0] + (yy_ - Gs[1]) * Us[1]; tn = (xx_ - Gs[0]) * -Us[1] + (yy_ - Gs[1]) * Us[0]
+        for t0, t1, hw in sh['hammer_bands']: seeds[(tu >= t0) & (tu <= t1) & (np.abs(tn) <= hw) & A] = LID['hammer']
+    M = {n: pm(PJ[n]) for n in NAMES}   # 아래 '같은 곳' 비율 = 씨앗 다각형 기준
+else:
+    for n in NAMES:
+        s = ero(M[n], RER.get(n, ER)) & A & (seeds == 0); seeds[s] = LID[n]
 lum = RA[..., :3].astype(float).mean(-1)
 elev = cv2.GaussianBlur((255 - lum).astype(np.float32), (3, 3), 0.7)
 lab = watershed(elev, markers=seeds, mask=A)
