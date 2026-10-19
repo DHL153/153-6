@@ -126,6 +126,17 @@ _st[..., :3][_pink] = (120, 72, 46)
 _sw = cv2.warpAffine(np.clip(_st, 0, 255).astype(np.uint8), TA, (512, 512), flags=cv2.INTER_LANCZOS4)
 _use = _hole & (_sw[..., 3] > 200); TORSOA[..., :3][_use] = _sw[..., :3][_use]
 print('  torso fill px', int(_hole.sum()), 'from sheet torso', int(_use.sum()))
+# (10-19 올려베기 v2) 시트가 못 덮는 메운 자리(가까운 어깨 위·먼 어깨 밑)는 머리카락·외곽선 색을 끌어와 갈색 얼룩이었음
+#   → 둘레 원화를 셔츠 녹색으로 바꾼 뒤 inpaint(시트 셔츠에서만 색을 끌어옴). 잘린 실루엣 가장자리(팔이 덮던 곳)엔 원화 같은 외곽선 2px
+_red = _hole & ~_use
+_hsv = cv2.cvtColor(np.ascontiguousarray(_sw[..., :3]), cv2.COLOR_RGB2HSV); _grn = _use & (_hsv[..., 0] >= 22) & (_hsv[..., 0] <= 45) & (_hsv[..., 1] > 60)
+SHIRT = np.median(TORSOA[..., :3][_grn], 0).astype(np.uint8) if _grn.sum() > 50 else np.array([92, 92, 50], np.uint8)
+_src = np.ascontiguousarray(TORSOA[..., :3].copy()); _src[dil(_red, 8) & ~_red & (~_use | (_src.max(2) < 90))] = SHIRT   # 시트 셔츠 가장자리 외곽선(어두운 점)도 셔츠색으로
+TORSOA[..., :3][_red] = cv2.inpaint(_src, _red.astype(np.uint8) * 255, 5, cv2.INPAINT_TELEA)[_red]
+_A = TORSOA[..., 3] > 128; _d = ndimage.distance_transform_edt(_A); _cutE = _A & dil(_hole, 1) & (_d <= 2.6)
+_w = np.clip(2.8 - _d, 0, 1)[_cutE][:, None]; OUTL = np.array([38, 32, 26], np.float32)
+TORSOA[..., :3][_cutE] = (TORSOA[..., :3][_cutE] * (1 - _w) + OUTL * _w).astype(np.uint8)
+print('  torso: shirt', SHIRT.tolist(), 'inpaint-only px', int(_red.sum()), 'cut-edge outline px', int(_cutE.sum()))
 o_torso = save_crop(TORSOA, 'torsoArt', sl=5)
 o_hips = crop(mk['hips'] & AL, 'hipsArt', sl=3)
 o_nUp = crop(A_nearUp, 'nUpArt'); o_nF = crop(A_nearFore, 'nForeArt'); o_fF = crop(A_farFore, 'fForeArt'); o_fUp = crop(A_farUp, 'fUpArt'); o_pd = crop(A_pd, 'pauldronArt')
@@ -257,7 +268,7 @@ legs = {'hip': [0, 10], 'thigh': TH_R, 'shin': SH_R,
 print('  legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['far']['thigh'], legs['far']['shin'], 'run w', {k: v['w'] for k, v in rseg.items()}, 'rboot', RBA)
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 # 원화: 다리 < 몸통 < 벨트·앞자락 < 먼 윗팔 < 어깨갑 < 가까운 소매 < 머리 < 칼(머리카락 앞) < 위 주먹·가까운 팔뚝 < 아래 주먹·먼 팔뚝(가슴 앞)
-draw = ['legFar', 'legNear', 'torso', 'hips', 'armU', 'pauldron', 'armF', 'head', 'weaponH', 'weapon', 'foreF', 'armLf', 'armL']
+draw = ['legFar', 'legNear', 'torso', 'hips', 'armU', 'pauldron', 'armF', 'head', 'weaponH', 'weapon', 'armLf', 'foreF', 'armL']   # 주먹 둘이 맨 앞(DHL 10-19 08:12)
 GX, GY = (G_U - HIP) * 2
 guard = {'gx': round(float(GX), 1), 'gy': round(float(GY), 1), 'sa': round(ang(U), 4), 'sN': 0, 'sF': round(S_LOW, 1),
          'nPiece': 'foreF', 'fPiece': 'armL', 'nUpper': 'armF', 'fUpper': 'armU', 'order': 'drawA', 'frame': 'torso'}   # 11 교훈: 칼·두 팔을 상체에 붙여 한 덩어리
