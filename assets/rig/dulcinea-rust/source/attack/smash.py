@@ -114,7 +114,8 @@ print('  smash 원화 먼 팔 길이(리그, 어깨→팔꿈치→주먹 가운�
 #   → 휘두름: 두 손이 가슴 앞 → 배 앞으로 내려오며 망치가 머리 위를 지나 앞으로 → 타격(쇠 머리 앞 땅) → 버팀 → 들어 올려 가까운 손 놓음 → 대기
 GRAB0, GRAB, WIND0, WIND, SW1, SW2, HIT, HOLD, REL0, REL, END = .05, .16, .24, .30, .34, .37, .40, .58, .66, .76, 1.0
 k = lambda *kv: [list(x) for x in kv]
-_kv = json.load(open(os.path.join(HERE, 'attack', 'keys_v4.json'))) if os.path.exists(os.path.join(HERE, 'attack', 'keys_v4.json')) else {}
+_KF = os.environ.get('SMASH_KF', 'keys_v6.json')   # v6(10-19 21:00) — v5 = keys_v5.json, v4 = keys_v4.json
+_kv = json.load(open(os.path.join(HERE, 'attack', _KF))) if os.path.exists(os.path.join(HERE, 'attack', _KF)) else {}
 #        (시각, gx, gy, 자루 각도, sF(가까운 손 = 먼 손에서 쇠 머리 쪽으로), 보간)   — 먼 손 쥔 점 G(골반 기준 리그 px) · 쇠 머리 방향(라디안, −π/2 = 위)
 POSE = _kv.get('POSE') or [(0, 164.6, -10, -.96, 82, 'io'), (GRAB, 40, -60, -1.9, 48, 'io'), (WIND0, 14, -52, -2.2, 48, 'io'), (WIND, 10, -50, -2.3, 48, 'i'),
         (SW1, 40, -80, -1.6, 48, None), (SW2, 90, -60, -.6, 46, 'o'), (HIT, 90, -10, .45, 44, 'o'), (HOLD, 90, -8, .47, 44, 'io'), (REL0, 120, -40, -.3, 44, 'io'), (END - .03, 164.6, -10, -.96, 82, None)]
@@ -153,6 +154,12 @@ if _ov: smash.update(json.load(open(_ov)))
 DRAW_ATK = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'head', 'weapon', 'foreF', 'armU', 'pauldron', 'armLf', 'armL']
 DRAW_B = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'foreFf', 'weapon', 'head', 'foreF', 'armU', 'pauldron', 'armLf', 'armL']
 DRAW_F = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'foreFf', 'weapon', 'foreF', 'armU', 'pauldron', 'armLf', 'armL']
-SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawB': DRAW_B, 'drawF': DRAW_F,
+# v6(DHL 20:58 '망치를 레이어 가장 앞으로'): 망치는 몸·머리·두 팔뚝·어깨갑보다 앞, 자루를 감싼 두 주먹만 망치 위
+#   drawH0 = 먼 팔뚝이 몸통 뒤(대기와 같음, 시작·끝) · drawH = 먼 팔뚝이 몸통·머리 앞(두 손이 가슴 앞에서 쥔 동안)
+DRAW_H0 = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'head', 'armU', 'pauldron', 'armLf', 'weapon', 'weaponA', 'foreF', 'armL']
+DRAW_H = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'foreFf', 'armU', 'pauldron', 'armLf', 'weapon', 'weaponA', 'foreF', 'armL']
+#   weaponA = 쇠 머리 모서리를 고친 망치(원화는 흰 앞머리가 덮던 홈·앞머리 외곽선 조각) — 망치가 대기 자리를 떠난 뒤(.06)부터 돌아오기 전(.93)까지만 보임(fade 계단), 대기는 원화 망치
+bones.append(dict(name='weaponA', parent='weapon', pos=[0, 0], part='weaponA'))
+SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawB': DRAW_B, 'drawF': DRAW_F, 'drawH0': DRAW_H0, 'drawH': DRAW_H,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['gNart'], 'sPref': 82}, 'stretchMax': 1.05, 'shoulderPush': 0},
-         'swapReset': ['armL']}
+         'swapReset': ['armL'], 'hidden': ['weaponA']}

@@ -55,7 +55,7 @@ for r in R:
     if r['gN'] > .5 or r['gF'] > .5: f.append('gap')
     if not (.98 <= r['stN'] <= 1.02 and .98 <= r['stF'] <= 1.02): f.append('st')
     wN, wF = math.degrees(r['wrN']), math.degrees(r['wrF'])
-    if abs(wN) > spec.get('wr', 47) or abs(wF) > spec.get('wr', 47): f.append('wr')
+    if abs(wN) > spec.get('wrN', spec.get('wr', 47)) or abs(wF) > spec.get('wrF', spec.get('wr', 47)): f.append('wr')   # wrN = 엔진 N(둘시네 먼 손) · wrF = 가까운 손
     rN = math.dist(r['SN'], r['fN']) / LN; rF = math.dist(r['SF'], r['fF']) / LF
     if not (spec.get('rmin', .45) <= rN <= spec.get('rmax', .88) and spec.get('rmin', .45) <= rF <= spec.get('rmax', .88)): f.append('r')
     aF = ang(r['SF'], r['eF']); aN = ang(r['SN'], r['eN'])
@@ -65,6 +65,10 @@ for r in R:
     if inside(fc, r['eN'], 8) or inside(fc, r['eF'], 8): f.append('elbowFace')
     if inside(fc, r['fN'], 18) or inside(fc, r['fF'], 18): f.append('fistFace')
     if seg_hits(fc, r['eN'], r['fN'], 6): f.append('foreFace')
+    if spec.get('headFace') is not None:   # 망치 쇠 머리(무기 그림 y 15~270 = 쥔 점에서 180~435, 폭 −184~206)가 얼굴 상자에 겹침
+        _g = r['fN']; _t = r['tip']; _L = math.dist(_g, _t) or 1; _u = ((_t[0] - _g[0]) / _L, (_t[1] - _g[1]) / _L); _v = (-_u[1], _u[0])
+        if any(inside(fc, (_g[0] + _u[0] * tt + _v[0] * ss, _g[1] + _u[1] * tt + _v[1] * ss), spec['headFace']) for tt in range(180, 436, 25) for ss in range(-180, 207, 40)): f.append('headFace')
+    if spec.get('shaftFace') and seg_hits(fc, r['fF'], r['tip'], spec['shaftFace']): f.append('shaftFace')   # 자루(가까운 주먹→쇠 머리)가 얼굴 상자를 지남 — 망치 맨 앞 레이어일 때
     f = [x for x in f if x not in spec.get('allow', [])]
     r.update(rN=rN, rF=rF, aN=aN, aF=aF, wN=wN, wF=wF, flags=f)
     if True:

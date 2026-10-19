@@ -231,8 +231,23 @@ _pad = int(max(_big.size) * .8); _can = Image.new('RGBA', (_big.width + 2 * _pad
 _rot = _can.rotate(math.degrees(HTH), resample=Image.BICUBIC, center=tuple(_pv))   # PIL: + = 화면에서 반시계 → 기울어진 자루를 세움
 _bb = _rot.getbbox(); _rot = _rot.crop(_bb); _pv = _pv - np.array(_bb[:2]); _rot = _rot.resize((_rot.width // 2, _rot.height // 2), Image.LANCZOS); _pv = _pv / 2
 _rot.save(os.path.join(W, 'hammerUp.png'))
+# (10-19 21:30 v6 망치 맨 앞 → 공격용 weaponA) 쇠 머리 왼쪽 아래 모서리: 원화에선 흰 앞머리가 덮어 모서리가 파이고 앞머리 외곽선 조각이 남아 있음 → 대기엔 머리가 덮어 안 보이지만
+#   망치를 맨 앞에 그리면 홈·검은 초승달이 보임. 가장 큰 덩어리만 남기고(초승달·점 지움), 모서리는 바로 위 판(같은 x, 50 위)을 내려 채우고 아래 외곽선을 이음
+def _fix_hammer(path):
+    a = np.array(Image.open(path).convert('RGBA')); n_, lb_, st_, _ = cv2.connectedComponentsWithStats((a[..., 3] > 10).astype(np.uint8), 8)
+    big = 1 + int(np.argmax(st_[1:, cv2.CC_STAT_AREA])); a[..., 3] = np.where(lb_ == big, a[..., 3], 0)
+    m = Image.new('L', (a.shape[1], a.shape[0]), 0); ImageDraw.Draw(m).polygon([(9, 152), (9, 204), (60, 204), (60, 198), (48, 183), (30, 163), (18, 152)], fill=255)
+    m = cv2.GaussianBlur((np.array(m) > 0).astype(np.float32), (7, 7), 0)          # 3px 섞임 — 위에서 내린 판과 원래 판 사이 이음이 안 보이게
+    src = np.roll(a, 50, axis=0).astype(np.float32); out = a.astype(np.float32)
+    k = m[..., None]; out[..., :3] = out[..., :3] * (1 - k) + src[..., :3] * k; out[..., 3] = np.maximum(out[..., 3], (m > .5) * 255)
+    a = out.clip(0, 255).astype(np.uint8)
+    a[150:210, 10:17, :3] = a[120, 10:17, :3]; a[150:210, 10:17, 3] = a[120, 10:17, 3]   # 왼쪽 외곽선 그대로 내림
+    a[204:210, 10:62, :3] = (5, 3, 2); a[204:210, 10:62, 3] = 255; a[210, 12:62, :3] = (8, 5, 4); a[210, 12:62, 3] = 126   # 아래 외곽선(x 60 의 원화 외곽선 y 204~210 과 같은 굵기)
+    Image.fromarray(a).save(path)
+import shutil as _sh; _sh.copy(os.path.join(W, 'hammerUp.png'), os.path.join(W, 'hammerUpA.png')); _fix_hammer(os.path.join(W, 'hammerUpA.png'))   # 대기 망치는 원화 그대로(흰 앞머리가 홈에 들어감), 공격 중(weaponA, 맨 앞)만 고친 망치
 _WP = [round(float(_pv[0]), 1), round(float(_pv[1]), 1)]; _up = lambda d: [_WP[0], round(_WP[1] - d * 2, 1)]
 part('weapon', os.path.join(W, 'hammerUp.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
+part('weaponA', os.path.join(W, 'hammerUpA.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
 for n in ['thighN', 'thighF']: part(n, A(n), [0, 0], scale=1.0)
 for n in ['bootN', 'bootF']: part(n + 'Shin', os.path.join(W, n + 'Shin.png'), [0, 0], scale=1.0)
 for n, sd in [('bootN', 'near'), ('bootF', 'far')]: part(n + 'Foot', os.path.join(W, n + 'Foot.png'), pc(LJ[sd]['a'], O_[n]))
