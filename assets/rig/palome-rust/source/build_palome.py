@@ -128,6 +128,15 @@ print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), '
 # 다리: 서 있을 때 = 원화 다리(바짓단 아래 바지 + 부츠) 그대로 / 달릴 때 = 먼 부츠(앞코 오른쪽) + 바지 통(shinP)
 o_lN = save('bootStandN', art(lab('legN'))); o_lF = save('bootStandF', art(lab('legF')))
 bf = art(lab('legF') & (YY >= 455)); bf[..., 3] = (bf[..., 3] * np.clip((YY - 455) / 4, 0, 1)).astype(np.uint8); o_bR = save('bootRun', bf)
+# 달리는 부츠(쪽별) = 시트 부츠 그대로(배율 1, 늘이지 않음, 색 원화) — 10-20 29 교훈(DHL 07:25 '달리기 자세 어색'): 발목을 평평하게 두면 짧은 원화 부츠 목 옆으로 바지 통이
+#   비스듬히 삐져나옴 → 목이 긴 시트 부츠가 통을 덮음. 엔진 opt-in legs.tube.runBoot(서 있을 땐 원화 다리, 달리면 한 프레임에 바꿈). 발목 점 = 목 가운데(x 20), 밑창 위 18px
+def run_boot(nm, lm):
+    b = col_match(sheet(nm), lm & (YY >= 455)); ys, xs = np.nonzero(b[..., 3] > 128); piv = (20.0, ys.max() - 18.0)
+    Image.fromarray(b).save(os.path.join(PARTS, f'{nm}Run.png'))
+    bot = {x: ys[xs == x].max() for x in range(xs.min(), xs.max() + 1) if (xs == x).any()}; xl, xr = min(bot), max(bot)
+    cols = sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))
+    return piv, [[round(float(x - piv[0]), 1), round(float(bot[x] - piv[1]), 1)] for x in cols]
+RB = {'near': run_boot('bootN', lab('legN')), 'far': run_boot('bootF', lab('legF'))}
 def sole_pts(m, ankle, ground=None):   # 부츠 바닥 점(발목 기준, 원화 px): 양 끝·가장 낮은 곳 포함. ground 를 주면 가장 낮은 점이 그 높이에 오게(먼 발은 원화에서 땅보다 위 — 깊이)
     ys, xs = np.nonzero(m); xl, xr = xs.min(), xs.max(); bot = {x: ys[xs == x].max() for x in range(xl, xr + 1) if (xs == x).any()}
     xlow = max(bot, key=lambda x: bot[x]); cols = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
@@ -174,6 +183,7 @@ parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [round(float(W_PIV[0]), 1
 for n in FACE_N + BLINK_N: parts[f'face_{n}'] = {'src': f'parts/face_{n}.png', 'pivot': parts['head']['pivot'], 'scale': SC}
 for nm, sd in [('bootStandN', 'near'), ('bootStandF', 'far')]: P_(nm, LEG[sd]['ankle'])
 P_('bootRun', LEG['far']['ankle'])
+for _sd, _nm in (('near', 'bootNRun'), ('far', 'bootFRun')): parts[_nm] = {'src': f'parts/{_nm}.png', 'pivot': [round(RB[_sd][0][0], 1), round(RB[_sd][0][1], 1)], 'scale': SC}
 parts['shinP'] = {'src': 'parts/shinP.png', 'pivot': [0, 0], 'scale': 1}
 WEAPON_ANG = math.atan2(UT[1], UT[0]) + math.pi / 2   # 세로 칼 그림 뼈의 세계 각(그림 위쪽 → 칼끝)
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘(armL.ar) → 뼈 rot 에 +0.3 을 넣어 대기 = 원화
@@ -195,10 +205,10 @@ for name, parent in BONES:
 hipY = SC * (LEG['near']['hip'][1] - HIP[1])
 legs = {'hip': [0, round(hipY, 1)], 'thigh': 48, 'shin': 48,
         'thighImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001}, 'shinImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001},
-        'boot': {'part': 'bootRun', 'sole': sole_pts(lab('legF') & (YY >= 455), LEG['far']['ankle']), 'ankleRange': [-0.85, 0.95]},
-        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': 1.8}}
+        'boot': {'part': 'bootFRun', 'sole': RB['far'][1], 'ankleRange': [-1.7, 1.7]},   # 10-20 29 교훈: 짧은 다리라 정강이(통) 각이 크게 흔들려 좁은 범위면 부츠가 통을 따라 돌아 발끝이 아래로 꺾임 → 넓게(부츠는 거의 평평)
+        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': 1.8, 'runBoot': True}}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
-    legs[sd] = {'x': round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1), 'shade': 0, 'thighImg': legs['thighImg'], 'shinImg': legs['shinImg'],
+    legs[sd] = {'x': round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1), 'shade': 0, 'thighImg': legs['thighImg'], 'shinImg': legs['shinImg'], 'runBoot': 'bootNRun' if sd == 'near' else 'bootFRun',
                 'stand': {'fade': [0.12, 0.4], 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], O[1])}}}
 idle = {sd: round(SC * (LEG[sd]['ankle'][0] - LEG[sd]['hip'][0]), 1) for sd in ('near', 'far')}
 # 그리는 순서 (뒤 → 앞): 먼 다리 · 가까운 다리 · 상체 · 치마 · 먼 팔뚝 · 칼(칼날은 머리 뒤) · 가까운 윗팔 · 가까운 팔뚝+주먹 · 어깨갑 · 머리+수염(+표정) · 먼 손
@@ -206,8 +216,8 @@ draw = ['legFar', 'legNear', 'torso', 'skirt', 'foreF', 'weapon', 'armU', 'armL'
 rig = {'name': 'palome-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'}, 'idleStance': idle,
-       'gait': {'stance': 0.18, 'strideBase': 14, 'strideK': 0.08, 'hipBase': 0, 'bob': 9, 'lean': 0.06, 'waddle': 0.02, 'headBob': 3, 'kneeLift': 0.25, 'heelKick': 0.05, 'dropCap': 16,
-                'swingReach': 0.05, 'landAng': -0.08, 'angK': 0.45, 'elbowRun': 0.22, 'armSwing': 0.16, 'armBias': 0.0, 'headRun': 0.06},
+       'gait': {'stance': 0.18, 'strideBase': 14, 'strideK': 0.06, 'hipBase': 0, 'bob': 6, 'lean': 0.06, 'waddle': 0.02, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.03, 'dropCap': 12,
+                'swingReach': 0.05, 'landAng': -0.04, 'angK': 0.2, 'elbowRun': 0.22, 'armSwing': 0.16, 'armBias': 0.0, 'headRun': 0.06},
        'hemRun': {'lift': 8, 'knee': 0.5, 'heel': 0.3, 'reach': 0.2}, 'hemLimit': {'up': 0.25, 'x': 0.3}, 'hemGain': 0.15, 'footReach': 0.97,
        'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.3}], 'skirtFollow': 0.7, 'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 10,
        'bounce': [], 'metrics': {'bodyHeight': round(2 * (501 - 167)), 'note': 'rig units; 머리카락 위(y167)~발바닥(501) ×2, 칼 제외'},
