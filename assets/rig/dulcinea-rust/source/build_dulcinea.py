@@ -363,7 +363,9 @@ rig = {'name': 'dulcinea-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)'
        'ponySway': 0.6, 'carrySwing': 0.4, 'wristRange': 0.3, 'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.35}],
        'bounce': [{'bone': 'flapN', 'stiff': 170, 'damp': 7, 'y': 0.3, 'rot': -0.006, 'max': 10}, {'bone': 'flapC', 'stiff': 150, 'damp': 6, 'y': 0.35, 'rot': 0.008, 'max': 12}],
        'ui': {'attack': 'smash', 'touch': 'hop'},
-       'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0002.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)'},
+       'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - 248.9)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
+                   'note': '게임 그림 char_0002.png(512) = 원화(md5 같음). x = 도감 칸(fitArt 중심 248.9, index.html measureBox 를 브라우저에서 같은 계산)에서 골반(hip x 232)이 가운데 (3·9·13·23 과 같은 규칙)'},
+       'cutHold': 0.32,   # 10-20 06:40 스킬 컷인 = 망치를 머리 위로 높이 든 휘두름 시작(SW1) — 얼굴·망치 다 보임
        'note': '2 러스트 둘시네 (2026-10-19, v1 대기·달리기). 먼 손으로 큰 망치를 쥠(1시), 가까운 손 주먹. 보이는 곳은 원화를 오림, 달리는 다리는 시트.'}
 rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())

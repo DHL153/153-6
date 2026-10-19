@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "4b1be053",
+ "version": "28978c5e",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -988,13 +988,14 @@
  },
  "gameRef": {
   "refOrigin": [
-   207.0,
+   223.9,
    485.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0002.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)"
+  "note": "게임 그림 char_0002.png(512) = 원화(md5 같음). x = 도감 칸(fitArt 중심 248.9, index.html measureBox 를 브라우저에서 같은 계산)에서 골반(hip x 232)이 가운데 (3·9·13·23 과 같은 규칙)"
  },
+ "cutHold": 0.32,
  "note": "2 러스트 둘시네 (2026-10-19, v1 대기·달리기). 먼 손으로 큰 망치를 쥠(1시), 가까운 손 주먹. 보이는 곳은 원화를 오림, 달리는 다리는 시트.",
  "actions": {
   "smash": {
