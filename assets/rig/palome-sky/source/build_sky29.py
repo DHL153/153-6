@@ -15,6 +15,10 @@ os.makedirs(PARTS); os.makedirs(W, exist_ok=True)
 RA = np.array(Image.open(os.path.join(HERE, 'ref512.png')).convert('RGBA'))
 LAB = np.load(os.path.join(W, 'labels.npy'))
 NAMES = ['head', 'sword', 'handF', 'foreF', 'upperF', 'pauldron', 'upperN', 'foreN', 'cape', 'legN', 'legF', 'body']
+PO_ = json.load(open(os.path.join(HERE, 'polys29.json')))
+def poly_(pts):
+    from PIL import ImageDraw as _D
+    m = Image.new('L', (512, 512), 0); _D.Draw(m).polygon([tuple(map(float, q)) for q in pts], fill=255); return np.array(m) > 0
 LID = {n: i + 1 for i, n in enumerate(NAMES)}
 lab = lambda n: LAB == LID[n]
 GEO = json.load(open(os.path.join(W, 'geom.json')))
@@ -96,10 +100,22 @@ _zone = (XX > 318) & (YY < 330); _bz = (body & _zone).astype(np.uint8); _k, _cc,
 _frag = np.zeros((512, 512), bool)
 for _j in range(1, _k):
     if _st[_j, 4] < 150: _frag |= _cc == _j
+_sh3a = cv2.warpAffine((np.array(Image.open(os.path.join(PC, 'p3_shoulderF3.png')).convert('RGBA'))[..., 3] > 100).astype(np.uint8), np.array(GEO['p3_shoulderF3']['M'], np.float32), (512, 512), flags=cv2.INTER_NEAREST) > 0
 body = body & ~_frag; print('  shoulder fragments removed', int(_frag.sum()), 'px')
 bflat2, fillO = flat_fill(body, (OCC | _frag) & (SHOULDER_R > 0))   # 그 밖의 앞 조각(칼 날밑·손잡이·먼 토시·수염) 밑도 시트가 못 덮는 곳은 남색 천 — 칼을 들면 날밑 자리에 배경 구멍·찢어진 조각이 보였음
 _OK = (~_zone | (SHOULDER_R > 0)) & (YY < cut_y + OVL)
-torso = under(under(under(art(body & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
+# 먼 어깨(시트 3 2번, 10-20 08:23 — 수염 오른쪽 세로 크림 판·금 단추·가죽 끈·남색 어깨 천): 칼 날밑·손·토시에 가려졌던 어깨를 이 조각으로 먼저 메움(SIFT 맞춤)
+sh3 = cv2.warpAffine(desp(np.array(Image.open(os.path.join(PC, 'p3_shoulderF3.png')).convert('RGBA'))), np.array(GEO['p3_shoulderF3']['M'], np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+# 날밑·손·토시 경계 4px 띠(어깨 쪽): 원화 몸 픽셀은 톱니 외곽선 조각 → 시트 어깨로 바꿈(시트 어깨가 없는 곳은 지움). 대기엔 날밑·손이 거의 덮음
+_ring = _zone & (cv2.dilate((lab('sword') | lab('handF') | lab('foreF')).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))) > 0) & body
+_sh3s = sh3[..., 3] > 200
+_Zrep = _zone & body & _sh3s & (YY < 300)   # 시트 어깨가 있는 곳 = 시트 어깨로 통째(어깨 판 위 끝이 날밑 뒤에서 톱니로 잘려 있었음)
+_Zcut = _zone & body & (SHOULDER_R == 0) & ~(cv2.dilate(_sh3s.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0) & (YY < 300)   # 어깨 윤곽·시트 어깨 밖으로 삐죽 나온 조각
+_ring = _ring | _Zrep | _Zcut
+SEAM = _ring.copy()   # 대기 그대로를 위해 원화 경계 픽셀은 seamF(서 있을 때만 그림)로 따로 남김
+_t0 = art(body & (YY < cut_y + OVL)); _t0[_ring & (sh3[..., 3] > 200)] = sh3[_ring & (sh3[..., 3] > 200)]; _t0[_ring & (sh3[..., 3] <= 200), 3] = 0
+print('  shoulder ring', int(_ring.sum()), 'px')
+torso = under(under(under(under(_t0, sh3, (OCC | _frag) & (SHOULDER_R > 0) & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
 o_torso = save('torso', torso)
 # 치마: 주먹 밑(주머니 윗덮개·허리띠)은 시트 골반의 주머니를 원화 주머니 위 두 모서리에 맞춰(시트 10,10 → 138,355 · 90,12 → 198,357) — 시트 전체 맞춤은 3/4 휘어짐이 달라 안 맞음
 shp = warp(col_match(sheet('hips'), body & (YY >= cut_y)), simil((10, 10), (90, 12), (138, 355), (198, 357)))
@@ -140,12 +156,14 @@ cfl, _ = flat_fill(lab('cape') | (CB > 0), (CB > 0) & (lab('foreN') | lab('upper
 cape = under(cape, cfl, (CB > 0) & (lab('foreN') | lab('upperN') | lab('pauldron')))
 o_cape = save('cape', cape)
 # 칼: 원화 + 머리 뒤 칼날은 칼날 띠 좌표(가장자리 맞춤 선 사이 0~1)로 왼쪽 D px 칼날을 옮겨 메움 (무늬 없는 날 — 홈·가장자리 선이 이어짐)
-sw = art(lab('sword'))
+sw = art(lab('sword')); SW0 = sw.copy()   # SW0 = 원화 칼 픽셀(바뀐 곳은 guardArt 로 서 있을 때만 다시 그림)
 D = 40.0
 yT = lambda x: TOPL[0] * x + TOPL[1]; yB = lambda x: BOTL[0] * x + BOTL[1]
 v = (YY - yT(XX)) / (yB(XX) - yT(XX))
 # 머리카락 외곽선 조각(칼날 띠 밖)은 칼에서 뺌 — 칼을 돌리면 날 가장자리에 검은 점선으로 붙어 다녔음
-sw[(XX >= 170) & (XX <= 340) & ((v < -0.12) | (v > 1.12))] = 0
+gd3 = cv2.warpAffine(desp(np.array(Image.open(os.path.join(PC, 'p3_guard3.png')).convert('RGBA'))), np.array(GEO['p3_guard3']['M'], np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+_gsil = cv2.dilate((gd3[..., 3] > 100).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0
+sw[(XX >= 170) & (XX <= 372) & ((v < -0.08) | (v > 1.08)) & ~_gsil] = 0   # 날 띠 밖 조각(머리카락 외곽선·어깨 판 크림 조각)은 칼에서 뺌 — 날밑 둘레까지
 hid = (XX >= 170) & (XX <= 372) & (v > -0.1) & (v < 1.1) & (sw[..., 3] < 250) & (RA[..., 3] > 40) & ~lab('handF') & ~lab('foreF')   # 띠 안 빈 곳은 라벨과 상관없이(머리카락 사이 틈까지) 메움 — 대기엔 머리가 덮음
 # 띠 좌표 v 는 그대로, 날 길이 방향으로는 머리카락 왼쪽(x 168~174)의 단면 평균을 늘려 씀 → 홈·가장자리가 곧게 이어짐(왼쪽 D px 복사는 날이 좁아지며 홈이 계단처럼 어긋났음)
 cols = []
@@ -153,6 +171,21 @@ for xr in range(168, 175):
     ys_r = yT(xr) + v * (yB(xr) - yT(xr)); cols.append(cv2.remap(sw.astype(np.float32), np.full_like(ys_r, xr, np.float32), ys_r.astype(np.float32), cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)))
 src = np.mean(cols, 0); put = hid & (src[..., 3] > 200); sw[put] = np.clip(src[put], 0, 255).astype(np.uint8); hid &= ~put
 print('  blade fill left', int(hid.sum()), 'px')
+# 날밑(시트 3 3번 — 원화와 같은 각도로 다시 그린 날밑, SIFT 맞춤): ①날밑 둘레에서 칼 띠(날·손잡이·폼멜)·날밑 모양 밖의 원화 '칼' 픽셀은 몸 판·끈 조각 → 칼에서 뺌
+#   ②날밑 모양 안인데 원화에서 손·어깨 판에 가려 빈 곳은 시트 날밑으로 — 칼을 휘두르면 날밑 왼쪽 아래가 찢겨 보였음(10-20 08:03)
+_band = (v > -0.12) & (v < 1.12) & (XX < 372)
+_ax = (HA1 - HA0) / np.linalg.norm(HA1 - HA0); _al = (XX - HA0[0]) * _ax[0] + (YY - HA0[1]) * _ax[1]; _lat = (XX - HA0[0]) * -_ax[1] + (YY - HA0[1]) * _ax[0]
+_hband = (_al > 0) & (np.abs(_lat) < 12)
+_near = cv2.dilate(_gsil.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))) > 0
+_gcut = _near & ~_gsil & ~_band & ~_hband & ~poly_(PO_['pommel']) & (sw[..., 3] > 0); sw[_gcut] = 0
+# seamF: 원화의 날밑·어깨 경계 픽셀(위에서 바꾸거나 뺀 곳) — 서 있을 때·달릴 때만 칼 위에 그려 대기 = 원화, 공격(칼이 움직임) 땐 안 그림
+_sm = (SEAM | _gcut) & (RA[..., 3] > 40); o_seam = save('seamF', art(_sm)); print('  seamF', int(_sm.sum()), 'px')
+_gfill = (gd3[..., 3] > 200) & (_gsil & ~_band | (sw[..., 3] < 200)) & (cv2.dilate((RA[..., 3] > 40).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0); sw[_gfill] = gd3[_gfill]   # 날밑 = 시트 날밑 통째(움직일 때 깨끗) — 서 있을 땐 guardArt(원화)가 위에
+# 날밑 바로 앞 칼날 뿌리(금·크림 장식): 원화는 어깨 판에 반쯤 가려 들쭉날쭉 → 시트 칼(22번, SIFT)의 같은 곳으로 (서 있을 땐 guardArt 가 원화)
+swS = cv2.warpAffine(desp(np.array(Image.open(os.path.join(PC, 'sword.png')).convert('RGBA'))), np.array(GEO['sword']['M'], np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+_root = (v > -0.15) & (v < 1.15) & (_al > -40) & (_al < 2) & ~_gsil
+sw[_root & (swS[..., 3] > 200)] = swS[_root & (swS[..., 3] > 200)]; sw[_root & (swS[..., 3] <= 100)] = 0
+print('  guard: cut', int(_gcut.sum()), 'filled', int(_gfill.sum()), 'root', int(_root.sum()))
 o_sw_art = save('_sword_art', sw); os.remove(os.path.join(PARTS, '_sword_art.png'))
 ang_tip = math.atan2(UT[1], UT[0]); rot_deg = math.degrees(-math.pi / 2 - ang_tip)
 UPS = 2
@@ -163,6 +196,12 @@ swv = cv2.warpAffine(sw2, Rm, (WS, HS), flags=cv2.INTER_CUBIC, borderValue=(0, 0
 ys, xs = np.nonzero(swv[..., 3] > 0); x0, y0 = max(0, xs.min() - 2), max(0, ys.min() - 2); assert xs.min() > 0 and ys.min() > 0 and xs.max() < WS - 1 and ys.max() < HS - 1, '칼 그림이 캔버스 밖'; swv = swv[y0:ys.max() + 3, x0:xs.max() + 3]
 Image.fromarray(swv).save(os.path.join(PARTS, 'weapon.png'))
 vpt = lambda p: (Rm[:, :2] @ (np.array(p, float) * UPS) + Rm[:, 2]) - np.array([x0, y0])
+# guardArt: 원화 칼 픽셀 중 칼 그림에서 바뀐 곳(날밑·경계 조각) — 칼 뼈에 붙여 서 있을 때·달릴 때만 칼 위에 그림 → 대기 = 원화, 휘두를 땐 깨끗한 시트 날밑
+_gm = (SW0[..., 3] > 0) & ((np.abs(SW0.astype(int) - sw.astype(int)).max(-1) > 8) | (cv2.dilate((_root | _gsil | _gcut).astype(np.uint8), np.ones((7, 7), np.uint8)) > 0))   # 바뀐 곳 + 날밑·뿌리 둘레 통째(점점이 겹치면 줄무늬)
+ga = np.zeros_like(SW0); ga[_gm] = SW0[_gm]
+ga2 = cv2.resize(ga, None, fx=UPS, fy=UPS, interpolation=cv2.INTER_LANCZOS4); ga2[..., 3] = np.clip(cv2.resize(ga[..., 3], None, fx=UPS, fy=UPS, interpolation=cv2.INTER_LINEAR), 0, 255)
+gav = cv2.warpAffine(ga2, Rm, (WS, HS), flags=cv2.INTER_CUBIC, borderValue=(0, 0, 0, 0))[y0:y0 + swv.shape[0], x0:x0 + swv.shape[1]]
+Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png')); print('  guardArt', int(_gm.sum()), 'px')
 W_PIV = vpt(G); W_TIP = vpt(TIP); W_GUARD = vpt(HA0); W_POM = vpt(HA1)
 print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), 'rot', round(rot_deg, 2))
 # 다리: 서 있을 때 = 원화 다리(바짓단 아래 바지 + 부츠) 그대로 / 달릴 때 = 먼 부츠(앞코 오른쪽) + 바지 통(shinP)
@@ -229,9 +268,10 @@ parts = {}
 def P_(name, at, **kw): parts[name] = dict({'src': f'parts/{name}.png', 'pivot': piv(name, at), 'scale': SC}, **kw)
 P_('torso', HIP); P_('skirt', HIP, mesh={'cols': 8, 'rows': 6}); P_('head', NECK)
 P_('pauldron', SH_N); P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armL', EL_N, fist=piv('armL', WR_N + (WR_N - EL_N) * .2))
-P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('foreF', EL_F); P_('fistF', WR_F); P_('pauldronF', SH_F)
+P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('foreF', EL_F); P_('fistF', WR_F); P_('pauldronF', SH_F); P_('seamF', HIP)
 CAPE_P = np.array([118.0, 300.0])   # 망토 뿌리(가까운 어깨 뒤, 팔·어깨갑에 가려짐) — 엔진 cape 뼈가 달리기 속도만큼 뒤로 젖히고 메시가 펄럭임
 P_('cape', CAPE_P, mesh={'cols': 6, 'rows': 7})
+parts['guardArt'] = {'src': 'parts/guardArt.png', 'pivot': [round(float(W_PIV[0]), 1), round(float(W_PIV[1]), 1)], 'scale': SC / UPS}
 parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [round(float(W_PIV[0]), 1), round(float(W_PIV[1]), 1)], 'scale': SC / UPS,
                    'tip': [round(float(W_TIP[0]), 1), round(float(W_TIP[1]), 1)], 'tips': [[round(float(W_TIP[0]) - 6 * UPS, 1), round(float(W_TIP[1]) + 10 * UPS, 1)], [round(float(W_TIP[0]) + 14 * UPS, 1), round(float(W_TIP[1]) + 10 * UPS, 1)]],
                    'guard': [round(float(W_GUARD[0]), 1), round(float(W_GUARD[1]), 1)], 'pommel': [round(float(W_POM[0]), 1), round(float(W_POM[1]), 1)]}
@@ -242,9 +282,9 @@ parts['shinP'] = {'src': 'parts/shinP.png', 'pivot': [0, 0], 'scale': 1}
 WEAPON_ANG = math.atan2(UT[1], UT[0]) + math.pi / 2   # 세로 칼 그림 뼈의 세계 각(그림 위쪽 → 칼끝)
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘(armL.ar) → 뼈 rot 에 +0.3 을 넣어 대기 = 원화
 world = {'root': (O, 0.0), 'hip': (HIP, 0.0), 'skirt': (HIP, 0.0), 'torso': (HIP, 0.0), 'head': (NECK, 0.0), 'pauldron': (SH_N, 0.0), 'armU': (SH_N, 0.0), 'armL': (EL_N, ARML_REST),
-         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (G, WEAPON_ANG), 'cape': (CAPE_P, 0.0), 'scarf': (NECK, 0.0), 'pouch': (HIP, 0.0), 'pauldronF': (SH_F, 0.0), 'foreFb': (WR_F, 0.0)}
+         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (G, WEAPON_ANG), 'cape': (CAPE_P, 0.0), 'scarf': (NECK, 0.0), 'pouch': (HIP, 0.0), 'pauldronF': (SH_F, 0.0), 'foreFb': (WR_F, 0.0), 'seamF': (HIP, 0.0), 'guardArt': (G, WEAPON_ANG)}
 BONES = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('torso', 'hip'), ('head', 'torso'), ('armF', 'torso'), ('foreF', 'armF'), ('fistF', 'foreF'), ('weapon', 'fistF'),
-         ('armU', 'torso'), ('armL', 'armU'), ('pauldron', 'torso'), ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldronF', 'torso'), ('foreFb', 'torso')]
+         ('armU', 'torso'), ('armL', 'armU'), ('pauldron', 'torso'), ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldronF', 'torso'), ('foreFb', 'torso'), ('seamF', 'torso'), ('guardArt', 'weapon')]
 bones = []
 for name, parent in BONES:
     if parent is None: bones.append({'name': 'root', 'parent': None, 'pos': [0, 0]}); continue
@@ -267,7 +307,7 @@ for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', la
                 'stand': {'fade': [0.12, 0.4], 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], O[1])}}}
 idle = {sd: round(SC * (LEG[sd]['ankle'][0] - LEG[sd]['hip'][0]), 1) for sd in ('near', 'far')}
 # 그리는 순서 (뒤 → 앞): 망토 · 먼 다리 · 가까운 다리 · 상체 · 치마 · 먼 윗팔(소매) · 먼 어깨 덮개(몸 띠) · 먼 팔뚝 · 칼(칼날은 머리 뒤) · 가까운 윗팔 · 어깨갑 · 머리+수염(+표정) · 먼 손 · 가까운 팔뚝+주먹(맨 앞 — 팔꿈치 레이어 > 어깨)
-draw = ['cape', 'legFar', 'legNear', 'torso', 'skirt', 'armF', 'pauldronF', 'foreF', 'weapon', 'armU', 'pauldron', 'head', 'fistF', 'armL']
+draw = ['cape', 'legFar', 'legNear', 'torso', 'skirt', 'armF', 'pauldronF', 'foreF', 'weapon', 'guardArt', 'seamF', 'armU', 'pauldron', 'head', 'fistF', 'armL']
 rig = {'name': 'palome-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'}, 'idleStance': idle,

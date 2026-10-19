@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "487c6b08",
+ "version": "443da3bc",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -105,6 +105,14 @@
    ],
    "scale": 2.0
   },
+  "seamF": {
+   "src": "parts/seamF.png",
+   "pivot": [
+    -65.0,
+    167.0
+   ],
+   "scale": 2.0
+  },
   "cape": {
    "src": "parts/cape.png",
    "pivot": [
@@ -117,33 +125,41 @@
     "rows": 7
    }
   },
+  "guardArt": {
+   "src": "parts/guardArt.png",
+   "pivot": [
+    80.0,
+    847.0
+   ],
+   "scale": 1.0
+  },
   "weapon": {
    "src": "parts/weapon.png",
    "pivot": [
-    97.0,
+    80.0,
     847.0
    ],
    "scale": 1.0,
    "tip": [
-    107.9,
+    90.9,
     4.6
    ],
    "tips": [
     [
-     95.9,
+     78.9,
      24.6
     ],
     [
-     135.9,
+     118.9,
      24.6
     ]
    ],
    "guard": [
-    107.6,
+    90.6,
     755.7
    ],
    "pommel": [
-    79.4,
+    62.4,
     997.7
    ]
   },
@@ -436,6 +452,24 @@
     284.0,
     -292.0
    ]
+  },
+  {
+   "name": "seamF",
+   "parent": "torso",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "seamF"
+  },
+  {
+   "name": "guardArt",
+   "parent": "weapon",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "guardArt"
   }
  ],
  "legs": {
@@ -642,6 +676,8 @@
   "pauldronF",
   "foreF",
   "weapon",
+  "guardArt",
+  "seamF",
   "armU",
   "pauldron",
   "head",
@@ -754,6 +790,24 @@
   "pauldronF",
   "foreFb",
   "weapon",
+  "armU",
+  "pauldron",
+  "head",
+  "foreF",
+  "armL"
+ ],
+ "drawA0": [
+  "cape",
+  "legFar",
+  "legNear",
+  "torso",
+  "skirt",
+  "armF",
+  "pauldronF",
+  "foreFb",
+  "weapon",
+  "guardArt",
+  "seamF",
   "armU",
   "pauldron",
   "head",
@@ -1359,6 +1413,10 @@
    "order": [
     [
      0,
+     "drawA0"
+    ],
+    [
+     0.04,
      "drawA"
     ],
     [
@@ -1368,6 +1426,10 @@
     [
      0.72,
      "drawA"
+    ],
+    [
+     0.85,
+     "drawA0"
     ]
    ]
   }

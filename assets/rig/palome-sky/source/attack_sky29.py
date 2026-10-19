@@ -14,6 +14,7 @@ rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pie
 BASE = ['legFar', 'legNear']
 BASE = ['cape'] + BASE
 rig['drawA'] = BASE + ['torso', 'skirt', 'armF', 'pauldronF', 'foreFb', 'weapon', 'armU', 'pauldron', 'head', 'foreF', 'armL']   # 가까운 팔뚝+주먹 맨 앞
+rig['drawA0'] = [x for y in [[n] + (['guardArt', 'seamF'] if n == 'weapon' else []) for n in rig['drawA']] for x in y]
 rig['drawStrike'] = BASE + ['torso', 'skirt', 'armF', 'pauldronF', 'foreFb', 'armU', 'pauldron', 'head', 'weapon', 'foreF', 'armL']
 K = AK['keys']
 def trk(i, f=lambda v, k: v):   # 키 i 번째 값 → 엔진 트랙 [[t, v, easing]]
@@ -25,6 +26,6 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 0.9, 'hitAt':
        'head': [[0, 0], [0.28, -0.06, 'io'], [0.45, 0.05, 'io'], [0.6, 0.04, 'io'], [0.86, 0]],
        'freeArm': True, 'fuA': [[0, 0], [0.28, -0.12, 'io'], [0.45, 0.3, 'o'], [0.6, 0.26, 'io'], [0.86, 0]], 'flA': [[0, 0], [0.28, -0.08, 'io'], [0.45, 0.18, 'o'], [0.6, 0.15, 'io'], [0.86, 0]],
        'face': [[0, 'angry'], [0.12, 'effort'], [0.4, 'shout'], [0.62, 'focus'], [0.82, None]],
-       'order': [[0, 'drawA'], [0.375, 'drawStrike'], [0.72, 'drawA']]}
+       'order': [[0, 'drawA0'], [0.04, 'drawA'], [0.375, 'drawStrike'], [0.72, 'drawA'], [0.85, 'drawA0']]}   # drawA0 = drawA + seamF(원화 날밑·어깨 경계, 칼이 대기 자리일 때만)
 rig['actions'] = {'smash': act}
 rig['cutHold'] = 0.25   # 스킬 컷인: 칼을 어깨 뒤로 눕혀 멘 힘줌 자세(9 v1.1 과 같은 시각)

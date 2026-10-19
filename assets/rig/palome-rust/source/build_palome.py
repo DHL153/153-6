@@ -89,9 +89,11 @@ o_aU = save('armU', under(art(lab('upperN')), uw, lab('pauldron') | lab('foreN')
 # 가까운 팔뚝+주먹(큰 토시, 원화 그대로 — 맨 앞이라 가린 곳 없음)
 o_aL = save('armL', art(lab('foreN')))
 # 먼 윗팔: 원화에서는 수염·몸 뒤(안 보임) → 시트 먼 윗팔(어깨 → 팔꿈치)
-uf = col_match(sheet('upperF'), lab('upperN'), 0.85).astype(np.float32); yy_ = np.arange(uf.shape[0])[:, None]
-uf[..., 3] *= np.clip((yy_ - 10) / 3, 0, 1)   # 위 둥근 어깨 뚜껑(밝은 갈색)은 잘라 냄(수염 옆으로 삐져나옴) · 색 = 원화 비늘 × .85(먼 쪽이라 어둡게)
-MUF = simil((21, 3), (21, 49), SH_F, EL_F); o_aF = save('armF', warp(np.clip(uf, 0, 255).astype(np.uint8), MUF))
+# 먼 윗팔 = 시트 2 의 2번(10-20 08:28 — 원화 팔 길이에 맞춘 비늘 윗팔, 비늘 크기 = 가까운 팔): 늘이지 않고(배율 1) 아래 둥근 끝 가운데 = 팔꿈치, 위 = 어깨 방향.
+#   둥근 끝 사이 89(원화 어깨~팔꿈치 74) — 남는 위 끝 15px 는 몸·수염 뒤. 색 = 원화 가까운 비늘 × .85(먼 쪽). 예전: 시트 1 upperF(42×51)를 1.6배 키워 씀(비늘이 커 보임)
+_u2 = col_match(desp(np.array(Image.open(os.path.join(PC, 'p2_upperF2.png')).convert('RGBA'))), lab('upperN'), 0.85)
+_ud = (SH_F - EL_F) / np.linalg.norm(SH_F - EL_F)
+o_aF = save('armF', warp(_u2, simil((23.5, 110), (23.5, 21), EL_F, EL_F + _ud * 89)))
 # 먼 팔뚝(둥근 토시): 원화 + 손·손잡이 밑은 둘레 안을 inpaint
 ff = art(lab('foreF')); hull = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(hull, cv2.convexHull(np.argwhere(lab('foreF'))[:, ::-1].astype(np.int32)), 1)
 hole = (hull > 0) & (lab('handF') | lab('sword')) & (ff[..., 3] < 128)
