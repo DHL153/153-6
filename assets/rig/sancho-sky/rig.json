@@ -1,6 +1,6 @@
 {
  "name": "sancho-sky",
- "version": "aa022e20",
+ "version": "4da2ad8b",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   570.0,
@@ -1094,12 +1094,12 @@
  },
  "gameRef": {
   "refOrigin": [
-   285.0,
+   236.4,
    494.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "★ 게임 그림 char_0023.png(512) = 원화 (도감 가운데는 게임 연결 때 measureBox 로 다시 잼 — 3·13 처럼 골반이 가운데)"
+  "note": "게임 그림 char_0023.png(512) 발 높이 = 원화. x 236.4 = 도감 칸(fitArt 중심 248.4, index.html measureBox 와 같은 계산 — 칼이 왼쪽으로 커서 그림 중심이 몸보다 왼쪽)에서 골반(hip x 297)이 가운데 (3·13 산초와 같은 규칙)"
  },
  "note": "23 스카이아크 산초 (2026-10-19, 3 러스트 산초 v3.1 · 13 네온 산초 v1.1 구조). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨갑·다리는 원화를 그대로 오려 씀. 목도리 꼬리 두 갈래(streamers)·포니테일(pony).",
  "blinkFaces": {
