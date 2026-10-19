@@ -120,7 +120,7 @@ POSE = _kv.get('POSE') or [(0, 164.6, -10, -.96, 82, 'io'), (GRAB, 40, -60, -1.9
         (SW1, 40, -80, -1.6, 48, None), (SW2, 90, -60, -.6, 46, 'o'), (HIT, 90, -10, .45, 44, 'o'), (HOLD, 90, -8, .47, 44, 'io'), (REL0, 120, -40, -.3, 44, 'io'), (END - .03, 164.6, -10, -.96, 82, None)]
 PT = lambda i: [[p[0], p[i]] + ([p[5]] if p[5] else []) for p in POSE]
 smash = {
-    'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': END, 'hitAt': HIT, 'hitStop': .12, 'cancelAt': .78, 'reachW': True,
+    'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': END, 'hitAt': HIT, 'hitStop': .10, 'cancelAt': .78, 'reachW': True,
     'aDamp': 30, 'standStep': True,   # 달리다 공격(게임 전투는 늘 달리다 공격): 발을 0.1초 안에 딛고, 달리기 다리 그림 → 원화 다리 그림은 한 프레임 계단(반투명 겹침 없음)
     'ankleRange': [-.45, 1.1], 'legRun': k((0, 0), (SW1 - .01, 0, 'lin'), (SW1 + .02, 1), (HOLD + .04, 1, 'io'), (REL + .045, .12, 'lin'), (REL + .055, 0)),
     'w': k((0, 0, 'io'), (GRAB0 + .04, 1), (END - .03, 1, 'io'), (END, 0)),
