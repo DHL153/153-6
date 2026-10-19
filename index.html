@@ -4125,7 +4125,9 @@ window.MRBattleFX=(()=>{
    // 2026-10-16: 공격은 트레일 하나로 통일 (예전 베기·불꽃 번갈아 쓰기는 중단, 시트 파일은 보존)
    if(!sheets.trail.ready)return false;
    attackIndex++;
-   return add({type:'attack',name:'trail',duration:reduced.matches?80:190, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,anchor:target(sourceId,true),reduced:reduced.matches});
+   // 2026-10-19 DHL: 트레일 가장 진한 칸(가운데, 약 95ms)이 리그 타격 순간에 오도록 늦게 시작 · 그림 캐릭터는 공격 그림으로 바뀐 뒤 살짝(60ms)
+   const len=reduced.matches?80:190,hitMs=window.MRRig?.hitDelayMs?.(sourceId),delay=hitMs!=null?Math.max(0,hitMs-len/2):60;
+   return add({type:'attack',name:'trail',delay,duration:delay+len, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,anchor:target(sourceId,true),reduced:reduced.matches});
   },
   hit(state){
    // 2026-10-16: 피격은 버스트 시트로 — 보통 타격 = 흰색, 보스·스킬 타격 = 주황 (예전 5종 무작위는 중단, 시트 파일은 보존)
@@ -18954,7 +18956,9 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   let stillRaf=0;
   function stillTick(t){stillRaf=requestAnimationFrame(stillTick);if(document.hidden)return;for(const e of stills.values())drawStill(e,t);}
   setInterval(scanStills,400);stillRaf=requestAnimationFrame(stillTick);
-  window.MRRig={setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
+  // 2026-10-19 DHL '공격도 안 했는데 이펙트가 나감': 공격 트레일을 리그의 타격 순간(hitAt)에 맞추려고 — 공격 시작부터 타격까지 ms
+  function hitDelayMs(elId){for(const e of live.values()){if(e.el?.id!==elId||!e.rig)continue;const d=e.rig.def,a=d.actions?.[d.ui?.attack||'thrust']||{};return (a.dur||.8)*(a.hitAt??.3)/ATTACK_SPEED*1000;}return null;}
+  window.MRRig={hitDelayMs,setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{setEnabled(typeof gameSettings==='undefined'||gameSettings.rigChars!==false);}catch(e){setEnabled(true);}};
   sync();addEventListener('load',sync);
