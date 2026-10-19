@@ -1,0 +1,35 @@
+# 9 러스트 팔로메(NUM=3 → 3 러스트 산초): 시작 선택(전투·마이룸 둘 다 13 고름) → 미리보기 → 전투 → 보스 처치 필살기 컷신 → 마이룸 — python3 game_check2.py 가로 세로 이름
+import os
+exec(open(os.path.dirname(os.path.abspath(__file__)) + '/game_base.py').read())
+W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]; NN = os.environ.get('NUM', '9').zfill(4)   # 캐릭터 번호(다른 캐릭터: NUM=3)
+with sync_playwright() as p:
+    b = p.chromium.launch(); pg = b.new_page(viewport={'width': W, 'height': H}); errs = []
+    pg.on('pageerror', lambda e: errs.append(str(e)))
+    pg.goto(f'http://127.0.0.1:{port}/index.html'); time.sleep(3)
+    pg.get_by_role('button', name='Skip', exact=True).click(); time.sleep(1.5)
+    pg.get_by_role('button', name='Next', exact=True).click(); time.sleep(2)
+    for step in range(4):
+        want = {0: f'battle_char_{NN}', 2: f'characters/char_{NN}'}.get(step)
+        cards = pg.locator('.mr-starter-card')
+        if want:
+            c = pg.locator(f'.mr-starter-card:has(img[src*="{want}"])'); c.first.scroll_into_view_if_needed(); c.first.click(); time.sleep(1.5)
+            pg.locator('#mr-starter').screenshot(path=O + f'{tag}_starter{step}.png')
+            print('step', step, 'stills', pg.evaluate("()=>MRRig.stills?.size??MRRig.stills?.length"))
+        else: cards.first.click(); time.sleep(.6)
+        nx = pg.get_by_role('button', name='Next', exact=True)
+        if nx.count() and nx.first.is_enabled(): nx.first.click()
+        else: pg.get_by_role('button', name='Preview').first.click()
+        time.sleep(1.5)
+    time.sleep(1.5); pg.screenshot(path=O + f'{tag}_review.png')
+    pg.get_by_role('button', name='Confirm & play').first.click(); time.sleep(4)
+    print('live', pg.evaluate("()=>[...MRRig.live.values()].map(e=>[e.id,e.el?.id])"))
+    pg.locator('#battle-stage').screenshot(path=O + f'{tag}_b2.png')
+    pg.evaluate("()=>window.mrPreviewFinishCut()")
+    for i, t in enumerate([.4, .9, 1.4]):
+        time.sleep(t - [0, .4, .9][i]); pg.screenshot(path=O + f'{tag}_fin{i}.png')
+    time.sleep(3)
+    pg.get_by_role('button', name='My Room').first.click(); time.sleep(4)
+    pg.screenshot(path=O + f'{tag}_room.png')
+    print('roomLive', pg.evaluate("()=>{const r=MRRig.roomLive;return r?[...(r.values?r.values():[])].map(e=>e.id):null}"))
+    print('errs', [e for e in errs if 'handleAsset' not in e][:5]); b.close()
+srv.shutdown()

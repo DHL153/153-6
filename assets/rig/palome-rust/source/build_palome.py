@@ -79,13 +79,18 @@ o_head = save('head', art(lab('head')))
 pw = warp(sheet('pauldron'), GEO['pauldron']['M'])
 o_pd = save('pauldron', under(art(lab('pauldron')), pw, lab('head')))   # 앞에 있는 머리 뒤만 메움(몸은 어깨갑 뒤라 메우면 대기가 바뀜)
 # 가까운 윗팔(비늘): 원화 보이는 곳 + 어깨갑·토시 밑은 시트 윗팔(어깨 → 팔꿈치 축에 맞춤)
-MU = simil((24, 3), (24, 53), SH_N, EL_N); uw = warp(sheet('upperN'), MU)
+def col_match(im, ref_m, k=1.0):   # 시트 조각 색을 원화 비늘 윗팔 색(채널별 평균·편차)에 맞춤 — 시트 비늘이 원화보다 노랗고 밝음(10-20 05:58 컷인 후보에서 봄)
+    im = im.astype(np.float32); m = im[..., 3] > 200; R = RA[..., :3].astype(np.float32)[ref_m & (RA[..., 3] > 200)]
+    for c in range(3):
+        v = im[..., c][m]; im[..., c] = np.where(im[..., 3] > 0, (im[..., c] - v.mean()) / max(1.0, v.std()) * R[:, c].std() + R[:, c].mean(), im[..., c])
+    im[..., :3] *= k; return np.clip(im, 0, 255).astype(np.uint8)
+MU = simil((24, 3), (24, 53), SH_N, EL_N); uw = warp(col_match(sheet('upperN'), lab('upperN')), MU)
 o_aU = save('armU', under(art(lab('upperN')), uw, lab('pauldron') | lab('foreN')))   # 앞에 있는 어깨갑·토시 밑만
 # 가까운 팔뚝+주먹(큰 토시, 원화 그대로 — 맨 앞이라 가린 곳 없음)
 o_aL = save('armL', art(lab('foreN')))
 # 먼 윗팔: 원화에서는 수염·몸 뒤(안 보임) → 시트 먼 윗팔(어깨 → 팔꿈치)
-uf = sheet('upperF').astype(np.float32); yy_ = np.arange(uf.shape[0])[:, None]
-uf[..., 3] *= np.clip((yy_ - 10) / 3, 0, 1); uf[..., :3] *= 0.78   # 위 둥근 어깨 뚜껑(밝은 갈색)은 잘라 냄(수염 옆으로 삐져나옴), 먼 쪽이라 어둡게
+uf = col_match(sheet('upperF'), lab('upperN'), 0.85).astype(np.float32); yy_ = np.arange(uf.shape[0])[:, None]
+uf[..., 3] *= np.clip((yy_ - 10) / 3, 0, 1)   # 위 둥근 어깨 뚜껑(밝은 갈색)은 잘라 냄(수염 옆으로 삐져나옴) · 색 = 원화 비늘 × .85(먼 쪽이라 어둡게)
 MUF = simil((21, 3), (21, 49), SH_F, EL_F); o_aF = save('armF', warp(np.clip(uf, 0, 255).astype(np.uint8), MUF))
 # 먼 팔뚝(둥근 토시): 원화 + 손·손잡이 밑은 둘레 안을 inpaint
 ff = art(lab('foreF')); hull = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(hull, cv2.convexHull(np.argwhere(lab('foreF'))[:, ::-1].astype(np.int32)), 1)
@@ -206,7 +211,9 @@ rig = {'name': 'palome-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'hemRun': {'lift': 8, 'knee': 0.5, 'heel': 0.3, 'reach': 0.2}, 'hemLimit': {'up': 0.25, 'x': 0.3}, 'hemGain': 0.15, 'footReach': 0.97,
        'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.3}], 'skirtFollow': 0.7, 'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 10,
        'bounce': [], 'metrics': {'bodyHeight': round(2 * (501 - 167)), 'note': 'rig units; 머리카락 위(y167)~발바닥(501) ×2, 칼 제외'},
-       'ui': {'attack': 'smash', 'touch': 'hop'},
+       'ui': {'attack': 'smash', 'touch': 'hop'},   # 트레일 기본(위 → 아래) = 내려찍기
+       'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - 253.1)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
+                   'note': '게임 그림 char_0009.png(512) = 원화(md5 같음). x = 도감 칸(fitArt 중심 253.1, index.html measureBox 와 같은 계산)에서 골반(hip x 288)이 가운데 (3·13·23 산초·알론소들과 같은 규칙)'},
        'note': '9 러스트 팔로메 v1(대기·달리기). 몸 = 6 카르덴(드워프), 칼 = 21 스카이 알론소(먼 팔이 어깨에 멤, 칼날 머리 뒤). 조각 = 원화를 부품별로 나눔(seg9.py) + 가려진 곳만 시트로 메움'}
 exec(open(os.path.join(HERE, 'attack_palome.py'), encoding='utf-8').read())   # 한 손 내려찍기 A
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())

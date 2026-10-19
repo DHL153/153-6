@@ -26,4 +26,4 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 0.9, 'hitAt':
        'face': [[0, 'angry'], [0.12, 'effort'], [0.4, 'shout'], [0.62, 'focus'], [0.82, None]],
        'order': [[0, 'drawA'], [0.375, 'drawStrike'], [0.72, 'drawA']]}
 rig['actions'] = {'smash': act}
-rig['cutHold'] = 0.5   # 스킬 컷인: 내려찍어 칼끝이 앞 땅에 닿은 자세
+rig['cutHold'] = 0.25   # 스킬 컷인: 칼을 어깨 뒤로 눕혀 멘 힘줌 자세(메기 꼭대기 .28 직전, 게임은 한 프레임 더 가서 약 .27~.29) — 낮은 버팀(.45~.6)은 11 네온 알론소 때 DHL '쪼그려 앉은 듯', v1.1 휘두르는 순간(.37~.41)은 손이 배 앞이라 컷인으로 약함

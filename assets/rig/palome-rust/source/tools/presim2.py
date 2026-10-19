@@ -7,7 +7,7 @@ import json, math, os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 S_ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-J = dict(HIP=(288, 405), SH=(358, 303), EL=(424, 336), WR=(404, 288), G=(398.0, 261.4), SA0=-146.13, TIP=434.0, POM=95.0, GROUND=501, TOP=-225)
+J = dict(HIP=(288, 405), SH=(358, 303), EL=(424, 336), WR=(404, 288), G=(398.0, 261.4), SA0=-146.13, TIP=434.0, POM=95.0, GROUND=501, TOP=float(os.environ.get('TOP', -50)))   # TOP: 전투 칸 위 끝(원화 y) — 10-20 게임에서 잼: PC −64 · 폰 −60 (−225 는 알론소 배율로 잘못 추정)
 HIP = np.array(J['HIP'], float); SH0 = np.array(J['SH'], float) - HIP; EL0 = np.array(J['EL'], float) - HIP; WR0 = np.array(J['WR'], float) - HIP; G0 = np.array(J['G']) - HIP
 L1 = float(np.linalg.norm(EL0 - SH0)); L2 = float(np.linalg.norm(EL0 - WR0))
 rot = lambda v, d: np.array([v[0] * math.cos(math.radians(d)) - v[1] * math.sin(math.radians(d)), v[0] * math.sin(math.radians(d)) + v[1] * math.cos(math.radians(d))])
