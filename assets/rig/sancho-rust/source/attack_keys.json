@@ -71,6 +71,6 @@
   "kneeOut": 1,
   "ankleRange": [-0.45, 1.1]
  },
- "cutHold": 0.5,
+ "cutHold": 0.42,
  "torsoTwist": {"ax": 106, "by": -10, "p": 1}
 }

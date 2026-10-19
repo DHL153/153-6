@@ -1,6 +1,6 @@
 {
  "name": "sancho-rust",
- "version": "a3db11bd",
+ "version": "fdcffaeb",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   558.0,
@@ -1008,16 +1008,17 @@
  },
  "ui": {
   "attack": "upslash",
-  "touch": "hop"
+  "touch": "hop",
+  "trail": "up"
  },
  "gameRef": {
   "refOrigin": [
-   279.0,
+   241.3,
    494.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0003.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)"
+  "note": "게임 그림 char_0003.png(512) 발 높이 = 원화. x 241.3 = 도감 칸(fitArt 중심 245.3, index.html measureBox 와 같은 계산 — 칼이 왼쪽으로 커서 그림 중심이 몸보다 왼쪽)에서 골반(hip x +8 → +4px)이 가운데 (13 네온 산초·알론소들과 같은 규칙)"
  },
  "note": "3 러스트 산초 (2026-10-19, v1 대기·달리기). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨갑·다리는 원화를 그대로 오려 씀.",
  "drawS": [
@@ -1952,7 +1953,7 @@
    ]
   }
  },
- "cutHold": 0.5,
+ "cutHold": 0.42,
  "torsoTwist": {
   "bone": "torso",
   "part": "torsoTw",

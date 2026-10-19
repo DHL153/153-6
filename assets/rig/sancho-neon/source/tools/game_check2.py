@@ -1,7 +1,7 @@
-# 13 네온 산초: 시작 선택(전투·마이룸 둘 다 13 고름) → 미리보기 → 전투 → 보스 처치 필살기 컷신 → 마이룸 — python3 game_check2.py 가로 세로 이름
+# 13 네온 산초(NUM=3 → 3 러스트 산초): 시작 선택(전투·마이룸 둘 다 13 고름) → 미리보기 → 전투 → 보스 처치 필살기 컷신 → 마이룸 — python3 game_check2.py 가로 세로 이름
 import os
 exec(open(os.path.dirname(os.path.abspath(__file__)) + '/game_base.py').read())
-W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]
+W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]; NN = os.environ.get('NUM', '13').zfill(4)   # 캐릭터 번호(다른 캐릭터: NUM=3)
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_page(viewport={'width': W, 'height': H}); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
@@ -9,7 +9,7 @@ with sync_playwright() as p:
     pg.get_by_role('button', name='Skip', exact=True).click(); time.sleep(1.5)
     pg.get_by_role('button', name='Next', exact=True).click(); time.sleep(2)
     for step in range(4):
-        want = {0: 'battle_char_0013', 2: 'characters/char_0013'}.get(step)
+        want = {0: f'battle_char_{NN}', 2: f'characters/char_{NN}'}.get(step)
         cards = pg.locator('.mr-starter-card')
         if want:
             c = pg.locator(f'.mr-starter-card:has(img[src*="{want}"])'); c.first.scroll_into_view_if_needed(); c.first.click(); time.sleep(1.5)

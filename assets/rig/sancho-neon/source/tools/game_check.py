@@ -1,7 +1,7 @@
 # 게임 안에서 13 네온 산초 확인: 전투 달리기·공격(트레일)·스킬 컷인(+끝난 뒤)·도감 2장 (필살기 컷신·시작 선택·마이룸 = game_check2.py) — python3 game_check.py 가로 세로 이름
 import os
 exec(open(os.path.dirname(os.path.abspath(__file__)) + '/game_base.py').read())
-W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]; IDX = int(os.environ.get('IDX', 12))   # 13번 = 전투 캐릭터 인덱스 12 (다른 캐릭터와 비교: IDX=10 → 11번)
+W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]; IDX = int(os.environ.get('NUM', '13')) - 1   # 캐릭터 번호(NUM=3 → 3 러스트 산초, NUM=11 → 비교용 11 네온 알론소)
 with sync_playwright() as p:
     b, pg, errs = play(p, W, H)
     pg.evaluate(f"()=>{{battleCharInventory[{IDX}]=Object.assign({{}},Object.values(battleCharInventory)[0]||{{}},{{count:1}});assignBattleTeamCharacter({IDX});}}")
