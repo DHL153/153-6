@@ -11259,6 +11259,8 @@ function createSocialDataFoundation(assets, emojis) {
         function position(){
             if(!active||!active.isConnected){hide();return;}
             const r=active.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
+            // 2026-10-19 DHL '미리보기가 가운데 있지 않음': 카드 옆에 자리가 없으면(휴대폰 등) 화면 가운데에
+            if(r.right+14+w>innerWidth-12&&r.left-w-14<12){tip.style.left=Math.max(12,(innerWidth-w)/2)+'px';tip.style.top=Math.max(12,(innerHeight-h)/2)+'px';return;}
             let x=r.right+14;if(x+w>innerWidth-12)x=r.left-w-14;
             tip.style.left=Math.max(12,Math.min(innerWidth-w-12,x))+'px';
             tip.style.top=Math.max(12,Math.min(innerHeight-h-12,r.top+r.height/2-h/2))+'px';
@@ -11271,6 +11273,7 @@ function createSocialDataFoundation(assets, emojis) {
             tip.classList.toggle('emoji-inspection',source.classList.contains('reference-emoji'));
             image.style.removeProperty('width');image.hidden=false;image.src=source.currentSrc||source.src;
             card.setAttribute('aria-describedby',tip.id);tip.hidden=false;position();
+            try{window.MRRig?.scanStills?.();}catch(e){} // 리깅 캐릭터는 크게 보기에서도 바로 움직이게 (400ms 주기 기다리지 않음)
         }
         document.addEventListener('mr-inspection-hide',hide);
         image.onload=()=>{if(tip.classList.contains('emoji-inspection'))image.style.width=Math.min(96,image.naturalWidth*2)+'px';position();};image.onerror=()=>{image.hidden=true;position();};
@@ -18579,14 +18582,35 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   const live=new Map();   // slot → {id,footX,footY,scale,rig,anim}
   const $=id=>document.getElementById(id);
 
-  function loadRig(id){
-    if(rigs[id])return rigs[id];
+  // 2026-10-19 DHL '미리보기 애니메이션이 안 나오는 경우': 시작 선택·도감은 리그 10개를 한꺼번에 받느라(조각 그림 수십 MB) 휴대폰에서 한참 정지 그림으로 보였음
+  //  → 목록 칸(urgent=false)은 줄 세워 하나씩, 전투·마이룸·크게 보기(누른 칸)는 바로. 바로 받을 게 생기면 줄에서 받던 것은 멈췄다가 나중에 다시
+  const rigQueue=[];let rigQActive=null,rigUrgent=0;
+  function fetchRig(id){
+    const def=window.MR_RIG_DEFS?.[id],base=RIG_DIR+id+'/',ims=[];
+    const promise=Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();ims.push(im);im.onload=()=>res([k,im]);im.onerror=rej;im.src=base+p.src+(def.version?'?v='+def.version:'');})))
+      .then(pairs=>({def,images:Object.fromEntries(pairs)}));
+    return {promise,abort(){for(const im of ims){im.onload=im.onerror=null;im.src='';}}};
+  }
+  function pumpRigQueue(){
+    if(rigQActive||rigUrgent||!rigQueue.length)return;
+    const j=rigQueue.shift();rigQActive=j;j.f=fetchRig(j.id);
+    j.f.promise.then(v=>{if(rigQActive!==j)return;rigQActive=null;j.res(v);pumpRigQueue();},err=>{if(rigQActive!==j)return;rigQActive=null;j.rej(err);pumpRigQueue();});
+  }
+  function urgentLoad(id){
+    if(rigQActive&&rigQActive.id!==id){const j=rigQActive;rigQActive=null;j.f.abort();rigQueue.unshift(j);} // 줄에서 받던 것 멈춤 → 맨 앞으로
+    rigUrgent++;const f=fetchRig(id);f.promise.finally(()=>{rigUrgent--;pumpRigQueue();}).catch(()=>{});return f.promise;
+  }
+  function loadRig(id,urgent=true){
     const def=window.MR_RIG_DEFS?.[id];
-    if(!def||!window.CharacterRig)return rigs[id]=Promise.reject(new Error('rig def missing: '+id));
-    const base=RIG_DIR+id+'/';
-    rigs[id]=Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res([k,im]);im.onerror=rej;im.src=base+p.src+(def.version?'?v='+def.version:'');})))
-      .then(pairs=>{const images=Object.fromEntries(pairs);return {def,images};});
-    return rigs[id];
+    if(!def||!window.CharacterRig)return rigs[id]||(rigs[id]=Promise.reject(new Error('rig def missing: '+id)));
+    if(rigs[id]){
+      if(urgent){const qi=rigQueue.findIndex(q=>q.id===id);
+        if(qi>=0){const j=rigQueue.splice(qi,1)[0];urgentLoad(id).then(j.res,j.rej);}
+        else if(rigQActive&&rigQActive.id===id){/* 이미 받는 중 */}}
+      return rigs[id];
+    }
+    if(urgent)return rigs[id]=urgentLoad(id);
+    const job={id};rigs[id]=new Promise((res,rej)=>{job.res=res;job.rej=rej;});rigQueue.push(job);pumpRigQueue();return rigs[id];
   }
   function rigIdFor(slot,charId){ return enabled?REGISTRY[Number(charId)+1]||null:null; }
   function ensureCanvas(stage){
@@ -18879,7 +18903,7 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   function mountStill(img,m){
     const c=document.createElement('canvas');c.className='mr-rig-still';c.setAttribute('aria-hidden','true');img.after(c);
     const e={...m,img,canvas:c,last:performance.now(),src:img.getAttribute('src'),tapIdx:0};stills.set(img,e);
-    loadRig(m.id).then(({def,images})=>{if(stills.get(img)!==e)return;buildGuardActions();buildReadyActions();
+    loadRig(m.id,!!img.closest('#mr-item-inspect,.mr-review-scene,#skill-cinematic')||m.cut).then(({def,images})=>{if(stills.get(img)!==e)return;buildGuardActions();buildReadyActions();
       const atk=def.ui?.attack||'thrust';e.atk=atk;
       const AT=def.actions?.[atk],ready=def.ui?.stillReady||null,spear=AT&&(AT.kind==='spear'||def.ui?.stillSame||!!ready),px=spear?m.id+':':''; // stillReady: 자기 찌르기로 8 러스트 니콜과 똑같이 — 도감·시작 선택 = 준비 자세 숨쉬기 → 클릭 찌르기, 컷인 = 찌른 자세 (18 네온, 2026-10-17 19:43 DHL) // stillSame: 자기 찌르기를 쓰는 창 캐릭터(18 네온)도 도감 = 전투와 같은 동작 // 창 찌르기 캐릭터(28 스카이)도 8 니콜과 같은 대기·컷인 (자기 찌르기로 만듦)
       if(spear){buildGuardActions(AT,px,ready);buildReadyActions(AT,px,ready);}
