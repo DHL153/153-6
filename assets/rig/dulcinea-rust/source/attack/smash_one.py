@@ -62,6 +62,14 @@ print('  smash 공 손목 팔뚝 굵기 반(원화 px): far', _hwF)
 _L = lambda *p: round(float(sum(np.linalg.norm(p[i + 1] - p[i]) for i in range(len(p) - 1)) * 2), 1)
 print('  smash 원화 먼 팔 길이(리그, 어깨→팔꿈치→주먹 가운데):', _L(SH_F, EL_F, G))
 
+# (21:42 DHL 타격 0.40 먼 팔 표시 '이 부분만 · 원래 팔로 구부리지 말고') 휘두름~버팀 먼 손 = 시트 '자루 따라 쥔 손'(gFh, 3번 시트 2줄 먼 손) —
+#   원화 주먹(gFart)은 팔뚝이 자루에서 125° 라 망치가 앞 아래(4시)면 팔뚝이 위로 서서 팔꿈치가 턱 옆으로 솟았음. gFh 는 팔뚝이 자루를 따라 몸 쪽으로 →
+#   팔꿈치는 대기처럼 재킷 뒤(ikSide +1), 보이는 건 원화 팔뚝(붕대) + 주먹
+AD = os.path.join(HERE, 'attack'); AP = json.load(open(os.path.join(AD, 'pieces.json'))); import shutil as _shu
+_j = AP['gFh']; _shu.copy(os.path.join(AD, 'pieces', 'gFh.png'), os.path.join(OUT, 'parts', 'gFh.png')); _g = [round(float(_j['grip'][0]), 1), round(float(_j['grip'][1]), 1)]
+def_parts['gFh'] = dict(src='parts/gFh.png', pivot=_g, scale=_j['scale'], grip=_g, wrist=_g, elbow=_g, shaftDir=[float(v) for v in _j['shaftDir']],
+                        fore='afFart2', foreBone='foreFf', foreDir=unit(np.array(_j['wrist']) - np.array(_j['grip'])))
+
 # ---- 시간표 (애니 초) ----
 #   들어 올림(먼 손 얼굴 오른쪽 위, 쇠 머리 머리 위 뒤) 0~0.18 → 멈칫 ~0.27 → 휘두름(팔꿈치 축으로 팔뚝이 앞으로 돌며 내려옴) 0.27~0.40 → 타격 0.40 → 버팀 ~0.58 → 대기 ~0.97
 LIFT, WIND, SW1, SW2, HIT, HOLD, RET1, RET, END = .18, .27, .32, .36, .40, .58, .68, .82, 1.0
@@ -76,12 +84,12 @@ smash = {
     'ankleRange': [-.45, 1.1], 'legRun': k((0, 0), (SW1 - .01, 0, 'lin'), (SW1 + .02, 1), (HOLD + .04, 1, 'io'), (RET + .045, .12, 'lin'), (RET + .055, 0)),   # 서 있는 원화 다리 ↔ 시트 다리 바뀜(fade .05~.1)은 한 프레임에
     'w': k((0, 0, 'io'), (.12, 1), (END - .03, 1, 'io'), (END, 0)),
     'reach': k((0, 0)), 'sN': k((0, 0)),
-    'nPiece': k((0, 'gFart'), (.05, 'gFart2'), (.88, 'gFart')),   # 움직이기 시작하면 공격용 팔뚝(살색 팔꿈치)으로, 대기 자리로 돌아온 뒤 원화 팔뚝으로 'nUpper': k((0, 'auFart')),
-    'armIK': k((0, 1)), 'ikSideK': {'N': [[0, 1], [SW2, -1], [RET1, 1]]},   # 먼 팔꿈치: 들어 올림~휘두름 = 안쪽으로 접힘(+1) · 타격·버팀 = 팔꿈치가 바깥 위(−1, 못 박는 망치질) — 바꾸는 순간(SW2·RET1)은 팔이 곧게 펴질 때(두 해가 만남)
+    'nPiece': k((0, 'gFart'), (.05, 'gFart2'), (SW2, 'gFh'), (RET1, 'gFart2'), (.88, 'gFart')),   # 21:42 휘두름~버팀 = 자루 따라 쥔 먼 손(gFh) — 팔뚝이 몸 쪽으로 누워 팔꿈치가 재킷 옆(턱 옆으로 안 솟음)   # 움직이기 시작하면 공격용 팔뚝(살색 팔꿈치)으로, 대기 자리로 돌아온 뒤 원화 팔뚝으로 'nUpper': k((0, 'auFart')),
+    'armIK': k((0, 1)), 'ikSideK': {'N': [[0, 1]]},   # 21:42 DHL '원래 팔로 구부리지 말고' — 먼 팔꿈치는 대기처럼 늘 아래·재킷 쪽(+1), 타격 때 위로 솟는 −1 없앰   # 먼 팔꿈치: 들어 올림~휘두름 = 안쪽으로 접힘(+1) · 타격·버팀 = 팔꿈치가 바깥 위(−1, 못 박는 망치질) — 바꾸는 순간(SW2·RET1)은 팔이 곧게 펴질 때(두 해가 만남)
     'gx': PT(1), 'gy': PT(2), 'sa': PT(3),
     # 먼 어깨(armF, 몸 뒤라 안 보임)를 바깥으로 — 먼 팔꿈치가 늘 얼굴 오른쪽 바깥(풀이 solve/one2.py: 팔꿈치 x ≥ 170)
-    'shFx': k((0, 0, 'io'), (LIFT, 30, 'io'), (WIND, 32, 'io'), (SW1, 35), (SW2, 40, 'io'), (HIT, 50, 'io'), (HOLD, 50, 'io'), (RET1, 35, 'io'), (RET + .06, 0)),
-    'shFy': k((0, 0, 'io'), (LIFT, -20, 'io'), (WIND, -22, 'io'), (SW1, -10), (SW2, 0, 'io'), (HIT, 0), (END, 0)),
+    'shFx': k((0, 0, 'io'), (LIFT, 30, 'io'), (WIND, 32, 'io'), (SW1, 35), (SW2, 40, 's'), (HIT, -40, 'io'), (HOLD, -40, 'io'), (RET1, 35, 'io'), (RET + .06, 0)),   # 21:42 타격·버팀 먼 어깨(몸 뒤)를 안쪽 위로 — 팔뚝이 재킷 옆에서 주먹으로, 손목 꺾임 ≈ 30°
+    'shFy': k((0, 0, 'io'), (LIFT, -20, 'io'), (WIND, -22, 'io'), (SW1, -10), (SW2, 0, 's'), (HIT, -20, 'io'), (HOLD, -20, 'io'), (RET1, 0, 'io'), (END, 0)),   # SW2→HIT 's'(망치와 같은 내려치기 곡선) — 휘두름 중 팔 펴짐 0.87~0.90
     # 가까운 팔(칼 안 쥔 팔, 원화 그대로): 예비 때 주먹을 앞으로(−), 타격 때 뒤로(+) — 엔진 opt-in freeArm
     'fuA': k((0, 0, 'io'), (LIFT, -.5, 'io'), (WIND, -.55, 'i'), (SW2, .1, 'o'), (HIT, .5, 'o'), (HOLD, .45, 'io'), (RET + .08, 0)),
     'flA': k((0, 0, 'io'), (LIFT, -.6, 'io'), (WIND, -.65, 'i'), (SW2, -.1, 'o'), (HIT, .15, 'o'), (HOLD, .12, 'io'), (RET + .08, 0)),
@@ -97,7 +105,7 @@ smash = {
     # 공격 중 망치 = weaponA(쇠 머리 왼쪽 아래 홈·흰 앞머리 외곽선 초승달 정리, build _fix_hammer) — 대기 자리를 떠난 뒤 .061 ~ 돌아오기 전 .93 (21:40)
     'fade': {'weapon': k((0, 1), (.06, 1, 'lin'), (.061, 0), (.93, 0, 'lin'), (.931, 1)), 'weaponA': k((0, 0), (.06, 0, 'lin'), (.061, 1), (.93, 1, 'lin'), (.931, 0))},
     # 그리는 순서: 대기(먼 팔뚝 몸 뒤) → 움직이는 동안(먼 팔뚝이 머리·몸 앞 — 얼굴 오른쪽 바깥이라 얼굴은 안 가림) → 대기 순서 — 바꾸는 순간은 움직일 때
-    'order': [[0, 'drawA'], [.03, 'drawU'], [.86, 'drawA']],   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
+    'order': [[0, 'drawA'], [.03, 'drawU'], [SW2, 'drawM'], [RET1, 'drawU'], [.86, 'drawA']],   # 21:42 휘두름~버팀 drawM: 먼 팔뚝(붕대)이 망치 자루 끝 위 — 원화처럼 팔뚝 → 주먹이 보임(자루 끝은 팔뚝 밑)   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
 }
 _ov = os.environ.get('SMASH_KEYS')   # 맞추기용: 키 덮어쓰기 JSON
 if _ov: smash.update(json.load(open(_ov)))
@@ -105,7 +113,8 @@ if _ov: smash.update(json.load(open(_ov)))
 DRAW_ATK = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'head', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']
 DRAW_UP = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'foreFf', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
 DRAW_L = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'foreFf', 'head', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawU': DRAW_UP, 'drawL': DRAW_L,
+DRAW_M = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'weapon', 'weaponA', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
+SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
          'hidden': ['weaponA']}
 bones.append(dict(name='weaponA', parent='weapon', pos=[0, 0], part='weaponA'))

@@ -6,12 +6,13 @@ SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); root = os.pat
 pre = sys.argv[1]; TS = [float(v) for v in sys.argv[2].split(',')]; SC = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
 ACT = open(os.environ['ACT']).read() if os.environ.get('ACT') else '{}'
 DEFX = open(os.environ['DEFX']).read() if os.environ.get('DEFX') else '{}'
+VX = float(os.environ.get('VX', 0))   # 달리며 치기 확인: VX=620
 ID = 'dulcinea-rust'; CW, CH, GX, GY = 1400, 1400, 600, 1300
 html = f'''<!doctype html><meta charset=utf-8><script src="rig.js?x={time.time()}"></script><script src="{ID}/rig.def.js?x={time.time()}"></script><script>
 (async()=>{{const def=JSON.parse(JSON.stringify(MR_RIG_DEFS['{ID}']));Object.assign(def.actions.smash,{ACT});Object.assign(def,{DEFX});const ims=await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((r,j)=>{{const im=new Image();im.onload=()=>r([k,im]);im.onerror=()=>j(p.src);im.src='{ID}/'+p.src+'?x={time.time()}'}})));
 const IM=Object.fromEntries(ims);
-window.at=(T,sc)=>{{const rig=new CharacterRig(def,IM),an=new RunAnimator(rig,{{runSpeed:620}});for(let i=0;i<60;i++)an.update(1/120,{{vx:0}});an.attack('smash');let n=0;
- while(an.act&&an.act.t<T-1e-6&&n<4000){{an.update(1/240,{{vx:0}});n++}}
+window.at=(T,sc)=>{{const rig=new CharacterRig(def,IM),an=new RunAnimator(rig,{{runSpeed:620}});for(let i=0;i<240;i++)an.update(1/120,{{vx:{VX}}});an.attack('smash');let n=0;
+ while(an.act&&an.act.t<T-1e-6&&n<4000){{an.update(1/240,{{vx:{VX}}});n++}}
  const c=document.createElement('canvas');c.width={CW};c.height={CH};const g=c.getContext('2d');rig.draw(g,{GX},{GY},sc,1);const ft=an.ft;return [c.toDataURL(),(ft.near.x+ft.far.x)/2,an.act?an.act.t:-1]}};
 window.ready=1}})()</script>'''
 open(os.path.join(root, '_shot.html'), 'w').write(html)

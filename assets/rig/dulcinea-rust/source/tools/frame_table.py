@@ -57,5 +57,5 @@ for r in R:
     if not 0 <= aN <= 175: f.append('윗팔N')
     if inside(r['face'], r['eN'], 8) or (grip and inside(r['face'], r['eF'], 8)): f.append('팔꿈치얼굴')
     bad += bool(f)
-    print(f"{r['t']:.4f} | {r['stN']:.2f} {rN:.2f} {wN:4.0f} {aN:5.0f} | {r['stF']:.2f} {rF:.2f} {wF:4.0f} {aF:5.0f} {'잡' if grip else '  '} | {H(r, r['fN'])} {H(r, r['fF'])} | {r['pN']:6} {r['pF']:6} {'✗ ' + ' '.join(f) if f else ''}")
+    print(f"{r['t']:.4f} | {r['stN']:.2f} {rN:.2f} {wN:4.0f} {aN:5.0f} | {r['stF']:.2f} {rF:.2f} {wF:4.0f} {aF:5.0f} {'잡' if grip else '  '} | {H(r, r['fN'])} {H(r, r['fF'])} | {r['pN']:6} {r['pF']:6} {'✗ ' + ' '.join(f) if f else ''}" + (f" | eN {H(r, r['eN'])} SN {H(r, r['SN'])}" if os.environ.get('EN') else ''))
 print('frames', len(R), 'bad', bad)

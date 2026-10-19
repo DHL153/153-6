@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "1c8ffa12",
+ "version": "15045741",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -431,6 +431,36 @@
    "elbow": [
     56.2,
     15.3
+   ]
+  },
+  "gFh": {
+   "src": "parts/gFh.png",
+   "pivot": [
+    86.0,
+    68.0
+   ],
+   "scale": 0.6718,
+   "grip": [
+    86.0,
+    68.0
+   ],
+   "wrist": [
+    86.0,
+    68.0
+   ],
+   "elbow": [
+    86.0,
+    68.0
+   ],
+   "shaftDir": [
+    1.0,
+    0.0
+   ],
+   "fore": "afFart2",
+   "foreBone": "foreFf",
+   "foreDir": [
+    -0.8346,
+    -0.5508
    ]
   }
  },
@@ -1053,6 +1083,14 @@
      "gFart2"
     ],
     [
+     0.36,
+     "gFh"
+    ],
+    [
+     0.68,
+     "gFart2"
+    ],
+    [
      0.88,
      "gFart"
     ]
@@ -1067,14 +1105,6 @@
     "N": [
      [
       0,
-      1
-     ],
-     [
-      0.36,
-      -1
-     ],
-     [
-      0.68,
       1
      ]
     ]
@@ -1252,16 +1282,16 @@
     [
      0.36,
      40,
-     "io"
+     "s"
     ],
     [
      0.4,
-     50,
+     -40,
      "io"
     ],
     [
      0.58,
-     50,
+     -40,
      "io"
     ],
     [
@@ -1297,11 +1327,22 @@
     [
      0.36,
      0,
-     "io"
+     "s"
     ],
     [
      0.4,
-     0
+     -20,
+     "io"
+    ],
+    [
+     0.58,
+     -20,
+     "io"
+    ],
+    [
+     0.68,
+     0,
+     "io"
     ],
     [
      1.0,
@@ -1713,6 +1754,14 @@
      "drawU"
     ],
     [
+     0.36,
+     "drawM"
+    ],
+    [
+     0.68,
+     "drawU"
+    ],
+    [
      0.86,
      "drawA"
     ]
@@ -1771,6 +1820,25 @@
   "head",
   "weapon",
   "weaponA",
+  "foreF",
+  "armU",
+  "pauldron",
+  "armL"
+ ],
+ "drawM": [
+  "pony",
+  "legFar",
+  "legNear",
+  "hips",
+  "flapN",
+  "flapC",
+  "belt",
+  "armF",
+  "torso",
+  "head",
+  "weapon",
+  "weaponA",
+  "foreFf",
   "foreF",
   "armU",
   "pauldron",
