@@ -14,8 +14,8 @@ let FACE=null;{{const rig=new CharacterRig(d,IM),an=new RunAnimator(rig,{{runSpe
  const H=rig.by.hip.m,iH=inv(rig.by.head.m);FACE=[[-55,-345],[140,-345],[140,-140],[-55,-140]].map(p=>ap(iH,H[4]+p[0],H[5]+p[1]))}}
 window.run=(vx,T0,T1,step)=>{{const rig=new CharacterRig(d,IM),an=new RunAnimator(rig,{{runSpeed:620}});for(let i=0;i<240;i++)an.update(1/120,{{vx}});an.attack('smash');
  const out=[];let t=0;const P=(b,x,y)=>{{const m=rig.by[b].wm||rig.by[b].m;return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]}};
- const pt=b=>{{const pn=rig.swap[b]||rig.by[b].part,p=d.parts[pn];if(!p)return null;const q=p.grip||p.fist||p.pivot,k=p.scale||1;return P(b,(q[0]-p.pivot[0])*k,(q[1]-p.pivot[1])*k)}};
- const el=b=>{{const pn=rig.swap[b]||rig.by[b].part,p=d.parts[pn];if(!p||!p.elbow)return null;const k=p.scale||1;return P(b,(p.elbow[0]-p.pivot[0])*k,(p.elbow[1]-p.pivot[1])*k)}};
+ const pt=b=>{{if(!rig.by[b])return null;const pn=rig.swap[b]||rig.by[b].part,p=d.parts[pn];if(!p)return null;const q=p.grip||p.fist||p.pivot,k=p.scale||1;return P(b,(q[0]-p.pivot[0])*k,(q[1]-p.pivot[1])*k)}};
+ const el=b=>{{if(!rig.by[b])return null;const pn=rig.swap[b]||rig.by[b].part,p=d.parts[pn];if(!p||!p.elbow)return null;const k=p.scale||1;return P(b,(p.elbow[0]-p.pivot[0])*k,(p.elbow[1]-p.pivot[1])*k)}};
  while(an.act){{const tt=an.act.t;if(tt>=T0-1e-9&&tt<=T1+1e-9){{const Hd=rig.by.head.m,H=rig.by.hip.m;
    out.push({{t:tt,stN:an.stN||0,stF:an.stF||0,wrN:an.wrN||0,wrF:an.wrF||0,gN:an.gapN||0,gF:an.gapF||0,reach:an.reachV===undefined?null:an.reachV,
     SN:(m=>[m[4],m[5]])(rig.by.armF.wm||rig.by.armF.m),SF:(m=>[m[4],m[5]])(rig.by.armU.wm||rig.by.armU.m),eN:el('foreFf'),eF:el('armLf'),fN:pt('foreF'),fF:pt('armL'),

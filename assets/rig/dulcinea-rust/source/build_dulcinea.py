@@ -338,7 +338,8 @@ for n in ['half', 'closed']: face_patch('blink_' + n, 'blink_' + n); part('blink
 FACES = {n: 'face_' + n for n in FACE_N if n != 'neutral'}; FACES['grimace'] = 'face_effort'; FACES['surprised'] = 'face_shout'
 
 # ---------------- 내려찍기 (attack/smash.py) ----------------
-exec(open(os.path.join(HERE, 'attack', 'smash.py')).read())
+# 10-19 21:36 DHL '전에 한 손으로 망치 치던 버전이 좋았는데 그걸로' → 한 손(3차, attack/smash_one.py)이 기본. 두 손 6차 = SMASH_FILE=smash.py
+exec(open(os.path.join(HERE, 'attack', os.environ.get('SMASH_FILE', 'smash_one.py'))).read())
 
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 draw = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'torso', 'head', 'weapon', 'fistF', 'armU', 'pauldron', 'armL']
