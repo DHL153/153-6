@@ -106,7 +106,7 @@ ART = {}
 for n in DRAW_ART:
     if n == 'armF': continue
     _ab = dil(own[n], 3) & above(n) & AL
-    if n in ('torso', 'hips', 'flapN', 'flapC', 'belt', 'thighN', 'thighF'): _ab &= ~(own['armL'] | own['armU']) | (RA[..., :3].max(2) > 75)   # 흔드는 팔 밑 겹침에 팔 외곽선(검은 줄)은 안 가져옴 — 팔이 움직이면 줄이 떠 보였음
+    if n in ('torso', 'hips', 'flapN', 'flapC', 'belt', 'thighN', 'thighF'): _ab &= ~(own['armL'] | own['armU'] | own['foreF'] | own['fistF'] | own['hammer'])   # 움직이는 팔·주먹·망치 밑 겹침은 안 가져옴(외곽선 조각이 떠 보임) — 그 밑은 메우기로   # 흔드는 팔 밑 겹침에 팔 외곽선(검은 줄)은 안 가져옴 — 팔이 움직이면 줄이 떠 보였음
     m = own[n] | _ab
     a = RA.copy(); a[..., 3] = np.where(m, RA[..., 3], 0); ART[n] = a; COVER[:] = np.maximum(COVER, np.where(own[n], RA[..., 3], 0))
 # 포니테일: 머리 밑(머리카락 띠 12px) 메움 — 머리가 숨 쉬고 끄덕여도 틈 없게
@@ -114,20 +114,42 @@ _pm = dil(own['head'], 12) & ~own['head'] & mk['hairArea'] | (dil(own['pony'], 2
 _reg = (dil(own['pony'], 14) & (own['head'] | own['torso'] | own['pauldron'])) & ~own['pony'] & mk['hairArea']
 ART['pony'] = inpaint_into(ART['pony'], _reg & ~(ART['pony'][..., 3] > 200), own['pony'] & (RA[..., 3] > 200))
 # 몸통: 팔·어깨 보호대·머리(턱) 밑 메움 — 달릴 때 팔이 흔들리면 드러남
-_reg = ((mk['torso'] | mk['fillTorso']) & (own['armU'] | own['pauldron'] | own['armL'] | (own['head'] & dil(own['torso'], 8)))) & ~(ART['torso'][..., 3] > 200)
+_reg = ((mk['torso'] | mk['fillTorso']) & (own['armU'] | own['pauldron'] | own['armL'] | own['foreF'] | own['fistF'] | (own['head'] & dil(own['torso'], 8)))) & ~(ART['torso'][..., 3] > 200)   # 먼 팔뚝·주먹 밑도(내려찍기에서 먼 팔이 움직임)
 ART['torso'] = outline_cut(inpaint_into(ART['torso'], _reg, own['torso'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
 # 허리띠: 주먹·자루 밑 메움 / 반바지: 천자락 밑(천자락 3px 겹침까지 반바지 색으로 — 천자락이 흔들려도 천 색 테두리가 안 남게)·주먹·자루 밑
 _hv = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV); _shorts = own['hips'] & (RA[..., 3] > 200) & (_hv[..., 2] > 45) & (_hv[..., 2] < 95) & (_hv[..., 1] < 110) & ~dil(~AL, 2)
 _beltSrc = own['belt'] & (RA[..., 3] > 200) & ~dil(~AL, 2)
-_rb = (mk['belt'] | (_old['hips'] & ABOVE_BELT)) & (own['armL'] | own['hammer'] | own['foreF']) & ~(ART['belt'][..., 3] > 200)
+# 먼 팔 밑 몸 옆(내려찍기에서 먼 팔이 올라가면 드러남, 10-19 14:20): 허리띠는 띠 모양 그대로 왼쪽 띠를 옮겨 이어 그리고 끝을 둥글게,
+#   그 위(띠 위 ~ 재킷 아래)는 배 살색. 다각형 = 재킷 오른쪽 아래 끝 ~ 허리띠 오른쪽 끝
+FAR_SIDE = pmask([[262, 288], [276, 289], [281, 300], [285, 312], [288, 322], [289, 337], [262, 338]])   # 몸 옆 선: 재킷 아래 끝 → 허리띠 끝으로 둥글게
+BELT_TOP = [[150, 304], [200, 306], [240, 312], [270, 317], [296, 320]]
+_btop = np.interp(xx, [q[0] for q in BELT_TOP], [q[1] for q in BELT_TOP]); _bbot = np.interp(xx, [q[0] for q in BELT_LINE], [q[1] for q in BELT_LINE])
+_band = (yy >= _btop) & (yy <= _bbot)
+_rb = (mk['belt'] | (_old['hips'] & ABOVE_BELT)) & (own['armL'] | (own['hammer'] & (xx <= 286))) & ~FAR_SIDE & ~(ART['belt'][..., 3] > 200)   # 망치 자루 밑은 허리띠 끝(x 286)까지만
 ART['belt'] = inpaint_into(ART['belt'], _rb, _beltSrc)
+_fb = FAR_SIDE & _band & ~(ART['belt'][..., 3] > 200)
+_sh = cv2.warpAffine(ART['belt'], np.float32([[1, 0, 24], [0, 1, 2.9]]), (512, 512), flags=cv2.INTER_LINEAR)   # 왼쪽 24px 띠를 오른쪽으로(띠 기울기 0.12)
+ART['belt'][_fb] = _sh[_fb]; ART['belt'][..., 3][_fb] = np.maximum(ART['belt'][..., 3][_fb], 0)
+_fbm = (ART['belt'][..., 3] > 128) & (FAR_SIDE & _band) & (xx <= 286); ART['belt'][..., 3][FAR_SIDE & _band & ~_fbm] = 0
+ART['belt'] = outline_cut(ART['belt'], FAR_SIDE & _band & (xx >= 285))
+_ft = FAR_SIDE & (yy < _btop + 8) & (yy > 286) & ~(ART['torso'][..., 3] > 200)   # 허리띠 밑으로 8px 겹침(상체가 기울어도 틈 없음)
+_skin0 = (lambda h: (h[..., 0] >= 5) & (h[..., 0] <= 25) & (h[..., 1] > 80) & (h[..., 2] > 140))(cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV)) & (RA[..., 3] > 200) & (yy > 292) & (yy < 312) & (xx > 200) & (xx < 262)
+# → 따로 조각 sideF(공격 그리는 순서에만 — 대기에선 먼 팔뚝이 이 자리 위에 있어 원화 그대로)
+_SD = ART['torso'].copy(); _SD[..., 3] = 0
+_jk = cv2.warpAffine(ART['torso'], np.float32([[1, 0, 0], [0, 1, 20]]), (512, 512), flags=cv2.INTER_NEAREST)   # 재킷 오른쪽 자락을 20px 아래로 이어 그림(허리띠 위까지 늘어진 자락)
+_ftj = _ft & (_jk[..., 3] > 128); _SD[_ftj] = _jk[_ftj]
+_ft2 = _ft & ~_ftj
+if _ft2.any(): _SD = inpaint_into(_SD, _ft2, _skin0)
+_SD[..., 3][~_ft] = 0; _SD[..., 3][_ft & ~(_SD[..., 3] > 128)] = 0
+_SD = outline_cut(_SD, _ft & ~ero(FAR_SIDE, 1)); ART['sideF'] = _SD
+print('  far side fill belt', int(_fb.sum()), 'belly', int(_ft.sum()))
 _hz = _old['hips'] & ~ABOVE_BELT
-_rs = (_hz & ((own['armL'] | own['hammer'] | own['foreF']) & ~(ART['hips'][..., 3] > 200))) | (_hz & dil(own['flapN'] | own['flapC'], 1))
+_rs = (_hz & ((own['armL'] | ((own['hammer'] | own['foreF'] | own['fistF']) & (xx < 284))) & ~(ART['hips'][..., 3] > 200)))   # 먼 주먹 밑은 반바지 오른쪽 끝(x 284)까지만 | (_hz & dil(own['flapN'] | own['flapC'], 1))
 ART['hips'] = inpaint_into(ART['hips'], _rs, _shorts)
 ART['hips'] = outline_cut(ART['hips'], _rs & dil(~_hz, 1))
 # 천자락 위 끝: 허리띠 밑으로 6px 이어 그림(허리띠가 앞이라 대기에선 안 보임, 흔들려도 위 끝 틈 없음)
 for n in ('flapN', 'flapC'):
-    _up = dil(own[n], 6) & (own['belt'] | (_old['hips'] & ABOVE_BELT)) & ~(ART[n][..., 3] > 200)
+    _up = dil(own[n], 6) & (own['belt'] | (_old['hips'] & ABOVE_BELT)) & (ART['belt'][..., 3] > 200) & ~(ART[n][..., 3] > 200)   # 허리띠가 덮는 곳만(팔이 움직여도 안 보임)
     ART[n] = inpaint_into(ART[n], _up, own[n] & CLOTH)
 print('  belt fill px', int(_rb.sum()), 'shorts fill px', int(_rs.sum()), 'shorts src', int(_shorts.sum()))
 # 망치 자루: 주먹 밑(쥔 곳) — 주먹 아래 감은 자루를 축 따라 위로 옮겨 채움
@@ -144,6 +166,10 @@ for sd, n in [('near', 'thighN'), ('far', 'thighF')]:
     _e = np.zeros((512, 512), np.uint8); h, k = LJ[sd]['h'], LJ[sd]['k']; cv2.line(_e, tuple(int(v) for v in h), tuple(int(v) for v in (h + k) / 2), 1, 30)
     _e = _e.astype(bool) & ~(ART[n][..., 3] > 200) & (own['hips'] | own['flapN'] | own['flapC']) & AL
     ART[n] = inpaint_into(ART[n], _e, own[n] & (RA[..., 3] > 200) & ~dil(~AL, 2))
+# 먼 허벅지·부츠: 망치 자루·먼 주먹 밑 메움(자루가 움직이면 드러남, 10-19 공격)
+for n in ('thighF', 'bootF'):
+    _hz2 = dil(own[n], 6) & (own['hammer'] | own['fistF']) & mk[n] & ~(ART[n][..., 3] > 200)
+    if _hz2.any(): ART[n] = outline_cut(inpaint_into(ART[n], _hz2, own[n] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _hz2)
 # 가까운 팔: 팔꿈치 둥근 끝 — 윗팔 아래·팔뚝 위에 반원(살색 + 바깥 외곽선). 팔꿈치가 굽어도 잘린 면이 안 보임
 _ax = (WR_N - SH_N) / np.linalg.norm(WR_N - SH_N); _R = 11.5
 _disc = np.hypot(xx - EL_N[0], yy - EL_N[1]) <= _R
@@ -175,7 +201,7 @@ def part(name, src, pivot, scale=2.0, **kw):
 A = lambda n: os.path.join(W, n + 'Art.png')
 part('pony', A('pony'), pc(PONY, O_['pony']))
 part('head', A('head'), pc(NECK, O_['head']))
-part('torso', A('torso'), pc(HIP, O_['torso'])); part('hips', A('hips'), pc(HIP, O_['hips'])); part('belt', A('belt'), pc(HIP, O_['belt']))
+part('torso', A('torso'), pc(HIP, O_['torso'])); part('hips', A('hips'), pc(HIP, O_['hips'])); part('belt', A('belt'), pc(HIP, O_['belt'])); part('sideF', A('sideF'), pc(HIP, O_['sideF']))
 part('flapC', A('flapC'), pc(np.array([210.0, 326]), O_['flapC'])); part('flapN', A('flapN'), pc(np.array([170.0, 314]), O_['flapN']))
 part('pauldron', A('pauldron'), pc(SH_N, O_['pauldron']))
 part('armU', A('armU'), pc(SH_N, O_['armU']), elbow=pc(EL_N, O_['armU']))
@@ -184,8 +210,17 @@ part('foreF', A('foreF'), pc(EL_F, O_['foreF']), elbow=pc(EL_F, O_['foreF']))
 part('fistF', A('fistF'), pc(WR_F, O_['fistF']))
 _hm = np.array(Image.open(A('hammer')))[..., 3] > 128; _hy = np.nonzero(_hm.any(1))[0]
 TIP = G + HU * 170; BUTT = G - HU * 58
-part('weapon', A('hammer'), pc(G, O_['hammer']), tip=pc(TIP, O_['hammer']), pommel=pc(BUTT, O_['hammer']),
-     tips=[pc(BUTT + np.array([-6.0, 4]), O_['hammer']), pc(BUTT + np.array([6.0, 4]), O_['hammer'])], shaftDir=[round(float(HU[0]), 4), round(float(HU[1]), 4)])
+# 망치: 자루가 그림 세로(쇠 머리 위)가 되게 원화 오림을 돌려 2배 해상도로 저장(4배로 키워 돌린 뒤 줄임) — 엔진 두 손 쥐기(_swordRigid)는 무기 그림 위쪽 = 자루 방향을 씀.
+#   대기는 뼈 각도(HTH)로 원래 자리 그대로. (10-19 14:00 내려찍기)
+HTH = float(math.atan2(HU[0], -HU[1]))                                   # 그림 위쪽 → 자루 방향 (시계 방향 +)
+_ha = Image.open(A('hammer')); _o = O_['hammer']; _S = 4
+_big = _ha.resize((_ha.width * _S, _ha.height * _S), Image.LANCZOS); _pv = (G - _o) * _S
+_pad = int(max(_big.size) * .8); _can = Image.new('RGBA', (_big.width + 2 * _pad, _big.height + 2 * _pad), (0, 0, 0, 0)); _can.paste(_big, (_pad, _pad)); _pv = _pv + _pad
+_rot = _can.rotate(math.degrees(HTH), resample=Image.BICUBIC, center=tuple(_pv))   # PIL: + = 화면에서 반시계 → 기울어진 자루를 세움
+_bb = _rot.getbbox(); _rot = _rot.crop(_bb); _pv = _pv - np.array(_bb[:2]); _rot = _rot.resize((_rot.width // 2, _rot.height // 2), Image.LANCZOS); _pv = _pv / 2
+_rot.save(os.path.join(W, 'hammerUp.png'))
+_WP = [round(float(_pv[0]), 1), round(float(_pv[1]), 1)]; _up = lambda d: [_WP[0], round(_WP[1] - d * 2, 1)]
+part('weapon', os.path.join(W, 'hammerUp.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
 for n in ['thighN', 'thighF']: part(n, A(n), [0, 0], scale=1.0)
 for n in ['bootN', 'bootF']: part(n + 'Shin', os.path.join(W, n + 'Shin.png'), [0, 0], scale=1.0)
 for n, sd in [('bootN', 'near'), ('bootF', 'far')]: part(n + 'Foot', os.path.join(W, n + 'Foot.png'), pc(LJ[sd]['a'], O_[n]))
@@ -198,11 +233,11 @@ def bone(name, parent, at, parent_at, part_=None, rot=0.0):
     if part_: b['part'] = part_
     bones.append(b)
 bone('hips', 'hip', HIP, HIP, 'hips'); bone('belt', 'hips', HIP, HIP, 'belt'); bone('flapN', 'hips', np.array([170.0, 314]), HIP, 'flapN'); bone('flapC', 'hips', np.array([210.0, 326]), HIP, 'flapC')
-bone('torso', 'hip', HIP, HIP, 'torso'); bone('head', 'torso', NECK, HIP, 'head'); bone('pony', 'head', PONY, NECK, 'pony')
+bone('torso', 'hip', HIP, HIP, 'torso'); bone('sideF', 'torso', HIP, HIP, 'sideF'); bone('head', 'torso', NECK, HIP, 'head'); bone('pony', 'head', PONY, NECK, 'pony')
 bone('armU', 'torso', SH_N, HIP, 'armU'); bone('armL', 'armU', EL_N, SH_N, 'armL', rot=0.3)   # 엔진 대기 팔꿈치 처짐(−0.3)만큼 미리 반대로 → 대기 = 원화
 bone('pauldron', 'torso', SH_N, HIP, 'pauldron')
 bone('armF', 'torso', SH_F, HIP); bone('foreF', 'armF', EL_F, SH_F, 'foreF'); bone('fistF', 'foreF', WR_F, EL_F, 'fistF')
-bone('weapon', 'fistF', G, WR_F, 'weapon')
+bone('weapon', 'fistF', G, WR_F, 'weapon', rot=HTH)
 for n in ['cape', 'scarf', 'pouch', 'skirt', 'skirtB', 'pauldronF']: bones.append(dict(name=n, parent='torso', pos=[0, -200]))   # 그림 없는 뼈: 엔진이 이름으로 찾음
 
 # ---------------- 다리 — 서 있을 때 = 원화 다리(오림), 달릴 때 = 시트 허벅지(4번 시트) + 시트 부츠(1번 22칸, 앞코 오른쪽)를 발목에서 나눔 ----------------
@@ -275,6 +310,9 @@ for n in FACE_N: face_patch('face_' + n, 'face_' + n); part('face_' + n, os.path
 for n in ['half', 'closed']: face_patch('blink_' + n, 'blink_' + n); part('blink_' + n, os.path.join(W, 'blink_' + n + '.png'), def_parts['head']['pivot'])
 FACES = {n: 'face_' + n for n in FACE_N if n != 'neutral'}; FACES['grimace'] = 'face_effort'; FACES['surprised'] = 'face_shout'
 
+# ---------------- 내려찍기 (attack/smash.py) ----------------
+exec(open(os.path.join(HERE, 'attack', 'smash.py')).read())
+
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 draw = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'torso', 'head', 'weapon', 'fistF', 'armU', 'pauldron', 'armL']
 _top = int(np.nonzero((own['head'] | own['pony']).any(1))[0].min())
@@ -284,9 +322,10 @@ rig = {'name': 'dulcinea-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)'
        'armPhase': 0, 'gait': {'stance': 0.32, 'heelKick': 0.85, 'kneeLift': 0.95, 'strideBase': 70, 'strideK': 0.2, 'swingReach': 0.12, 'swingAng': 0.12, 'landAng': 0, 'hipBase': 6, 'bob': 16, 'lean': 0.2, 'strideFlex': [0.75, 1.5], 'headRun': 0.06, 'elbowRun': 1.2, 'armSwing': 0.55, 'armBias': 0.1},
        'ponySway': 0.6, 'carrySwing': 0.4, 'wristRange': 0.3, 'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.35}],
        'bounce': [{'bone': 'flapN', 'stiff': 170, 'damp': 7, 'y': 0.3, 'rot': -0.006, 'max': 10}, {'bone': 'flapC', 'stiff': 150, 'damp': 6, 'y': 0.35, 'rot': 0.008, 'max': 12}],
-       'ui': {'attack': None, 'touch': 'hop'},
+       'ui': {'attack': 'smash', 'touch': 'hop'},
        'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0002.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)'},
        'note': '2 러스트 둘시네 (2026-10-19, v1 대기·달리기). 먼 손으로 큰 망치를 쥠(1시), 가까운 손 주먹. 보이는 곳은 원화를 오림, 달리는 다리는 시트.'}
+rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
 rig['version'] = _h.hexdigest()[:8]

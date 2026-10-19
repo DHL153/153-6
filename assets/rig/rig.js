@@ -839,7 +839,7 @@
     _swordRigid(D, at, T) {
       const rig = this.rig, b = rig.by, P = rig.def.parts, SG = rig.def.swordGrip, act = this.act;
       const tr = D.trk || (n => this._tr(n));   // D.trk(opt-in): 동작 없이 키 값을 주는 읽기 함수 (swordGrip.guard: 두 손으로 쥔 채 대기·달리기)
-      const w = tr("w"), reach = tr("reach"), step = (k, d) => { const K = D[k]; if (!K) return d; let v = d; for (const [t, n] of K) if (at >= t) v = n; return v };
+      const w = tr("w"), reach = tr("reach"), step = (k, d, KK) => { const K = KK || D[k]; if (!K) return d; let v = d; for (const [t, n] of K) if (at >= t) v = n; return v };
       { const SN_ = SG.shoulderN, SF_ = SG.shoulderF, kN = SN_ ? tr("shN") : 0, kF = SF_ ? tr("shF") : 0;   // (opt-in, 21 알론소) 어깨 옮기기: 몸을 튼 것처럼 가까운 어깨(+어깨갑)·먼 어깨를 키만큼 이동 — 3/4 보기에서 두 손이 한 손잡이에 닿게
         if (kN) { b.armU.ax += SN_[0] * kN; b.armU.ay += SN_[1] * kN; const pf = SG.pauldronFollow ?? 1; b.pauldron.ax += SN_[0] * kN * pf; b.pauldron.ay += SN_[1] * kN * pf }
         if (kF) { b.armF.ax += SF_[0] * kF; b.armF.ay += SF_[1] * kF }
@@ -891,6 +891,7 @@
       //   주먹(쥔 팔 조각의 손잡이 점)은 칼에 붙은 채, 윗팔 길이(그림 길이)·팔뚝 길이(조각의 손잡이→팔꿈치)를 고정한 두 관절 IK —
       //   팔꿈치 = 어깨 원(윗팔 길이) ∩ 주먹 원(팔뚝 길이), 쥔 팔 조각은 주먹 둘레로만 돌아 그 팔꿈치를 가리킴(손목 꺾임 = this.wrN·wrF).
       //   닿지 않으면 팔을 곧게 펴고 남는 만큼만 윗팔이 늘어남(this.stN·stF 로 확인). ikSide {N,F}: +1 = 어깨→주먹 선의 시계 방향 쪽 팔꿈치, 없으면 칼에 붙인 팔꿈치에 가까운 쪽
+      const ikSd = side => D.ikSideK && D.ikSideK[side] ? step("_", 0, D.ikSideK[side]) : (D.ikSide && D.ikSide[side]);   // ikSideK(opt-in, 2 러스트 둘시네 10-19): 팔꿈치 쪽을 구간마다(키) — 잡을 때는 팔꿈치 아래, 머리 위로 들면 바깥
       const ikA = D.armIK ? clamp(tr("armIK"), 0, 1) : 0;   // 쪽별로 armIKN·armIKF 트랙이 있으면 그것
       // (opt-in 부품 키 fore·foreBone·foreDir, 3 러스트 산초 올려베기 10-19) 손목 마디: 쥔 팔 조각 = 주먹(손잡이에 그대로 붙음, 그림 elbow = 손목 점) + 팔뚝 그림 P[fore](pivot = 손목, elbow = 팔꿈치, 뼈 foreBone).
       //   팔꿈치 = 어깨 원(윗팔 길이) ∩ 손목 원(팔뚝 길이), 팔뚝 그림은 손목 둘레로 돌아 그 팔꿈치를 가리킴 — 칼이 한 바퀴 돌아도 주먹은 손잡이에 그대로, 조각 바꾸기 없이 이어짐.
@@ -899,7 +900,7 @@
         const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), L2 = Math.hypot(fo.elbow[0] - fo.pivot[0], fo.elbow[1] - fo.pivot[1]) * kf, d0 = p.foreDir;
         const E0 = [Wp[0] + (wmF[0] * d0[0] + wmF[2] * d0[1]) * L2, Wp[1] + (wmF[1] * d0[0] + wmF[3] * d0[1]) * L2], dx = Wp[0] - S[0], dy = Wp[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
         let E; if (d >= L1 + L2) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];
-        else { const dd = Math.max(d, Math.abs(L1 - L2) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - L2 * L2) / (2 * L1 * dd), -1, 1)), sd = D.ikSide && D.ikSide[side];
+        else { const dd = Math.max(d, Math.abs(L1 - L2) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - L2 * L2) / (2 * L1 * dd), -1, 1)), sd = ikSd(side);
           const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1];
           E = sd ? (sd > 0 ? e2 : e1) : (Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2) }
         const aE = Math.atan2(E[1] - Wp[1], E[0] - Wp[0]), rot = aE - Math.atan2(fo.elbow[1] - fo.pivot[1], fo.elbow[0] - fo.pivot[0]), c = Math.cos(rot), s_ = Math.sin(rot);
@@ -911,7 +912,7 @@
         const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), dx = GN[0] - S[0], dy = GN[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
         let E; if (d >= L1 + r) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];
         else { const dd = Math.max(d, Math.abs(L1 - r) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - r * r) / (2 * L1 * dd), -1, 1));
-          const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1], sd = D.ikSide && D.ikSide[side];
+          const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1], sd = ikSd(side);
           E = sd ? (sd > 0 ? e2 : e1) : (Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2) }
         const t2 = wrapA(Math.atan2(E[1] - GN[1], E[0] - GN[0]) - Math.atan2(E0[1] - GN[1], E0[0] - GN[0])) * ikW; this["wr" + side] = t2;
         return fore(bone, pn, s, tw + t2) };
@@ -1030,6 +1031,7 @@
     update(dt, s = {}) {
       dt = Math.min(dt, .05); this.t += dt; this.dt = dt;
       const rig = this.rig, b = rig.by, L = this.L; rig.resetPose();
+      if (rig.def.swapReset) for (const n of rig.def.swapReset) rig.swap[n] = null;   // swapReset(opt-in, 2 러스트 둘시네 10-19): 동작 중 바꾼 조각 그림을 매 프레임 원래대로 — 잡기 전·놓은 뒤 원화 팔로
       if (rig.def.swordGrip) { rig.swap.foreF = rig.swap.armF = rig.swap.armU = null; if (rig.def.parts.torsoTurn) { rig.swap.torso = null; for (const h of rig.def.parts.torsoTurn.hides || []) rig.alpha[h] = 1 } if (!this.act) this.inSword = false }   // 대검(알론소 v4): 쥔 손 그림은 동작 중에만
       const vx = s.vx || 0, want = this.act ? this.facing : (s.facing || (Math.abs(vx) > 1 ? Math.sign(vx) : this.facing));
       if (want !== this.facing) { this.facing = want; this.turnT = .16; this.prevLVx = -this.prevLVx; for (const k in this.ft) { const f = this.ft[k]; f.planted = false } }
