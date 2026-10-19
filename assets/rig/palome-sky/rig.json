@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "4c449f3d",
+ "version": "11625f0d",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -219,11 +219,19 @@
    ],
    "scale": 2.0
   },
-  "bootRun": {
-   "src": "parts/bootRun.png",
+  "bootNRun": {
+   "src": "parts/bootNRun.png",
    "pivot": [
-    31.0,
-    45.0
+    28.6,
+    41.0
+   ],
+   "scale": 2.0
+  },
+  "bootFRun": {
+   "src": "parts/bootFRun.png",
+   "pivot": [
+    28.6,
+    42.0
    ],
    "scale": 2.0
   },
@@ -462,32 +470,32 @@
    "w": 0.001
   },
   "boot": {
-   "part": "bootRun",
+   "part": "bootFRun",
    "sole": [
     [
-     -26.0,
-     18.0
+     -26.6,
+     16.0
     ],
     [
-     -12.0,
+     -9.6,
+     17.0
+    ],
+    [
+     9.4,
      19.0
     ],
     [
-     13.0,
-     22.0
+     28.4,
+     20.0
     ],
     [
-     35.0,
-     21.0
-    ],
-    [
-     49.0,
-     19.0
+     45.4,
+     17.0
     ]
    ],
    "ankleRange": [
-    -0.85,
-    0.95
+    -1.7,
+    1.7
    ]
   },
   "tube": {
@@ -500,7 +508,8 @@
     22,
     46
    ],
-   "k": 1.8
+   "k": 1.8,
+   "runBoot": true
   },
   "near": {
    "x": -172.0,
@@ -529,6 +538,7 @@
     ],
     "w": 0.001
    },
+   "runBoot": "bootNRun",
    "stand": {
     "fade": [
      0.12,
@@ -588,6 +598,7 @@
     ],
     "w": 0.001
    },
+   "runBoot": "bootFRun",
    "stand": {
     "fade": [
      0.12,
@@ -656,18 +667,18 @@
  "gait": {
   "stance": 0.18,
   "strideBase": 14,
-  "strideK": 0.08,
+  "strideK": 0.06,
   "hipBase": 0,
-  "bob": 9,
+  "bob": 6,
   "lean": 0.06,
   "waddle": 0.02,
   "headBob": 3,
-  "kneeLift": 0.25,
-  "heelKick": 0.05,
-  "dropCap": 16,
+  "kneeLift": 0.2,
+  "heelKick": 0.03,
+  "dropCap": 12,
   "swingReach": 0.05,
-  "landAng": -0.08,
-  "angK": 0.45,
+  "landAng": -0.04,
+  "angK": 0.2,
   "elbowRun": 0.3,
   "foreRun": 0.3,
   "armSwing": 0.08,
@@ -855,27 +866,27 @@
     ],
     [
      0.415,
-     450.0,
+     410.0,
      "lin"
     ],
     [
      0.43,
-     445.2,
+     380.0,
      "lin"
     ],
     [
      0.45,
-     466.2,
+     350.2,
      "io"
     ],
     [
      0.6,
-     461.6,
+     369.6,
      "io"
     ],
     [
      0.65,
-     450.0,
+     410.0,
      "lin"
     ],
     [
@@ -942,27 +953,27 @@
     ],
     [
      0.415,
-     -45.4,
+     -48.0,
      "lin"
     ],
     [
      0.43,
-     1.4,
+     8.0,
      "lin"
     ],
     [
      0.45,
-     36.4,
+     60.4,
      "io"
     ],
     [
      0.6,
-     33.8,
+     61.8,
      "io"
     ],
     [
      0.65,
-     -45.4,
+     -48.0,
      "lin"
     ],
     [

@@ -157,7 +157,18 @@ print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), '
 o_lN = save('bootStandN', art(lab('legN'))); o_lF = save('bootStandF', art(lab('legF')))
 # 달리는 부츠 = 시트 먼 부츠(깨끗한 한 장, 앞코 오른쪽, 남색 목까지) → 원화 먼 부츠 바닥 양 끝에 맞춤(시트 0,48 → 303,471 · 69,48 → 382,471, 1.15배) · 색 = 원화 부츠
 #   (원화 다리를 밑단 아래에서 잘라 쓰면 목의 금 장식이 잘려 찢어진 조각처럼 보였음)
-bf = warp(col_match(sheet('bootF'), lab('legF') & (YY >= 446)), simil((0, 48), (69, 48), (303, 471), (382, 471))); o_bR = save('bootRun', bf)
+# 달리는 부츠(쪽별) = 시트 부츠 그대로 그림 크기 1.1배(늘이지 않음, 원화 부츠 길이에 맞춤) · 색 = 원화 부츠. 발목 점 = 정강이 판 아래(시트 x 26, 밑창 위 20px)
+#   엔진 opt-in legs.tube.runBoot 으로 달릴 때만(서 있을 땐 원화 다리) — 10-20 07:25 DHL '달리기 자세 어색': 원화 다리를 잘라 만든 부츠가 돌며 찢긴 장식·아래로 꺾인 발끝
+RBK = 1.1
+def run_boot(nm, lm):
+    b = col_match(sheet(nm), lm & (YY >= 446)); H_, W_ = b.shape[:2]; b = cv2.resize(b, (int(round(W_ * RBK)), int(round(H_ * RBK))), interpolation=cv2.INTER_LANCZOS4)
+    ys, xs = np.nonzero(b[..., 3] > 128); sole = ys.max(); piv = (26 * RBK, sole - 20.0)
+    Image.fromarray(b).save(os.path.join(PARTS, f'{nm}Run.png'))
+    bot = {x: ys[xs == x].max() for x in range(xs.min(), xs.max() + 1) if (xs == x).any()}; xl, xr = min(bot), max(bot)
+    cols = sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))
+    return piv, [[round(float(x - piv[0]), 1), round(float(bot[x] - piv[1]), 1)] for x in cols]
+RB = {'near': run_boot('bootN', lab('legN')), 'far': run_boot('bootF', lab('legF'))}
+bf = art(lab('legF') & (YY >= 446))   # (옛 bootRun — 쓰지 않음, 밑창 점 계산용)
 def sole_pts(m, ankle, ground=None):
     ys, xs = np.nonzero(m); xl, xr = xs.min(), xs.max(); bot = {x: ys[xs == x].max() for x in range(xl, xr + 1) if (xs == x).any()}
     xlow = max(bot, key=lambda x: bot[x]); cols = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
@@ -214,7 +225,7 @@ parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [round(float(W_PIV[0]), 1
                    'guard': [round(float(W_GUARD[0]), 1), round(float(W_GUARD[1]), 1)], 'pommel': [round(float(W_POM[0]), 1), round(float(W_POM[1]), 1)]}
 for n in FACE_N + BLINK_N: parts[f'face_{n}'] = {'src': f'parts/face_{n}.png', 'pivot': parts['head']['pivot'], 'scale': SC}
 for nm, sd in [('bootStandN', 'near'), ('bootStandF', 'far')]: P_(nm, LEG[sd]['ankle'])
-P_('bootRun', LEG['far']['ankle'])
+for _sd, _nm in (('near', 'bootNRun'), ('far', 'bootFRun')): parts[_nm] = {'src': f'parts/{_nm}.png', 'pivot': [round(RB[_sd][0][0], 1), round(RB[_sd][0][1], 1)], 'scale': SC}
 parts['shinP'] = {'src': 'parts/shinP.png', 'pivot': [0, 0], 'scale': 1}
 WEAPON_ANG = math.atan2(UT[1], UT[0]) + math.pi / 2   # 세로 칼 그림 뼈의 세계 각(그림 위쪽 → 칼끝)
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘(armL.ar) → 뼈 rot 에 +0.3 을 넣어 대기 = 원화
@@ -237,10 +248,10 @@ hipY = SC * (LEG['near']['hip'][1] - HIP[1])
 LEGL = float(np.linalg.norm(LEG['near']['ankle'] - LEG['near']['hip'])) * SC   # 엉덩이→발목(리그) — 짧은 드워프 다리: 허벅지·정강이 = 반씩 + 5%
 legs = {'hip': [0, round(hipY, 1)], 'thigh': round(LEGL * .525, 1), 'shin': round(LEGL * .525, 1),
         'thighImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001}, 'shinImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001},
-        'boot': {'part': 'bootRun', 'sole': sole_pts(bf[..., 3] > 128, LEG['far']['ankle']), 'ankleRange': [-0.85, 0.95]},
-        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': 1.8}}
+        'boot': {'part': 'bootFRun', 'sole': RB['far'][1], 'ankleRange': [-1.7, 1.7]},   # 발목 범위 넓게 — 짧은 다리라 정강이(통) 각이 크게 흔들려도 부츠는 땅과 거의 평평(좁으면 부츠가 통을 따라 돌아 발끝이 아래로 꺾임)
+        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': 1.8, 'runBoot': True}}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
-    legs[sd] = {'x': round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1), 'shade': 0, 'thighImg': legs['thighImg'], 'shinImg': legs['shinImg'],
+    legs[sd] = {'x': round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1), 'shade': 0, 'thighImg': legs['thighImg'], 'shinImg': legs['shinImg'], 'runBoot': 'bootNRun' if sd == 'near' else 'bootFRun',
                 'stand': {'fade': [0.12, 0.4], 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], O[1])}}}
 idle = {sd: round(SC * (LEG[sd]['ankle'][0] - LEG[sd]['hip'][0]), 1) for sd in ('near', 'far')}
 # 그리는 순서 (뒤 → 앞): 망토 · 먼 다리 · 가까운 다리 · 상체 · 치마 · 먼 윗팔(소매) · 먼 어깨 덮개(몸 띠) · 먼 팔뚝 · 칼(칼날은 머리 뒤) · 가까운 윗팔 · 어깨갑 · 머리+수염(+표정) · 먼 손 · 가까운 팔뚝+주먹(맨 앞 — 팔꿈치 레이어 > 어깨)
@@ -248,8 +259,8 @@ draw = ['cape', 'legFar', 'legNear', 'torso', 'skirt', 'armF', 'pauldronF', 'for
 rig = {'name': 'palome-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'}, 'idleStance': idle,
-       'gait': {'stance': 0.18, 'strideBase': 14, 'strideK': 0.08, 'hipBase': 0, 'bob': 9, 'lean': 0.06, 'waddle': 0.02, 'headBob': 3, 'kneeLift': 0.25, 'heelKick': 0.05, 'dropCap': 16,
-                'swingReach': 0.05, 'landAng': -0.08, 'angK': 0.45, 'elbowRun': 0.3, 'foreRun': 0.3, 'armSwing': 0.08, 'armBias': 0.0, 'headRun': 0.06},   # 가까운 팔은 배 앞을 가로지름 → 조금만 흔듦(배·주머니가 덜 드러남) · elbowRun .3 = 엔진 대기 팔뚝 굽힘(−.3)과 같아 달려도 팔뚝 각이 대기 그대로
+       'gait': {'stance': 0.18, 'strideBase': 14, 'strideK': 0.06, 'hipBase': 0, 'bob': 6, 'lean': 0.06, 'waddle': 0.02, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.03, 'dropCap': 12,
+                'swingReach': 0.05, 'landAng': -0.04, 'angK': 0.2, 'elbowRun': 0.3, 'foreRun': 0.3, 'armSwing': 0.08, 'armBias': 0.0, 'headRun': 0.06},   # 가까운 팔은 배 앞을 가로지름 → 조금만 흔듦(배·주머니가 덜 드러남) · elbowRun .3 = 엔진 대기 팔뚝 굽힘(−.3)과 같아 달려도 팔뚝 각이 대기 그대로
        'hemRun': {'lift': 8, 'knee': 0.5, 'heel': 0.3, 'reach': 0.2}, 'hemLimit': {'up': 0.25, 'x': 0.3}, 'hemGain': 0.15, 'footReach': 0.97,
        'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.3}], 'skirtFollow': 0.7, 'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 10,
        'bounce': [], 'metrics': {'bodyHeight': round(2 * (478 - 111)), 'note': 'rig units; 머리카락 위(y111)~발바닥(478) ×2, 칼 제외'},

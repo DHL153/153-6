@@ -151,7 +151,8 @@
       // S.thighImg / S.shinImg (opt-in): 가까운·먼 다리에 다른 그림. L.kneeImg / S.kneeImg (opt-in): 무릎 덮개(보호대)를 무릎 위에 따로 — 허벅지·정강이 가운데 각도
       if (L.tube) {   // legs.tube (opt-in, 6 카르덴 10-18): 다리 = 엉덩이→발목 곧은 바지 통 하나(무릎에서 꺾이지 않음, 굵기 고정) + 부츠 — 바지가 몸처럼 고정인 캐릭터에서 무릎이 바지 밖으로 튀어나와 '떨어진 다리'로 보이던 것
         const T_ = L.tube, im_ = this.images[T_.part], il_ = Math.hypot(T_.b[0] - T_.a[0], T_.b[1] - T_.a[1]), wl_ = Math.hypot(P.ankle[0] - P.hip[0], P.ankle[1] - P.hip[1]) || 1;
-        set(ctx, this._seg(R, T_.a, T_.b, P.hip, P.ankle, (T_.k || 1) * il_ / wl_)); ctx.drawImage(im_, 0, 0); boot(P.boot || bd.part);
+        set(ctx, this._seg(R, T_.a, T_.b, P.hip, P.ankle, (T_.k || 1) * il_ / wl_)); ctx.drawImage(im_, 0, 0);
+        if (T_.runBoot && S.stand) boot(P.standW >= .5 ? P.boot : (S.runBoot || bd.part)); else boot(P.boot || bd.part);   // tube.runBoot(opt-in, 29 스카이 팔로메): 달리면 서 있는 원화 부츠 대신 쪽별 달리기 부츠(S.runBoot) — 반투명 겹침 없이 한 프레임에 바꿈
         if (useF) ctx.filter = "none"; return }
       const drawSet = (ST) => {
         const bpn = ST ? ((ST.boot && ST.boot.part) || bd.part) : bd.part;
