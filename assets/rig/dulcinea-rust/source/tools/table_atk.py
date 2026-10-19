@@ -10,8 +10,8 @@ html = f'''<!doctype html><meta charset=utf-8><script src="rig.js?x={time.time()
 const IM=Object.fromEntries(ims);
 window.run=()=>{{const rig=new CharacterRig(def,IM),an=new RunAnimator(rig,{{runSpeed:620}});for(let i=0;i<60;i++)an.update(1/120,{{vx:0}});an.attack('smash');const out=[];
  const P=(b,x,y)=>{{const m=rig.by[b].wm||rig.by[b].m;return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]}};
- const pt=(b)=>{{const pn=rig.swap[b]||rig.by[b].part, p=def.parts[pn]; if(!p)return null; const q=p.grip||p.fist||p.pivot, k=p.scale||1; return P(b,(q[0]-p.pivot[0])*k,(q[1]-p.pivot[1])*k)}};
- const el=(b)=>{{const pn=rig.swap[b]||rig.by[b].part, p=def.parts[pn]; if(!p||!p.elbow)return null; const k=p.scale||1; return P(b,(p.elbow[0]-p.pivot[0])*k,(p.elbow[1]-p.pivot[1])*k)}};
+ const pt=(b)=>{{if(!rig.by[b])return null;const pn=rig.swap[b]||rig.by[b].part, p=def.parts[pn]; if(!p)return null; const q=p.grip||p.fist||p.pivot, k=p.scale||1; return P(b,(q[0]-p.pivot[0])*k,(q[1]-p.pivot[1])*k)}};
+ const el=(b)=>{{if(!rig.by[b])return null;const pn=rig.swap[b]||rig.by[b].part, p=def.parts[pn]; if(!p||!p.elbow)return null; const k=p.scale||1; return P(b,(p.elbow[0]-p.pivot[0])*k,(p.elbow[1]-p.pivot[1])*k)}};
  while(an.act){{const t=an.act.t;an.update(1/60,{{vx:0}});if(!an.act)break;
   const tipP=rig.partPoint('weapon',...def.parts.weapon.tip);
   out.push({{t:an.act.t,fz:an.act.freeze||0,stN:an.stN||0,stF:an.stF||0,wrN:an.wrN||0,wrF:an.wrF||0,reach:an._tr('reach'),gN:an.gapN||0,gF:an.gapF||0,

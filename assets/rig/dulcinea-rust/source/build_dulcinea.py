@@ -76,6 +76,10 @@ for i, n in enumerate(PRIO):
 _un = AL & (LAB < 0); print('  unlabeled px', int(_un.sum()))
 if _un.any():   # 주인 없는 불투명 픽셀 → 가장 가까운 칸
     d, (iy, ix) = ndimage.distance_transform_edt(LAB < 0, return_indices=True); LAB[_un] = LAB[iy[_un], ix[_un]]
+#   턱 아래(가까운 쪽 멜빵 위 끝·올리브 깃·목 그늘)는 머리 시트 알파 안이라 머리 칸이 됐음 → 몸통으로 (10-19 16:20)
+#   머리가 몸통에 대해 돌면(내려찍기 예비에서 몸을 젖힐 때) 멜빵 위 끝이 머리와 함께 떠서 목 옆에 흰 틈 — 턱 외곽선은 머리에 남김(선 2px 아래부터)
+UNDER_JAW = pmask([[183, 221], [195, 220], [204, 220], [212, 223], [219, 229], [225, 234], [231, 238], [240, 242], [250, 246], [262, 248], [272, 249], [272, 262], [183, 262]])
+_uj = (LAB == PRIO.index('head')) & UNDER_JAW; LAB[_uj] = PRIO.index('torso'); print('  under-jaw head→torso px', int(_uj.sum()))
 np.save(os.path.join(W, 'labels.npy'), LAB)
 _pal = np.array([[230, 30, 30], [230, 0, 200], [255, 140, 0], [255, 220, 0], [90, 90, 100], [120, 60, 20], [0, 170, 0], [255, 255, 120], [0, 210, 210], [130, 0, 255],
                  [0, 0, 230], [200, 0, 100], [150, 90, 0], [0, 130, 255], [90, 160, 0], [60, 30, 10], [255, 90, 160]], np.uint8)
@@ -116,7 +120,7 @@ ART['pony'] = inpaint_into(ART['pony'], _reg & ~(ART['pony'][..., 3] > 200), own
 _reg = dil(own['pony'], 24) & ero((own['pauldron'] | own['armU']) & (RA[..., 3] > 250), 2) & (yy < 264) & ~own['pony'] & ~(ART['pony'][..., 3] > 200)   # 가까운 어깨갑 위쪽 밑 머리카락(내려찍기에서 어깨가 앞으로 가면 드러나는 흰 틈, 10-19) — 재킷 위 끝(y 264) 위만
 ART['pony'] = outline_cut(inpaint_into(ART['pony'], _reg, own['pony'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
 # 몸통: 팔·어깨 보호대·머리(턱) 밑 메움 — 달릴 때 팔이 흔들리면 드러남
-_reg = ((mk['torso'] | mk['fillTorso']) & (own['armU'] | own['pauldron'] | own['armL'] | own['foreF'] | own['fistF'] | (own['head'] & dil(own['torso'], 8)))) & ~(ART['torso'][..., 3] > 200)   # 먼 팔뚝·주먹 밑도(내려찍기에서 먼 팔이 움직임)
+_reg = (((mk['torso'] | mk['fillTorso']) & (own['armU'] | own['pauldron'] | own['armL'] | own['foreF'] | own['fistF'] | (own['head'] & dil(own['torso'], 8)))) | (ero(own['pauldron'] & (RA[..., 3] > 250), 2) & dil(mk['torso'], 12) & ~own['head']) | (own['head'] & dil(own['torso'] | own['pauldron'], 10) & (xx < 215) & (yy > 195)) | (own['pauldron'] & (RA[..., 3] > 250) & dil(own['torso'], 14) & (yy < 245))) & ~(ART['torso'][..., 3] > 200)   # + 어깨갑 밑 몸통 둘레 12px(팔을 흔들어 어깨갑이 돌면 목 옆 흰 틈, 10-19 15:55)   # 먼 팔뚝·주먹 밑도(내려찍기에서 먼 팔이 움직임)   # + 가까운 쪽 뺨 밑 10px(머리가 몸에 대해 돌면 멜빵 위 끝 위가 드러남, 10-19 16:25) + 어깨갑 위 모서리 밑(테두리까지, 어깨갑이 대기 때보다 덜 돌면 드러남)
 ART['torso'] = outline_cut(inpaint_into(ART['torso'], _reg, own['torso'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
 _aa = dil(_reg, 2) & ~ero(ART['torso'][..., 3] > 128, 1); _sm = cv2.GaussianBlur(ART['torso'][..., 3].astype(np.float32), (0, 0), .9)   # 메운 곳 바깥 경계 계단(2배 확대에서 톱니) → 알파만 살짝 부드럽게
 ART['torso'][..., 3][_aa] = np.minimum(ART['torso'][..., 3][_aa], _sm[_aa].astype(np.uint8))
@@ -187,7 +191,8 @@ for n, sgn, R_, ringOn in [('armU', 1, _R, True), ('armL', -1, _R - 3, False)]: 
     a = ART[n]; add = half & ~(a[..., 3] > 200); a[..., :3][add] = SKIN; a[..., 3][add] = 255
     if ringOn: ring = half & (rr > R_ - 2.2) & (sgn * t_ > 1); a[..., :3][ring] = (34, 26, 22); a[..., 3][ring] = 255
     ART[n] = a
-O_ = {n: save_crop(a, n + 'Art') for n, a in ART.items()}
+#   (10-19 15:55 어깨갑 둘레 빈칸 메우기는 뺌 — 목 옆 흰 틈의 진짜 원인은 턱 아래가 머리 칸이던 것, 위 UNDER_JAW. 메운 머리카락이 달리기에서 검은 톱니로 보임)
+O_ ={n: save_crop(a, n + 'Art') for n, a in ART.items()}
 _gap = (RA[..., 3] > 200) & (COVER < 200); print('  gaps (원화 불투명인데 주인 없음):', int(_gap.sum()), 'px')
 for n in ['bootN', 'bootF']: print('  stand sole', n, 'bottom y', int(O_[n][1] + np.nonzero((np.array(Image.open(os.path.join(W, n + 'Art.png')))[..., 3] > 128).any(1))[0].max()))
 

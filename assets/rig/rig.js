@@ -404,7 +404,8 @@
     /* legs.near/far.stand = {until, boot:{part, sole}, thighImg, shinImg, kneeImg} (opt-in, 11 네온 알론소): 서 있을 때(달리기 정도 A < until) 그 쪽 다리 그림 —
        원화를 그대로 오린 벌린 다리·부츠(가까운 발끝이 뒤를 봄), 달리면 시트의 곧은 다리 조각으로. kneeImg 없으면 무릎 덮개 안 그림(원화 조각에 이미 있음) */
     //   stand.fade = [lo, hi] (opt-in): A 가 lo→hi 동안 서 있는 그림이 달리기 그림 위에서 옅어짐(바꿔 그리기 튐 없음) · 발목 높이(두 부츠 밑창)도 같이 섞임
-    _standW(side) { const S = side && this.L[side], st = S && S.stand; if (!st) return 0; const A = Math.max(this.A || 0, this.legRunV || 0);
+    _standW(side, draw = false) { const S = side && this.L[side], st = S && S.stand; if (!st) return 0; const A = Math.max(this.A || 0, this.legRunV || 0);
+      if (draw && st.fade && this.act && this.act.def.standStep) return A < (st.fade[0] + st.fade[1]) / 2 ? 1 : 0;   // standStep(opt-in 동작, 2 러스트 둘시네 10-19): 동작 중 다리 그림은 한 프레임 계단 — 달리다 공격하면 A 가 fade 구간을 3프레임 걸쳐 지나며 두 다리 그림이 반투명으로 겹쳐 보였음(밑창 높이는 그대로 부드럽게 섞음)
       return st.fade ? 1 - smooth(st.fade[0], st.fade[1], A) : (A < (st.until ?? .35) ? 1 : 0) }
     _stand(side) { return this._standW(side) > 0 ? this.L[side].stand : null }
     _boot(side) { const st = this._stand(side); return st && st.boot ? st.boot : this.L.boot }
@@ -975,6 +976,7 @@
         b.armU.ar += wrapA(tU - wAng(b.armU.m)); rig.compute();
         const E = apply(b.armL.m, 0, 0), tL = Math.atan2(Tg[1] - E[1], Tg[0] - E[0]) - Math.atan2(fv[1], fv[0]);
         b.armL.ar += wrapA(tL - wAng(b.armL.m)); b.pauldron.ar = b.armU.ar * .3 }
+      if (D.freeArm && !(reach > 0)) { b.armU.ar += tr("fuA") || 0; b.armL.ar += tr("flA") || 0; rig.compute() }   // freeArm(opt-in, 2 러스트 둘시네 10-19 한 손 내려찍기): 칼을 안 쥔 팔을 키로 흔듦(윗팔 fuA·팔뚝 flA 라디안, + = 시계 방향) — 예비 때 주먹을 앞으로, 타격 때 뒤로
       if (D.reachIK && reach <= 0 && D.fUpper) { const fu = step("fUpper", SG.far.upper); rig.swap.armU = fu === b.armU.part ? null : fu }   // (opt-in) 손을 안 쥔 구간의 윗팔 그림도 키대로(흔드는 팔뚝과 맞는 원래 소매로 되돌림)
       if (D.reachIK && b.fistN) rig.alpha.fistN = reach > 0 ? 0 : 1;   // 쥔 팔 조각이 팔뚝을 대신하는 동안 흔들던 주먹은 숨김
       const ord = step("order", null);
@@ -1060,7 +1062,7 @@
       this.odo += lvx * dt; this.events.length = 0;
       const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
       const D = act && act.def, at = act ? act.t : 0;
-      this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? 14 : 8, dt);
+      this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? (D.aDamp || 14) : 8, dt);   // aDamp(opt-in, 2 러스트 둘시네 10-19): 달리다 공격하면 달리기 다리→선 다리를 빨리(기본 14) — 달리기 그림이 선 자세로 꺾이는 사이 프레임·두 그림 겹침을 줄임
       this.legRunV = act && D.legRun ? clamp(this._tr("legRun"), 0, 1) : 0;   // legRun(opt-in 동작 트랙, 11 네온 알론소 런지): 다리 길이·그림을 달리기 쪽(A)으로 — 서 있는 원화 다리는 짧아 런지 뒷다리가 못 뻗음
       const G = this.G, A = this.A, I = 1 - A; let S = G.strideBase + G.strideK * sp;                 // stride length grows with speed
       this.stance = G.stance;
@@ -1154,7 +1156,7 @@
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
           if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side) }
-        sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
+        sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side, true); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
       }
       rig.legPose = lp;
 
