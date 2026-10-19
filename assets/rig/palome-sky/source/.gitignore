@@ -1,0 +1,10 @@
+__pycache__/
+# 검토 그림은 대표만 올림(나머지는 build·shot 으로 다시 만듦)
+review/*
+!review/palome29_v1.jpg
+!review/seg_labels.png
+!review/polys_check.png
+!review/idle_cmp.png
+!review/faces_chk.png
+!review/presim29.png
+!review/reg_six.png

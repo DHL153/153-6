@@ -1096,7 +1096,7 @@
       const swing = Math.cos(TAU * (ph + (rig.def.armPhase || 0)));   // armPhase .5: 자유 팔이 화면 뒤쪽 팔인 캐릭터(알론소) — 같은 쪽 팔다리가 함께 나가지 않게                                 // +1 when the near foot strikes in front
       const fwd = -swing;                                               // near arm forward when the near leg is back
       b.armU.ar = I * br * .03 + A * (-G.armSwing * fwd + G.armBias);
-      b.armL.ar = I * (br * .04 - .3) - A * (G.elbowRun + .3 * Math.max(0, fwd) - .14 * Math.max(0, -fwd));   // −.3: a hanging arm keeps ~10° elbow flexion
+      b.armL.ar = I * (br * .04 - .3) - A * (G.elbowRun + (.3 * Math.max(0, fwd) - .14 * Math.max(0, -fwd)) * (G.foreRun ?? 1));   // −.3: a hanging arm keeps ~10° elbow flexion · foreRun(opt-in, 29 스카이 팔로메): 달릴 때 팔뚝 앞뒤 굽힘 배율(배 앞을 가로지른 팔은 작게)
       b.armU.ax = -twist * 12; b.armF.ax = twist * 15; b.armU.ay = b.armF.ay = act ? -this._tr('breath') * 4 : 0;   // shoulders follow the chest turn / breath
       b.pauldron.ar = b.armU.ar * .42; b.pauldron.ax = -b.armU.ar * 3 + b.armU.ax; b.pauldron.ay = b.armU.ay;   // guard rides on the shoulder, turning with the upper arm
       if (A > .45) this.fist = true; else if (A < .3) this.fist = false; // hand closes while running
