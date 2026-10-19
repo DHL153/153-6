@@ -89,8 +89,17 @@ body = lab('body')
 st = sheet('torso'); MT = simil((110, 75), (172, 40), (289, 291), (351, 247)); stw = warp(col_match(st, lab('body') & (YY < 380)), MT)   # 색 = 원화 몸통(시트 크림이 더 밝고 노람)
 OCC = lab('head') | lab('handF') | lab('foreF') | lab('upperF') | lab('sword') | lab('pauldron') | lab('upperN') | lab('foreN')
 bflat, fillN = flat_fill(body, lab('foreN') | lab('upperN') | lab('pauldron'))   # 가까운 팔 밑 몸 가장자리: 시트 상체가 못 덮는 곳은 남색 천(번진 inpaint 는 달리기 확대에서 얼룩으로 보였음)
-bflat2, fillO = flat_fill(body, OCC)   # 그 밖의 앞 조각(칼 날밑·손잡이·먼 토시·수염) 밑도 시트가 못 덮는 곳은 남색 천 — 칼을 들면 날밑 자리에 배경 구멍·찢어진 조각이 보였음
-torso = under(under(under(art(body & (YY < cut_y + OVL)), stw, OCC & (YY < cut_y + OVL)), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
+# 몸 오른쪽 위(칼 날밑·손·먼 토시 밑): 몸 껍질이 칼 쪽까지 부풀어 남색 삼각형이 생겼음 → 몸 어깨 윤곽(SHOULDER_R) 안만 채움,
+#   그 칸의 작은 원화 몸 조각(날밑·손 사이로 보이던 끈 토막 < 150px)은 몸에서 빼고 채움 — 칼·팔이 떠나면 찢긴 조각으로 보였음 (10-20 07:57 확대)
+SHOULDER_R = np.zeros((512, 512), np.uint8); cv2.fillPoly(SHOULDER_R, [np.array([(296, 232), (330, 236), (352, 246), (372, 262), (390, 284), (402, 312), (406, 345), (300, 345)], np.int32)], 1)
+_zone = (XX > 318) & (YY < 330); _bz = (body & _zone).astype(np.uint8); _k, _cc, _st, _ = cv2.connectedComponentsWithStats(_bz, connectivity=8)
+_frag = np.zeros((512, 512), bool)
+for _j in range(1, _k):
+    if _st[_j, 4] < 150: _frag |= _cc == _j
+body = body & ~_frag; print('  shoulder fragments removed', int(_frag.sum()), 'px')
+bflat2, fillO = flat_fill(body, (OCC | _frag) & (SHOULDER_R > 0))   # 그 밖의 앞 조각(칼 날밑·손잡이·먼 토시·수염) 밑도 시트가 못 덮는 곳은 남색 천 — 칼을 들면 날밑 자리에 배경 구멍·찢어진 조각이 보였음
+_OK = (~_zone | (SHOULDER_R > 0)) & (YY < cut_y + OVL)
+torso = under(under(under(art(body & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
 o_torso = save('torso', torso)
 # 치마: 주먹 밑(주머니 윗덮개·허리띠)은 시트 골반의 주머니를 원화 주머니 위 두 모서리에 맞춰(시트 10,10 → 138,355 · 90,12 → 198,357) — 시트 전체 맞춤은 3/4 휘어짐이 달라 안 맞음
 shp = warp(col_match(sheet('hips'), body & (YY >= cut_y)), simil((10, 10), (90, 12), (138, 355), (198, 357)))
@@ -103,12 +112,15 @@ pinp, pfill = hull_inpaint(lab('pauldron'), lab('head'))
 o_pd = save('pauldron', under(art(lab('pauldron')), pinp, pfill))
 # 가까운 윗팔(남색 소매): 원화 보이는 곳 + 어깨갑·토시 밑은 시트 윗팔(어깨 → 팔꿈치 축, 색 = 원화 소매)
 _nv = lab('upperN') & (np.abs(RA[..., :3].astype(int) - NAVY).max(-1) < 60)   # 원화 소매 조각 중 남색·외곽선만(토시 윗선 밝은 점·띠 조각 뺌)
-uw = sleeve(SH_N, EL_N + (EL_N - SH_N) / np.linalg.norm(EL_N - SH_N) * 6, 19)   # 소매 굵기 38(원화 팔꿈치 토시 입구)
+def arm_piece(nm, top, bot, SH, EL):   # 시트 2 윗팔 조각을 늘이지 않고(배율 1) 아래 둥근 끝 가운데 = 팔꿈치, 위쪽 = 어깨 방향으로 놓음 (10-20 DHL '늘어나는 것 없이 보이는 리소스로')
+    a0, a1 = np.array(bot, float), np.array(top, float); u = (np.array(SH, float) - np.array(EL, float)); u /= np.linalg.norm(u)
+    return warp(desp(np.array(Image.open(os.path.join(PC, f'p2_{nm}.png')).convert('RGBA'))), simil(a0, a1, EL, np.array(EL, float) + u * np.linalg.norm(a1 - a0)))
+uw = arm_piece('upperN2', (22, 19), (22, 101), SH_N, EL_N)   # 가까운 윗팔(시트 2 4번): 둥근 끝 사이 82(원화 87) — 위 끝은 큰 어깨갑 밑
 o_aU = save('armU', under(art(_nv | (lab('upperN') & (RA[..., :3].mean(-1) < 45))), uw, lab('pauldron') | lab('foreN') | lab('upperN')))
 # 가까운 팔뚝+주먹(토시 + 쇠 장갑 주먹, 원화 그대로 — 맨 앞)
 o_aL = save('armL', art(lab('foreN')))
 # 먼 윗팔(남색 소매): 원화 보이는 곳 + 앞 조각(몸 어깨판·토시·칼) 밑은 시트 먼 윗팔(어깨 → 팔꿈치), 색 = 원화 먼 소매 × .9
-ufw = sleeve(SH_F, EL_F + (EL_F - SH_F) / np.linalg.norm(EL_F - SH_F) * 6, 16, NAVY * 0.9)   # 먼 소매(조금 어둡게)
+ufw = arm_piece('upperF2', (26, 19), (26, 108), SH_F, EL_F)   # 먼 윗팔(시트 2 2번): 둥근 끝 사이 89(원화 80, 위 끝은 몸 띠 밑) · 아래 열린 소매 끝은 토시 밑
 # 먼 어깨 덮개(pauldronF 뼈, 몸통에 붙음): 먼 소매 둘레의 몸 그림(가죽 띠·크림 판)을 먼 윗팔 위에 한 번 더 — 대기 = 원화, 팔이 돌면 소매가 띠 밑으로 들어감
 huF = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(huF, cv2.convexHull(np.argwhere(lab('upperF'))[:, ::-1].astype(np.int32)), 1)
 huF = dil(huF > 0, 8)
