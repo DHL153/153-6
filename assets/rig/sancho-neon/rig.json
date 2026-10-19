@@ -1,6 +1,6 @@
 {
  "name": "sancho-neon",
- "version": "2121e2ac",
+ "version": "ac876dfd",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   570.0,
@@ -311,7 +311,7 @@
     19.5,
     17.5
    ],
-   "scale": 1.75
+   "scale": 1.95
   },
   "rkneeF": {
    "src": "parts/rkneeF.png",
@@ -319,7 +319,7 @@
     17.5,
     16.0
    ],
-   "scale": 1.75
+   "scale": 1.95
   },
   "rboot": {
    "src": "parts/rboot.png",
@@ -327,7 +327,7 @@
     19.5,
     4.0
    ],
-   "scale": 1.85
+   "scale": 2.05
   },
   "armFt": {
    "src": "parts/armFt.png",
@@ -703,7 +703,7 @@
     16.8,
     35.1
    ],
-   "w": 0.695
+   "w": 0.848
   },
   "shinImg": {
    "part": "rshinF",
@@ -715,7 +715,7 @@
     12.8,
     27.2
    ],
-   "w": 0.639
+   "w": 0.78
   },
   "thighFirst": false,
   "boot": {
@@ -769,7 +769,7 @@
      15.6,
      36.1
     ],
-    "w": 0.719
+    "w": 0.878
    },
    "shinImg": {
     "part": "rshinN",
@@ -781,7 +781,7 @@
      11.9,
      28.2
     ],
-    "w": 0.666
+    "w": 0.813
    },
    "kneeImg": {
     "part": "rkneeN",
@@ -857,7 +857,7 @@
      16.8,
      35.1
     ],
-    "w": 0.695
+    "w": 0.848
    },
    "shinImg": {
     "part": "rshinF",
@@ -869,7 +869,7 @@
      12.8,
      27.2
     ],
-    "w": 0.639
+    "w": 0.78
    },
    "kneeImg": {
     "part": "rkneeF",

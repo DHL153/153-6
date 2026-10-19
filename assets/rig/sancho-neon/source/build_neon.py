@@ -236,7 +236,8 @@ for n, sd in [('bootN', 'near'), ('bootF', 'far')]: def_parts[n].update(pivot=pc
 seg = lambda n, sd, p0, p1: {'part': n, 'a': pc(LJ[sd][p0], o_lg[n]), 'b': pc(LJ[sd][p1], o_lg[n]), 'w': 1.0}
 ln = lambda sd, p0, p1: round(float(np.linalg.norm(LJ[sd][p1] - LJ[sd][p0])) * 2, 1)
 # 달리기 다리 = 조각 시트 다리(허벅지·무릎 보호대·정강이·부츠). 시트 다리 ≈ 원화 0.95~1.0배(허벅지 폭 36 = 원화 36) → 시트 px 당 1.9 리그(조금 날씬하게)
-RK, RB, RKN = 1.9, 1.85, 1.75
+RK, RB, RKN = 1.9, 2.05, 1.95   # 무릎 보호대·부츠 +11% (10-19 15:42 DHL '달리는 다리 너무 얇음, 살짝 두껍게' — 원화 다리 굵기에 다가감, 부츠 목이 굵어진 정강이를 덮게)
+RW = 2.32   # 달리기 허벅지·정강이 굵기(리그/시트 px, 가로만) — RK 1.9 의 1.22배. 길이는 TH_R·SH_R 그대로(팔다리 길이 고정). 원화 정강이 80~88·허벅지 약 92 vs 전 44·59, 3 러스트 48·67
 def sheet_pts(n, top, bot):
     a = np.array(Image.open(os.path.join(PC, n + '.png')))[..., 3] > 128; H = a.shape[0]
     ty, tx = np.nonzero(a[:top]); by, bx = np.nonzero(a[H - bot:])
@@ -246,7 +247,7 @@ rseg = {}
 for n in ['thighN', 'thighF', 'shinN', 'shinF']:
     a_, b_ = sheet_pts(n, 6, 6); il = math.hypot(b_[0] - a_[0], b_[1] - a_[1]); wl = TH_R if n.startswith('thigh') else SH_R
     sheet_copy(n, os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
-    rseg[n] = {'part': 'r' + n, 'a': a_, 'b': b_, 'w': round(RK * il / wl, 3)}
+    rseg[n] = {'part': 'r' + n, 'a': a_, 'b': b_, 'w': round(RW * il / wl, 3)}
 for n in ['kneeN', 'kneeF']:
     a = np.array(Image.open(os.path.join(PC, n + '.png'))); sheet_copy(n, os.path.join(OUT, 'parts', 'r' + n + '.png'))
     def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[a.shape[1] / 2, a.shape[0] / 2], scale=RKN)
