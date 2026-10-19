@@ -1,5 +1,6 @@
 # 둘시네 리그 확인 그림: python3 tools/render.py idle|run|both out.png [vx hz]
 #  idle: 1.5초 숨쉬기 뒤 대기 자세를 원화와 겹침(원화 · 리그 · 차이) / run: 1초 달린 뒤 0.9초(두 걸음) 12장 / both
+#  환경: BIG=1 (0.9배) · SC=1.6 CROP=x0,y0,x1,y1 (부분 확대, 예: 골반 SC=1.6 CROP=250,170,570,450)
 import sys, time, socket, subprocess, base64, io, os
 from playwright.sync_api import sync_playwright
 from PIL import Image, ImageChops, ImageDraw
@@ -28,6 +29,7 @@ try:
         I = dec(pg.evaluate('t=>idle(t)', float(os.environ.get('IDLE_T','1.5')))) if mode in ('idle', 'both') else None
         BIG = os.environ.get('BIG')
         if BIG: pg.evaluate('window.SC=.9')
+        if os.environ.get('SC'): pg.evaluate(f"window.SC={float(os.environ['SC'])}")
         R = pg.evaluate('([v,h])=>run(v,h)', [vx, hz]) if mode in ('run', 'both') else None
         b.close()
         if errs: print('errors', errs[:5])
@@ -42,8 +44,9 @@ if I is not None:
     c = Image.new('RGB', (1536, 512), 'white'); c.paste(bg(ref), (0, 0)); c.paste(bg(I), (512, 0)); c.paste(Image.fromarray(dm), (1024, 0))
     c.save(out if mode == 'idle' else out.replace('.png', '_idle.png'))
 if R:
-    ims = [dec(d).convert('RGB').crop((130, 430, 630, 880)) if not BIG else dec(d).convert('RGB').crop((150, 380, 650, 880)) for d in R]
-    c = Image.new('RGB', (500 * 4, 450 * 3), 'white')
-    for i, im in enumerate(ims): c.paste(im, ((i % 4) * 500, (i // 4) * 450))
+    CROP = tuple(int(v) for v in os.environ['CROP'].split(',')) if os.environ.get('CROP') else ((150, 380, 650, 880) if BIG else (130, 430, 630, 880))
+    ims = [dec(d).convert('RGB').crop(CROP) for d in R]; tw, th = ims[0].size
+    c = Image.new('RGB', (tw * 4, th * 3), 'white')
+    for i, im in enumerate(ims): c.paste(im, ((i % 4) * tw, (i // 4) * th))
     c.save(out if mode == 'run' else out.replace('.png', '_run.png'))
 print('ok')

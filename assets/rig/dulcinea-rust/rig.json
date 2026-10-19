@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "9b84bfa5",
+ "version": "ed217f66",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -37,6 +37,14 @@
    "src": "parts/hips.png",
    "pivot": [
     75.0,
+    -3.0
+   ],
+   "scale": 2.0
+  },
+  "belt": {
+   "src": "parts/belt.png",
+   "pivot": [
+    75.0,
     22.0
    ],
    "scale": 2.0
@@ -44,16 +52,16 @@
   "flapC": {
    "src": "parts/flapC.png",
    "pivot": [
-    22.0,
-    6.0
+    30.0,
+    12.0
    ],
    "scale": 2.0
   },
   "flapN": {
    "src": "parts/flapN.png",
    "pivot": [
-    18.0,
-    8.0
+    16.0,
+    2.0
    ],
    "scale": 2.0
   },
@@ -317,6 +325,15 @@
     0.0
    ],
    "part": "hips"
+  },
+  {
+   "name": "belt",
+   "parent": "hips",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "belt"
   },
   {
    "name": "flapN",
@@ -589,11 +606,11 @@
      "part": "thighN",
      "a": [
       40.0,
-      17.0
+      15.0
      ],
      "b": [
       37.0,
-      52.0
+      50.0
      ],
      "w": 1.0
     },
@@ -660,12 +677,12 @@
     "thighImg": {
      "part": "thighF",
      "a": [
-      31.0,
-      17.0
+      39.0,
+      6.0
      ],
      "b": [
-      50.0,
-      69.0
+      58.0,
+      58.0
      ],
      "w": 1.0
     },
@@ -692,6 +709,7 @@
   "hips",
   "flapN",
   "flapC",
+  "belt",
   "armF",
   "foreF",
   "torso",
