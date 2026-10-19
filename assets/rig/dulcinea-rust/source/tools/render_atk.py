@@ -5,14 +5,15 @@ import sys, time, socket, subprocess, base64, io, os, json
 from playwright.sync_api import sync_playwright
 from PIL import Image, ImageDraw
 import numpy as np
-HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(HERE, '..'); root = os.path.abspath(os.path.join(SRC, '..', '..'))
+HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(HERE, '..'); root = os.environ.get('ROOT') or os.path.abspath(os.path.join(SRC, '..', '..'))
 out = sys.argv[1]; TS = [float(v) for v in sys.argv[2].split(',')]; FS = [int(v) for v in sys.argv[3].split(',')] if len(sys.argv) > 3 and sys.argv[3] else [0] * len(TS)
 mode = sys.argv[4] if len(sys.argv) > 4 else 'overlay'; SC = float(os.environ.get('SC', '.5'))
 # 시트 칸 맞춤 값(편집기 DUL2_M 공격 8칸과 같음): [폭, 땅 y, 발 x 목록, 리그 배율]
 CAL = [[601, 582, [42.0, 470.0], 1.6], [458, 817, [51.0, 447.0], 1.6], [537, 720, [122.0, 526.0], 1.6], [571, 738, [62.0, 517.0], 1.6], [638, 590, [28.0, 471.0], 1.6], [606, 468, [10.0, 583.0], 1.6], [588, 445, [10.0, 572.0], 1.6], [568, 546, [64.0, 476.0], 1.6]]
+ACT = open(os.environ['ACT']).read() if os.environ.get('ACT') else '{}'
 ID = 'dulcinea-rust'; CW, CH, GX, GY = 900, 1000, 430, 930
 html = f'''<!doctype html><meta charset=utf-8><script src="rig.js?x={time.time()}"></script><script src="{ID}/rig.def.js?x={time.time()}"></script><script>
-(async()=>{{const def=JSON.parse(JSON.stringify(MR_RIG_DEFS['{ID}']));def.hidden=(def.hidden||[]).concat({json.dumps(os.environ.get('HIDE','').split(',') if os.environ.get('HIDE') else [])});const ims=await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((r,j)=>{{const im=new Image();im.onload=()=>r([k,im]);im.onerror=()=>j(p.src);im.src='{ID}/'+p.src+'?x={time.time()}'}})));
+(async()=>{{const def=JSON.parse(JSON.stringify(MR_RIG_DEFS['{ID}']));Object.assign(def.actions.smash,{ACT});def.hidden=(def.hidden||[]).concat({json.dumps(os.environ.get('HIDE','').split(',') if os.environ.get('HIDE') else [])});const ims=await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise((r,j)=>{{const im=new Image();im.onload=()=>r([k,im]);im.onerror=()=>j(p.src);im.src='{ID}/'+p.src+'?x={time.time()}'}})));
 const IM=Object.fromEntries(ims);
 window.at=(T,sc)=>{{const rig=new CharacterRig(def,IM),an=new RunAnimator(rig,{{runSpeed:620}});const HB={json.dumps(os.environ.get('HIDE','').split(',') if os.environ.get('HIDE') else [])};for(let i=0;i<60;i++)an.update(1/120,{{vx:0}});an.attack('smash');let n=0;
  while(an.act&&an.act.t<T-1e-6&&n<4000){{an.update(1/240,{{vx:0}});n++}}

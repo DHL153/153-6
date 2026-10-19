@@ -899,6 +899,7 @@
       const wristArm = (bone, pn, s, tw, S, uPn, side) => { const p = P[pn], Wp = fore(bone, pn, s, tw), fo = P[p.fore], kf = fo.scale || 1, wmF = b[bone].wm, pu = P[uPn];
         const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), L2 = Math.hypot(fo.elbow[0] - fo.pivot[0], fo.elbow[1] - fo.pivot[1]) * kf, d0 = p.foreDir;
         const E0 = [Wp[0] + (wmF[0] * d0[0] + wmF[2] * d0[1]) * L2, Wp[1] + (wmF[1] * d0[0] + wmF[3] * d0[1]) * L2], dx = Wp[0] - S[0], dy = Wp[1] - S[1], d = Math.hypot(dx, dy) || 1e-6, base = Math.atan2(dy, dx);
+        this["gap" + side] = d > L1 + L2 ? d - L1 - L2 : 0;   // (검수용) 손목이 팔 길이 밖 — 팔꿈치가 벌어짐
         let E; if (d >= L1 + L2) E = [S[0] + dx / d * L1, S[1] + dy / d * L1];
         else { const dd = Math.max(d, Math.abs(L1 - L2) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - L2 * L2) / (2 * L1 * dd), -1, 1)), sd = ikSd(side);
           const e1 = [S[0] + Math.cos(base - al) * L1, S[1] + Math.sin(base - al) * L1], e2 = [S[0] + Math.cos(base + al) * L1, S[1] + Math.sin(base + al) * L1];
@@ -922,6 +923,25 @@
       if (reach > .985) {   // 먼 손도 칼에 붙음
         const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper);
         const EF = ikArm("armL", fP, tr("sF") || SG.far.sPref || 0, tr("fTw"), SF, fU, "F"); this.stF = upper("armU", fU, SF, EF); b.pauldron.ar = 0;
+      } else if (reach > 0 && D.reachW && P[step("fPiece", SG.far.pieces[0])].fore) {   // (opt-in, 2 러스트 둘시네 10-19 'DHL 14:24 팔이 꼬임·늘어남 — 원래 팔이 움직이게'):
+        //   잡기·놓기도 손목 마디 팔(주먹 조각·팔뚝 조각·윗팔, 원화 길이 고정): 주먹은 흔들던 원화 자리·각도 → 자루 쥔 자리·각도로(reach), 팔뚝·윗팔은 어깨→손목 2관절 IK.
+        //   주먹·팔뚝 조각은 원화 팔(armL) 그림과 같은 틀 → reach 0 = 원화 그대로, reach 1 = rigid 쥐기와 같은 자리(튐 없음)
+        const fP = step("fPiece", SG.far.pieces[0]), fU = step("fUpper", SG.far.upper), p = P[fP], k = p.scale || 1, fo = P[p.fore], kf = fo.scale || 1, pu = P[fU];
+        const pl = P[b.armL.part], kL = pl.scale || 1, Mf = b.armL.m, rhoFK = Math.atan2(Mf[1], Mf[0]);
+        const F0 = apply(Mf, (p.grip[0] - pl.pivot[0]) * kL, (p.grip[1] - pl.pivot[1]) * kL), sF = tr("sF") || SG.far.sPref || 0, Gf = [G[0] + U[0] * sF, G[1] + U[1] * sF];
+        const e = smooth(0, 1, reach), rho = rhoFK + wrapA(ang(U) - ang(p.shaftDir) - rhoFK) * e, Tg = [lerp(F0[0], Gf[0], e), lerp(F0[1], Gf[1], e)];
+        const c = Math.cos(rho), s_ = Math.sin(rho), dx = (p.grip[0] - p.pivot[0]) * k, dy = (p.grip[1] - p.pivot[1]) * k, X = [Tg[0] - (c * dx - s_ * dy), Tg[1] - (s_ * dx + c * dy)];
+        rig.swap.armL = fP === b.armL.part ? null : fP; b.armL.wm = [c, s_, -s_, c, X[0], X[1]];
+        const ex = (p.elbow[0] - p.pivot[0]) * k, ey = (p.elbow[1] - p.pivot[1]) * k, Wp = [X[0] + c * ex - s_ * ey, X[1] + s_ * ex + c * ey];
+        const L1 = Math.hypot(pu.elbow[0] - pu.pivot[0], pu.elbow[1] - pu.pivot[1]) * (pu.scale || 1), L2 = Math.hypot(fo.elbow[0] - fo.pivot[0], fo.elbow[1] - fo.pivot[1]) * kf, d0 = p.foreDir;
+        const E0 = [Wp[0] + (c * d0[0] - s_ * d0[1]) * L2, Wp[1] + (s_ * d0[0] + c * d0[1]) * L2], ddx = Wp[0] - SF[0], ddy = Wp[1] - SF[1], d = Math.hypot(ddx, ddy) || 1e-6, base = Math.atan2(ddy, ddx);
+        let E; if (d >= L1 + L2) E = [SF[0] + ddx / d * L1, SF[1] + ddy / d * L1];
+        else { const dd = Math.max(d, Math.abs(L1 - L2) + 1e-3), al = Math.acos(clamp((L1 * L1 + dd * dd - L2 * L2) / (2 * L1 * dd), -1, 1)), sd = ikSd("F");
+          const e1 = [SF[0] + Math.cos(base - al) * L1, SF[1] + Math.sin(base - al) * L1], e2 = [SF[0] + Math.cos(base + al) * L1, SF[1] + Math.sin(base + al) * L1];
+          E = sd ? (sd > 0 ? e2 : e1) : (Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2) }
+        const aE = Math.atan2(E[1] - Wp[1], E[0] - Wp[0]), r2 = aE - Math.atan2(fo.elbow[1] - fo.pivot[1], fo.elbow[0] - fo.pivot[0]), c2 = Math.cos(r2), s2 = Math.sin(r2);
+        rig.swap[p.foreBone] = p.fore === b[p.foreBone].part ? null : p.fore; b[p.foreBone].wm = [c2, s2, -s2, c2, Wp[0], Wp[1]]; rig.alpha[p.foreBone] = 1;
+        this.wrF = wrapA(aE - Math.atan2(E0[1] - Wp[1], E0[0] - Wp[0])); this.stF = upper("armU", fU, SF, E); this.gapF = d > L1 + L2 ? d - L1 - L2 : 0; b.pauldron.ar = 0;
       } else if (reach > 0 && D.reachIK) {   // (opt-in, 21 알론소) 먼 손 잡기·놓기 = 두 관절 IK: 윗팔(어깨→팔꿈치) + 쥔 팔 조각(팔꿈치→주먹)을 진짜 관절처럼 — 손이 막대처럼 미끄러지지 않음.
         //  시작(reach≈0)은 흔들던 팔뚝 방향 그대로, 끝(reach=1)은 칼에 붙은 rigid 자리와 같음(팔 길이 1.0이면 IK 팔꿈치 = rigid 팔꿈치)
         const pl = P[b.armL.part], fc = pl.fist || pl.pivot, kL = pl.scale, fv = [(fc[0] - pl.pivot[0]) * kL, (fc[1] - pl.pivot[1]) * kL];

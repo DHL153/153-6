@@ -113,9 +113,13 @@ for n in DRAW_ART:
 _pm = dil(own['head'], 12) & ~own['head'] & mk['hairArea'] | (dil(own['pony'], 2) & own['head'] & ~ero(own['head'], 12))
 _reg = (dil(own['pony'], 14) & (own['head'] | own['torso'] | own['pauldron'])) & ~own['pony'] & mk['hairArea']
 ART['pony'] = inpaint_into(ART['pony'], _reg & ~(ART['pony'][..., 3] > 200), own['pony'] & (RA[..., 3] > 200))
+_reg = dil(own['pony'], 24) & ero((own['pauldron'] | own['armU']) & (RA[..., 3] > 250), 2) & (yy < 264) & ~own['pony'] & ~(ART['pony'][..., 3] > 200)   # 가까운 어깨갑 위쪽 밑 머리카락(내려찍기에서 어깨가 앞으로 가면 드러나는 흰 틈, 10-19) — 재킷 위 끝(y 264) 위만
+ART['pony'] = outline_cut(inpaint_into(ART['pony'], _reg, own['pony'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
 # 몸통: 팔·어깨 보호대·머리(턱) 밑 메움 — 달릴 때 팔이 흔들리면 드러남
 _reg = ((mk['torso'] | mk['fillTorso']) & (own['armU'] | own['pauldron'] | own['armL'] | own['foreF'] | own['fistF'] | (own['head'] & dil(own['torso'], 8)))) & ~(ART['torso'][..., 3] > 200)   # 먼 팔뚝·주먹 밑도(내려찍기에서 먼 팔이 움직임)
 ART['torso'] = outline_cut(inpaint_into(ART['torso'], _reg, own['torso'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
+_aa = dil(_reg, 2) & ~ero(ART['torso'][..., 3] > 128, 1); _sm = cv2.GaussianBlur(ART['torso'][..., 3].astype(np.float32), (0, 0), .9)   # 메운 곳 바깥 경계 계단(2배 확대에서 톱니) → 알파만 살짝 부드럽게
+ART['torso'][..., 3][_aa] = np.minimum(ART['torso'][..., 3][_aa], _sm[_aa].astype(np.uint8))
 # 허리띠: 주먹·자루 밑 메움 / 반바지: 천자락 밑(천자락 3px 겹침까지 반바지 색으로 — 천자락이 흔들려도 천 색 테두리가 안 남게)·주먹·자루 밑
 _hv = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV); _shorts = own['hips'] & (RA[..., 3] > 200) & (_hv[..., 2] > 45) & (_hv[..., 2] < 95) & (_hv[..., 1] < 110) & ~dil(~AL, 2)
 _beltSrc = own['belt'] & (RA[..., 3] > 200) & ~dil(~AL, 2)
@@ -132,6 +136,9 @@ _sh = cv2.warpAffine(ART['belt'], np.float32([[1, 0, 24], [0, 1, 2.9]]), (512, 5
 ART['belt'][_fb] = _sh[_fb]; ART['belt'][..., 3][_fb] = np.maximum(ART['belt'][..., 3][_fb], 0)
 _fbm = (ART['belt'][..., 3] > 128) & (FAR_SIDE & _band) & (xx <= 286); ART['belt'][..., 3][FAR_SIDE & _band & ~_fbm] = 0
 ART['belt'] = outline_cut(ART['belt'], FAR_SIDE & _band & (xx >= 285))
+# 허리띠 위 배 띠(상체 밑): 상체가 숙여지면(내려찍기 lean 0.3) 상체 아래 끝과 허리띠 사이가 벌어짐 → 허리띠 그림에 상체 아래 끝 16px 를 깔아 둠(상체 뒤라 대기에선 안 보임)
+_bt = np.interp(xx, [q[0] for q in BELT_TOP], [q[1] for q in BELT_TOP]); _ub = (yy >= _bt - 16) & (yy <= _bt + 2) & (ART['torso'][..., 3] > 200) & ~(ART['belt'][..., 3] > 200) & (cv2.cvtColor(np.ascontiguousarray(ART['torso'][..., :3]), cv2.COLOR_RGB2HSV)[..., 2] > 70) & (xx >= 150) & (xx <= 300)   # 외곽선(어두운 색)은 빼고 허리띠 폭 안만
+ART['belt'][_ub] = ART['torso'][_ub]; ART['belt'][..., 3][_ub] = 255
 _ft = FAR_SIDE & (yy < _btop + 8) & (yy > 286) & ~(ART['torso'][..., 3] > 200)   # 허리띠 밑으로 8px 겹침(상체가 기울어도 틈 없음)
 _skin0 = (lambda h: (h[..., 0] >= 5) & (h[..., 0] <= 25) & (h[..., 1] > 80) & (h[..., 2] > 140))(cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV)) & (RA[..., 3] > 200) & (yy > 292) & (yy < 312) & (xx > 200) & (xx < 262)
 # → 따로 조각 sideF(공격 그리는 순서에만 — 대기에선 먼 팔뚝이 이 자리 위에 있어 원화 그대로)
