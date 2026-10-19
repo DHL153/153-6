@@ -115,12 +115,12 @@ _nv = lab('upperN') & (np.abs(RA[..., :3].astype(int) - NAVY).max(-1) < 60)   # 
 def arm_piece(nm, top, bot, SH, EL):   # 시트 2 윗팔 조각을 늘이지 않고(배율 1) 아래 둥근 끝 가운데 = 팔꿈치, 위쪽 = 어깨 방향으로 놓음 (10-20 DHL '늘어나는 것 없이 보이는 리소스로')
     a0, a1 = np.array(bot, float), np.array(top, float); u = (np.array(SH, float) - np.array(EL, float)); u /= np.linalg.norm(u)
     return warp(desp(np.array(Image.open(os.path.join(PC, f'p2_{nm}.png')).convert('RGBA'))), simil(a0, a1, EL, np.array(EL, float) + u * np.linalg.norm(a1 - a0)))
-uw = arm_piece('upperN2', (22, 19), (22, 101), SH_N, EL_N)   # 가까운 윗팔(시트 2 4번): 둥근 끝 사이 82(원화 87) — 위 끝은 큰 어깨갑 밑
+uw = sleeve(SH_N, EL_N + (EL_N - SH_N) / np.linalg.norm(EL_N - SH_N) * 6, 19)   # 가까운 윗팔: 남색 관(임시) — 10-20 08:09 시트 2 는 네온 팔로메 시트였음(DHL) → 스카이 시트 오면 arm_piece 로
 o_aU = save('armU', under(art(_nv | (lab('upperN') & (RA[..., :3].mean(-1) < 45))), uw, lab('pauldron') | lab('foreN') | lab('upperN')))
 # 가까운 팔뚝+주먹(토시 + 쇠 장갑 주먹, 원화 그대로 — 맨 앞)
 o_aL = save('armL', art(lab('foreN')))
 # 먼 윗팔(남색 소매): 원화 보이는 곳 + 앞 조각(몸 어깨판·토시·칼) 밑은 시트 먼 윗팔(어깨 → 팔꿈치), 색 = 원화 먼 소매 × .9
-ufw = arm_piece('upperF2', (26, 19), (26, 108), SH_F, EL_F)   # 먼 윗팔(시트 2 2번): 둥근 끝 사이 89(원화 80, 위 끝은 몸 띠 밑) · 아래 열린 소매 끝은 토시 밑
+ufw = sleeve(SH_F, EL_F + (EL_F - SH_F) / np.linalg.norm(EL_F - SH_F) * 6, 16, NAVY * 0.9)   # 먼 윗팔: 남색 관(임시) — 스카이 시트 오면 arm_piece 로
 # 먼 어깨 덮개(pauldronF 뼈, 몸통에 붙음): 먼 소매 둘레의 몸 그림(가죽 띠·크림 판)을 먼 윗팔 위에 한 번 더 — 대기 = 원화, 팔이 돌면 소매가 띠 밑으로 들어감
 huF = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(huF, cv2.convexHull(np.argwhere(lab('upperF'))[:, ::-1].astype(np.int32)), 1)
 huF = dil(huF > 0, 8)

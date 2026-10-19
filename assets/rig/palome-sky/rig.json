@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "f4b1b907",
+ "version": "487c6b08",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -48,13 +48,13 @@
   "armU": {
    "src": "parts/armU.png",
    "pivot": [
-    82.0,
-    18.0
+    81.0,
+    21.0
    ],
    "scale": 2.0,
    "elbow": [
-    20.0,
-    79.0
+    19.0,
+    82.0
    ]
   },
   "armL": {
@@ -72,13 +72,13 @@
   "armF": {
    "src": "parts/armF.png",
    "pivot": [
-    28.0,
-    27.0
+    10.0,
+    18.0
    ],
    "scale": 2.0,
    "elbow": [
-    90.0,
-    77.0
+    72.0,
+    68.0
    ]
   },
   "foreF": {
