@@ -83,8 +83,9 @@ TORSO_HULL = pmask([[166, 262], [205, 256], [246, 260], [264, 272], [266, 300], 
 _reg = TORSO_HULL & (own['pauldron'] | own['armU'] | own['armL'] | (own['head'] & dil(own['torso'], 8))) & ~(ART['torso'][..., 3] > 200)   # 먼 팔뚝·주먹 자리는 상체 밖(허리 옆) — 메우면 상체 뒤 팔뚝을 덮음(08:43 대기 비교에서 찾음)
 ART['torso'] = outline_cut(inpaint_into(ART['torso'], _reg, own['torso'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg)
 print('  torso fill', int(_reg.sum()))
+ART['torso'] = outline_cut(ART['torso'], own['foreF'] | own['fistF'])   # 먼 팔뚝이 덮던 상체 오른쪽 끝(허리 옆): 팔이 떠나면 외곽선 없는 잘린 면 → 원화 같은 외곽선
 # 골반: 망치 자루 끝·먼 주먹 밑(시트 14칸 오면 그것으로)
-HIPS_HULL = pmask([[158, 316], [258, 316], [266, 350], [262, 366], [214, 366], [204, 358], [150, 362], [152, 330]])
+HIPS_HULL = pmask([[158, 316], [255, 316], [259, 330], [259, 353], [240, 358], [214, 366], [204, 358], [150, 362], [152, 330]])   # 오른쪽 = 반바지 옆 회색 판 끝(x 259) — 넘으면 자루 끝 밑 메움이 반바지 밖으로 삐져 찢긴 모양(08:5x 공격 확대)
 _reg = HIPS_HULL & (own['hammer'] | own['fistF'] | own['armL']) & ~(ART['hips'][..., 3] > 200)
 ART['hips'] = outline_cut(inpaint_into(ART['hips'], _reg, own['hips'] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _reg & dil(~HIPS_HULL, 1))
 print('  hips fill', int(_reg.sum()))
@@ -129,10 +130,12 @@ for sd, n in [('near', 'thighN'), ('far', 'thighF')]:
     _e = np.zeros((512, 512), np.uint8); h, k = LJ[sd]['h'], LJ[sd]['k']; cv2.line(_e, tuple(int(v) for v in h), tuple(int(v) for v in (h + k) / 2), 1, 28)
     _e = _e.astype(bool) & ~(ART[n][..., 3] > 200) & own['hips'] & AL
     ART[n] = inpaint_into(ART[n], _e, own[n] & SKIN)
-# 먼 허벅지·부츠: 망치 자루 끝 밑
-for n in ('thighF', 'bootF'):
-    _hz = dil(own[n], 6) & own['hammer'] & ~(ART[n][..., 3] > 200)
-    if _hz.any(): ART[n] = outline_cut(inpaint_into(ART[n], _hz, own[n] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _hz)
+# 먼 허벅지·무릎 보호대: 자루 끝 마개 밑(08:5x 공격 확대에서 마개가 떠나면 무릎 보호대 위 끝이 외곽선 없이 하얗게 찢겨 보였음)
+#   허벅지 = 마개 밑으로 허벅지 오른쪽 끝 선(x 271~276)까지 살색으로 잇고 외곽선, 무릎 보호대 = 메우지 않고 마개와 붙어 있던 위 끝에 외곽선만
+THF_UNDER = pmask([[255, 357], [262, 357], [273, 366], [276, 373], [255, 376]])   # 위 끝 = 반바지 밑단(y 357), 오른쪽 위는 허벅지 둥근 선
+_hz = THF_UNDER & own['hammer'] & ~(ART['thighF'][..., 3] > 200)
+ART['thighF'] = outline_cut(inpaint_into(ART['thighF'], _hz, own['thighF'] & SKIN), own['hammer'] & ~THF_UNDER)
+ART['bootF'] = outline_cut(ART['bootF'], own['hammer'] | own['thighF'])
 O_ = {n: save_crop(a, n) for n, a in ART.items()}
 
 # ---------------- 서 있는 다리: 원화 부츠를 발목 선에서 정강이·발로 나눔 ----------------
