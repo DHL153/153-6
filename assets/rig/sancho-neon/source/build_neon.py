@@ -36,14 +36,14 @@ def islands(a, name, frac=0.03):
     if rm: print('  islands', name, 'removed', rm, 'areas', sorted(int(v) for v in stt[1:, cv2.CC_STAT_AREA][~keep[1:]])[-5:])
     a = a.copy(); a[..., 3] = np.where(km, a[..., 3], 0); return a
 COVER = np.zeros((512, 512), np.uint8)   # 오린 조각 알파 합(대기 자리) — 원화에 있는데 아무 조각도 안 덮는 틈 찾기
-def save_crop(a, name, sl=0):
-    """a(512×512 RGBA, 원화 좌표) → work/name.png, 반환 = 칸 왼쪽 위(원화 px)"""
-    a = islands(slivers(a, sl) if sl else a, name); COVER[:] = np.maximum(COVER, a[..., 3]); ys, xs = np.nonzero(a[..., 3] > 0)
+def save_crop(a, name, sl=0, keep=False):
+    """a(512×512 RGBA, 원화 좌표) → work/name.png, 반환 = 칸 왼쪽 위(원화 px). keep: 떨어진 작은 덩어리도 둠(위 주먹 옆 흰 반짝임)"""
+    a = (slivers(a, sl) if sl else a) if keep else islands(slivers(a, sl) if sl else a, name); COVER[:] = np.maximum(COVER, a[..., 3]); ys, xs = np.nonzero(a[..., 3] > 0)
     x0, y0 = xs.min() - 2, ys.min() - 2; Image.fromarray(a[y0:ys.max() + 3, x0:xs.max() + 3]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
-def crop(mask, name, grow=0, cut=None, src=None, sl=0):
+def crop(mask, name, grow=0, cut=None, src=None, sl=0, keep=False):
     if grow: mask = dil(mask, grow)
     if cut is not None: mask = mask & ~cut
-    a = (RA if src is None else src).copy(); a[..., 3] = np.where(mask, a[..., 3], 0); return save_crop(a, name, sl)
+    a = (RA if src is None else src).copy(); a[..., 3] = np.where(mask, a[..., 3], 0); return save_crop(a, name, sl, keep)
 def desp(a):
     """자홍 배경 번짐(외곽선이 보라색) 지움: min(R,B) − G 만큼 R·B 를 뺌"""
     a = a.astype(np.int16); m = np.clip(np.minimum(a[..., 0], a[..., 2]) - a[..., 1], 0, None); a[..., 0] -= m; a[..., 2] -= m; return np.clip(a, 0, 255).astype(np.uint8), m
@@ -56,15 +56,15 @@ SH_N, EL_N = P_('SH_N'), P_('EL_N')   # 가까운 팔(엔진 armF→foreF): 어�
 SH_F, EL_F = P_('SH_F'), P_('EL_F')   # 먼 팔(엔진 armU→armL): 어깨(먼 어깨 보호대 안) · 팔꿈치(흰 팔뚝 판 오른쪽 끝, 검은 마디)
 # 칼: 손잡이 축 = 날밑 금고리 → 폼멜 금띠 (원화·시트 같은 점) — 시트 → 원화 닮음(손잡이) MS. 원화 날은 이 축보다 4° 더 기움 → 날은 원화 그림 그대로
 HJ = JT['handle']; RING_A, POM_A = np.array(HJ['collar'], float), np.array(HJ['pommel'], float)
-RING_S, POM_S = np.array([40.0, 275.0]), np.array([40.0, 382.0])     # 시트 칼 그림의 같은 두 점(금고리 가운데 · 폼멜 큰 금띠 가운데)
+RING_S, POM_S = np.array([39.5, 275.6]), np.array([39.1, 382.3])     # 시트 칼 그림의 같은 두 점(금고리 · 폼멜 큰 금띠 금색 무게중심)
 def simil(a0, a1, b0, b1):   # a(시트) → b(원화) 닮음
     va, vb = a1 - a0, b1 - b0; s = np.linalg.norm(vb) / np.linalg.norm(va); th = math.atan2(vb[1], vb[0]) - math.atan2(va[1], va[0])
     R = s * np.array([[math.cos(th), -math.sin(th)], [math.sin(th), math.cos(th)]]); return np.c_[R, b0 - R @ a0]
 MS = simil(RING_S, POM_S, RING_A, POM_A); R2 = MS[:, :2]; SMS = float(np.hypot(*R2[:, 0]))   # 시트 칼 px 당 원화 px (1.05)
-HD = (POM_A - RING_A) / np.linalg.norm(POM_A - RING_A); U = -HD                 # 칼끝 방향(원화) = 칼 그림 위쪽(−v)
+HD = (POM_A - RING_A) / np.linalg.norm(POM_A - RING_A); U = -R2[:, 1] / np.linalg.norm(R2[:, 1])   # 칼끝 방향(원화) = 칼 그림 위쪽(−v) 을 MS 로 옮긴 것 — 원화 두 점 선(HD)과 0.2° 다르면 칼끝에서 1px 어긋났음(엔진은 그림 위쪽을 U 로 돌림)
 on_handle = lambda y: RING_A + HD * ((y - RING_A[1]) / HD[1])
 G_U = on_handle(float(HJ['G_U_y'])); G_L = on_handle(float(HJ['G_L_y']))     # 쥔 점: 위 주먹(가까운 손) · 아래 주먹(먼 손)
-S_LOW = -float(np.linalg.norm(G_L - G_U)) * 2
+S_LOW = -float(np.dot(G_L - G_U, -U)) * 2
 print('  MS scale', round(float(np.hypot(*R2[:, 0])), 4), 'U', np.round(U, 4).tolist(), 'G_U', np.round(G_U, 1).tolist(), 'G_L', np.round(G_L, 1).tolist(), 'S_LOW', round(S_LOW, 1))
 
 # ---------------- 칼 그림 틀: 시트 칼 그림 크기 + 여백(원화 날이 이 틀에서 4° 기울어 칼끝 쪽이 왼쪽으로 18px 나감) ----------------
@@ -91,6 +91,8 @@ for y in range(0, 270):
         if y < gtop(x) + 6: SWM[y, x] = True
 _gh = np.zeros((CH, CW), np.uint8); _gh[262:H0, PX:PX + W0] = (sw0[262:, :, 3] > 90)
 SWM |= cv2.warpAffine(_gh, MW.astype(np.float32), (512, 512), flags=cv2.INTER_NEAREST) > 0
+_yy, _xx = np.mgrid[0:512, 0:512]   # 시트 날밑 오른쪽 위 모서리가 원화 날밑보다 높아 날 오른쪽 머리카락을 칼로 가져갔음 → 날밑 윗선(오른쪽 금 꺾쇠 위 (245,237), 손잡이에 수직) 위 · 날 오른쪽 선 밖은 칼 아님
+SWM &= ~((_yy < 237 - 0.414 * (_xx - 245) - 2) & (_xx > ra_ + rk * _yy + 2))
 SWM &= AL
 SW_TIP_A = np.array(JT['blade']['tip'], float)
 SW_PIV = toImg(G_U); SW_TIP = toImg(SW_TIP_A); SW_POM = toImg(POM_A + HD * 24); SW_GRD = toImg(np.array(BL['guardC'], float))
@@ -109,7 +111,7 @@ A_head = mk['head'] & ~SWin & ~ARMS & AL
 Mh = np.array(GEO['head']['M'], np.float32)
 _sh = cv2.warpAffine(desp(np.array(img(os.path.join(PC, 'head.png'))))[0], Mh, (512, 512), flags=cv2.INTER_LANCZOS4)
 # 칼·주먹 둘레 4px 안에서는 시트 머리 실루엣 밖 원화 점을 뺌 — 칼·주먹 외곽선 부스러기가 머리에 남아 공격 때 귀 왼쪽에 검은 점으로 떴음(10-19 렌더 0.53)
-_near = dil(SWin | ARMS, 4); A_head &= ~(_near & ~(_sh[..., 3] > 64))
+_near = dil(ARMS, 4) | dil(SWin, 2); A_head &= ~(_near & ~(_sh[..., 3] > 64))   # 칼 쪽은 2px 만(더 넓히면 칼날 옆 머리카락 외곽선이 머리에서 빠져 칼 그림에 붙었음)
 HEADA = RA.copy(); HEADA[..., 3] = np.where(A_head, RA[..., 3], 0)
 _fill = (_sh[..., 3] > 128) & (SWin | ARMS | _near) & mk['head'] & ~A_head & dil(RA[..., 3] > 128, 2)
 HEADA[_fill] = _sh[_fill]; HEADA[..., 3][_fill] = 255; print('  head hair fill (behind sword/fist) px', int(_fill.sum()))
@@ -120,7 +122,7 @@ print('  head holes filled px', int(_hole.sum()))
 HEADA = slivers(HEADA, 3)
 _armsIn = ero(mk['nearFore'] | mk['farFore'], 3)
 _others = mk['torso'] | mk['hips'] | ARMS | mk['thighN'] | mk['thighF'] | mk['shinN'] | mk['shinF'] | mk['bootN'] | mk['bootF']
-SW_FRINGE = dil(SWM, 9) & AL & ~_others & ~SWin & ~(HEADA[..., 3] > 128)
+SW_FRINGE = dil(SWM, 9) & AL & ~_others & ~SWin & ~(HEADA[..., 3] > 128) & ~(mk['head'] & ~dil(SWM, 3) & (_sh[..., 3] > 64))   # 머리 다각형 안에선 시트 머리카락 자리면 칼 둘레 3px 까지만(머리카락 외곽선이 칼에 붙어 같이 움직였음)
 SWART = ((SWin & ~_armsIn) | SW_FRINGE | (dil(SWM, 3) & ARMS & ~_armsIn)) & AL
 _ov = dil(HEADA[..., 3] > 128, 3) & SW_FRINGE
 HEADA[..., :3][_ov] = RA[..., :3][_ov]; HEADA[..., 3][_ov] = RA[..., 3][_ov]
@@ -148,7 +150,7 @@ TORSOA[..., :3][_cutE] = (TORSOA[..., :3][_cutE] * (1 - _w) + OUTL * _w).astype(
 print('  torso: inpaint-only px', int(_red.sum()), 'cut-edge outline px', int(_cutE.sum()))
 o_torso = save_crop(TORSOA, 'torsoArt', sl=5)
 o_hips = crop(mk['hips'] & AL, 'hipsArt', sl=3)
-o_nUp = crop(A_nearUp, 'nUpArt'); o_nF = crop(A_nearFore, 'nForeArt'); o_fF = crop(A_farFore, 'fForeArt'); o_fUp = crop(A_farUp, 'fUpArt'); o_pd = crop(A_pd, 'pauldronArt')
+o_nUp = crop(A_nearUp, 'nUpArt'); o_nF = crop(A_nearFore, 'nForeArt', keep=True); o_fF = crop(A_farFore, 'fForeArt'); o_fUp = crop(A_farUp, 'fUpArt'); o_pd = crop(A_pd, 'pauldronArt')
 o_lg = {n: crop(mk[n] & AL, n + 'Art') for n in ['thighN', 'thighF', 'shinN', 'shinF', 'bootN', 'bootF']}
 # ---------------- 칼 그림 최종: 원화 칼(보이는 곳) + 시트 손잡이(주먹에 가린 곳) — 2배 해상도 ----------------
 K2 = 2; M2 = MW.copy(); M2[:, :2] = MW[:, :2] / K2
