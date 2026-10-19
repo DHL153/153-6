@@ -2,7 +2,7 @@
 #   새 원화는 러스트 둘시네와 같은 자세·크기(프롬프트 0 합격선) → 러스트 원화 부품 칸(refs/rust_labels.npz, build_dulcinea 의 own)을 깎아 씨앗으로,
 #   경계 띠는 새 원화 외곽선(어두운 선)을 따라 나눔. 외곽선은 앞 부품 것(FRONT), 떨어진 섬은 이웃으로.
 #   python3 -I seg12.py [원화.png=ref512.png] [깎는 px=6] → work/labels.npy · review/seg_labels.png · 러스트와 같은 그림이면 일치율도
-#   (10-20 08:00 원화 오기 전 준비 — 러스트 원화로 시험: 자기 칸 깎아 씨앗 → 다시 나눈 결과가 원래 칸과 얼마나 같은지)
+#   (10-20 07:35 원화 오기 전 준비 — 러스트 원화로 시험: 자기 칸 깎아 씨앗 → 다시 나눈 결과가 원래 칸과 얼마나 같은지)
 import os, sys, json
 import numpy as np, cv2
 from PIL import Image

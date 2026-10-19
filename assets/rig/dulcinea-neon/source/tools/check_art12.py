@@ -1,4 +1,4 @@
-# 12 네온 둘시네 새 원화(프롬프트 0 결과) 1차 검수 — 숫자로 볼 수 있는 합격선 + 러스트 둘시네와 겹친 그림 (10-20 07:50 원화 오기 전 준비)
+# 12 네온 둘시네 새 원화(프롬프트 0 결과) 1차 검수 — 숫자로 볼 수 있는 합격선 + 러스트 둘시네와 겹친 그림 (10-20 07:35 원화 오기 전 준비)
 #   python3 -I tools/check_art12.py 새원화.png [이름]  → 표 + review/art_<이름>.png(왼쪽: 새 원화 + 러스트 실루엣 빨강 + 러스트 관절 / 오른쪽: 러스트 다각형(polys.json) 겹침)
 #   사람(Claude)이 그림으로 볼 것: 손가락 4 + 엄지(두 주먹) · 망치 머리 뒤(옆머리가 쇠 머리 모서리 덮음) · 얼굴 안 가림 · 디자인(첨부 1)
 import os, sys, json, math
@@ -18,9 +18,10 @@ edge = int(An[0].sum() + An[-1].sum() + An[:, 0].sum() + An[:, -1].sum()); rows.
 sole = lambda A: int(np.nonzero(A.any(1))[0].max())
 rows.append(('발바닥 높이 = 러스트(485 ±4)', abs(sole(An) - sole(Ar)) <= 4, f'{sole(An)} (러스트 {sole(Ar)})'))
 # 머리 위: 망치·포니테일이 없는 가로 띠(러스트 정수리 오른쪽 x 280~320, 포니테일 매듭 x<270 빼고)에서 가장 위 — 러스트 104
-hair = lambda A: int(np.nonzero(A[:, 280:320].any(1))[0].min())
-hn, hr = hair(An), hair(Ar); kH = (sole(An) - hn) / (sole(Ar) - hr)
-rows.append(('키(정수리~발바닥) = 러스트 ±4%', abs(kH - 1) <= .04, f'{sole(An) - hn} (러스트 {sole(Ar) - hr}, ×{kH:.3f})'))
+# (10-20 07:55 고침) 러스트는 큰 머리숱·포니테일이라 '머리카락 위'로는 몸 크기를 못 견줌 → 러스트 몸 = 머리 위 120(머리숱 빼고, fit12 와 같은 값) ~ 발바닥 485 = 365,
+#   새 원화 = 망치 없는 왼쪽(x<300) 가장 위 ~ 발바닥 (짧은 머리 네온은 머리카락 위 = 머리 위)
+hn = int(np.nonzero(An[:, :300].any(1))[0].min()); kH = (sole(An) - hn) / 365
+rows.append(('몸 크기(머리 위~발바닥) = 러스트 365 ±4%', abs(kH - 1) <= .04, f'{sole(An) - hn} (×{kH:.3f})'))
 # 망치: 오른쪽 위(x ≥ 330, y ≤ 300 — 러스트 원화에선 망치만 있는 곳)의 가장 위·가장 오른쪽
 def hz(A):
     m = A.copy(); m[:, :330] = False; m[300:, :] = False; ys, xs = np.nonzero(m)
@@ -32,8 +33,8 @@ else:
     rows.append(('쇠 머리 오른쪽 끝 = 러스트 ±15', abs(rn - rr) <= 15 and rn < 511, f'x {rn} (러스트 {rr})'))
     rows.append(('쇠 머리 넓이 = 러스트 ±25%', abs(pn / pr - 1) <= .25, f'{pn}px (러스트 {pr}, ×{pn / pr:.2f})'))
 # 실루엣 겹침(러스트 포니테일 자리 x<170 빼고)
-cut = np.zeros_like(An); cut[:, 170:] = True
-iou = float((An & Ar & cut).sum() / max(1, ((An | Ar) & cut).sum())); rows.append(('실루엣 겹침(포니테일 자리 빼고) ≥ 0.75', iou >= .75, f'IoU {iou:.2f}'))
+cut = np.zeros_like(An); cut[250:, :] = True   # (10-20 07:55 고침) 머리·망치 빼고 목 아래 몸만(러스트 머리숱이 합집합을 키움)
+iou = float((An & Ar & cut).sum() / max(1, ((An | Ar) & cut).sum())); rows.append(('몸 실루엣 겹침(y≥250) ≥ 0.75', iou >= .75, f'IoU {iou:.2f}'))
 print(f'== {tag}')
 for n, c, v in rows: print(f'  {ok(c)} {n:34s} {v}')
 # 그림

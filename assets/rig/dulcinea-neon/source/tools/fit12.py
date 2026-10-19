@@ -34,9 +34,24 @@ def proxy(dh, dc):
     r = can.rotate(ang, resample=Image.BICUBIC, center=tuple(Gc)); bb = r.getbbox(); r = r.crop(bb); Gc = Gc - np.array(bb[:2])
     return r, [round(float(Gc[0]), 1), round(float(Gc[1]), 1)], {'top': top * K, 'butt': bot * K, 'tip': tipu * K}
 VARS = {'A': (0, 0), 'B': (120 / K, 50 / K)}
+ART = os.environ.get('ART')   # 새 원화(러스트 자세·러스트 몸 크기)로 돌릴 때: ART=work/art0_v1.png GN=298,316 UN=.6,-.8 (쥔 점·자루 방향 위) — seg12 의 work/labels.npy 필요
+def art_hammer(fn):
+    """새 원화의 망치(쇠 머리 = seg hammer + 머리 칸 중 x≥305·y≤245, 자루 = 축 ±12 띠) → 세운 그림 + 쥔 점·쇠 머리 가운데·마개"""
+    b = np.array(Image.open(fn).convert('RGBA')); Ab = b[..., 3] > 40; lab = np.load(os.path.join(HERE, 'work', 'labels.npy'))
+    Gn = np.array([float(v) for v in os.environ.get('GN', '298,316').split(',')]); Un = np.array([float(v) for v in os.environ.get('UN', '.6,-.8').split(',')]); Un = -Un / np.linalg.norm(Un)  # 축(쇠 머리 → 마개)
+    Nn = np.array([-Un[1], Un[0]]); pu = (xx - Gn[0]) * Un[0] + (yy - Gn[1]) * Un[1]; pn = (xx - Gn[0]) * Nn[0] + (yy - Gn[1]) * Nn[1]
+    Hm = ((lab == 2) | ((lab == 1) & (xx >= 305) & (yy <= 245))) & (pu <= -20); Sm = Ab & (np.abs(pn) <= 12) & (pu > -60) & (pu < 75)
+    m = Hm | Sm; im = np.zeros_like(b); im[m] = b[m]; im = Image.fromarray(im)
+    Kn = 365 / (int(np.nonzero(Ab.any(1))[0].max()) - int(np.nonzero(Ab[:, :300].any(1))[0].min()))
+    top = pu[m].min(); bot = pu[m].max(); tipu = float(pu[Hm].mean())
+    S = 2 * Kn; ang = math.degrees(math.atan2(Un[1], Un[0])) - 90
+    big = im.resize((int(512 * S), int(512 * S)), Image.LANCZOS); pad = 700
+    can = Image.new('RGBA', (big.width + 2 * pad, big.height + 2 * pad), (0, 0, 0, 0)); can.paste(big, (pad, pad)); Gc = Gn * S + pad
+    r = can.rotate(ang, resample=Image.BICUBIC, center=tuple(Gc)); bb = r.getbbox(); r = r.crop(bb); Gc = Gc - np.array(bb[:2])
+    return r, [round(float(Gc[0]), 1), round(float(Gc[1]), 1)], {'top': top * Kn, 'butt': bot * Kn, 'tip': tipu * Kn}
 os.makedirs(os.path.join(OUT, 'px'), exist_ok=True); PARTS = {}
-for k, (dh, dc) in VARS.items():
-    r, pv, inf = proxy(dh, dc); fn = os.path.join(OUT, 'px', f'hammer{k}.png'); r.save(fn)
+for k, (dh, dc) in list(VARS.items()) + ([('N', (0, 0))] if ART else []):
+    r, pv, inf = art_hammer(ART) if k == 'N' else proxy(dh, dc); fn = os.path.join(OUT, 'px', f'hammer{k}.png'); r.save(fn)
     tip = [pv[0], round(pv[1] + inf['tip'] * 2, 1)]; pom = [pv[0], round(pv[1] + inf['butt'] * 2, 1)]
     PARTS[k] = dict(src=f'../px/hammer{k}.png', pivot=pv, scale=1.0, tip=tip, pommel=pom, tips=[[tip[0] - 12, tip[1]], [tip[0] + 12, tip[1]]], shaftDir=[0.0, -1.0])
     print(k, '쥔 점→위 끝 %.0f · →마개 %.0f · →쇠 머리 가운데 %.0f (원화 px, 러스트 몸 크기) — 러스트 225 · 58 · 170' % (-inf['top'], inf['butt'], -inf['tip']))
@@ -71,7 +86,7 @@ try:
         b = p.chromium.launch(executable_path='/opt/pw-browsers/chromium'); pg = b.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.goto(f'http://127.0.0.1:{port}/_fit.html'); pg.wait_for_function('window.ready', timeout=30000)
         print('\n변형  달리기 | 망치 최고(몸 키 배)  그때 t | 컷인 .32/.333 높이 | 타격 .40~.58 가장 낮은 점(리그 px, 땅 0, −=땅 아래)')
-        for v in ['R', 'B', 'A']:
+        for v in (['R', 'B', 'N'] if ART else ['R', 'B', 'A']):
             for vx in [0, 620]:
                 R = pg.evaluate('([v,vx,T,o])=>run(v,vx,T,o)', [v, vx, TS, ['weapon', 'weaponA']])
                 mx = max(R, key=lambda r: r[1]); cut = [r[1] / BH for r in R if abs(r[0] - .3167) < .02 or abs(r[0] - .3333) < .01]
