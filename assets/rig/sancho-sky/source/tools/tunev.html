@@ -1,0 +1,25 @@
+<!doctype html><meta charset=utf-8><body style="margin:0"><canvas id=c></canvas><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 키 맞춤 시험: tunev.html?tune=_tune.json&ts=0.38,0.57  → 프레임마다 1024 칸(투명) + window.R 관절점
+// _tune.json = {action:{키:트랙,...}, grip:[[t,gx,gy,sa,ease],...]}  (attack_keys.json 과 같은 모양, 있는 것만 덮어씀)
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['sancho-sky'],base='../../';
+if(Q.get('tune')){const T=await (await fetch(Q.get('tune')+'?'+Date.now())).json(),A=def.actions.upslash;
+  Object.assign(A,T.action||{});if(T.action&&T.action.fade)A.fade=Object.assign({},A.fade,T.action.fade);
+  if(T.grip){A.gx=T.grip.map(g=>[g[0],g[1],g[4]||'io']);A.gy=T.grip.map(g=>[g[0],g[2],g[4]||'io']);A.sa=T.grip.map(g=>[g[0],g[3],g[4]||'io'])}
+  for(const k of ['stretchMax','shoulderN','shoulderF'])if(T[k]!=null)def.swordGrip[k]=T[k]}
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});
+for(let i=0;i<90;i++)an.update(1/60,{vx:0,facing:1});
+const ts=(Q.get('ts')||'0').split(',').map(Number),c=document.getElementById('c'),CW=+(Q.get('cw')||1024),OX=+(Q.get('ox')||0),OY=+(Q.get('oy')||0);c.width=CW*ts.length;c.height=1100+OY;const g=c.getContext('2d');
+const out=[];let f=0;an.attack('upslash');const r=a=>a.map(v=>Math.round(v));
+ts.forEach((t,k)=>{const tf=Math.round(t*60);while(f<tf){an.update(1/60,{vx:0,facing:1});f++}
+  g.save();g.beginPath();g.rect(CW*k,0,CW,1100+OY);g.clip();rig.draw(g,CW*k+def.refOrigin[0]+OX,def.refOrigin[1]+OY,1,1);g.setTransform(1,0,0,1,0,0);g.restore();
+  const b=rig.by,P=def.parts,pt=(bn,x,y)=>{const m=b[bn].m;return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]};
+  const ppt=(bn,px,py)=>{const p=P[rig.swap[bn]||b[bn].part];return pt(bn,(px-p.pivot[0])*(p.scale||1),(py-p.pivot[1])*(p.scale||1))};
+  const R0=b.root.m,ap=(x,y)=>[R0[0]*x+R0[2]*y+R0[4],R0[1]*x+R0[3]*y+R0[5]],L=rig.legPose||{},H=(s)=>r(apply_(b.hip.m,def.legs.hip[0]+(def.legs[s].hipX??def.legs[s].x),def.legs.hip[1]));
+  function apply_(m,x,y){return [m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]]}
+  out.push({t,pelvis:r(pt('hip',0,0)),neck:r(pt('head',0,0)),hairTop:r(ppt('head',150,20)),chin:r(ppt('head',150,240)),
+    SN:r(pt('armF',0,0)),EN:r(pt('foreF',0,0)),SF:r(pt('armU',0,0)),EF:r(pt('armL',0,0)),grip:r(an.swordG||[0,0]),sa:+(an.swordA||0).toFixed(3),
+    hipN:H('near'),kneeN:r(ap(...L.near.knee)),ankleN:r(ap(...L.near.ankle)),hipF:H('far'),kneeF:r(ap(...L.far.knee)),ankleF:r(ap(...L.far.ankle)),hipDrop:+(an.hipDrop||0).toFixed(1),legRun:+(an.legRunV||0).toFixed(2),stN:+(an.stN||0).toFixed(3),stF:+(an.stF||0).toFixed(3),wrN:+(an.wrN||0).toFixed(3),wrF:+(an.wrF||0).toFixed(3),torsoA:+Math.atan2(b.torso.m[1],b.torso.m[0]).toFixed(3),tip:r(ppt('weapon',P.weapon.tip[0],P.weapon.tip[1])),gnd:r(apply_(b.root.m,0,0)),kB:+(an.bladeK??1).toFixed(3),saK:+(an.swordA||0).toFixed(3),tw:an.twistV||0,swT:rig.swap.torso||'',ENe:(()=>{const p=P[rig.swap.armF||b.armF.part];return p&&p.elbow?r(ppt('armF',p.elbow[0],p.elbow[1])):null})(),EFe:(()=>{const p=P[rig.swap.armU||b.armU.part];return p&&p.elbow?r(ppt('armU',p.elbow[0],p.elbow[1])):null})()})});
+window.R=out;document.title='done'})().catch(e=>{document.title='ERR '+e.stack});
+</script>
