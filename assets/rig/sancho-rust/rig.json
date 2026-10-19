@@ -1,6 +1,6 @@
 {
  "name": "sancho-rust",
- "version": "3136c14e",
+ "version": "a3db11bd",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   558.0,
@@ -420,6 +420,18 @@
     0.0,
     1.0
    ]
+  },
+  "torsoTw": {
+   "src": "parts/torsoTw.png",
+   "pivot": [
+    55.0,
+    105.0
+   ],
+   "scale": 2.0,
+   "mesh": {
+    "cols": 12,
+    "rows": 10
+   }
   }
  },
  "bones": [
@@ -1940,5 +1952,14 @@
    ]
   }
  },
- "cutHold": 0.5
+ "cutHold": 0.5,
+ "torsoTwist": {
+  "bone": "torso",
+  "part": "torsoTw",
+  "sx": -108.0,
+  "sy": -158.0,
+  "ax": 106,
+  "by": -10,
+  "p": 1
+ }
 }

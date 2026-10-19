@@ -51,3 +51,7 @@ if ATK.get('weaponFront'):   # 칼 앞 사본(weaponF·weaponHF): 올려베기·
 rig['actions'] = {'upslash': act}
 rig['ui']['attack'] = 'upslash'
 rig['cutHold'] = ATK.get('cutHold', .5)
+if ATK.get('torsoTwist'):   # (DHL 10-19 09:32 '어깨가 있어야 할 자리에') 가까운 어깨를 shFx 만큼 앞으로 옮길 때 상체 그림의 가까운 어깨 쪽도 같이 옮김 — 몸을 튼 것처럼(엔진 torsoTwist, 메시 상체 torsoTw = 같은 그림, shFx 0 이면 원래 상체 그대로)
+    shutil.copy(os.path.join(OUT, 'parts', 'torso.png'), os.path.join(OUT, 'parts', 'torsoTw.png'))
+    def_parts['torsoTw'] = dict(def_parts['torso'], src='parts/torsoTw.png', mesh={'cols': 12, 'rows': 10})
+    _TT = ATK['torsoTwist']; rig['torsoTwist'] = dict(bone='torso', part='torsoTw', sx=round(float(SH_N[0] - HIP[0]) * 2, 1), sy=round(float(SH_N[1] - HIP[1]) * 2, 1), ax=_TT['ax'], by=_TT['by'], p=_TT.get('p', 1))

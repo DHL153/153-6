@@ -845,6 +845,10 @@
         if (kF) { b.armF.ax += SF_[0] * kF; b.armF.ay += SF_[1] * kF }
         if (D.shNx || D.shNy) { const ox = tr("shNx"), oy = tr("shNy"), pf = SG.pauldronFollow ?? 1; b.armU.ax += ox; b.armU.ay += oy; b.pauldron.ax += ox * pf; b.pauldron.ay += oy * pf }   // shNx·shNy·shFx·shFy(opt-in 동작 트랙, 11 네온 알론소 머리 위): 어깨를 상체 기준 좌표로 직접 옮김 — 팔을 머리 위로 들면 어깨가 올라감(시트 그림의 어깨 자리)
         if (D.shFx || D.shFy) { b.armF.ax += tr("shFx"); b.armF.ay += tr("shFy") } }
+      // torsoTwist(opt-in, 3 러스트 산초 올려베기 10-19 'DHL 09:32 어깨가 있어야 할 자리에'): 가까운 어깨를 shFx 만큼 앞으로 옮길 때 상체 그림의 가까운 어깨 쪽도
+      //   같이 옮김(메시) — 몸을 튼 것처럼 어깨 자리 = 팔 뿌리. {bone, part: 메시 상체(같은 그림, part.mesh), sx·sy: 가까운 어깨(상체 기준), ax: 안 움직이는 먼 쪽 x, by: 안 움직이는 허리 y}
+      { const TT = rig.def.torsoTwist; if (TT && b[TT.bone]) { const tw = D.shFx ? tr("shFx") : 0; this.twistV = tw;
+        rig.meshFx[TT.part] = (u, v, x, y) => { const wx = clamp((TT.ax - x) / (TT.ax - TT.sx), 0, 1), wy = clamp((TT.by - y) / (TT.by - TT.sy), 0, 1); return [tw * wx * Math.pow(wy, TT.p ?? 1), 0] } } }
       rig.compute();
       const Wm = b.weapon.m, G0 = [Wm[4], Wm[5]], a0 = Math.atan2(-Wm[3], -Wm[2]);
       const SN = apply(b.armF.m, 0, 0), SF = apply(b.armU.m, 0, 0);
@@ -880,7 +884,8 @@
         let M = mul(R(rot + phi), [st, 0, 0, 1, 0, 0]); M = mul(M, R(-phi)); M[4] = S[0]; M[5] = S[1];
         rig.swap[bone] = pn === b[bone].part ? null : pn; b[bone].wm = M; return st };
       { const tp = step("tPiece", null); rig.swap.torso = tp && tp !== b.torso.part ? tp : null;
-        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
+        const hd = rig.swap.torso && P[rig.swap.torso].hides; if (hd) for (const h of hd) rig.alpha[h] = 0 }
+      { const TT = rig.def.torsoTwist; if (TT && b[TT.bone] && !rig.swap[TT.bone] && Math.abs(this.twistV || 0) > .5) rig.swap[TT.bone] = TT.part }   // torsoTwist: 메시 상체로 (tPiece 바꾸기가 없을 때만)   // 바꾼 상체 그림에 이미 그려진 조각(주머니 등)은 숨김   // 튼 상체(준비 자세) 등 상체 그림 바꾸기 — 구간 고정
       if (D.fade) { this._fadeN = Object.keys(D.fade); for (const n of this._fadeN) rig.alpha[n] = clamp(track(D.fade[n], at), 0, 1) }   // (opt-in, 21 알론소) 조각 투명도 키: 팔을 머리 위로 올린 동안 어깨갑 숨김(원화 시트 머리 위 자세에 어깨갑 없음)
       // (opt-in 동작 트랙 armIK 0~1, 11 네온 알론소 10-18 DHL '고무줄처럼 늘어나지 말고 같은 길이의 팔이 내려치고 다시 올라가게'):
       //   주먹(쥔 팔 조각의 손잡이 점)은 칼에 붙은 채, 윗팔 길이(그림 길이)·팔뚝 길이(조각의 손잡이→팔꿈치)를 고정한 두 관절 IK —
