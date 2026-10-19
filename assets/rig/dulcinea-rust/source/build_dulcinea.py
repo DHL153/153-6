@@ -68,7 +68,7 @@ _skz = SKINC & (_old['flapN'] | _old['flapC'] | _old['hips']) & ~ABOVE_BELT   # 
 _skz = _skz | ((_old['flapN'] | _old['flapC']) & ~ABOVE_BELT & ~mk['flapN'] & ~mk['flapC'] & ~mk['hips'])   # 천자락 다각형의 나머지(허벅지 외곽선 등)도 그 다리로 — 가장 가까운 칸(주먹·부츠)으로 가지 않게
 mk['thighN'] = mk['thighN'] | (_skz & (xx < 220)); mk['thighF'] = mk['thighF'] | (_skz & (xx >= 220))
 print('  flap px', {n: int(mk[n].sum()) for n in ('flapN', 'flapC')}, 'belt', int(mk['belt'].sum()), 'skin→thigh', int(_skz.sum()))
-PRIO = ['armL', 'pauldron', 'armU', 'fistF', 'hammer', 'head', 'torso', 'foreF', 'belt', 'flapC', 'flapN', 'hips', 'thighN', 'bootN', 'thighF', 'bootF', 'pony']
+PRIO = ['armL', 'pauldron', 'armU', 'fistF', 'head', 'hammer', 'torso', 'foreF', 'belt', 'flapC', 'flapN', 'hips', 'thighN', 'bootN', 'thighF', 'bootF', 'pony']
 mk['pony'] = mk['hairArea']
 LAB = np.full((512, 512), -1, np.int16)
 for i, n in enumerate(PRIO):
@@ -89,8 +89,18 @@ print('  labels ->', os.path.join(W, '_labels.png'))
 if '--labels' in sys.argv: sys.exit(0)
 
 # ---------------- 조각 오리기: 주인 칸 + 앞 조각 밑 3px 겹침(이음매 없게) + 가려진 곳 메우기 ----------------
-DRAW_ART = ['pony', 'armF', 'thighF', 'bootF', 'thighN', 'bootN', 'hips', 'flapN', 'flapC', 'belt', 'foreF', 'torso', 'head', 'hammer', 'fistF', 'armU', 'pauldron', 'armL']
+DRAW_ART = ['pony', 'armF', 'thighF', 'bootF', 'thighN', 'bootN', 'hips', 'flapN', 'flapC', 'belt', 'foreF', 'torso', 'hammer', 'head', 'fistF', 'armU', 'pauldron', 'armL']
 own = {n: (LAB == PRIO.index(n)) & AL for n in PRIO}
+# (10-20 06:00 망치 = 머리 뒤, DHL 05:54) 흰 앞머리 오른쪽 외곽선이 망치 칸에 들어가 있음(원화에선 앞머리가 망치 위) → 머리로:
+#   망치 칸 중 머리에 붙은 떨어진 조각(초승달) + 머리 4px 안 어두운 선(앞머리 ↔ 쇠 머리 경계선)
+_hc_n, _hc_l, _hc_s, _ = cv2.connectedComponentsWithStats((own['hammer'] & (RA[..., 3] > 10)).astype(np.uint8), 8)
+_hc_big = 1 + int(np.argmax(_hc_s[1:, cv2.CC_STAT_AREA])); _near_head = dil(own['head'], 2)
+_to_head = np.zeros((512, 512), bool)
+for _i in range(1, _hc_n):
+    if _i != _hc_big and (_near_head & (_hc_l == _i)).any(): _to_head |= _hc_l == _i
+_to_head |= own['hammer'] & dil(own['head'], 4) & (RA[..., :3].max(2) < 70)
+own['head'] = own['head'] | _to_head; own['hammer'] = own['hammer'] & ~_to_head
+print('  앞머리 외곽선 망치 → 머리 px', int(_to_head.sum()))
 COVER = np.zeros((512, 512), np.uint8)
 def above(n):   # n 보다 앞(뒤에 그림)에 그리는 조각들의 칸
     i = DRAW_ART.index(n); return np.logical_or.reduce([own[m] for m in DRAW_ART[i + 1:] if m in own] + [np.zeros((512, 512), bool)])
@@ -111,6 +121,7 @@ for n in DRAW_ART:
     if n == 'armF': continue
     _ab = dil(own[n], 3) & above(n) & AL
     if n in ('torso', 'hips', 'flapN', 'flapC', 'belt', 'thighN', 'thighF'): _ab &= ~(own['armL'] | own['armU'] | own['foreF'] | own['fistF'] | own['hammer'])   # 움직이는 팔·주먹·망치 밑 겹침은 안 가져옴(외곽선 조각이 떠 보임) — 그 밑은 메우기로   # 흔드는 팔 밑 겹침에 팔 외곽선(검은 줄)은 안 가져옴 — 팔이 움직이면 줄이 떠 보였음
+    if n == 'hammer': _ab &= ~own['head']   # (10-20 06:00 망치 = 머리 뒤) 머리 밑 겹침은 머리카락이라 안 가져옴 — 머리 밑 쇠 머리 모서리는 _fix_hammer 가 메움
     m = own[n] | _ab
     a = RA.copy(); a[..., 3] = np.where(m, RA[..., 3], 0); ART[n] = a; COVER[:] = np.maximum(COVER, np.where(own[n], RA[..., 3], 0))
 # 포니테일: 머리 밑(머리카락 띠 12px) 메움 — 머리가 숨 쉬고 끄덕여도 틈 없게
@@ -246,7 +257,7 @@ def _fix_hammer(path):
     Image.fromarray(a).save(path)
 import shutil as _sh; _sh.copy(os.path.join(W, 'hammerUp.png'), os.path.join(W, 'hammerUpA.png')); _fix_hammer(os.path.join(W, 'hammerUpA.png'))   # 대기 망치는 원화 그대로(흰 앞머리가 홈에 들어감), 공격 중(weaponA, 맨 앞)만 고친 망치
 _WP = [round(float(_pv[0]), 1), round(float(_pv[1]), 1)]; _up = lambda d: [_WP[0], round(_WP[1] - d * 2, 1)]
-part('weapon', os.path.join(W, 'hammerUp.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
+part('weapon', os.path.join(W, 'hammerUpA.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
 part('weaponA', os.path.join(W, 'hammerUpA.png'), _WP, scale=1.0, tip=_up(170), pommel=_up(-58), tips=[[_WP[0] - 12, round(_WP[1] - 340, 1)], [_WP[0] + 12, round(_WP[1] - 340, 1)]], shaftDir=[0.0, -1.0])
 for n in ['thighN', 'thighF']: part(n, A(n), [0, 0], scale=1.0)
 for n in ['bootN', 'bootF']: part(n + 'Shin', os.path.join(W, n + 'Shin.png'), [0, 0], scale=1.0)
@@ -342,7 +353,7 @@ FACES = {n: 'face_' + n for n in FACE_N if n != 'neutral'}; FACES['grimace'] = '
 exec(open(os.path.join(HERE, 'attack', os.environ.get('SMASH_FILE', 'smash_one.py'))).read())
 
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
-draw = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'torso', 'head', 'weapon', 'fistF', 'armU', 'pauldron', 'armL']
+draw = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'torso', 'weapon', 'head', 'fistF', 'armU', 'pauldron', 'armL']
 _top = int(np.nonzero((own['head'] | own['pony']).any(1))[0].min())
 rig = {'name': 'dulcinea-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},

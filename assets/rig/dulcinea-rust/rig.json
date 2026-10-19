@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "15045741",
+ "version": "0572be03",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -128,25 +128,25 @@
   "weapon": {
    "src": "parts/weapon.png",
    "pivot": [
-    193.6,
+    188.6,
     450.5
    ],
    "scale": 1.0,
    "tip": [
-    193.6,
+    188.6,
     110.5
    ],
    "pommel": [
-    193.6,
+    188.6,
     566.5
    ],
    "tips": [
     [
-     181.6,
+     176.6,
      110.5
     ],
     [
-     205.6,
+     200.6,
      110.5
     ]
    ],
@@ -158,25 +158,25 @@
   "weaponA": {
    "src": "parts/weaponA.png",
    "pivot": [
-    193.6,
+    188.6,
     450.5
    ],
    "scale": 1.0,
    "tip": [
-    193.6,
+    188.6,
     110.5
    ],
    "pommel": [
-    193.6,
+    188.6,
     566.5
    ],
    "tips": [
     [
-     181.6,
+     176.6,
      110.5
     ],
     [
-     205.6,
+     200.6,
      110.5
     ]
    ],
@@ -905,8 +905,8 @@
   "armF",
   "foreF",
   "torso",
-  "head",
   "weapon",
+  "head",
   "fistF",
   "armU",
   "pauldron",
@@ -1779,9 +1779,9 @@
   "armF",
   "foreFf",
   "torso",
-  "head",
   "weapon",
   "weaponA",
+  "head",
   "foreF",
   "armU",
   "pauldron",
@@ -1797,10 +1797,10 @@
   "belt",
   "armF",
   "torso",
-  "head",
-  "foreFf",
   "weapon",
   "weaponA",
+  "head",
+  "foreFf",
   "foreF",
   "armU",
   "pauldron",
@@ -1816,10 +1816,10 @@
   "belt",
   "armF",
   "torso",
-  "foreFf",
-  "head",
   "weapon",
   "weaponA",
+  "foreFf",
+  "head",
   "foreF",
   "armU",
   "pauldron",
@@ -1835,9 +1835,9 @@
   "belt",
   "armF",
   "torso",
-  "head",
   "weapon",
   "weaponA",
+  "head",
   "foreFf",
   "foreF",
   "armU",

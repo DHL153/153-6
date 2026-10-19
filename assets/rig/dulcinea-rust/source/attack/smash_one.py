@@ -110,10 +110,10 @@ smash = {
 _ov = os.environ.get('SMASH_KEYS')   # 맞추기용: 키 덮어쓰기 JSON
 if _ov: smash.update(json.load(open(_ov)))
 # sideF(재킷 오른쪽 자락을 20px 늘인 조각)는 먼 팔이 올라가면 몸 옆에 네모 덩어리로 떠 보여서(10-19 15:20) 공격 순서에서 뺌
-DRAW_ATK = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'head', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']
-DRAW_UP = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'foreFf', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
-DRAW_L = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'foreFf', 'head', 'weapon', 'weaponA', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-DRAW_M = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'head', 'weapon', 'weaponA', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
+DRAW_ATK = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']
+DRAW_UP = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
+DRAW_L = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'foreFf', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
+DRAW_M = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
 SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
          'hidden': ['weaponA']}
