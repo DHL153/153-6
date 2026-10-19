@@ -3919,7 +3919,7 @@ window.MRBattleFX=(()=>{
  const sheets={
   lightning:{file:'fx_battle_skill_lightning_0001.png',cols:2,rows:8,frames:[0,1,2,3,5,6,8,9,11,12,14,15]},
   // 2026-10-16 DHL 시트: 공격 = 트레일(5×5), 피격 = 버스트 흰색(보통)·주황(보스·스킬) (4×4)
-  trail:{file:'fx_battle_attack_trail_0001.png',cols:5,rows:5,frames:Array.from({length:25},(_,i)=>i)},
+  trail:{file:'fx_battle_attack_trail_0001.png',cols:5,rows:5,frames:Array.from({length:20},(_,i)=>i+3)}, // 2026-10-19 DHL '타이밍 살짝 늦음': 거의 빈 처음 3칸·끝 2칸 건너뜀
   burstWhite:{file:'fx_battle_hit_burst_white_0001.png',idle:true,cols:4,rows:4,frames:Array.from({length:16},(_,i)=>i)},
   burstOrange:{file:'fx_battle_hit_burst_orange_0001.png',cols:4,rows:4,frames:Array.from({length:16},(_,i)=>i)},
   // ↓ 예전 공격·피격 시트: 파일은 보존, 지금은 쓰지 않아 불러오지 않음 (idle:true 를 지우면 다시 사용 가능)
@@ -4125,7 +4125,7 @@ window.MRBattleFX=(()=>{
    // 2026-10-16: 공격은 트레일 하나로 통일 (예전 베기·불꽃 번갈아 쓰기는 중단, 시트 파일은 보존)
    if(!sheets.trail.ready)return false;
    attackIndex++;
-   return add({type:'attack',name:'trail',duration:reduced.matches?160:380,sourceId,anchor:target(sourceId,true),reduced:reduced.matches});
+   return add({type:'attack',name:'trail',duration:reduced.matches?80:190, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,anchor:target(sourceId,true),reduced:reduced.matches});
   },
   hit(state){
    // 2026-10-16: 피격은 버스트 시트로 — 보통 타격 = 흰색, 보스·스킬 타격 = 주황 (예전 5종 무작위는 중단, 시트 파일은 보존)
