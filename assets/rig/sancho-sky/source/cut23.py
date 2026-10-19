@@ -7,11 +7,11 @@ from cut_sheet import key, blobs
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAMES = ['pose', 'head', 'face_neutral', 'face_happy', 'face_angry', 'face_focus', 'face_shout', 'face_effort', 'blink_half', 'blink_closed',
          'torso', 'hips', 'padN', 'tailA', 'upperN', 'foreN', 'upperF', 'foreF', 'gNv', 'gNh', 'gFv', 'gFh',
-         'thighN', 'thighF', 'kneeN', 'kneeF', 'shinN', 'shinF', 'bootN', 'bootF', 'sword', 'pony', 'tailB']   # 13 과 다른 곳: 14 = 목도리 위 꼬리(13 은 먼 어깨판) · 32 포니테일 · 33 목도리 아래 꼬리
+         'thighN', 'thighF', 'kneeN', 'kneeF', 'shinN', 'shinF', 'bootN', 'bootF', 'sword', 'pony', 'tailB']   # 13 과 다른 곳: 14 = 목도리 위 꼬리(13 은 먼 어깨판) · 32 포니테일 · 33 목도리 아래 꼬리 (19:13 받은 33칸 시트 — 32칸 시트와 14·33칸만 다름)
 if __name__ == '__main__':
     src = np.asarray(Image.open(os.path.join(HERE, 'sheets', 'sheet1.png')).convert('RGB')); H, W = src.shape[:2]; cw, ch = W / 6, H / 6
     rgba, alpha = key(src)
-    bs = [b for b in blobs(alpha, minpx=60) if b['px'] > 60]
+    bs = [b for b in blobs(alpha, minpx=30) if b['px'] > 30]   # 작은 조각(주먹·정강이 650~900px)
     def cell(b):   # 긴 조각(칼)은 위 끝이 든 칸
         y = b['y0'] + ch * .3 if b['y1'] - b['y0'] > ch * .9 else b['cy']; return int(min(5, y // ch)), int(min(5, b['cx'] // cw))
     cells = {}

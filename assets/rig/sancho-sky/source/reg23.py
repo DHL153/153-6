@@ -26,7 +26,7 @@ def fit(n, ref=art, k=None, region=None, thr=2.5):
     return {'M': M.tolist(), 'scale': round(float(np.hypot(M[0, 0], M[1, 0])), 4), 'rotDeg': round(float(np.degrees(np.arctan2(M[1, 0], M[0, 0]))), 2),
             'inliers': int(inl.sum()), 'matches': len(good), 'cover': round(float((wa & aa).sum() / max(1, wa.sum())), 3)}
 if __name__ == '__main__':
-    names = sys.argv[1:] or ['pose', 'head', 'face_neutral', 'sword', 'torso', 'hips', 'padN', 'tailA', 'tailB', 'pony', 'upperN', 'foreN', 'upperF', 'foreF', 'gNv', 'gFv', 'thighN', 'thighF', 'kneeN', 'kneeF', 'shinN', 'shinF', 'bootN', 'bootF']
+    names = sys.argv[1:] or ['pose', 'head', 'face_neutral', 'sword', 'torso', 'hips', 'padN', 'tailA', 'pony', 'upperN', 'foreN', 'upperF', 'foreF', 'gNv', 'gFv', 'thighN', 'thighF', 'kneeN', 'kneeF', 'shinN', 'shinF', 'bootN', 'bootF']
     G = json.load(open(os.path.join(HERE, 'geom.json'))) if os.path.exists(os.path.join(HERE, 'geom.json')) else {}
     for n in names:
         r = fit(n); print(n, {k: v for k, v in (r or {}).items() if k != 'M'})

@@ -4,7 +4,7 @@
 #  · 엔진 트랙 shNx·shNy 는 armU(= 산초 먼 어깨 + 보호대)를, shFx·shFy 는 armF(= 산초 가까운 어깨)를 옮김 (이름이 21 기준이라 반대)
 #  · 가까운 팔꿈치 쪽 ikSideK: 대기 −1(팔꿈치 왼쪽 아래 = 원화) → 두 손이 어깨 앞에서 팔이 다 접힌 순간(0.17) +1 → 돌아올 때 접힌 순간(0.76) −1 — 접힌 자리에선 두 쪽 팔꿈치가 같은 점(튐 없음)
 ATK = json.load(open(os.path.join(HERE, 'attack_keys.json'), encoding='utf-8'))
-TB = JT['tubes']; K_ACROSS = 2.2   # 시트 팔 조각 폭 25~28 ×2.2 = 55~62 리그 ≈ 원화 팔 굵기 28~30
+TB = JT['tubes']; K_ACROSS = 1.9   # 23 시트 팔 조각 폭 27~28 ×1.9 ≈ 52 리그 = 원화 팔 굵기 약 26
 def tube(nm, src, y_piv, y_el, L, k=None):
     """시트 관 그림 → 리그 그림(scale 1). y_piv = pivot 끝(관 가운데 줄), y_el = elbow 끝. k(리그/시트 px, 세로): 주면 pivot 줄을 그림 밖까지 옮겨 길이를 맞춤
     — 손목·어깨 끝은 주먹·어깨 보호대 밑이라 그림을 덜 늘임(갑옷 판이 늘어나 보이지 않게)"""
@@ -15,11 +15,11 @@ def tube(nm, src, y_piv, y_el, L, k=None):
     im.save(os.path.join(OUT, 'parts', nm + '.png')); def_parts[nm] = dict(src=f'parts/{nm}.png', pivot=[round(cx, 1), round((y_piv + .5) * kL, 1)], elbow=[round(cx, 1), round((y_el + .5) * kL, 1)], scale=1.0)
     print('  tube', nm, src, im.size, 'len', L, 'kL', round(kL, 2), 'pivot row', round(y_piv, 1))
 tube('armFt', 'upperN', 7, 40, TB['upperN'])              # 가까운 윗팔: 위 = 어깨 둥근 끝, 아래 = 팔꿈치
-tube('armUt', 'upperF', 6, 31, TB['upperF'], k=2.6)       # 먼 윗팔
+tube('armUt', 'upperF', 6, 36, TB['upperF'], k=2.6)       # 먼 윗팔(23 시트: 팔꿈치 둥근 끝 36줄)
 tube('foreFt', 'foreN', 33, 6, TB['foreN'], k=2.6)        # 가까운 팔뚝: 위 = 팔꿈치, 아래 = 손목(주먹 밑)
 tube('armLft', 'foreF', 54, 7, TB['foreF'], k=2.5)        # 먼 팔뚝(길게 그려진 흰 판)
-GLOVE_N = [(221, 283), (231, 278), (246, 279), (254, 288), (257, 300), (255, 312), (247, 318), (232, 318), (224, 312), (219, 300)]   # 위 주먹(장갑만, 원화 px)
-GLOVE_F = [(233, 317), (243, 311), (258, 312), (266, 320), (268, 334), (264, 346), (252, 351), (240, 349), (232, 340), (230, 326)]   # 아래 주먹
+GLOVE_N = [(226, 299), (236, 294), (249, 295), (257, 302), (261, 314), (259, 328), (251, 337), (236, 337), (226, 330), (222, 316)]   # 위 주먹(장갑·손가락만, 원화 px — 손목 감개 빼고)
+GLOVE_F = [(239, 329), (251, 324), (267, 326), (281, 331), (285, 340), (284, 352), (276, 360), (261, 361), (246, 359), (237, 348)]   # 아래 주먹(장갑·손가락만)
 def glove(nm, src_png, origin, poly_art, grip_art, fore, fbone):
     a = np.array(Image.open(src_png)); m = Image.new('L', (a.shape[1], a.shape[0]), 0); ImageDraw.Draw(m).polygon([(x - origin[0], y - origin[1]) for x, y in poly_art], fill=255)
     m = cv2.GaussianBlur(np.array(m).astype(np.float32), (3, 3), 0.7) / 255; a = a.copy(); a[..., 3] = (a[..., 3] * m).astype(np.uint8)
@@ -39,7 +39,7 @@ for t, X, Y, A, *e in ATK['grip']:
     if X == 'idle': X, Y, A = _idle
     ee = e[0] if e else 'io'; gx.append([t, X, ee]); gy.append([t, Y, ee]); sa.append([t, A, ee])
 act.update({'gx': gx, 'gy': gy, 'sa': sa})
-for k, L in ATK.get('orders', {}).items(): rig[k] = L
+for k, L in ATK.get('orders', {}).items(): rig[k] = [n for n in rig['draw'][:rig['draw'].index('legFar')] if n not in L] + L   # 23: 공격 순서(러스트 키)에도 목도리 꼬리·포니테일을 맨 뒤에
 rig['actions'] = {'upslash': act}
 rig['ui']['attack'] = 'upslash'
 rig['cutHold'] = ATK.get('cutHold', .5)

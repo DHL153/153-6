@@ -22,15 +22,18 @@ BL = J['blade']; TIP = A(BL['tip'])
 BLADE_OFF = math.atan2(TIP[1] - GU_art[1], TIP[0] - GU_art[0]) - SA0   # 날끝 방향 − 손잡이 축(원화 그림 꺾임)
 TIPd = float(np.linalg.norm(TIP - GU_art)) * 2
 def sword_mask():
-    m = Image.new('L', (512, 512), 0); d = ImageDraw.Draw(m)
-    la, lk, ly = BL['left']; ra, rk, ry = BL['right']; L = lambda y: la + lk * (y - ly); R = lambda y: ra + rk * (y - ry)
-    gy = int(BL['guardC'][1])
-    d.polygon([(90, 10), (88, 25), (85, 40), (83, 55), (86, 70)] + [(L(y), y) for y in range(85, gy, 10)] + [(R(y), y) for y in range(gy - 1, 84, -10)] + [(148, 70), (140, 55), (127, 40), (111, 25), (96, 8), (TIP[0], TIP[1] - 2)], fill=255)
-    c = A(BL['guardC']); e2 = np.array([math.cos(SA0 + BLADE_OFF + math.pi), math.sin(SA0 + BLADE_OFF + math.pi)]); e1 = np.array([-e2[1], e2[0]]); c = c + e2 * 1.5
-    d.polygon([tuple(c + s * 40 * e1 + t * 14 * e2) for s, t in ((1, 1), (1, -1), (-1, -1), (-1, 1))], fill=255)
-    pp = np.array([HD[1], -HD[0]]) * 9; P2 = POM + HD * 20
-    d.polygon([tuple(COL + pp), tuple(P2 + pp), tuple(P2 - pp), tuple(COL - pp)], fill=255); d.ellipse([POM[0] - 11, POM[1] - 6, POM[0] + 11, POM[1] + 16], fill=255)
-    return np.array(m) > 0
+    """23: 원화 칼 자리 — build_sky.py 가 남긴 work/swm.png 가 있으면 그것, 없으면 날 두 직선(날밑 윗선 위) + 날밑·폼멜 금색 + 손잡이 띠"""
+    f = os.path.join(HERE, 'work', 'swm.png')
+    if os.path.exists(f): return np.array(Image.open(f)) > 127
+    RA = np.array(Image.open(os.path.join(HERE, 'ref512.png')).convert('RGBA')); al = RA[..., 3] > 100
+    la, lk, _ = BL['left']; ra, rk, _ = BL['right']; GT = J['guardTop']; g0, g1 = A(GT['p0']), A(GT['p1'])
+    yy, xx = np.mgrid[0:512, 0:512]; gtop = g0[1] + (xx - g0[0]) * (g1[1] - g0[1]) / (g1[0] - g0[0])
+    m = al & (xx >= la + lk * yy - 1) & (xx <= ra + rk * yy + 1) & (yy < gtop + 4) & (yy < 280)
+    r, g, b = [RA[..., i].astype(int) for i in range(3)]; gold = al & (r > 150) & (g > 100) & (b < 120) & (r - b > 70) & (r >= g)
+    gold &= ((xx > 180) & (xx < 266) & (yy > 236) & (yy < 302)) | ((xx > 244) & (xx < 283) & (yy > 354) & (yy < 385))
+    m |= cv2.dilate(gold.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
+    pp = np.array([HD[1], -HD[0]]) * 8; im = Image.new('L', (512, 512), 0); ImageDraw.Draw(im).polygon([tuple(COL + pp), tuple(POM + pp), tuple(POM - pp), tuple(COL - pp)], fill=255)
+    return m | (np.array(im) > 0)
 SWM = sword_mask(); DT = cv2.distanceTransform((~SWM).astype(np.uint8), cv2.DIST_L2, 5)
 def bdist(p, G, sa):
     th = sa - SA0; c, s = math.cos(-th), math.sin(-th); dx, dy = (p[0] - G[0]) / 2, (p[1] - G[1]) / 2

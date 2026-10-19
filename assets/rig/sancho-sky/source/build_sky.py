@@ -43,6 +43,8 @@ COVER = np.zeros((512, 512), np.uint8)   # 오린 조각 알파 합(대기 자�
 def save_crop(a, name, sl=0, keep=False):
     """a(512×512 RGBA, 원화 좌표) → work/name.png, 반환 = 칸 왼쪽 위(원화 px). keep: 떨어진 작은 덩어리도 둠(위 주먹 옆 흰 반짝임)"""
     a = (slivers(a, sl) if sl else a) if keep else islands(slivers(a, sl) if sl else a, name); COVER[:] = np.maximum(COVER, a[..., 3]); ys, xs = np.nonzero(a[..., 3] > 0)
+    if not len(xs):   # 원화에서 다 가려진 조각(23 가까운 윗팔 — 주먹 뒤) → 4×4 투명, 칸 = 다각형 자리
+        print('  empty crop', name); Image.fromarray(np.zeros((4, 4, 4), np.uint8)).save(os.path.join(W, name + '.png')); return np.array([256.0, 256.0])
     x0, y0 = xs.min() - 2, ys.min() - 2; Image.fromarray(a[y0:ys.max() + 3, x0:xs.max() + 3]).save(os.path.join(W, name + '.png')); return np.array([x0, y0], float)
 def crop(mask, name, grow=0, cut=None, src=None, sl=0, keep=False):
     if grow: mask = dil(mask, grow)
@@ -60,7 +62,7 @@ SH_N, EL_N = P_('SH_N'), P_('EL_N')   # 가까운 팔(엔진 armF→foreF): 어�
 SH_F, EL_F = P_('SH_F'), P_('EL_F')   # 먼 팔(엔진 armU→armL): 어깨(먼 어깨 보호대 안) · 팔꿈치(흰 팔뚝 판 오른쪽 끝, 검은 마디)
 # 칼: 손잡이 축 = 날밑 금고리 → 폼멜 금띠 (원화·시트 같은 점) — 시트 → 원화 닮음(손잡이) MS. 원화 날은 이 축보다 4° 더 기움 → 날은 원화 그림 그대로
 HJ = JT['handle']; RING_A, POM_A = np.array(HJ['collar'], float), np.array(HJ['pommel'], float)
-RING_S, POM_S = np.array([39.5, 275.6]), np.array([39.1, 382.3])     # ★ 시트 칼 그림의 같은 두 점(금고리 · 폼멜 큰 금띠 금색 무게중심)
+RING_S, POM_S = np.array([40.0, 289.0]), np.array([39.4, 382.1])     # 시트 칼 그림의 같은 두 점(날밑 가운데 금 동그라미 · 폼멜 금 무게중심) — 시트 손잡이가 원화보다 짧아 1.18배(금고리 · 폼멜 큰 금띠 금색 무게중심)
 def simil(a0, a1, b0, b1):   # a(시트) → b(원화) 닮음
     va, vb = a1 - a0, b1 - b0; s = np.linalg.norm(vb) / np.linalg.norm(va); th = math.atan2(vb[1], vb[0]) - math.atan2(va[1], va[0])
     R = s * np.array([[math.cos(th), -math.sin(th)], [math.sin(th), math.cos(th)]]); return np.c_[R, b0 - R @ a0]
@@ -72,7 +74,7 @@ S_LOW = -float(np.dot(G_L - G_U, -U)) * 2
 print('  MS scale', round(float(np.hypot(*R2[:, 0])), 4), 'U', np.round(U, 4).tolist(), 'G_U', np.round(G_U, 1).tolist(), 'G_L', np.round(G_L, 1).tolist(), 'S_LOW', round(S_LOW, 1))
 
 # ---------------- 칼 그림 틀: 시트 칼 그림 크기 + 여백(원화 날이 이 틀에서 4° 기울어 칼끝 쪽이 왼쪽으로 18px 나감) ----------------
-sw0 = np.array(img(os.path.join(PC, 'sword.png'))); sw0, _ = desp(sw0); H0, W0 = sw0.shape[:2]; HROW = 292   # ★ HROW   # 날밑 아래 = 손잡이 첫 줄(시트 칼)
+sw0 = np.array(img(os.path.join(PC, 'sword.png'))); sw0, _ = desp(sw0); H0, W0 = sw0.shape[:2]; HROW = 305   # 시트 칼 날밑 아래 = 손잡이 첫 줄   # 날밑 아래 = 손잡이 첫 줄(시트 칼)
 PX, PY = 30, 8; CW, CH = W0 + 2 * PX, H0 + PY
 swA = np.zeros((CH, CW, 4), np.uint8); swA[HROW:H0, PX:PX + W0] = sw0[HROW:]        # 시트에서 쓰는 곳 = 손잡이·폼멜만(주먹에 가린 곳 메움). 날·날밑은 원화
 MW = MS.copy(); MW[:, 2] = MS[:, 2] - R2 @ np.array([PX, 0.0])   # 칼 그림(여백 포함) → 원화
@@ -80,11 +82,12 @@ toImg = lambda p: np.linalg.solve(R2, np.array(p, float) - MW[:, 2])
 # 원화 칼 자리 SWM: 날 = 원화 알파 가장자리 직선(joints blade) + 칼끝(원화 알파 첫 덩어리) · 날밑·손잡이 = 시트 날밑·손잡이(줄 262~)를 MS 로
 BL = JT['blade']; la, lk, _ = BL['left']; ra_, rk, _ = BL['right']
 SWM = np.zeros((512, 512), bool)
-gtop = lambda x: 263 - (x - 177) * (25 / 71)                                          # ★ 날밑 윗선(원화)
-for y in range(0, 270):
-    xs = np.nonzero(RA[y, 40:300, 3] > 100)[0] + 40   # 칼끝 둘레 반투명 점(알파 1~100, 띄엄띄엄)은 덩어리를 끊음 → 진한 점으로 찾고 ±3px
+GT = JT['guardTop']; _g0, _g1 = np.array(GT['p0'], float), np.array(GT['p1'], float)
+gtop = lambda x: _g0[1] + (x - _g0[0]) * (_g1[1] - _g0[1]) / (_g1[0] - _g0[0])          # 날밑 가로대 윗선(원화)
+for y in range(0, 280):
+    xs = np.nonzero(RA[y, 40:300, 3] > 100)[0] + 40   # 칼끝 둘레 반투명 점(알파 1~100)은 덩어리를 끊음 → 진한 점으로 찾고 ±3px
     if not len(xs): continue
-    if y < 60:   # 칼끝: 첫 덩어리(2px 틈까지 이어 봄)
+    if y < 40:   # 칼끝: 첫 덩어리(2px 틈까지 이어 봄)
         e = xs[0]
         for x in xs[1:]:
             if x > e + 3: break
@@ -92,18 +95,21 @@ for y in range(0, 270):
         x0_, x1_ = xs[0] - 3, e + 3
     else: x0_, x1_ = int(math.floor(la + lk * y)), int(math.ceil(ra_ + rk * y))
     for x in range(x0_, x1_ + 1):
-        if y < gtop(x) + 6: SWM[y, x] = True
-_gh = np.zeros((CH, CW), np.uint8); _gh[262:H0, PX:PX + W0] = (sw0[262:, :, 3] > 90)
-SWM |= cv2.warpAffine(_gh, MW.astype(np.float32), (512, 512), flags=cv2.INTER_NEAREST) > 0
-_yy, _xx = np.mgrid[0:512, 0:512]   # 시트 날밑 오른쪽 위 모서리가 원화 날밑보다 높아 날 오른쪽 머리카락을 칼로 가져갔음 → 날밑 윗선(오른쪽 금 꺾쇠 위 (245,237), 손잡이에 수직) 위 · 날 오른쪽 선 밖은 칼 아님
-SWM &= ~((_yy < 237 - 0.414 * (_xx - 245) - 2) & (_xx > ra_ + rk * _yy + 2))   # ★ 13 날밑 모서리 — 23 칼에 맞게 다시
+        if 0 <= x < 512 and y < gtop(x) + 4: SWM[y, x] = True
+_r, _g, _b = [RA[..., i].astype(int) for i in range(3)]
+GOLD = (RA[..., 3] > 150) & (_r > 150) & (_g > 100) & (_b < 120) & (_r - _b > 70) & (_r >= _g)
+_yy, _xx = np.mgrid[0:512, 0:512]
+_gbox = (_xx > 180) & (_xx < 266) & (_yy > 236) & (_yy < 302); _pbox = (_xx > 244) & (_xx < 283) & (_yy > 354) & (_yy < 385)
+SWM |= dil(GOLD & (_gbox | _pbox), 3)                                                    # 날밑·폼멜 = 원화 금색 + 외곽선 3px (시트 날밑은 원화와 모양이 달라 안 씀)
+_gh = np.zeros((CH, CW), np.uint8); _gh[HROW:H0, PX:PX + W0] = (sw0[HROW:, :, 3] > 90)
+SWM |= cv2.warpAffine(_gh, MW.astype(np.float32), (512, 512), flags=cv2.INTER_NEAREST) > 0   # 손잡이(주먹 사이·밑) = 시트 손잡이
 SWM &= AL
 SW_TIP_A = np.array(JT['blade']['tip'], float)
 SW_PIV = toImg(G_U); SW_TIP = toImg(SW_TIP_A); SW_POM = toImg(POM_A + HD * 24); SW_GRD = toImg(np.array(BL['guardC'], float))
 print('  sword img', CW, CH, 'pivot', np.round(SW_PIV, 1).tolist(), 'tip', np.round(SW_TIP, 1).tolist(), 'pommel', np.round(SW_POM, 1).tolist(), 'G_L → img', np.round(toImg(G_L), 1).tolist(), 'SWM px', int(SWM.sum()))
 
 # ---------------- 원화에서 오리는 조각 ----------------
-mk = {n: pmask(n) for n in ['head', 'nearUp', 'nearFore', 'farFore', 'farUp', 'pauldron', 'torso', 'hips', 'thighN', 'shinN', 'bootN', 'thighF', 'shinF', 'bootF']}
+mk = {n: pmask(n) for n in ['head', 'nearUp', 'nearFore', 'farFore', 'farUp', 'pauldron', 'torso', 'hips', 'thighN', 'shinN', 'bootN', 'thighF', 'shinF', 'bootF', 'pony', 'tail']}
 # 손·팔: 앞에 그리는 조각이 겹친 픽셀을 가짐 — 아래 주먹·먼 팔뚝(armL) > 위 주먹·가까운 팔뚝(foreF) > 가까운 윗팔(armF) / 어깨 보호대 > 먼 윗팔(armU)
 und = lambda m, *tops: m & ~np.logical_or.reduce([ero(t, 3) for t in tops])
 A_farFore = mk['farFore']; A_nearFore = und(mk['nearFore'], A_farFore); A_nearUp = und(mk['nearUp'], mk['nearFore'], A_farFore)
@@ -111,7 +117,7 @@ A_pd = und(mk['pauldron'], A_farFore); A_farUp = und(mk['farUp'], mk['pauldron']
 ARMS = A_farFore | A_nearFore | A_nearUp | A_pd | A_farUp
 SWin = dil(SWM, 1)   # 칼 자리 + 1px — 칼 외곽선을 머리·몸통에 남기지 않음
 # 머리: 다각형 − 칼(칼이 머리 앞) − 주먹. 칼·주먹 뒤에 가려진 머리카락은 시트 머리(같은 크기, reg13 SIFT)로 메움
-A_head = mk['head'] & ~SWin & ~ARMS & AL
+A_head = mk['head'] & ~SWin & ~ARMS & AL & ~mk['pony'] & ~mk['tail'] & ~pmask('tailB')
 Mh = np.array(GEO['head']['M'], np.float32)
 _sh = cv2.warpAffine(desp(np.array(img(os.path.join(PC, 'head.png'))))[0], Mh, (512, 512), flags=cv2.INTER_LANCZOS4)
 # 칼·주먹 둘레 4px 안에서는 시트 머리 실루엣 밖 원화 점을 뺌 — 칼·주먹 외곽선 부스러기가 머리에 남아 공격 때 귀 왼쪽에 검은 점으로 떴음(10-19 렌더 0.53)
@@ -123,9 +129,27 @@ _ha = HEADA[..., 3] > 128; _hole = ndimage.binary_fill_holes(_ha) & ~_ha   # 메
 if _hole.any():
     _c = cv2.inpaint(np.ascontiguousarray(HEADA[..., :3]), _hole.astype(np.uint8) * 255, 3, cv2.INPAINT_TELEA); HEADA[..., :3][_hole] = _c[_hole]; HEADA[..., 3][_hole] = 255
 print('  head holes filled px', int(_hole.sum()))
+# 23 뒷머리: 시트 머리는 뒷머리가 짧고 매듭(크림 천)이 귀 바로 뒤 — 원화 매듭(포니테일 뿌리, 칼날 왼쪽)과 두 개가 됨 → 시트 매듭은 머리카락으로 지움,
+#  칼날 뒤 원화 매듭 ~ 시트 뒷머리 사이(BRIDGE)는 머리 그림을 왼쪽으로 옮겨 붙인 머리카락 + 남은 틈 메움 — 칼이 비켜도 포니테일이 머리에 붙어 보이게
+HAIR = np.array([44, 58, 92], np.uint8)   # 원화 남색 머리카락 중간색
+_c3 = HEADA[..., :3].astype(int); _tieS = _fill & (_xx > 212) & (_xx < 254) & (_yy > 258) & (_yy < 304) & (_c3.min(2) > 135)
+if _tieS.any():
+    _ti = dil(_tieS, 2) & (HEADA[..., 3] > 128); _s0 = np.ascontiguousarray(HEADA[..., :3].copy()); _s0[HEADA[..., 3] < 128] = HAIR
+    HEADA[..., :3][_ti] = cv2.inpaint(_s0, _ti.astype(np.uint8) * 255, 5, cv2.INPAINT_TELEA)[_ti]
+BRIDGE = pmask([[178, 258], [194, 238], [222, 234], [236, 258], [238, 292], [224, 302], [200, 302], [186, 296]])
+_pv = mk['pony'] & AL & ~SWin
+_sh_ = np.zeros_like(HEADA); _sh_[:, :-30] = HEADA[:, 30:]   # 머리 그림 30px 왼쪽
+_br = BRIDGE & SWin & ~(HEADA[..., 3] > 128) & ~_pv   # 칼 뒤만(칼 밖 빈 곳은 대기 때 보이니 그대로 비움)
+_bs = _br & (_sh_[..., 3] > 128) & (_sh_[..., :3].astype(int).min(2) < 135)
+HEADA[_bs] = _sh_[_bs]; _rest = _br & ~_bs
+if _rest.any():
+    _src = np.ascontiguousarray(HEADA[..., :3].copy()); _src[HEADA[..., 3] < 128] = HAIR   # 머리 밖(칼·손잡이 색)을 끌어오지 않게
+    HEADA[..., :3][_rest] = cv2.inpaint(_src, _rest.astype(np.uint8) * 255, 4, cv2.INPAINT_TELEA)[_rest]; HEADA[..., 3][_rest] = 255
+_hb = HEADA[..., 3] > 128; _bd = ndimage.distance_transform_edt(_hb | _pv); _be = _br & (_bd <= 2.2); HEADA[..., :3][_be] = (22, 24, 36)   # 메운 뒷머리 바깥 가장자리 외곽선
+print('  sheet tie → hair px', int(_tieS.sum()), 'back-hair bridge px', int(_br.sum()), '(shifted hair', int(_bs.sum()), ')')
 HEADA = slivers(HEADA, 3)
 _armsIn = ero(mk['nearFore'] | mk['farFore'], 3)
-_others = mk['torso'] | mk['hips'] | ARMS | mk['thighN'] | mk['thighF'] | mk['shinN'] | mk['shinF'] | mk['bootN'] | mk['bootF']
+_others = mk['torso'] | mk['hips'] | ARMS | mk['thighN'] | mk['thighF'] | mk['shinN'] | mk['shinF'] | mk['bootN'] | mk['bootF'] | mk['pony'] | mk['tail'] | pmask('tailB')
 SW_FRINGE = dil(SWM, 9) & AL & ~_others & ~SWin & ~(HEADA[..., 3] > 128) & ~(mk['head'] & ~dil(SWM, 3) & (_sh[..., 3] > 64))   # 머리 다각형 안에선 시트 머리카락 자리면 칼 둘레 3px 까지만(머리카락 외곽선이 칼에 붙어 같이 움직였음)
 SWART = ((SWin & ~_armsIn) | SW_FRINGE | (dil(SWM, 3) & ARMS & ~_armsIn)) & AL
 _ov = dil(HEADA[..., 3] > 128, 3) & SW_FRINGE
@@ -139,15 +163,17 @@ _rgb = np.ascontiguousarray(RA[..., :3].copy()); _rgb[~AL] = (40, 38, 42)
 _inp = cv2.inpaint(_rgb, (_hole.astype(np.uint8) * 255), 6, cv2.INPAINT_TELEA)
 _inner = ero((RA[..., 3] > 200) & mk['torso'], 2)
 TORSOA = RA.copy(); TORSOA[..., :3][_hole] = _inp[_hole]; TORSOA[..., 3] = np.where(_tor, np.where(_hole & _inner, 255, RA[..., 3]), 0)
-TS = simil(np.array([37.0, 13.0]), np.array([77.0, 13.0]), np.array([281.0, 326.0]), np.array([338.0, 337.0]))   # ★ 시트 상체 두 기준점(23: 가죽 끈 버클·깃 끝 등) → 원화
+TS = simil(np.array([8.0, 21.0]), np.array([89.0, 25.0]), np.array([246.0, 334.0]), np.array([358.0, 338.0]))   # 시트 상체 두 어깨 끝(둥근 소매 자리) → 원화 가까운·먼 어깨
 _st, _ = desp(np.array(img(os.path.join(PC, 'torso.png'))))
 _sw = cv2.warpAffine(_st, TS.astype(np.float32), (512, 512), flags=cv2.INTER_LANCZOS4)
 _use = _hole & (_sw[..., 3] > 200); TORSOA[..., :3][_use] = _sw[..., :3][_use]
 print('  torso fill px', int(_hole.sum()), 'from sheet torso', int(_use.sum()), 'sheet scale', round(float(np.hypot(*TS[:, 0])), 3))
 _red = _hole & ~_use
-SHIRT = np.array([46, 44, 50], np.uint8)   # ★ 메우는 천 색(23: 크림 상의 / 남색 앞판 — 원화에서 잼)
-_src = np.ascontiguousarray(TORSOA[..., :3].copy()); _src[dil(_red, 8) & ~_red & ~_use & (_src.max(2) > 150)] = SHIRT   # 둘레 흰 판 색이 번지지 않게
+SHIRT = np.array([226, 214, 190], np.uint8)   # 메우는 천 색 = 크림 상의
+_src = np.ascontiguousarray(TORSOA[..., :3].copy()); _src[dil(_red, 8) & ~_red & ~_use & (_src.max(2) < 90)] = SHIRT   # 둘레 어두운 외곽선·장갑 색이 번지지 않게
 TORSOA[..., :3][_red] = cv2.inpaint(_src, _red.astype(np.uint8) * 255, 5, cv2.INPAINT_TELEA)[_red]
+_out = _red & ~(_sw[..., 3] > 40); TORSOA[..., 3][_out] = 0   # 23: 시트 상체 밖(팔·주먹 뒤라 원화에도 없는 곳)은 메우지 않고 비움 — 메우면 회색·검은 얼룩(가까운 어깨 왼쪽)
+print('  torso: outside sheet torso → transparent px', int(_out.sum()))
 _A = TORSOA[..., 3] > 128; _d = ndimage.distance_transform_edt(_A); _cutE = _A & dil(_hole, 1) & (_d <= 2.6)
 _w = np.clip(2.8 - _d, 0, 1)[_cutE][:, None]; OUTL = np.array([30, 28, 30], np.float32)
 TORSOA[..., :3][_cutE] = (TORSOA[..., :3][_cutE] * (1 - _w) + OUTL * _w).astype(np.uint8)
@@ -245,18 +271,18 @@ def sheet_pts(n, top, bot):
     a = np.array(Image.open(os.path.join(PC, n + '.png')))[..., 3] > 128; H = a.shape[0]
     ty, tx = np.nonzero(a[:top]); by, bx = np.nonzero(a[H - bot:])
     return [round(float(tx.mean()), 1), round(float(ty.mean()), 1)], [round(float(bx.mean()), 1), round(float(by.mean() + H - bot), 1)]
-TH_R, SH_R = 88.0, 72.0   # ★ 달리기 허벅지·정강이 길이(리그) — 원화 다리에서 다시 잼
+TH_R, SH_R = 100.0, 64.0   # 달리기 허벅지·정강이 길이(리그) — 원화 가까운 117·63, 먼 92·61(평균 104·62, 합 166) → 무릎 보호대가 앞자락 밑단에 걸쳐 보이게
 # 달리기 다리 굵기 = 원화 서 있는 다리 굵기 × LEG_T (13 v1.1: DHL '달리는 다리 너무 얇음, 살짝만 두껍게' 뒤 받아들인 굵기로 맞춘 비율 — 23 은 처음부터 원화에서 잼)
 #  13 v1.1 에 맞춰 봄(이 식으로 13 을 다시 재면): 허벅지 0.80 · 정강이 0.70 · 부츠 0.91 → 13 v1.1 굵기(72·70 / 54·51 · 부츠 2.05)와 ±5%
 #  가까운·먼 쪽은 같은 배율(시트가 그린 앞뒤 굵기 차이 그대로) — 쪽마다 원화에 맞추면 원화 조각에 섞인 무릎 보호대·부츠 목 때문에 한쪽만 굵어짐
 LEG_T = {'thigh': 0.80, 'shin': 0.70, 'boot': 0.91}
-def _wid(mask, a, b, f0=.25, f1=.75):
+def _wid(mask, a, b, f0=.1, f1=.9):
     """mask(조각 알파) 의 a→b 축에 수직인 폭 중앙값(같은 px)"""
     a, b = np.array(a, float), np.array(b, float); ax = b - a; L = np.linalg.norm(ax); u = ax / L; n_ = np.array([-u[1], u[0]])
     ys, xs = np.nonzero(mask); P = np.stack([xs + .5, ys + .5], 1) - a; t = P @ u; s_ = P @ n_; out = []
-    for f in np.linspace(f0, f1, 11):
+    for f in np.linspace(f0, f1, 17):   # 다각형이 뼈보다 짧으면(23 정강이 = 무릎 보호대 밑 감개만) 조각이 있는 줄만
         sel = np.abs(t - f * L) < 1.0
-        if sel.sum(): out.append(s_[sel].max() - s_[sel].min())
+        if sel.sum() > 3: out.append(s_[sel].max() - s_[sel].min())
     return float(np.median(out))
 RWK = {}   # 조각마다 가로 배율(리그/시트 px)
 for _ty, _pp in [('thigh', ('h', 'k')), ('shin', ('k', 'a'))]:
@@ -299,24 +325,31 @@ print('  legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['f
 # ---------------- 목도리 꼬리 두 갈래(streamers — 21 스카이 알론소와 같은 엔진 opt-in) · 포니테일(pony — 2 둘시네) ----------------
 #  꼬리: 그림 오른쪽 끝(뿌리, 목 고리 뒤)이 pivot, 왼쪽(뒤)으로 날림. 서 있어도 바람(wind), 달릴수록 펴짐(droop·sag 줄어듦), 몸이 오르내리면 늦게 따라옴(lag)
 #  ★ 뿌리 자리 TAIL_ROOT·PONY_ROOT 와 시트 → 원화 배율은 새 원화·reg23 에서. 원화에서 오린 꼬리가 시트 꼬리보다 원화와 딱 맞으면 원화 쪽(26 스카이 땋은 수염 교훈)
-TAIL_ROOT = {'tailA': np.array([300.0, 330.0]), 'tailB': np.array([300.0, 345.0])}; PONY_ROOT = np.array([300.0, 250.0])   # ★
-for _n in ['tailA', 'tailB']:
-    if not os.path.exists(os.path.join(PC, _n + '.png')): continue
-    _a, _ = desp(np.array(img(os.path.join(PC, _n + '.png')))); Image.fromarray(_a).save(os.path.join(OUT, 'parts', _n + '.png'))
-    _al = _a[..., 3] > 40; _xs = np.where(_al.any(0))[0]; _x1 = int(_xs.max()); _ys = np.where(_al[:, _x1 - 25:_x1 + 1].any(1))[0]
-    _k = 2 * GEO[_n]['scale'] if _n in GEO else 2.0
-    def_parts[_n] = dict(src=f'parts/{_n}.png', pivot=[float(_x1 - 8), float((_ys.min() + _ys.max()) / 2)], scale=round(_k, 4), mesh={'cols': 8, 'rows': 2})
-    bone(_n, 'torso', TAIL_ROOT[_n], HIP, _n, rot=-0.05 if _n == 'tailA' else -0.45)
-STREAMERS = [{'bone': 'tailA', 'part': 'tailA', 'amp': 10, 'freq': 7.2, 'phase': 0, 'droop': 0.25, 'sag': 18, 'wind': 0.7, 'lag': 0.35},
-             {'bone': 'tailB', 'part': 'tailB', 'amp': 13, 'freq': 6.4, 'phase': 1.9, 'droop': 0.35, 'sag': 24, 'wind': 0.65, 'lag': 0.45}]   # 21 스카이 알론소 값에서 시작
-for _S in STREAMERS:
-    if _S['part'] in def_parts:
-        _a = np.array(Image.open(os.path.join(OUT, 'parts', _S['part'] + '.png')))[..., 3] > 40; _xs = np.where(_a.any(0))[0]; _S['len'] = round(float(_xs.max() - _xs.min()) * def_parts[_S['part']]['scale'], 1)
-if os.path.exists(os.path.join(PC, 'pony.png')):
-    _a, _ = desp(np.array(img(os.path.join(PC, 'pony.png')))); Image.fromarray(_a).save(os.path.join(OUT, 'parts', 'pony.png'))
-    _al = _a[..., 3] > 40; _xs = np.where(_al.any(0))[0]; _x1 = int(_xs.max()); _ys = np.where(_al[:, _x1 - 12:_x1 + 1].any(1))[0]   # ★ 묶은 천 쪽 = 오른쪽 끝이라고 가정(시트 보고 다시)
-    def_parts['pony'] = dict(src='parts/pony.png', pivot=[float(_x1 - 4), float((_ys.min() + _ys.max()) / 2)], scale=round(2 * GEO['pony']['scale'], 4) if 'pony' in GEO else 2.0)
-    bone('pony', 'head', PONY_ROOT, NECK, 'pony')
+TJ = JT['tail']
+# 목도리 꼬리 두 갈래 = 원화 꼬리를 갈래 사이 선으로 나눈 것(보이는 곳) + 팔·주먹 뒤에 숨은 뿌리 쪽 = 시트 꼬리(닮음)로 이음 → 공격 때 주먹이 비켜도 목 뒤까지 이어짐
+TSL = {'A': simil(np.array(TJ['A']['p1S'], float), np.array(TJ['A']['p2S'], float), np.array(TJ['A']['p1A'], float), np.array(TJ['A']['p2A'], float))}
+_R = TSL['A'][:, :2]; TSL['B'] = np.c_[_R, np.array(TJ['B']['p1A'], float) - _R @ np.array(TJ['B']['p1S'], float)]   # 아래 꼬리 = 위 꼬리와 같은 배율·회전, 끝점 맞춤
+STREAMERS = []
+_XX = np.mgrid[0:512, 0:512][1]
+for _k, _n, _poly in [('A', 'tailA', 'tail'), ('B', 'tailB', 'tailB')]:
+    _ts, _ = desp(np.array(img(os.path.join(PC, _n + '.png')))); _tw = cv2.warpAffine(_ts, TSL[_k].astype(np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+    _other = pmask('tailB' if _k == 'A' else 'tail'); _tA = (pmask(_poly) | (dil(pmask(_poly), 2) & (mk['tail'] | pmask('tailB')) if _k == 'A' else pmask(_poly))) & AL & ~ARMS & ~SWin   # 위 꼬리는 갈래 사이 선을 2px 넘어 아래 꼬리 위에 겹침(따로 움직일 때 틈 없게)
+    TAILA = RA.copy(); TAILA[..., 3] = np.where(_tA, RA[..., 3], 0)
+    _ext = (_tw[..., 3] > 128) & ~dil(_tA, 1) & (_XX > 205) & (~_other if _k == 'A' else True) & (np.mgrid[0:512, 0:512][0] >= 299)   # 숨은 곳(팔·주먹 뒤 + 뿌리 쪽)만, 다른 갈래 자리는 안 덮음, 몸통 위 끝 아래만 — 위로 나오면 칼이 비킬 때 머리 옆에 곧은 띠
+    TAILA[_ext] = _tw[_ext]; print('  tail', _n, 'art px', int(_tA.sum()), 'sheet root px', int(_ext.sum()), 'sheet→art', round(float(np.hypot(*TSL[_k][:, 0])), 3))
+    _o = save_crop(TAILA, _n + 'Art')
+    _ta = np.array(Image.open(os.path.join(W, _n + 'Art.png')))[..., 3] > 40; _xs = np.where(_ta.any(0))[0]; _x1 = int(_xs.max()); _ys = np.where(_ta[:, _x1 - 12:_x1 + 1].any(1))[0]
+    _root = np.array([_o[0] + _x1 - 6, _o[1] + (_ys.min() + _ys.max()) / 2])   # 그림 오른쪽 끝 = 뿌리(엔진 streamers)
+    part(_n, os.path.join(W, _n + 'Art.png'), pc(_root, _o), mesh={'cols': 8, 'rows': 2})
+    bone(_n, 'torso', _root, HIP, _n)
+    STREAMERS.append({'bone': _n, 'part': _n, 'len': round(float(_x1 - _xs.min()) * 2, 1), 'amp': 6 if _k == 'A' else 8, 'freq': 6.5 if _k == 'A' else 5.9, 'phase': 0 if _k == 'A' else 1.9,
+                      'droop': 0.0, 'sag': 4, 'wind': 0.6 if _k == 'A' else 0.55, 'lag': 0.35 if _k == 'A' else 0.45})   # 원화 꼬리 그대로라 쉴 때 처짐 0(대기 = 원화), 두 갈래 박자 다르게(21 스카이 알론소)
+# 포니테일 = 원화에서 칼날 왼쪽에 보이는 머리 다발(다각형 − 칼), 뿌리 = 크림 매듭(joints pony.root) — 칼 뒤 매듭은 머리 메움(시트 머리)이 그림
+PONY_ROOT = np.array(JT['pony']['root'], float)
+_pv = mk['pony'] & AL & ~SWin; PONYA = RA.copy(); PONYA[..., 3] = np.where(_pv, RA[..., 3], 0)   # 포니테일 = 원화에서 보이는 머리 다발 + 매듭(뿌리는 머리 쪽 뒷머리가 덮음)
+o_pony = save_crop(PONYA, 'ponyArt')
+part('pony', os.path.join(W, 'ponyArt.png'), pc(PONY_ROOT, o_pony))
+bone('pony', 'head', PONY_ROOT, NECK, 'pony')
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 # 원화: 다리 < 몸통 < 허리띠·앞판 < 먼 윗팔 < 먼 어깨 보호대 < 가까운 윗팔 < 머리 < 칼(머리카락 앞) < 위 주먹·가까운 팔뚝 < 아래 주먹·먼 팔뚝(가슴 앞)
 draw = ['tailB', 'tailA', 'pony', 'legFar', 'legNear', 'torso', 'hips', 'armU', 'pauldron', 'armF', 'head', 'weaponH', 'weapon', 'armLf', 'foreF', 'armL']   # ★ 꼬리·포니테일 맨 뒤(칼 늘 머리 앞), 주먹 둘이 맨 앞 — 가까운 어깨갑(padN) 자리는 조립 때
