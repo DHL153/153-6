@@ -1,0 +1,14 @@
+__pycache__/
+# 검토 그림은 대표만 올림(나머지는 build·probe 로 다시 만듦)
+review/*
+!review/palome9_v1.jpg
+!review/seg_labels.png
+!review/cut_overview.png
+!review/atk_v1.png
+!review/presim2.png
+!review/v1_run.png
+!review/idle_cmp.png
+!review/joints_est.png
+!review/presim_AB.png
+!review/presim_smash.png
+!review/presim_smash_B.png
