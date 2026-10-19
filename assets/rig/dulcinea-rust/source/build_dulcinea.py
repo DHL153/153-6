@@ -353,7 +353,8 @@ FACES = {n: 'face_' + n for n in FACE_N if n != 'neutral'}; FACES['grimace'] = '
 exec(open(os.path.join(HERE, 'attack', os.environ.get('SMASH_FILE', 'smash_one.py'))).read())
 
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
-draw = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'torso', 'weapon', 'head', 'fistF', 'armU', 'pauldron', 'armL']
+# (10-20 06:10 DHL 06:05 '표시한 머리(포니테일)보다도 뒤로') 망치 = 포니테일·몸통·머리 뒤, 다리·골반 앞(자루 끝이 허리띠·허벅지 앞) — 대기·달리기에서 망치가 몸통과 안 겹쳐 그대로
+draw = ['legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'weapon', 'pony', 'torso', 'head', 'fistF', 'armU', 'pauldron', 'armL']
 _top = int(np.nonzero((own['head'] | own['pony']).any(1))[0].min())
 rig = {'name': 'dulcinea-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},

@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "0572be03",
+ "version": "4b1be053",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -895,7 +895,6 @@
   }
  },
  "draw": [
-  "pony",
   "legFar",
   "legNear",
   "hips",
@@ -904,8 +903,9 @@
   "belt",
   "armF",
   "foreF",
-  "torso",
   "weapon",
+  "pony",
+  "torso",
   "head",
   "fistF",
   "armU",
@@ -1751,7 +1751,7 @@
     ],
     [
      0.03,
-     "drawU"
+     "drawP"
     ],
     [
      0.36,
@@ -1763,12 +1763,35 @@
     ],
     [
      0.86,
+     "drawA0"
+    ],
+    [
+     0.875,
      "drawA"
     ]
    ]
   }
  },
  "drawA": [
+  "legFar",
+  "legNear",
+  "hips",
+  "flapN",
+  "flapC",
+  "belt",
+  "armF",
+  "foreFf",
+  "weapon",
+  "weaponA",
+  "pony",
+  "torso",
+  "head",
+  "foreF",
+  "armU",
+  "pauldron",
+  "armL"
+ ],
+ "drawA0": [
   "pony",
   "legFar",
   "legNear",
@@ -1782,6 +1805,25 @@
   "weapon",
   "weaponA",
   "head",
+  "foreF",
+  "armU",
+  "pauldron",
+  "armL"
+ ],
+ "drawP": [
+  "legFar",
+  "legNear",
+  "hips",
+  "flapN",
+  "flapC",
+  "belt",
+  "armF",
+  "weapon",
+  "weaponA",
+  "pony",
+  "torso",
+  "head",
+  "foreFf",
   "foreF",
   "armU",
   "pauldron",
