@@ -179,7 +179,7 @@ _fist = _fa.copy(); _fist[..., 3] *= np.clip((4 - _t) / 2, 0, 1); _fore = _fa.co
 Image.fromarray(_fist.astype(np.uint8)).save(os.path.join(W, 'fFistArt.png')); Image.fromarray(_fore.astype(np.uint8)).save(os.path.join(W, 'fForeOnly.png'))
 part('armL', os.path.join(W, 'fFistArt.png'), pc(EL_F, o_fF), elbow=pc(WR_F, o_fF), grip=pc(G_L, o_fF), wrist=pc(G_L, o_fF), shaftDir=SD, fore='armLf', foreBone='armLf', foreDir=[round(float(_ax[0]), 5), round(float(_ax[1]), 5)])
 part('armLf', os.path.join(W, 'fForeOnly.png'), pc(WR_F, o_fF), elbow=pc(EL_F, o_fF))
-# 칼을 날+날밑(weapon)과 손잡이·폼멜(weaponH) 두 그림으로 — 올려베기에서 칼끝이 땅을 뚫을 각도면 날만 날밑 기준으로 짧게(엔진 groundShorten, 손잡이는 그대로 주먹 속)
+# 칼 = 날+날밑(weapon) · 손잡이·폼멜(weaponH, weapon 의 자식 = 늘 같은 자리) 두 그림. (v1 groundShorten 날 줄이기는 DHL 10-19 09:12 '칼 크기 변경 없음(무조건)'으로 뺌 — 칼끝은 키로 땅 위에)
 _wf = np.array(Image.open(os.path.join(W, 'sword.png'))); _wid = (_wf[..., 3] > 128).sum(1); _piv = int(SW_PIV[1] * K2)
 GROW = int(max(r for r in range(_piv - 140, _piv) if _wid[r] > 100)) + 1   # 날밑 아래 끝 다음 줄(2배 그림, 날밑 폭 150 · 손잡이 40~80)
 _wb = _wf.copy(); _wb[GROW:, :, 3] = 0; _wh = _wf.copy(); _wh[:GROW - 10, :, 3] = 0   # 손잡이 그림은 날밑 밑으로 10줄 겹침(먼저 그림)
@@ -202,7 +202,7 @@ def bone(name, parent, at, parent_at, part_=None, rot=0.0):
 bone('hips', 'hip', HIP, HIP, 'hips'); bone('torso', 'hip', HIP, HIP, 'torso'); bone('head', 'torso', NECK, HIP, 'head')
 bone('armF', 'torso', SH_N, HIP, 'armF'); bone('foreF', 'armF', EL_N, SH_N, 'foreF'); bone('fistF', 'foreF', G_U, EL_N)
 bones.append(dict(name='weapon', parent='fistF', pos=[0, 0], rot=round(ang(U) + math.pi / 2, 4), part='weapon'))
-bones.append(dict(name='weaponH', parent='fistF', pos=[0, 0], rot=round(ang(U) + math.pi / 2, 4), part='weaponH'))
+bones.append(dict(name='weaponH', parent='weapon', pos=[0, 0], part='weaponH'))
 bone('armU', 'torso', SH_F, HIP, 'armU'); bone('armL', 'armU', EL_F, SH_F, 'armL'); bone('fistN', 'armL', G_L, EL_F); bone('armLf', 'armU', EL_F, SH_F, 'armLf')   # armLf 자리는 엔진이 손목에 놓음
 bone('pauldron', 'torso', SH_F, HIP, 'pauldron')
 for n in ['cape', 'scarf', 'pouch', 'skirt', 'skirtB', 'pauldronF']: bones.append(dict(name=n, parent='torso', pos=[0, -200]))   # 그림 없는 뼈: 엔진이 이름으로 찾음
@@ -278,7 +278,7 @@ rig = {'name': 'sancho-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'metrics': {'bodyHeight': round(2 * (O[1] - _top), 1), 'note': f'rig units; 머리카락 끝(원화 y{_top})~발바닥(494) ×2, 무기 제외'},
        'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -24, 'bob': 10, 'lean': 0.1, 'headRun': 0.04},
        'carrySwing': 0.25, 'wristRange': 0.2,
-       'swordGrip': {'tipDepth': 6, 'groundShorten': {'guard': GUARD_D, 'kMin': 0.3, 'handle': 'weaponH'}, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
+       'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
        'ui': {'attack': None, 'touch': 'hop'},
        'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0003.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)'},
        'note': '3 러스트 산초 (2026-10-19, v1 대기·달리기). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨갑·다리는 원화를 그대로 오려 씀.'}
