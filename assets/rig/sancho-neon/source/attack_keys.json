@@ -966,7 +966,7 @@ null
 ]
 }
 },
-"cutHold": 0.5,
+"cutHold": 0.42,
 "torsoTwist": {
 "ax": 110,
 "by": -16,

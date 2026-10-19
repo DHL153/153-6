@@ -284,8 +284,8 @@ rig = {'name': 'sancho-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'armPhase': 0.5, 'gait': {'heelKick': 0.5, 'kneeLift': 0.35, 'strideBase': 80, 'strideK': 0.2, 'swingReach': -0.05, 'swingAng': 0.15, 'landAng': 0, 'hipBase': -24, 'bob': 10, 'lean': 0.1, 'headRun': 0.04},
        'carrySwing': 0.25, 'wristRange': 0.2,
        'swordGrip': {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'foreF'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': round(S_LOW, 1)}, 'guard': guard},
-       'ui': {'attack': None, 'touch': 'hop'},
-       'gameRef': {'refOrigin': [float(O[0]), float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0013.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)'},
+       'ui': {'attack': None, 'touch': 'hop', 'trail': 'up'},   # trail up = 게임 공격 트레일 아래 → 위(올려베기)
+       'gameRef': {'refOrigin': [240.2, float(O[1])], 'refScale': 2.0, 'refLift': 0, 'note': '게임 그림 char_0013.png(512) 발 높이 = 원화. x 240.2 = 도감 칸(fitArt 중심 250.2, index.html measureBox 와 같은 계산 — 칼이 왼쪽으로 커서 그림 중심이 몸보다 왼쪽)에서 골반(hip x +20 → +10px)이 가운데 (1·11·21 알론소와 같은 규칙)'},
        'note': '13 네온 산초 (2026-10-19, 3 러스트 산초 v3.1 구조). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨 보호대·다리는 원화를 그대로 오려 씀.'}
 rig['blinkFaces'] = BLINK
 exec(open(os.path.join(HERE, 'attack_neon.py'), encoding='utf-8').read())   # 올려베기 (attack_keys.json)

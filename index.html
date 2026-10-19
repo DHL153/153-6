@@ -4056,7 +4056,7 @@ window.MRBattleFX=(()=>{
     const s=a.s>0?a.s:height*.7;
     const size=Math.min(height*1.25,width*.42,s*1.28)*1.5; // 호 높이 ≈ 캐릭터 키 × 1.1 (호가 칸의 86%) · 2026-10-19 DHL 1.5배
     const index=job.reduced?12:Math.min(sheet.frames.length-1,Math.floor(progress*sheet.frames.length));
-    ctx.save();ctx.translate(width*a.x,height*a.y);ctx.scale(-1,-1); // 2026-10-19 DHL: 시계 방향(위 → 앞 → 아래로 내려 베기). 예전 scale(-1,1) = 아래 → 위
+    ctx.save();ctx.translate(width*a.x,height*a.y);ctx.scale(-1,job.up?1:-1); // 2026-10-19 DHL: 시계 방향(위 → 앞 → 아래로 내려 베기). scale(-1,1) = 아래 → 위 — 올려베기 리그(3·13 산초, rig ui.trail 'up')만 job.up
     sprite('trail',index,0,0,size,size,0,(job.reduced?.6:1)*(job.opacity||1));
     ctx.restore();return;
    }
@@ -4127,7 +4127,7 @@ window.MRBattleFX=(()=>{
    attackIndex++;
    // 2026-10-19 DHL: 트레일 가장 진한 칸(가운데, 약 95ms)이 리그 타격 순간에 오도록 늦게 시작 · 그림 캐릭터는 공격 그림으로 바뀐 뒤 살짝(60ms)
    const len=reduced.matches?80:190,hitMs=window.MRRig?.hitDelayMs?.(sourceId),delay=hitMs!=null?Math.max(0,hitMs-len/2):60;
-   return add({type:'attack',name:'trail',delay,duration:delay+len, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,anchor:target(sourceId,true),reduced:reduced.matches});
+   return add({type:'attack',name:'trail',delay,duration:delay+len, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,up:!!window.MRRig?.trailUp?.(sourceId),anchor:target(sourceId,true),reduced:reduced.matches});
   },
   hit(state){
    // 2026-10-16: 피격은 버스트 시트로 — 보통 타격 = 흰색, 보스·스킬 타격 = 주황 (예전 5종 무작위는 중단, 시트 파일은 보존)
@@ -18555,7 +18555,7 @@ img.mr-rig-still-img{visibility:hidden!important} /* 자리는 그림이 그대�
 #battle-stage.mr-rig-busy #battle-panorama,#battle-stage.mr-rig-busy #battle-sky-far{animation-play-state:paused!important} /* 리그가 동작 중(찌르기)이면 땅도 멈춤 — 발 미끄러짐 방지 */
 html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battle-stage.mr-rig-busy[data-rush] #battle-sky-far{animation-play-state:paused!important} /* 2026-10-19: 연쇄 러시 중에도 리그 공격 동안은 처음부터 끝까지 땅 멈춤(전엔 처음 0.1초는 러시 규칙이 이겨 땅이 가다가 멈춤) — 모두 같이 멈춰 섬 */
 </style>
-<script src="assets/rig/rig.js?v=20261019s1"></script>
+<script src="assets/rig/rig.js?v=20261019n13"></script>
 <script src="assets/rig/rust-fork-girl/rig.def.js"></script>
 <script src="assets/rig/alonso-rust/rig.def.js?v=de43e98a"></script>
 <script src="assets/rig/nicole-sky/rig.def.js"></script>
@@ -18565,11 +18565,12 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
 <script src="assets/rig/carden-sky/rig.def.js?v=ddb770c5"></script>
 <script src="assets/rig/alonso-sky/rig.def.js?v=33dd5c12"></script>
 <script src="assets/rig/alonso-neon/rig.def.js?v=5b151b5d"></script>
+<script src="assets/rig/sancho-neon/rig.def.js?v=5fa8c50e"></script>
 <script id="mr-rig-js">
 (()=>{
   const RIG_DIR='assets/rig/';
   // 캐릭터 번호(1~30, 전투·마이룸 같은 번호) → 리그 id. 등록된 번호는 전투·마이룸·친구 방문에서 그림 대신 리그로 그린다. 정지 그림(도감·카드·컷인)은 기존 PNG 그대로
-  const REGISTRY={1:'alonso-rust',6:'carden-rust',8:'rust-fork-girl',11:'alonso-neon',16:'carden-neon',18:'nicole-neon',21:'alonso-sky',26:'carden-sky',28:'nicole-sky'}; // 2026-10-19 11 네온 알론소 (두 손 칼 대기·달리기 + 내려찍기 v5.4 — 키트 그림 팔·같은 길이 팔(armIK)·먼 어깨갑, 리그 원본 = char_0011.png, 도감 몸 가운데 gameRef x 281.7, 컷인 cutHold .39 — 10-19 03:01 DHL 컷인 이상: .55 낮은 버팀(쪼그려 앉은 듯) → .39 휘두르는 순간(외침, 골반 높음)) // 2026-10-19 26 스카이아크 카르덴 (16 네온 카르덴과 같은 걸음·찌르기(나침반 머리 앞, 팔 길이 고정)·바지 고정 다리, 땋은 수염 두 갈래, 인사 없음, 리그 원본 = 새 char_0026.png(러스트와 같은 자세)) // 2026-10-18 16 네온 카르덴 (6 러스트 카르덴 v10 과 같은 걸음·찌르기(큰 머리 앞)·바지 고정 다리, 인사 없음, 리그 원본 = 새 char_0016.png(러스트와 같은 자세)) // 2026-10-18 21 스카이아크 알론소 (1 알론소 v4 구조 + 내려찍기 v4, 리그 원본 = char_0021.png, 도감 몸 가운데 gameRef, 컷인 cutHold .55) // 2026-10-18 6 카르덴 (8 러스트 니콜 구조 + 봉 키 찌르기, 리그 원본 = char_0006.png, 도감 몸 가운데 gameRef) // 2026-10-17 18 네온 니콜 (8 러스트 니콜 구조, 리그 원본 = 새 char_0018.png) // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
+  const REGISTRY={1:'alonso-rust',6:'carden-rust',8:'rust-fork-girl',11:'alonso-neon',13:'sancho-neon',16:'carden-neon',18:'nicole-neon',21:'alonso-sky',26:'carden-sky',28:'nicole-sky'}; // 2026-10-19 13 네온 산초 (3 러스트 산초 v3.1 올려베기 키 — 칼 늘 머리 앞·칼 크기 그대로·팔 길이 고정, 표정 6 + 깜빡임, 달리는 다리 v1.1, 리그 원본 = 새 char_0013.png, 도감 몸 가운데 gameRef x 240.2, 컷인 cutHold .42 올려 베는 순간, 공격 트레일 아래 → 위(ui.trail 'up'), rig.js 캐시 태그 n13 — 15:21 엔진(torsoTwist·ikSideK 등 opt-in, 게임 리그 9종 픽셀 차이 0)) // 2026-10-19 11 네온 알론소 (두 손 칼 대기·달리기 + 내려찍기 v5.4 — 키트 그림 팔·같은 길이 팔(armIK)·먼 어깨갑, 리그 원본 = char_0011.png, 도감 몸 가운데 gameRef x 281.7, 컷인 cutHold .39 — 10-19 03:01 DHL 컷인 이상: .55 낮은 버팀(쪼그려 앉은 듯) → .39 휘두르는 순간(외침, 골반 높음)) // 2026-10-19 26 스카이아크 카르덴 (16 네온 카르덴과 같은 걸음·찌르기(나침반 머리 앞, 팔 길이 고정)·바지 고정 다리, 땋은 수염 두 갈래, 인사 없음, 리그 원본 = 새 char_0026.png(러스트와 같은 자세)) // 2026-10-18 16 네온 카르덴 (6 러스트 카르덴 v10 과 같은 걸음·찌르기(큰 머리 앞)·바지 고정 다리, 인사 없음, 리그 원본 = 새 char_0016.png(러스트와 같은 자세)) // 2026-10-18 21 스카이아크 알론소 (1 알론소 v4 구조 + 내려찍기 v4, 리그 원본 = char_0021.png, 도감 몸 가운데 gameRef, 컷인 cutHold .55) // 2026-10-18 6 카르덴 (8 러스트 니콜 구조 + 봉 키 찌르기, 리그 원본 = char_0006.png, 도감 몸 가운데 gameRef) // 2026-10-17 18 네온 니콜 (8 러스트 니콜 구조, 리그 원본 = 새 char_0018.png) // 1번 알론소(내려찍기) 2026-10-16 // 2026-10-16 정식 적용: 8번 니콜 (리그 원본 = char_0008.png)
   const BODY_PX=290/512;                  // 전투 그림 규칙(normalize_battle_chars.py): 512 그림에서 머리~발 290px
   const ATTACK_SPEED=1.5;  // 게임 공격 연출(100ms 뒤 타격)보다 리그 찌르기(0.8초)가 길어 1.5배속 → 약 0.53초, 타격 0.2초
   let enabled=null,canvas=null,ctx=null,raf=0,last=0,info=null,wasBusy=false;
@@ -18957,8 +18958,9 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   function stillTick(t){stillRaf=requestAnimationFrame(stillTick);if(document.hidden)return;for(const e of stills.values())drawStill(e,t);}
   setInterval(scanStills,400);stillRaf=requestAnimationFrame(stillTick);
   // 2026-10-19 DHL '공격도 안 했는데 이펙트가 나감': 공격 트레일을 리그의 타격 순간(hitAt)에 맞추려고 — 공격 시작부터 타격까지 ms
+  function trailUp(elId){for(const e of live.values())if(e.el?.id===elId&&e.rig)return e.rig.def.ui?.trail==='up';return false;} // 2026-10-19 13 네온 산초: 올려베기 = 공격 트레일 아래 → 위
   function hitDelayMs(elId){for(const e of live.values()){if(e.el?.id!==elId||!e.rig)continue;const d=e.rig.def,a=d.actions?.[d.ui?.attack||'thrust']||{};return (a.dur||.8)*(a.hitAt??.3)/ATTACK_SPEED*1000;}return null;}
-  window.MRRig={hitDelayMs,setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
+  window.MRRig={hitDelayMs,trailUp,setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{setEnabled(typeof gameSettings==='undefined'||gameSettings.rigChars!==false);}catch(e){setEnabled(true);}};
   sync();addEventListener('load',sync);

@@ -1,6 +1,6 @@
 {
  "name": "sancho-neon",
- "version": "ac876dfd",
+ "version": "5fa8c50e",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   570.0,
@@ -1024,16 +1024,17 @@
  },
  "ui": {
   "attack": "upslash",
-  "touch": "hop"
+  "touch": "hop",
+  "trail": "up"
  },
  "gameRef": {
   "refOrigin": [
-   285.0,
+   240.2,
    494.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0013.png(512) = 원화 (도감 가운데는 게임 연결 때 다시 잼)"
+  "note": "게임 그림 char_0013.png(512) 발 높이 = 원화. x 240.2 = 도감 칸(fitArt 중심 250.2, index.html measureBox 와 같은 계산 — 칼이 왼쪽으로 커서 그림 중심이 몸보다 왼쪽)에서 골반(hip x +20 → +10px)이 가운데 (1·11·21 알론소와 같은 규칙)"
  },
  "note": "13 네온 산초 (2026-10-19, 3 러스트 산초 v3.1 구조). 두 손으로 큰 칼을 쥠(swordGrip.guard, 칼날 11시), 손·팔·머리·어깨 보호대·다리는 원화를 그대로 오려 씀.",
  "blinkFaces": {
@@ -2054,7 +2055,7 @@
    ]
   }
  },
- "cutHold": 0.5,
+ "cutHold": 0.42,
  "torsoTwist": {
   "bone": "torso",
   "part": "torsoTw",
