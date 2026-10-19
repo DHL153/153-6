@@ -5,3 +5,10 @@
 - 지금 원화(char_0012)는 망치를 어깨에 멘 자세 → 13·16·23·26 처럼 원화를 러스트 둘시네 자세로 다시 받음(대기 = 원화 원칙), 마이룸 그림도 교체
 - 참고 그림: source/refs/ref_design_char0012.png(디자인 = 지금 원화) · ref_pose_char0002.png(자세 = 러스트 둘시네 손 고친 원화)
 - 프롬프트 0(새 원화)·1(조각 시트 27칸)은 프로젝트 문서 claude/dulcinea12-rig-sheets.md
+
+## 10-20 08:05 선 연구·선 작업 (DHL 07:28 '리소스 오기 전에 선 작업 부분, 연구할 부분')
+- 망치 길이: 네온 망치 = 러스트의 약 1.55배(쇠 머리 크기 같고 자루만 김) → 러스트 자세엔 그림 밖. 엔진 검사(tools/fit12.py, 러스트 리그 + 네온 망치): 길이 그대로면 전투 최고 1.67 몸 키(칸 1.81 안)지만 스킬 컷인 폰에서 잘림 · 길이 = 러스트면 러스트와 같음(1.35)
+  → 프롬프트 0 고친 판(쇠 머리 크기 = 첨부 1, 전체 길이 = 첨부 2 망치). 그림 refs/study_hammer_len.jpg · study_fitAB.jpg
+- 도구: tools/check_art12.py(새 원화 합격선 숫자 + 러스트 겹침 — 러스트로 시험 전부 ✓) · seg12.py(러스트 부품 칸 씨앗 watershed — 러스트로 시험 같은 곳 .83~.99) · cut12.py(27칸, 가짜 시트 시험) · reg12.py · tools/fit12.py · tools/game_*.py(NUM 12)
+- refs/rust_labels.npz(러스트 원화 부품 칸 = build_dulcinea own) · refs/rust_joints.json(러스트 관절)
+- 조립 계획·남은 순서 = 프로젝트 문서 claude/dulcinea12-rig-sheets.md '선 연구·선 작업'
