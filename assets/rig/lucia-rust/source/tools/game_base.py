@@ -9,7 +9,7 @@ O=os.environ.get('GAME_OUT','/tmp/claude-0/-home-claude/68d7ec04-d283-5e5f-8529-
 def boot(p,w=1280,h=800):
     b=p.chromium.launch();pg=b.new_page(viewport={'width':w,'height':h});errs=[]
     pg.on('pageerror',lambda e:errs.append(str(e)))
-    pg.goto(f'http://127.0.0.1:{port}/index.html');time.sleep(3)
+    pg.goto(f'http://127.0.0.1:{port}/'+os.environ.get('PAGE','index.html'));time.sleep(3)
     pg.get_by_role('button',name='Skip',exact=True).click();time.sleep(1.5)
     pg.get_by_role('button',name='Next',exact=True).click();time.sleep(2)
     for i in range(6):

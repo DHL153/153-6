@@ -9741,6 +9741,20 @@ function createSocialDataFoundation(assets, emojis) {
         root.dataset.cutsceneCast=members.map(entry=>entry.slot).join(',');root.dataset.cutsceneImportance=kind==='finish'?'finish':'normal';
         root.style.setProperty('--skill-duration',duration+'ms');root.replaceChildren();
         const portraits=new Map();
+        // 2026-10-21 DHL '다중 인원 컷인 때 두 캐릭터가 너무 붙어 있다': 두 명 이상은 캐릭터마다 컷인 자세 폭(리그 = 그리는 자세 상자, 그림 = 그림 영역)으로 자리를 잡음.
+        //   기본 자리(33·67 / 23·50·77%)에서 서로 겹치거나 칸 밖으로 나가면 → 칸 폭 안에 고르게(사이 = 양 끝의 2배), 그래도 모자라면 같이 줄임
+        const SW=stage.clientWidth||0,swapped0=parseFloat(stage.style.getPropertyValue('--mr-cut-image'));
+        let cutLayout=null;
+        if(count>1&&SW>0&&swapped0>0){
+            const ext=members.map(({id})=>{const w=window.MRRig?.cutWidth?.(id+1);if(w>0)return [-w/2,w/2];
+                const b=getBattleHeroArtBounds(id);return b&&b.w>0?[b.x-.5,b.x+b.w-.5]:[-.42,.42];});
+            const GAP=.08,M=SW*.02,avail=SW-2*M,sumW=ext.reduce((a,[lo,hi])=>a+hi-lo,0);
+            let S=swapped0;const def=count===2?[33,67]:[23,50,77];
+            const ok=def.every((p,i)=>{const c=SW*p/100;if(c+ext[i][0]*S<M||c+ext[i][1]*S>SW-M)return false;
+                return i===0||(c+ext[i][0]*S)-(SW*def[i-1]/100+ext[i-1][1]*S)>=GAP*S;});
+            if(!ok){S=Math.min(S,avail/(sumW+count*GAP));const free=avail-S*sumW;let x=M+free/(2*count);
+                cutLayout={size:S,x:ext.map(([lo,hi])=>{const c=x-lo*S;x+=(hi-lo)*S+free/count;return c/SW*100;})};}
+        }
         members.forEach(({id,slot},index)=>{
             const img=document.createElement('img'),assets=getBattleHeroAssets(id),number=id+1;
             const scale=BATTLE_CHAR_ADJUST[number]?.scale||1;
@@ -9749,11 +9763,11 @@ function createSocialDataFoundation(assets, emojis) {
             const delay=count===1?0:index*36;
             img.id=`battle-cut-in-${slot}`;img.className='team-cut-in';img.alt='';img.draggable=false;
             img.dataset.battleCharacter=String(number).padStart(4,'0');img.dataset.teamSlot=String(slot);
-            img.style.setProperty('--cut-x',(count===1?50:count===2?[33,67][index]:[23,50,77][index])+'%');
+            img.style.setProperty('--cut-x',(cutLayout?cutLayout.x[index].toFixed(2):count===1?50:count===2?[33,67][index]:[23,50,77][index])+'%');
             // 컷인은 전투 화면에서 원래 쓰던 그림 크기(layoutBattleTeam이 계산한 --mr-cut-image)로
             const swapped=parseFloat(stage.style.getPropertyValue('--mr-cut-image'));
             if(swapped>0){
-                const size=swapped*scale,SH=stage.clientHeight||0;
+                const size=(cutLayout?Math.min(swapped,cutLayout.size):swapped)*scale,SH=stage.clientHeight||0;
                 img.style.setProperty('--cut-width',size+'px');img.style.setProperty('--cut-height',size+'px');
                 // 크게 보여도 발이 화면 아래로 잘리지 않게: 발(그림 높이의 472/512)이 스테이지 높이 95% 안에 오도록 중심을 올림
                 if(SH>0)img.dataset.cutYpx=String(Math.min(SH*.52,SH*.95-size*(472/512-.5)));
@@ -18975,14 +18989,31 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
     return unionBox[key]=r<0?null:{l:(l-M/2)/K,r:(r-M/2)/K,t:(t-M*.75)/K,b:(b-M*.75)/K};
   }
   function queueUnion(e){unionQ.push(e);if(!unionT)unionT=setTimeout(function step(){unionT=0;const e=unionQ.shift();if(e&&e.rig&&stills.get(e.img)===e){try{e.union=measureUnion(e)||0;}catch(err){e.union=0;}}if(unionQ.length)unionT=setTimeout(step,120);},60);}
+  // 컷인 유지 시각 = cutHold + 1.3배속 한 프레임(1/60) — 지금까지 60fps 화면에 보이던 자세 그대로, 화면 주사율과 상관없이 늘 같은 자세 (2026-10-21: 고정 뒤 dt 만큼 더 가서
+  //   빠르게 휘두르는 순간(.32 둘시네·루시아, .1 브루노)은 30·60·120fps 마다 자세가 몸 높이의 15~24% 달랐고, 가운데·발 맞춤은 고정 시각 자세로 재서 어긋났음)
+  const CUT_SPEED=1.3,cutT=def=>(def.cutHold||.62)+CUT_SPEED/60;
   function measureRig(id,def,images,act='guardIn',T=0){const key=id+'|'+act+(T?'|'+T:'');   // T(초): 그 동작의 이 시각 자세로 잼 (컷인 유지 자세)
     if(rigBox[key])return rigBox[key];
     const rig=new CharacterRig(def,images),an=new RunAnimator(rig,{runSpeed:620});an.attack(act);
     if(T){for(let i=0;i<400&&an.act&&an.act.t<T;i++){if(an.act.freeze>0)an.act.freeze=0;an.update(Math.min(1/60,T-an.act.t+1e-4),{vx:0,facing:1});}}else for(let i=0;i<40;i++)an.update(1/60,{vx:0,facing:1});
     const N=2400,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d',{willReadFrequently:true});rig.draw(g,N/2,N*.8,1,1);
     const d=g.getImageData(0,0,N,N).data;let l=N,t=N,r=-1,b=-1;for(let y=0;y<N;y+=3)for(let x=0;x<N;x+=3)if(d[(y*N+x)*4+3]>40){if(x<l)l=x;if(x>r)r=x;if(y<t)t=y;if(y>b)b=y;}
-    return rigBox[key]=r<0?{cx:0,bottom:0,w:300,h:900}:{cx:(l+r)/2-N/2,bottom:b-N*.8,w:r-l,h:b-t};
+    // foot: 다리만 그린 맨 아래(발바닥) — 컷인은 발을 칸 아래 선에 맞춤. 방패·칼끝이 발보다 아래인 리그(7 루시아 방패)도 발이 다른 캐릭터와 같은 줄 (2026-10-21 DHL '루시아 컷인이 살짝 높다')
+    let foot=null;const ord=rig.drawOrder||def.draw,legs=(ord||[]).filter(n=>n==='legFar'||n==='legNear');
+    if(r>=0&&legs.length){g.clearRect(0,0,N,N);const keep=rig.drawOrder;rig.drawOrder=legs;rig.draw(g,N/2,N*.8,1,1);rig.drawOrder=keep;
+      const d2=g.getImageData(0,0,N,N).data;let fb=-1;for(let y=N-1;y>=0&&fb<0;y-=3)for(let x=0;x<N;x+=3)if(d2[(y*N+x)*4+3]>40){fb=y;break;}if(fb>=0)foot=fb-N*.8;}
+    return rigBox[key]=r<0?{cx:0,bottom:0,foot:0,w:300,h:900}:{cx:(l+r)/2-N/2,bottom:b-N*.8,foot:foot??(b-N*.8),w:r-l,h:b-t};
   }
+  // 여러 명 스킬 컷인 간격용: 컷인에서 그리는 자세(유지 자세 / 찌르기 캐릭터 = 겨눔)의 가로 폭 ÷ 컷인 그림 크기 — 리그가 아직 없으면 null (2026-10-21 DHL '두 캐릭터가 너무 붙어 있다')
+  function cutWidth(num){const id=REGISTRY[num];if(!id||!enabled)return null;let src=null;
+    for(const e of live.values())if(e.id===id&&e.rig){src=e.rig;break;}
+    if(!src)for(const e of stills.values())if(e.id===id&&e.rig){src=e.rig;break;}
+    if(!src)return null;const def=src.def,images=src.images;
+    try{buildGuardActions();buildReadyActions();
+      const atk=def.ui?.attack||'thrust',AT=def.actions?.[atk],ready=def.ui?.stillReady||null,spear=AT&&(AT.kind==='spear'||def.ui?.stillSame||!!ready),px=spear?id+':':'';
+      if(spear){buildGuardActions(AT,px,ready);buildReadyActions(AT,px,ready);}
+      const k=atk!=='thrust'&&!spear?measureRig(id,def,images,atk,cutT(def)):measureRig(id,def,images,px+'guardIn'); // mountStill 컷인과 같은 자세(같은 상자 캐시)
+      return k.w*BODY_PX/(def.metrics?.bodyHeight||718);}catch(err){return null;}}
   function stillMatch(img){
     const src=img.getAttribute('src')||'',cut=img.classList.contains('team-cut-in');if(!src||(!cut&&img.closest(STILL_SKIP)))return null;
     for(const n in REGISTRY){const p=String(n).padStart(4,'0');
@@ -19009,7 +19040,7 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
       // 2026-10-17 20:36 DHL: 도감·시작 선택은 8·18 모두 '대기 → 클릭 → 공격 → 대기' (전투와 같은 동작·속도). 준비 자세 대기는 쓰지 않음, 컷인만 찌른 자세 유지
       e.N=(atk!=='thrust'&&!spear)||!m.cut?{in:null,loop:null,hit:atk,A:0,B:0,other:true,speed:ATTACK_SPEED}:m.cut?{in:px+'guardIn',loop:px+'guardLoop',hit:px+'gthrust',A:LOOP_A,B:LOOP_B}:{in:px+'readyIn',loop:px+'readyLoop',hit:px+'rthrust',A:R_LOOP_A,B:R_LOOP_B}; // 컷인=찌른 자세 유지, 그 외=준비 자세 (찌르기 캐릭터)
       e.rig=new CharacterRig(def,images);e.images=images;e.anim=new RunAnimator(e.rig,{runSpeed:620});
-      if(m.mode==='battle'){e.box=e.N.other&&m.cut?measureRig(m.id,def,images,atk,def.cutHold||.62):measureRig(m.id,def,images,e.N.in||'none'); /* 컷인(공격 자세 유지): 그 유지 자세로 재서 칸 가운데 (2026-10-17 21:26 DHL 알론소 컷인 가운데) */if(e.N.other){if(m.cut)e.anim.attack(atk,{speed:1.3});}else if(m.cut){e.anim.attack(e.N.loop);e.anim.attack(e.N.hit);}else e.anim.attack(e.N.in);} // 컷인: 나오자마자 공격
+      if(m.mode==='battle'){e.box=e.N.other&&m.cut?measureRig(m.id,def,images,atk,cutT(def)):measureRig(m.id,def,images,e.N.in||'none'); /* 컷인(공격 자세 유지): 그 유지 자세로 재서 칸 가운데 (2026-10-17 21:26 DHL 알론소 컷인 가운데) */if(e.N.other){if(m.cut)e.anim.attack(atk,{speed:CUT_SPEED});}else if(m.cut){e.anim.attack(e.N.loop);e.anim.attack(e.N.hit);}else e.anim.attack(e.N.in);} // 컷인: 나오자마자 공격
       measureArt(e.src).then(b=>{e.art=b;});
     }).catch(err=>{console.warn('[MRRig still]',err);});
     // 클릭: 전투 그림은 찌르기, 마이룸 그림은 짧은 반응. 도감 상세에서는 그림을 눌러도 다음 장으로 넘어가지 않음(화살표로만)
@@ -19052,7 +19083,7 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
       if(!act)a.attack(N.loop);
       else if(act.name===N.in||act.name===N.loop){if(act.t>N.B)act.t-=N.B-N.A;}
       else if(act.name===N.hit&&act.t+dt*(act.speed||1)>=act.def.dur-.02)a.attack(N.loop);
-      {const hold=e.rig.def.cutHold||.62;if(N.other&&e.cut&&act&&act.name===N.hit&&act.t>hold)act.t=hold;} // 컷인: 공격한 자세 유지 (캐릭터별 cutHold)
+      {const he=cutT(e.rig.def),sp=act?.speed||1;if(N.other&&e.cut&&act&&act.name===N.hit&&act.t+dt*sp>he)act.t=he-dt*sp;} // 컷인: 공격한 자세 유지 (캐릭터별 cutHold) — 이번 update 뒤 정확히 he
     }
     a.update(dt,{vx:0,facing:1});
     const f=imgFrame(img,r),def=e.rig.def;let s,fx,fy;
@@ -19064,10 +19095,12 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
       const sib=img.closest('.mrw-hero')?[...img.parentElement.querySelectorAll('img')].find(o=>o!==img&&!/battle_/i.test(o.getAttribute('src')||'')):null;
       const sibH=sib?parseFloat(sib.style.height)||0:0,sibN=sib?.naturalHeight||512;
       s=sibH>0?(sibH/sibN)/(RF.refScale||2):BODY_PX*512*f.D/(def.metrics?.bodyHeight||718);
-      fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-k.bottom*s;
+      const kf=e.cut?(k.foot??k.bottom):k.bottom; // 컷인 = 발바닥 기준 (방패·무기 끝 말고)
+      fx=f.left+(b.x+b.w/2)*f.D-k.cx*s;fy=f.top+(b.y+b.h)*f.D-kf*s;
       if(e.N?.other&&e.cut)fx=f.left+(img.naturalWidth||512)*f.D/2-k.cx*s; // 컷인 유지 자세(칼까지)를 그림 칸 가운데에
       // 2026-10-18 DHL '6 카르덴 컷인 다리가 잘림': 컷인은 발이 전투 칸 아래 5% 안에 오도록 위로 올림 (8 러스트 니콜처럼 전신)
-      if(e.cut){const st=img.closest('#battle-stage')?.getBoundingClientRect();if(st&&st.height>0){const foot=fy+k.bottom*s,lim=st.bottom-st.height*.05;if(foot>lim)fy-=foot-lim;}}
+      if(e.cut){const st=img.closest('#battle-stage')?.getBoundingClientRect();if(st&&st.height>0){const foot=fy+kf*s,lim=st.bottom-st.height*.05;if(foot>lim)fy-=foot-lim;
+        const low=fy+k.bottom*s;if(low>st.bottom)fy-=low-st.bottom;}} // 발보다 아래인 방패·칼끝도 칸 아래 끝 안
       // 2026-10-17 20:45 DHL: 도감 전투 칸(대기 → 공격 → 대기)은 캐릭터 몸(골반)이 칸 가운데('2/2 · 전투' 글자 위)에 오게. 창·칼 길이와 상관없이 몸 기준
       if(e.N?.other&&!e.cut){const host=img.closest('.mrw-hero'),hr=host?.getBoundingClientRect(),cxs=hr&&hr.width>0?hr.left+hr.width/2:f.left+(img.naturalWidth||512)*f.D/2;
         const hb=(def.bones||[]).find(x=>x.name==='hip');fx=cxs-(hb?hb.pos[0]:0)*s;
@@ -19093,7 +19126,7 @@ html body #battle-stage.mr-rig-busy[data-rush] #battle-panorama,html body #battl
   // 2026-10-19 DHL '공격도 안 했는데 이펙트가 나감': 공격 트레일을 리그의 타격 순간(hitAt)에 맞추려고 — 공격 시작부터 타격까지 ms
   function trailUp(elId){for(const e of live.values())if(e.el?.id===elId&&e.rig)return e.rig.def.ui?.trail==='up';return false;} // 2026-10-19 13 네온 산초: 올려베기 = 공격 트레일 아래 → 위
   function hitDelayMs(elId){for(const e of live.values()){if(e.el?.id!==elId||!e.rig)continue;const d=e.rig.def,a=d.actions?.[d.ui?.attack||'thrust']||{};return (a.dur||.8)*(a.hitAt??.3)/ATTACK_SPEED*1000;}return null;}
-  window.MRRig={hitDelayMs,trailUp,setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
+  window.MRRig={hitDelayMs,trailUp,setEnabled,layout,onState,roomPlace,roomReact,roomStop,scanStills,cutWidth,get stills(){return stills},registry:REGISTRY,reactions:REACT,get enabled(){return enabled},get live(){return live},get roomLive(){return roomLive},get info(){return info&&{W:info.W,H:info.H,ground:info.ground,bodyH:info.bodyH}}};
   // 설정은 이 스크립트보다 먼저 적용되므로 지금 한 번 맞춘다
   const sync=()=>{try{setEnabled(typeof gameSettings==='undefined'||gameSettings.rigChars!==false);}catch(e){setEnabled(true);}};
   sync();addEventListener('load',sync);
