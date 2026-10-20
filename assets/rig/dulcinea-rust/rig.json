@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "28978c5e",
+ "version": "e3774f82",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -229,7 +229,7 @@
    "src": "parts/bootFFoot.png",
    "pivot": [
     42.0,
-    97.0
+    91.0
    ],
    "scale": 2.0
   },
@@ -882,11 +882,11 @@
      "part": "bootFShin",
      "a": [
       43.0,
-      31.0
+      25.0
      ],
      "b": [
       42.0,
-      97.0
+      91.0
      ],
      "w": 1.0
     },
@@ -895,19 +895,19 @@
   }
  },
  "draw": [
+  "armF",
+  "foreF",
+  "weapon",
+  "fistF",
   "legFar",
   "legNear",
   "hips",
   "flapN",
   "flapC",
   "belt",
-  "armF",
-  "foreF",
-  "weapon",
   "pony",
   "torso",
   "head",
-  "fistF",
   "armU",
   "pauldron",
   "armL"
@@ -1752,137 +1752,49 @@
     ],
     [
      0.03,
-     "drawP"
-    ],
-    [
-     0.36,
      "drawM"
     ],
     [
-     0.68,
-     "drawU"
-    ],
-    [
      0.86,
-     "drawA0"
-    ],
-    [
-     0.875,
      "drawA"
     ]
    ]
   }
  },
  "drawA": [
+  "armF",
+  "foreFf",
+  "weapon",
+  "weaponA",
+  "foreF",
   "legFar",
   "legNear",
   "hips",
   "flapN",
   "flapC",
   "belt",
-  "armF",
-  "foreFf",
-  "weapon",
-  "weaponA",
   "pony",
   "torso",
   "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawA0": [
-  "pony",
-  "legFar",
-  "legNear",
-  "hips",
-  "flapN",
-  "flapC",
-  "belt",
-  "armF",
-  "foreFf",
-  "torso",
-  "weapon",
-  "weaponA",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawP": [
-  "legFar",
-  "legNear",
-  "hips",
-  "flapN",
-  "flapC",
-  "belt",
-  "armF",
-  "weapon",
-  "weaponA",
-  "pony",
-  "torso",
-  "head",
-  "foreFf",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawU": [
-  "pony",
-  "legFar",
-  "legNear",
-  "hips",
-  "flapN",
-  "flapC",
-  "belt",
-  "armF",
-  "torso",
-  "weapon",
-  "weaponA",
-  "head",
-  "foreFf",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawL": [
-  "pony",
-  "legFar",
-  "legNear",
-  "hips",
-  "flapN",
-  "flapC",
-  "belt",
-  "armF",
-  "torso",
-  "weapon",
-  "weaponA",
-  "foreFf",
-  "head",
-  "foreF",
   "armU",
   "pauldron",
   "armL"
  ],
  "drawM": [
-  "pony",
+  "armF",
+  "weapon",
+  "weaponA",
+  "foreFf",
+  "foreF",
   "legFar",
   "legNear",
   "hips",
   "flapN",
   "flapC",
   "belt",
-  "armF",
+  "pony",
   "torso",
-  "weapon",
-  "weaponA",
   "head",
-  "foreFf",
-  "foreF",
   "armU",
   "pauldron",
   "armL"

@@ -120,7 +120,7 @@ ART = {}
 for n in DRAW_ART:
     if n == 'armF': continue
     _ab = dil(own[n], 3) & above(n) & AL
-    if n in ('torso', 'hips', 'flapN', 'flapC', 'belt', 'thighN', 'thighF'): _ab &= ~(own['armL'] | own['armU'] | own['foreF'] | own['fistF'] | own['hammer'])   # 움직이는 팔·주먹·망치 밑 겹침은 안 가져옴(외곽선 조각이 떠 보임) — 그 밑은 메우기로   # 흔드는 팔 밑 겹침에 팔 외곽선(검은 줄)은 안 가져옴 — 팔이 움직이면 줄이 떠 보였음
+    if n in ('torso', 'hips', 'flapN', 'flapC', 'belt', 'thighN', 'thighF', 'bootF'): _ab &= ~(own['armL'] | own['armU'] | own['foreF'] | own['fistF'] | own['hammer'])   # 움직이는 팔·주먹·망치 밑 겹침은 안 가져옴(외곽선 조각이 떠 보임) — 그 밑은 메우기로   # 흔드는 팔 밑 겹침에 팔 외곽선(검은 줄)은 안 가져옴 — 팔이 움직이면 줄이 떠 보였음
     if n == 'hammer': _ab &= ~own['head']   # (10-20 06:00 망치 = 머리 뒤) 머리 밑 겹침은 머리카락이라 안 가져옴 — 머리 밑 쇠 머리 모서리는 _fix_hammer 가 메움
     m = own[n] | _ab
     a = RA.copy(); a[..., 3] = np.where(m, RA[..., 3], 0); ART[n] = a; COVER[:] = np.maximum(COVER, np.where(own[n], RA[..., 3], 0))
@@ -166,9 +166,11 @@ _SD[..., 3][~_ft] = 0; _SD[..., 3][_ft & ~(_SD[..., 3] > 128)] = 0
 _SD = outline_cut(_SD, _ft & ~ero(FAR_SIDE, 1)); ART['sideF'] = _SD
 print('  far side fill belt', int(_fb.sum()), 'belly', int(_ft.sum()))
 _hz = _old['hips'] & ~ABOVE_BELT
-_rs = (_hz & ((own['armL'] | ((own['hammer'] | own['foreF'] | own['fistF']) & (xx < 284))) & ~(ART['hips'][..., 3] > 200)))   # 먼 주먹 밑은 반바지 오른쪽 끝(x 284)까지만 | (_hz & dil(own['flapN'] | own['flapC'], 1))
+_rs = (_hz & ((own['armL'] | own['hammer'] | ((own['foreF'] | own['fistF']) & (xx < 284))) & ~(ART['hips'][..., 3] > 200)))   # (10-20 18:32 망치 = 골반 뒤) 자루 밑은 반바지 다각형 끝(밑단 288@336)까지 — 전엔 x 284 에서 세로로 잘림   # 먼 주먹 밑은 반바지 오른쪽 끝(x 284)까지만 | (_hz & dil(own['flapN'] | own['flapC'], 1))
 ART['hips'] = inpaint_into(ART['hips'], _rs, _shorts)
 ART['hips'] = outline_cut(ART['hips'], _rs & dil(~_hz, 1))
+_aa = dil(_rs & own['hammer'], 2) & ~ero(ART['hips'][..., 3] > 128, 1); _sm = cv2.GaussianBlur(ART['hips'][..., 3].astype(np.float32), (0, 0), .8)   # (10-20 18:32) 자루 앞 밑단 계단 → 알파만 부드럽게
+ART['hips'][..., 3][_aa] = np.minimum(ART['hips'][..., 3][_aa], _sm[_aa].astype(np.uint8))
 # 천자락 위 끝: 허리띠 밑으로 6px 이어 그림(허리띠가 앞이라 대기에선 안 보임, 흔들려도 위 끝 틈 없음)
 for n in ('flapN', 'flapC'):
     _up = dil(own[n], 6) & (own['belt'] | (_old['hips'] & ABOVE_BELT)) & (ART['belt'][..., 3] > 200) & ~(ART[n][..., 3] > 200)   # 허리띠가 덮는 곳만(팔이 움직여도 안 보임)
@@ -188,9 +190,29 @@ for sd, n in [('near', 'thighN'), ('far', 'thighF')]:
     _e = np.zeros((512, 512), np.uint8); h, k = LJ[sd]['h'], LJ[sd]['k']; cv2.line(_e, tuple(int(v) for v in h), tuple(int(v) for v in (h + k) / 2), 1, 30)
     _e = _e.astype(bool) & ~(ART[n][..., 3] > 200) & (own['hips'] | own['flapN'] | own['flapC']) & AL
     ART[n] = inpaint_into(ART[n], _e, own[n] & (RA[..., 3] > 200) & ~dil(~AL, 2))
+THIGH_TOP_R = 338   # 먼 허벅지 다각형 오른쪽 위 끝 높이(x 270~290 에서 y 336~338)
 # 먼 허벅지·부츠: 망치 자루·먼 주먹 밑 메움(자루가 움직이면 드러남, 10-19 공격)
 for n in ('thighF', 'bootF'):
     _hz2 = dil(own[n], 6) & (own['hammer'] | own['fistF']) & mk[n] & ~(ART[n][..., 3] > 200)
+    if n == 'thighF':   # (10-20 18:32 망치 = 다리 뒤) 대기에서 먼 허벅지가 자루 끝(쇠 마개) 앞 — 6px 띠가 아니라 허벅지 모양대로
+        #   위 = 반바지 밑단(허벅지 다각형 위 끝, 반바지가 덮음) · 오른쪽 = 허벅지 바깥 선(엉덩이 옆 296 → 부츠 위 291, 원화 허벅지가 마개 밑에서 보이는 끝 294@356 에 맞춤)
+        #   허벅지 칸에 붙은 자루 왼쪽 외곽선(어두운 px) 도 살로 — 바깥 선 밖은 허벅지에서 지움(자루 칸으로)
+        _hzb = _old['hips'] & ~ABOVE_BELT; _hem = np.full(512, float(THIGH_TOP_R - 1)); _cols = _hzb.any(0)
+        _hem[_cols] = 511 - _hzb[::-1].argmax(0)[_cols] - 3   # 반바지 밑단(다각형 아래 끝) 3px 위부터 — 허벅지 위 끝 외곽선이 반바지 밑에 숨게
+        _hem[289:] = THIGH_TOP_R - 1                          # 반바지 모서리(288,336) 오른쪽 = 엉덩이 옆 허벅지 위 끝
+        _cx = np.interp(yy, [330, 337, 342, 348, 354, 358, 362, 368], [288, 288, 293, 295, 294, 293, 291, 291])   # 허벅지 바깥 선: 반바지 모서리 → 조금 불룩 → 부츠 위(원화 294@356)
+        _dark = own[n] & dil(own['hammer'], 5) & ~SKINC & (xx > 262)   # 살 아닌 px(자루 왼쪽 외곽선·점) — 자루가 앞일 땐 자루 외곽선으로 보였음
+        _out = _dark & (xx > _cx); ART[n][..., 3][_out] = 0
+        _hz2 = (own['hammer'] | (_dark & ~_out)) & (yy >= _hem[xx.astype(int)]) & (xx <= _cx) & (yy <= 368)   # 아래는 부츠 위 끝 밑까지(부츠가 덮음 — 틈·외곽선 안 보이게)
+        ART[n][..., 3][_hz2] = 0
+        _src = own[n] & SKINC & ~dil(LINE, 1) & ~dil(~AL, 2)
+        ART[n] = outline_cut(inpaint_into(ART[n], _hz2, _src), _hz2)
+        _aa = dil(_hz2, 2) & ~ero(ART[n][..., 3] > 128, 1); _sm = cv2.GaussianBlur(ART[n][..., 3].astype(np.float32), (0, 0), .8)   # 바깥 선 계단 → 알파만 살짝 부드럽게
+        ART[n][..., 3][_aa] = np.minimum(ART[n][..., 3][_aa], _sm[_aa].astype(np.uint8))
+        print('  먼 허벅지 = 자루 끝 앞 메움 px', int(_hz2.sum()), '· 바깥 자루 외곽선 지움', int(_out.sum()))
+        continue
+    if n == 'bootF':   # (10-20 18:32) 자루 마개 밑에 붙은 부츠 위 끝 뾰족한 외곽선(y ≤ 362) — 허벅지가 마개 앞이 되면 가시처럼 보임 → 지우고 메움에서도 뺌(3px 겹침도 위 오리기에서 뺌 — bootF 를 움직이는 칸 겹침 제외 목록에)
+        _spk = (yy <= 362) & (xx >= 280) & (xx <= 294); ART[n][..., 3][_spk & own[n]] = 0; _hz2 = _hz2 & ~_spk
     if _hz2.any(): ART[n] = outline_cut(inpaint_into(ART[n], _hz2, own[n] & (RA[..., 3] > 200) & ~dil(~AL, 2)), _hz2)
 # 가까운 팔: 팔꿈치 둥근 끝 — 윗팔 아래·팔뚝 위에 반원(살색 + 바깥 외곽선). 팔꿈치가 굽어도 잘린 면이 안 보임
 _ax = (WR_N - SH_N) / np.linalg.norm(WR_N - SH_N); _R = 11.5
@@ -354,7 +376,8 @@ exec(open(os.path.join(HERE, 'attack', os.environ.get('SMASH_FILE', 'smash_one.p
 
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
 # (10-20 06:10 DHL 06:05 '표시한 머리(포니테일)보다도 뒤로') 망치 = 포니테일·몸통·머리 뒤, 다리·골반 앞(자루 끝이 허리띠·허벅지 앞) — 대기·달리기에서 망치가 몸통과 안 겹쳐 그대로
-draw = ['legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreF', 'weapon', 'pony', 'torso', 'head', 'fistF', 'armU', 'pauldron', 'armL']
+draw = ['armF', 'foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'pony', 'torso', 'head', 'armU', 'pauldron', 'armL']   # (10-20 18:32 DHL '같이 진행' = 12 v1.4 앞뒤 규칙) 먼 팔뚝·망치·주먹 = 다리·골반·포니테일·상체·머리 뒤 — 공격 drawA 와 같은 앞뒤. 대기에서 바뀌는 곳 = 자루 끝(쇠 마개)이 먼 허벅지·반바지 뒤
+#   (전 v6.4: 다리·골반·천자락·허리띠 → 먼 팔뚝 → 망치 → 포니테일 → 상체 → 머리 → 주먹 → 가까운 팔)
 _top = int(np.nonzero((own['head'] | own['pony']).any(1))[0].min())
 rig = {'name': 'dulcinea-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},

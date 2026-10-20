@@ -104,19 +104,21 @@ smash = {
     'face': [[0, 'focus'], [.08, 'effort'], [WIND, 'shout'], [HIT + .14, 'focus'], [RET + .08, None]],
     # 공격 중 망치 = weaponA(쇠 머리 왼쪽 아래 홈·흰 앞머리 외곽선 초승달 정리, build _fix_hammer) — 대기 자리를 떠난 뒤 .061 ~ 돌아오기 전 .93 (21:40)
     'fade': {'weapon': k((0, 1), (.06, 1, 'lin'), (.061, 0), (.93, 0, 'lin'), (.931, 1)), 'weaponA': k((0, 0), (.06, 0, 'lin'), (.061, 1), (.93, 1, 'lin'), (.931, 0))},
-    # 그리는 순서: 대기(먼 팔뚝 몸 뒤) → 움직이는 동안(먼 팔뚝이 머리·몸 앞 — 얼굴 오른쪽 바깥이라 얼굴은 안 가림) → 대기 순서 — 바꾸는 순간은 움직일 때
-    'order': [[0, 'drawA'], [.03, 'drawP'], [SW2, 'drawM'], [RET1, 'drawU'], [.86, 'drawA0'], [.875, 'drawA']],   # 10-20 06:10 들어 올림~예비 drawP(망치 포니테일 뒤) · .875 부터 대기와 같은 순서   # 21:42 휘두름~버팀 drawM: 먼 팔뚝(붕대)이 망치 자루 끝 위 — 원화처럼 팔뚝 → 주먹이 보임(자루 끝은 팔뚝 밑)   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
+    # 그리는 순서(10-20 18:32 DHL '같이 진행' — 12 네온 v1.4 앞뒤 규칙 그대로: ①대기·달리기 ②공격 = 손·망치가 머리 뒤 ③공격 = 손·망치가 다리 뒤)
+    #   먼 윗팔·팔뚝·망치·쥔 주먹 = 다리·골반·천자락·허리띠·포니테일·상체·머리 뒤, 가까운 팔만 앞. 대기·달리기 draw(build) 도 같은 앞뒤
+    #   2 만 다른 곳: 들어 올림~돌아옴(.03~.86) 먼 팔뚝이 망치 위(drawM) — 21:42 처럼 팔뚝 → 주먹이 이어져 보이게(아래면 자루 끝이 팔뚝을 덮어 주먹만 떠 보임).
+    #   팔뚝 ↔ 망치 앞뒤가 바뀌는 .03 · .86 은 v6.4 와 같은 시각(몸·다리·머리와의 앞뒤는 공격 내내 같음 — 바뀌는 순간 없음). 검사 tools/order2.py
+    #   (전 v6.4: 망치 = 다리·골반 앞, 주먹·팔뚝 = 머리 앞, 휘두름~돌아옴 팔뚝이 몸 앞)
+    'order': [[0, 'drawA'], [.03, 'drawM'], [.86, 'drawA']],
 }
 _ov = os.environ.get('SMASH_KEYS')   # 맞추기용: 키 덮어쓰기 JSON
 if _ov: smash.update(json.load(open(_ov)))
 # sideF(재킷 오른쪽 자락을 20px 늘인 조각)는 먼 팔이 올라가면 몸 옆에 네모 덩어리로 떠 보여서(10-19 15:20) 공격 순서에서 뺌
-DRAW_ATK0 = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 돌아옴 .86~.875(망치가 몸통 앞 5px)
-DRAW_ATK = ['legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'foreFf', 'weapon', 'weaponA', 'pony', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 망치 = 포니테일 뒤(대기 draw 와 같은 순서)
-DRAW_P = ['legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'weapon', 'weaponA', 'pony', 'torso', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 들어 올림·예비: 망치 = 포니테일·몸통·머리 뒤(이 구간 망치는 몸통과 안 겹침), 먼 팔뚝·주먹 앞
-DRAW_UP = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
-DRAW_L = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'foreFf', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-DRAW_M = ['pony', 'legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
-SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawA0': DRAW_ATK0, 'drawP': DRAW_P, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
+_BODY = ['legFar', 'legNear', 'hips', 'flapN', 'flapC', 'belt', 'pony', 'torso', 'head', 'armU', 'pauldron', 'armL']   # 다리 → 골반·천자락·허리띠 → 포니테일 → 상체 → 머리 → 가까운 팔
+DRAW_ATK = ['armF', 'foreFf', 'weapon', 'weaponA', 'foreF'] + _BODY   # 시작·끝(대기 draw 와 같은 앞뒤): 먼 팔뚝이 망치 밑
+DRAW_M = ['armF', 'weapon', 'weaponA', 'foreFf', 'foreF'] + _BODY     # .03~.86: 먼 팔뚝이 망치 위(21:42 — 팔뚝 → 주먹이 이어짐)
+#   이전 순서 기록(v6.4, 10-20 06:15): drawA0/drawP/drawU/drawL/drawM = 망치가 다리·골반 앞, 들어 올림 때 주먹·팔뚝이 머리 앞, 휘두름~돌아옴 팔뚝이 몸·머리 앞 — 18:32 에 이 둘로 합침
+SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawM': DRAW_M,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
          'hidden': ['weaponA']}
 bones.append(dict(name='weaponA', parent='weapon', pos=[0, 0], part='weaponA'))
