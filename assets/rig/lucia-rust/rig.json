@@ -1,6 +1,6 @@
 {
  "name": "lucia-rust",
- "version": "8492f2b2",
+ "version": "9115f019",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   546.0,
@@ -679,7 +679,7 @@
   "near": {
    "x": -146.0,
    "hipX": -70.0,
-   "runX": -12,
+   "runX": -70.0,
    "shade": 0,
    "thigh": 69.1,
    "shin": 89.1,
@@ -799,7 +799,7 @@
   "far": {
    "x": 124.0,
    "hipX": 60.0,
-   "runX": 12,
+   "runX": 60.0,
    "shade": 0.12,
    "thigh": 98.4,
    "shin": 77.3,
@@ -871,7 +871,6 @@
     "part": "kneeF"
    }
   },
-  "thigh": 80.0,
   "shin": 72.7,
   "thighImg": {
    "part": "rthighF",
@@ -885,6 +884,7 @@
    ],
    "w": 1.0
   },
+  "thigh": 50.2,
   "shinImg": {
    "part": "rshinF",
    "a": [
@@ -935,13 +935,13 @@
   }
  },
  "draw": [
-  "torso",
-  "armF",
   "foreF",
   "weapon",
   "fistF",
   "legFar",
   "legNear",
+  "torso",
+  "armF",
   "hips",
   "head",
   "pauldronF",
@@ -972,20 +972,24 @@
  },
  "armPhase": 0,
  "gait": {
-  "stance": 0.36,
-  "heelKick": 0.7,
-  "kneeLift": 0.85,
-  "strideBase": 60,
-  "strideK": 0.18,
-  "swingReach": 0.12,
-  "swingAng": 0.12,
-  "landAng": 0,
-  "hipBase": 14,
-  "bob": 14,
-  "lean": 0.16,
+  "stance": 0.26,
+  "strideBase": 26,
+  "strideK": 0.08,
+  "hipBase": 4,
+  "bob": 4,
+  "lean": 0.12,
+  "waddle": 0.03,
+  "headBob": 3,
+  "kneeLift": 0.2,
+  "heelKick": 0.05,
+  "dropCap": 8,
+  "swingReach": 0.05,
+  "swingAng": 0,
+  "landAng": -0.04,
+  "angK": 0.12,
   "strideFlex": [
    0.75,
-   1.5
+   1.15
   ],
   "headRun": 0.05,
   "elbowRun": 0,
@@ -1030,7 +1034,7 @@
   "note": "게임 그림 char_0007.png(512) = 원화(md5 같음, source/ref512.png). x = 도감 칸(fitArt 중심 254.4 — index.html measureBox 를 파이썬 같은 계산, 22·12 값 282.4·269.4 로 확인)에서 골반(hip x 280)이 가운데 (2·12·22 와 같은 규칙)"
  },
  "cutHold": 0.32,
- "note": "7 러스트 루시아 v1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음)",
+ "note": "7 러스트 루시아 v1.1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음 · v1.1 다리 = 옷 뒤 + 드워프 종종걸음)",
  "actions": {
   "smash": {
    "kind": "sword",
@@ -1638,14 +1642,14 @@
   }
  },
  "drawA": [
-  "torso",
-  "armF",
   "foreFf",
   "weapon",
   "weaponA",
   "foreF",
   "legFar",
   "legNear",
+  "torso",
+  "armF",
   "hips",
   "head",
   "pauldronF",

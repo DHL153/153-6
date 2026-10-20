@@ -86,8 +86,9 @@ smash = {
 for _k, _v in (KF.get('tracks') or {}).items(): smash[_k] = _v   # keys7.json 'tracks' = 트랙 통째로 바꿈(시험)
 _ov = os.environ.get('SMASH_KEYS')
 if _ov: smash.update(json.load(open(_ov)))
-# 그리는 순서(공격 내내 한 순서): 상체 맨 뒤(원화: 소매가 튜닉 앞) · 먼 윗팔·팔뚝·도끼·쥔 주먹 = 다리·골반·머리 뒤(12 v1.4) · 보호대 · 방패 · 가까운 주먹
-DRAW_ATK = ['torso', 'armF', 'foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
+# 그리는 순서(공격 내내 한 순서): 먼 팔뚝·도끼·쥔 주먹 = 다리·골반·머리 뒤(12 v1.4) · 다리 = 상체·골반 뒤(v1.1 DHL 21:44 '다리를 옷 뒤로' — 대기 순서와 같은 규칙)
+#   먼 윗팔(소매) = 상체 앞(원화: 소매가 튜닉 앞) · 보호대 · 방패 · 가까운 주먹
+DRAW_ATK = ['foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'torso', 'armF', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
 # 땅 막기(엔진: 날 가운데 점 y > tipDepth 면 자루를 세움): 타격 키 자세의 날 가운데 높이 + 여유 6 — 키대로면 안 걸림, 보간이 넘칠 때만
 _hk = [r for r in KEYS if abs(r[0] - HIT) < 1e-6][0]; _Gy = (HIP[1] - O[1]) * 2 + _hk[6] + _hk[2]
 TIPD = round(_Gy + math.sin(math.radians(_hk[3])) * TIPU * 2 + 6, 1)

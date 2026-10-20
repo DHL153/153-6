@@ -255,16 +255,18 @@ def stand(sd, n):
     j = LJ[sd]; bn = 'boot' + n
     return {'fade': [0.05, 0.1], 'boot': {'part': bn + 'Foot', 'sole': sole(bn, j['a'])}, 'thighImg': seg('thigh' + n, O_['thigh' + n], j['h'], j['k']),
             'shinImg': seg(bn + 'Shin', O_[bn], j['k'], j['a']), 'kneeImg': None}
+# v1.1 (DHL 21:44 '다리가 너무 구부러짐 — 다른 모델 참고'): 달릴 때 발이 지나가는 줄(runX) = 다리 뿌리(hipX) 바로 밑 — 팔로메·카르덴처럼 3/4 몸의 두 다리가 각자 제자리에서 걸음.
+#   v1 은 ±12(몸 가운데)라 뿌리(−70 · +60)에서 발까지 다리가 X 자로 최대 65° 기울어 무릎이 많이 꺾였음
 legs = {'hip': [0, round((LEG_HY - HIP[1]) * 2, 1)], 'thighFirst': True,
-        'near': {'x': round(float(LJ['near']['a'][0] - HIP[0]) * 2, 1), 'hipX': round(float(LJ['near']['h'][0] - HIP[0]) * 2, 1), 'runX': -12, 'shade': 0,
+        'near': {'x': round(float(LJ['near']['a'][0] - HIP[0]) * 2, 1), 'hipX': round(float(LJ['near']['h'][0] - HIP[0]) * 2, 1), 'runX': round(float(LJ['near']['h'][0] - HIP[0]) * 2, 1), 'shade': 0,
                  'thigh': ln('near', 'h', 'k'), 'shin': ln('near', 'k', 'a'), 'stand': stand('near', 'N')},
-        'far': {'x': round(float(LJ['far']['a'][0] - HIP[0]) * 2, 1), 'hipX': round(float(LJ['far']['h'][0] - HIP[0]) * 2, 1), 'runX': 12, 'shade': 0.12,
+        'far': {'x': round(float(LJ['far']['a'][0] - HIP[0]) * 2, 1), 'hipX': round(float(LJ['far']['h'][0] - HIP[0]) * 2, 1), 'runX': round(float(LJ['far']['h'][0] - HIP[0]) * 2, 1), 'shade': 0.12,
                 'thigh': ln('far', 'h', 'k'), 'shin': ln('far', 'k', 'a'), 'stand': stand('far', 'F')}}
 print('  legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['far']['thigh'], legs['far']['shin'])
 
 # ---------------- 달리기 다리 — 시트 21·22(허벅지) + 23·24(정강이 + 부츠, 옆모습 앞코 오른쪽) + 25(무릎 쇠판) ----------------
 RS = 2.0                                                         # 시트 = 원화 배율 → 리그 ×2
-RUN_TH = float(os.environ.get('RUN_TH', 2 * 40.0))               # 달리는 허벅지 길이(리그) — 원화 허벅지(가까운 34·먼 49 원화 px, 벌린 다리라 옆으로 보임) 사이
+RUN_TH = float(os.environ.get('RUN_TH', 0))                     # 달리는 허벅지 길이(리그) 시험용 — 없으면 시트 허벅지 길이 × RS (v1.1)
 for sd, bn in (('near', 'bootN'), ('far', 'bootF')):
     _b = sheet_rgba(bn); _m = _b[..., 3] > 128; _ys = np.nonzero(_m.any(1))[0]
     # 시트 정강이+부츠: 무릎 = 위 끝 가운데, 발목 = 쇠 앞코 위(부츠 목) — 아래에서 30% 높이의 뒤꿈치 쪽 가운데
@@ -278,8 +280,7 @@ for sd, bn in (('near', 'bootN'), ('far', 'bootF')):
     if sd == 'far': KNEE_F, ANK_F, FT_F = KNEE_S, ANK_S, _ft
     else: KNEE_Nn, ANK_Nn, FT_N = KNEE_S, ANK_S, _ft
 RUN_SH = round(float(np.linalg.norm(ANK_F - KNEE_F)) * RS, 1)
-legs['thigh'], legs['shin'] = RUN_TH, RUN_SH
-print('  run legs thigh', RUN_TH, 'shin', RUN_SH, '· 무릎', KNEE_F.tolist(), '발목', ANK_F.tolist())
+legs['shin'] = RUN_SH
 def sole_sheet(a, ank):
     m = a[..., 3] > 128; ys = np.nonzero(m.any(1))[0]; yb = ys.max(); out = []
     for y in (yb - 6, yb - 3, yb):
@@ -293,6 +294,11 @@ for n in ['thighN', 'thighF']:   # 시트 허벅지: 위 = 튜닉 자락 밑(곧
     Image.fromarray(a).save(os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
     rseg[n] = {'part': 'r' + n, 'a': [round(top[0], 1), round(top[1], 1)], 'b': [round(kn[0], 1), round(kn[1], 1)], 'w': 1.0}
 legs['thighImg'] = rseg['thighF']; legs['near']['thighImg'] = rseg['thighN']; legs['far']['thighImg'] = rseg['thighF']
+# v1.1: 달리는 허벅지 = 시트 그림 그대로의 배율(RS) 길이 — v1 은 80(시트 25px 를 ×3.2 로 늘림)이라 다리 전체 152.7 > 엉덩이 높이 128 → 서 있는 다리도 무릎이 꺾였음
+#   지금 허벅지 50.2 + 정강이 72.7 = 122.9 ≈ 엉덩이(다리 뿌리)~발목 높이 128 − hipBase 4 → 디딘 다리가 거의 곧음(펴짐 .95~1)
+_tA, _tB = np.array(rseg['thighF']['a']), np.array(rseg['thighF']['b'])
+legs['thigh'] = RUN_TH if 'RUN_TH' in os.environ else round(float(np.linalg.norm(_tB - _tA)) * RS, 1)
+print('  run legs thigh', legs['thigh'], 'shin', RUN_SH, '· 무릎', KNEE_F.tolist(), '발목', ANK_F.tolist())
 legs['shinImg'] = {'part': 'rshinF', 'a': KNEE_F.tolist(), 'b': ANK_F.tolist(), 'w': 1.0}
 legs['near']['shinImg'] = {'part': 'rshinN', 'a': KNEE_Nn.tolist(), 'b': ANK_Nn.tolist(), 'w': 1.0}
 legs['boot'] = {'part': 'rbootF', 'sole': sole_sheet(FT_F, ANK_F), 'ankleRange': [-0.35, 0.6]}
@@ -333,14 +339,20 @@ print('  face px', int(FACE.sum()))
 exec(open(os.path.join(HERE, 'attack', 'smash7.py')).read())
 
 # ---------------- 그리는 순서 (뒤 → 앞) ----------------
-#   12 v1.4 규칙(먼 팔·도끼·쥔 주먹 = 다리·골반·머리 뒤) + 루시아 원화: 먼 소매가 상체(튜닉) 앞 → 상체를 맨 뒤로
+#   12 v1.4 규칙(먼 팔·도끼·쥔 주먹 = 다리·골반·머리 뒤) + 루시아 원화: 먼 소매가 상체(튜닉) 앞
+#   v1.1 (DHL 10-20 21:44 '다리 레이어가 옷 뒤로'): 다리 = 상체(튜닉)·골반(허리띠 + 치맛단) 뒤 — 달릴 때 무릎이 튜닉 위로 올라와 보이던 것.
+#     팔뚝·도끼·쥔 주먹은 다리보다 더 뒤(12 규칙), 윗팔 소매만 상체 앞(원화). 대기 원화 겹침 차이 = v1 과 같은 762 px (tools/ordercheck7.py)
 #   방패·가까운 주먹 = 맨 앞, 먼 어깨 보호대 = 머리 앞·방패 뒤
-draw = ['torso', 'armF', 'foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
+draw = ['foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'torso', 'armF', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
 _top = 170
 rig = {'name': 'lucia-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},
        'metrics': {'bodyHeight': round(2 * (O[1] - _top), 1), 'note': f'리그 단위; 투구 둥근 꼭대기(y{_top} — 볏 빼고)~발바닥({O[1]:.0f}) ×2, 무기 제외'},
-       'armPhase': 0, 'gait': {'stance': 0.36, 'heelKick': 0.7, 'kneeLift': 0.85, 'strideBase': 60, 'strideK': 0.18, 'swingReach': 0.12, 'swingAng': 0.12, 'landAng': 0, 'hipBase': 14, 'bob': 14, 'lean': 0.16, 'strideFlex': [0.75, 1.5], 'headRun': 0.05, 'elbowRun': 0, 'armSwing': 0.5, 'armBias': 0.0},
+       'armPhase': 0,
+       # v1.1 걸음(DHL 21:44 '너무 구부러짐'): 팔로메(9·29)·카르덴(6) 드워프 종종걸음 쪽 — 작은 보폭·낮은 무릎·뒤꿈치 거의 안 참·골반 덜 내림·발목 덜 꺾음(긴 쇠 앞코 부츠가 꺾이면 발목이 들려 무릎이 접힘)
+       #   v1: 보폭 60+.18v · 무릎 .85 · 뒤꿈치 .7 · 골반 14 · 출렁 14 → 무릎 굽힘 최대 163°(평균 50~63) / v1.1: 최대 ~83°(그네 다리), 디딘 다리 5~37° (tools/legprobe7.py, 게임 걸음 2.22/s)
+       'gait': {'stance': 0.26, 'strideBase': 26, 'strideK': 0.08, 'hipBase': 4, 'bob': 4, 'lean': 0.12, 'waddle': 0.03, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.05, 'dropCap': 8,
+                'swingReach': 0.05, 'swingAng': 0, 'landAng': -0.04, 'angK': 0.12, 'strideFlex': [0.75, 1.15], 'headRun': 0.05, 'elbowRun': 0, 'armSwing': 0.5, 'armBias': 0.0},
        'carrySwing': 0.35, 'wristRange': 0.3,
        'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': 0.3}, {'bone': 'shield', 'src': 'torso', 'k': -0.6}],   # 방패 = 상체 숙임의 60% 만큼 되돌려 세움(타격 때 상체 17° 숙이면 방패가 머리 쪽으로 넘어갔음 21:5x)
        'bounce': [{'bone': 'shield', 'stiff': 170, 'damp': 9, 'y': 0.25, 'rot': 0.004, 'max': 8}],
@@ -348,7 +360,7 @@ rig = {'name': 'lucia-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', '
        'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - 254.4)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
                    'note': '게임 그림 char_0007.png(512) = 원화(md5 같음, source/ref512.png). x = 도감 칸(fitArt 중심 254.4 — index.html measureBox 를 파이썬 같은 계산, 22·12 값 282.4·269.4 로 확인)에서 골반(hip x 280)이 가운데 (2·12·22 와 같은 규칙)'},
        'cutHold': 0.32,   # 스킬 컷인 = 도끼를 머리 위로 높이 든 휘두름 시작(2·12·22 와 같은 시각)
-       'note': '7 러스트 루시아 v1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음)'}
+       'note': '7 러스트 루시아 v1.1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음 · v1.1 다리 = 옷 뒤 + 드워프 종종걸음)'}
 rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
