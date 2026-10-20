@@ -1,0 +1,168 @@
+{
+ "parts": {
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_angry": {
+   "src": "parts/face_angry.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_sad": {
+   "src": "parts/face_sad.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_surprised": {
+   "src": "parts/face_surprised.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_wink": {
+   "src": "parts/face_wink.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "blink_half": {
+   "src": "parts/blink_half.png",
+   "pivot": [
+    108.0,
+    236.0
+   ],
+   "scale": 0.5
+  },
+  "blink_closed": {
+   "src": "parts/blink_closed.png",
+   "pivot": [
+    108.0,
+    236.0
+   ],
+   "scale": 0.5
+  }
+ },
+ "rep": {
+  "face_happy": {
+   "inliers": 59,
+   "ecc": 0.984,
+   "scale": 1.812,
+   "gain": [
+    0.9430000185966492,
+    0.8880000114440918,
+    0.8930000066757202
+   ]
+  },
+  "face_angry": {
+   "inliers": 77,
+   "ecc": 0.984,
+   "scale": 1.795,
+   "gain": [
+    0.9419999718666077,
+    0.8920000195503235,
+    0.9049999713897705
+   ]
+  },
+  "face_sad": {
+   "inliers": 84,
+   "ecc": 0.981,
+   "scale": 1.811,
+   "gain": [
+    0.9409999847412109,
+    0.8849999904632568,
+    0.8899999856948853
+   ]
+  },
+  "face_surprised": {
+   "inliers": 72,
+   "ecc": 0.982,
+   "scale": 1.759,
+   "gain": [
+    0.9409999847412109,
+    0.8830000162124634,
+    0.8880000114440918
+   ]
+  },
+  "face_shout": {
+   "inliers": 71,
+   "ecc": 0.98,
+   "scale": 1.759,
+   "gain": [
+    0.9440000057220459,
+    0.8920000195503235,
+    0.902999997138977
+   ]
+  },
+  "face_focus": {
+   "inliers": 74,
+   "ecc": 0.976,
+   "scale": 1.77,
+   "gain": [
+    0.9409999847412109,
+    0.8849999904632568,
+    0.8880000114440918
+   ]
+  },
+  "face_wink": {
+   "inliers": 74,
+   "ecc": 0.982,
+   "scale": 1.75,
+   "gain": [
+    0.9409999847412109,
+    0.8870000243186951,
+    0.8930000066757202
+   ]
+  },
+  "blink_half": {
+   "inliers": 72,
+   "ecc": 0.974,
+   "scale": 1.766,
+   "gain": [
+    0.9419999718666077,
+    0.8899999856948853,
+    0.8989999890327454
+   ]
+  },
+  "blink_closed": {
+   "inliers": 76,
+   "ecc": 0.979,
+   "scale": 1.696,
+   "gain": [
+    0.9409999847412109,
+    0.8840000033378601,
+    0.8880000114440918
+   ]
+  }
+ }
+}

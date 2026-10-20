@@ -1,0 +1,2087 @@
+{
+ "name": "rosi-neon",
+ "title": "14 네온 로시 (4 러스트 로시 v1.1 리그 구조)",
+ "version": "1.0",
+ "units": "rig px = original px x 2 (parts cut at 4x from the original, scale .5)",
+ "refOrigin": [
+  237,
+  445
+ ],
+ "refScale": 2.0,
+ "refLift": 0,
+ "metrics": {
+  "bodyHeight": 722,
+  "note": "head top (hair tip y84) to sole (y445), idle, gun excluded; scale = screen px / bodyHeight"
+ },
+ "ui": {
+  "attack": "fire",
+  "touch": "heft",
+  "tap": [
+   "heft",
+   "nod",
+   "hop",
+   "surprise"
+  ],
+  "long": [
+   "sway"
+  ],
+  "note": "게임: 전투 공격 = 짧은 연사(fire 1.5배속 + 버티는 자세에서 0.2초 누름 = 약 4발, 첫 발 0.13초, 공격 약 0.64초 — 도감 클릭도 같음), 스킬 컷인 = 버티며 쏘는 자세(cutHold .30) 유지하며 연사, 마이룸·도감 터치 = 차례로 총 추스르기+윙크(heft) · 끄덕(nod) · 작은 폴짝(hop) · 움찔(surprise), 길게 = 살랑(sway, 끝에 윙크). 반응은 모두 손이 손잡이에서 안 떨어짐(G28) — 몸·어깨로만, 총 무게는 스프링이 따라감",
+  "attackOpts": {
+   "hold": 0.2
+  },
+  "roomStep": true
+ },
+ "parts": {
+  "gun": {
+   "src": "parts/gun.png",
+   "pivot": [
+    436.0,
+    228.0
+   ],
+   "scale": 0.5
+  },
+  "sleeveN": {
+   "src": "parts/sleeveN.png",
+   "pivot": [
+    143.0,
+    128.0
+   ],
+   "scale": 0.5
+  },
+  "sleeveF": {
+   "src": "parts/sleeveF.png",
+   "pivot": [
+    142.0,
+    108.0
+   ],
+   "scale": 0.5
+  },
+  "head": {
+   "src": "parts/head.png",
+   "pivot": [
+    342.0,
+    609.0
+   ],
+   "scale": 0.5
+  },
+  "pack": {
+   "src": "parts/pack.png",
+   "pivot": [
+    608.0,
+    504.0
+   ],
+   "scale": 0.5
+  },
+  "torso": {
+   "src": "parts/torso.png",
+   "pivot": [
+    338.0,
+    180.0
+   ],
+   "scale": 0.5
+  },
+  "torsoFill": {
+   "src": "parts/torsoFill.png",
+   "pivot": [
+    314.0,
+    436.0
+   ],
+   "scale": 0.5
+  },
+  "skirt": {
+   "src": "parts/skirt.png",
+   "pivot": [
+    265.0,
+    176.0
+   ],
+   "scale": 0.5
+  },
+  "neck": {
+   "src": "parts/neck.png",
+   "pivot": [
+    88.0,
+    104.0
+   ],
+   "scale": 0.5
+  },
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_angry": {
+   "src": "parts/face_angry.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_sad": {
+   "src": "parts/face_sad.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_surprised": {
+   "src": "parts/face_surprised.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "face_wink": {
+   "src": "parts/face_wink.png",
+   "pivot": [
+    112.0,
+    276.0
+   ],
+   "scale": 0.5
+  },
+  "blink_half": {
+   "src": "parts/blink_half.png",
+   "pivot": [
+    108.0,
+    236.0
+   ],
+   "scale": 0.5
+  },
+  "blink_closed": {
+   "src": "parts/blink_closed.png",
+   "pivot": [
+    108.0,
+    236.0
+   ],
+   "scale": 0.5
+  },
+  "thigh": {
+   "src": "parts/thigh.png",
+   "pivot": [
+    104,
+    110
+   ],
+   "scale": 1
+  },
+  "shin": {
+   "src": "parts/shin.png",
+   "pivot": [
+    95,
+    61
+   ],
+   "scale": 1
+  },
+  "boot": {
+   "src": "parts/boot.png",
+   "pivot": [
+    100,
+    45
+   ],
+   "scale": 0.35
+  },
+  "link": {
+   "src": "parts/link.png",
+   "pivot": [
+    41,
+    72
+   ],
+   "scale": 0.45
+  },
+  "ring": {
+   "src": "parts/ring.png",
+   "pivot": [
+    31,
+    56
+   ],
+   "scale": 0.8166
+  }
+ },
+ "bones": [
+  {
+   "name": "root",
+   "parent": null,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "hip",
+   "parent": "root",
+   "pos": [
+    6,
+    -146
+   ]
+  },
+  {
+   "name": "torso",
+   "parent": "hip",
+   "pos": [
+    4,
+    -72
+   ]
+  },
+  {
+   "name": "skirt",
+   "parent": "hip",
+   "pos": [
+    12,
+    -64
+   ],
+   "prop": true,
+   "part": "skirt"
+  },
+  {
+   "name": "torsoFill",
+   "parent": "torso",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true,
+   "part": "torsoFill"
+  },
+  {
+   "name": "chest",
+   "parent": "torso",
+   "pos": [
+    12,
+    -128
+   ],
+   "part": "torso"
+  },
+  {
+   "name": "handBackN",
+   "parent": "shoulderN",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true
+  },
+  {
+   "name": "neck",
+   "parent": "chest",
+   "pos": [
+    12,
+    -48
+   ]
+  },
+  {
+   "name": "neckP",
+   "parent": "neck",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true,
+   "part": "neck"
+  },
+  {
+   "name": "head",
+   "parent": "neck",
+   "pos": [
+    8,
+    -22
+   ],
+   "part": "head"
+  },
+  {
+   "name": "capeFill",
+   "parent": "head",
+   "pos": [
+    -144,
+    -222
+   ],
+   "prop": true
+  },
+  {
+   "name": "cape",
+   "parent": "head",
+   "pos": [
+    -144,
+    -222
+   ],
+   "prop": true
+  },
+  {
+   "name": "collar",
+   "parent": "neck",
+   "pos": [
+    -4,
+    -8
+   ],
+   "prop": true
+  },
+  {
+   "name": "pack",
+   "parent": "chest",
+   "pos": [
+    -104,
+    -56
+   ],
+   "prop": true,
+   "part": "pack"
+  },
+  {
+   "name": "shoulderN",
+   "parent": "chest",
+   "pos": [
+    -112,
+    -20
+   ],
+   "part": "sleeveN"
+  },
+  {
+   "name": "elbowN",
+   "parent": "shoulderN",
+   "pos": [
+    -50,
+    38
+   ]
+  },
+  {
+   "name": "wristN",
+   "parent": "elbowN",
+   "pos": [
+    -6,
+    30
+   ]
+  },
+  {
+   "name": "shoulderF",
+   "parent": "chest",
+   "pos": [
+    112,
+    -20
+   ],
+   "part": "sleeveF"
+  },
+  {
+   "name": "elbowF",
+   "parent": "shoulderF",
+   "pos": [
+    44,
+    52
+   ]
+  },
+  {
+   "name": "wristF",
+   "parent": "elbowF",
+   "pos": [
+    36,
+    12
+   ]
+  },
+  {
+   "name": "gun",
+   "parent": "chest",
+   "pos": [
+    4,
+    116
+   ],
+   "prop": true,
+   "part": "gun"
+  },
+  {
+   "name": "gripBackN",
+   "parent": "gun",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true
+  },
+  {
+   "name": "gripN",
+   "parent": "gun",
+   "pos": [
+    -172,
+    -68
+   ],
+   "prop": true
+  },
+  {
+   "name": "cuffN",
+   "parent": "gripN",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true
+  },
+  {
+   "name": "gripF",
+   "parent": "gun",
+   "pos": [
+    188,
+    -72
+   ],
+   "prop": true
+  },
+  {
+   "name": "foreRigF",
+   "parent": "gripF",
+   "pos": [
+    0,
+    0
+   ],
+   "prop": true
+  }
+ ],
+ "jointMap": {
+  "hip": [
+   240,
+   372
+  ],
+  "torso": [
+   242,
+   336
+  ],
+  "chest": [
+   248,
+   272
+  ],
+  "neck": [
+   254,
+   248
+  ],
+  "head": [
+   258,
+   237
+  ],
+  "shoulderN": [
+   192,
+   262
+  ],
+  "elbowN": [
+   167,
+   281
+  ],
+  "wristN": [
+   164,
+   296
+  ],
+  "shoulderF": [
+   304,
+   262
+  ],
+  "elbowF": [
+   326,
+   288
+  ],
+  "wristF": [
+   344,
+   294
+  ]
+ },
+ "legs": {
+  "hip": [
+   0,
+   12
+  ],
+  "thigh": 48.0,
+  "shin": 62.0,
+  "thighImg": {
+   "part": "thigh",
+   "a": [
+    104,
+    120
+   ],
+   "b": [
+    110,
+    258
+   ],
+   "w": 1.1
+  },
+  "shinImg": {
+   "part": "shin",
+   "a": [
+    95,
+    61
+   ],
+   "b": [
+    96,
+    209
+   ],
+   "w": 1.12
+  },
+  "boot": {
+   "part": "boot",
+   "sole": [
+    [
+     -70,
+     127
+    ],
+    [
+     20,
+     131
+    ],
+    [
+     140,
+     137
+    ],
+    [
+     170,
+     132
+    ]
+   ],
+   "toeX": 120.0,
+   "ankleRange": [
+    -0.45,
+    0.36
+   ],
+   "idleDorsi": 0.26
+  },
+  "near": {
+   "x": -60,
+   "shade": 0
+  },
+  "far": {
+   "x": 56,
+   "shade": 0.3
+  },
+  "thighFirst": true
+ },
+ "draw": [
+  "pack",
+  "belt",
+  "legFar",
+  "legNear",
+  "skirt",
+  "torsoFill",
+  "chest",
+  "neckP",
+  "head",
+  "shoulderN",
+  "shoulderF",
+  "gun"
+ ],
+ "overlays": {},
+ "hemRun": {
+  "lift": 6,
+  "knee": 1.0,
+  "heel": 0.6,
+  "reach": 0.3
+ },
+ "carry": {
+  "soft": {
+   "k": 55,
+   "c": 8.5,
+   "kr": 48,
+   "cr": 7,
+   "accY": 0.017,
+   "accX": 0.006,
+   "rotY": 0.0065,
+   "rotX": 0.0016,
+   "idleY": 2.2,
+   "idleR": 0.016,
+   "maxY": 16,
+   "maxX": 14,
+   "maxR": 0.07,
+   "leanBack": 0.0012,
+   "maxWrist": 0.33,
+   "shoulderFollow": 0.7,
+   "shoulderSlide": 9
+  },
+  "packSway": 1.0,
+  "belt": {
+   "links": [
+    "ring",
+    "link",
+    "link",
+    "link"
+   ],
+   "spacing": 31,
+   "path": [
+    [
+     -302,
+     -438
+    ],
+    [
+     -322,
+     -418
+    ],
+    [
+     -333.6,
+     -400
+    ],
+    [
+     -347.4,
+     -367.4
+    ],
+    [
+     -353.2,
+     -331.4
+    ],
+    [
+     -349.8,
+     -298
+    ],
+    [
+     -336.8,
+     -267.8
+    ],
+    [
+     -314,
+     -243.2
+    ],
+    [
+     -284.6,
+     -230.2
+    ],
+    [
+     -252,
+     -223.6
+    ],
+    [
+     -219.2,
+     -218.8
+    ],
+    [
+     -182,
+     -216
+    ],
+    [
+     -162,
+     -214
+    ]
+   ],
+   "chestRest": [
+    22,
+    -346
+   ],
+   "from": [
+    168,
+    432
+   ],
+   "to": [
+    60,
+    260
+   ],
+   "reverse": false,
+   "linkScale": [
+    1,
+    1
+   ]
+  },
+  "arms": [
+   [
+    "shoulderN",
+    "elbowN",
+    "wristN",
+    "gripN"
+   ],
+   [
+    "shoulderF",
+    "elbowF",
+    "wristF",
+    "gripF"
+   ]
+  ],
+  "lagY": 0,
+  "lagRot": 0,
+  "counterWaddle": 0,
+  "chestSteady": 0.85,
+  "capeAmp": 0,
+  "accelRot": 0,
+  "groundClear": -60,
+  "fire": {
+   "rate": 14,
+   "muzzle": [
+    1412,
+    468
+   ],
+   "bore": [
+    1108,
+    432
+   ],
+   "kickX": 22,
+   "kickY": 6,
+   "kickR": 0.22,
+   "push": 3,
+   "headShake": 0.01
+  },
+  "lift": 0.0,
+  "pullIn": 0.0,
+  "breathLift": 3,
+  "stepPump": 4,
+  "shoulderRoll": 2.5,
+  "f1Len": 57.06248800313458,
+  "rigidFore": {
+   "shoulderN": [
+    6,
+    -30
+   ],
+   "shoulderF": [
+    -36,
+    -12
+   ]
+  },
+  "rigidSlack": 8
+ },
+ "gait": {
+  "stance": 0.58,
+  "strideBase": 46,
+  "strideK": 0.12,
+  "hipBase": 0,
+  "bob": 4,
+  "lean": 0.04,
+  "leanBob": 0.01,
+  "waddle": 0.05,
+  "headBob": 2,
+  "headTilt": 0.03,
+  "accelLean": 0.4,
+  "armSwing": 0,
+  "armBias": 0,
+  "kneeLift": 0.3,
+  "heelKick": 0.18,
+  "swingFoot": 0.45,
+  "dropCap": 30,
+  "breathScale": 0,
+  "lockMax": 60,
+  "startPhase": 0.45,
+  "headRun": 0.03,
+  "strideFlex": [
+   0.45,
+   0.68
+  ]
+ },
+ "runSpeed": 150,
+ "faces": {
+  "wink": "face_wink",
+  "shout": "face_shout",
+  "focus": "face_focus",
+  "happy": "face_happy",
+  "angry": "face_angry",
+  "sad": "face_sad",
+  "surprised": "face_surprised",
+  "grimace": "face_surprised"
+ },
+ "actions": {
+  "fire": {
+   "dur": 0.66,
+   "holdAt": 0.3,
+   "fireFrom": 0.2,
+   "cancelAt": 0.42,
+   "nearWin": [
+    0.03,
+    0.15
+   ],
+   "farWin": [
+    0.06,
+    0.2
+   ],
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -16,
+     "o"
+    ],
+    [
+     0.42,
+     -16,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -0.2,
+     "o"
+    ],
+    [
+     0.42,
+     -0.2,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     0.14,
+     "o"
+    ],
+    [
+     0.42,
+     0.14,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "nearDx": [
+    [
+     0,
+     0
+    ],
+    [
+     0.6,
+     0
+    ]
+   ],
+   "nearLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.6,
+     0
+    ]
+   ],
+   "farDx": [
+    [
+     0,
+     0
+    ],
+    [
+     0.06,
+     0,
+     "io"
+    ],
+    [
+     0.2,
+     10
+    ],
+    [
+     0.44,
+     10,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "farLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.06,
+     0,
+     "io"
+    ],
+    [
+     0.13,
+     8,
+     "io"
+    ],
+    [
+     0.2,
+     0
+    ],
+    [
+     0.46,
+     0,
+     "io"
+    ],
+    [
+     0.54,
+     6,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -4,
+     "o"
+    ],
+    [
+     0.42,
+     -4,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "gunR": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     0,
+     "o"
+    ],
+    [
+     0.42,
+     0,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "focus"
+    ],
+    [
+     0.21,
+     "shout"
+    ],
+    [
+     0.4,
+     "focus"
+    ],
+    [
+     0.6,
+     null
+    ]
+   ],
+   "gunX": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     0,
+     "o"
+    ],
+    [
+     0.42,
+     0,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "shrug": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.18,
+     -10,
+     "o"
+    ],
+    [
+     0.42,
+     -10,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "hitAt": 0.303
+  },
+  "heft": {
+   "dur": 1.7,
+   "cancelAt": 1.4,
+   "plant": false,
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     16,
+     "o"
+    ],
+    [
+     0.35,
+     -24,
+     "io"
+    ],
+    [
+     0.47,
+     10,
+     "o"
+    ],
+    [
+     0.59,
+     -2,
+     "io"
+    ],
+    [
+     0.71,
+     2,
+     "io"
+    ],
+    [
+     0.85,
+     0,
+     "io"
+    ],
+    [
+     1.4,
+     0,
+     "io"
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     -0.01,
+     "o"
+    ],
+    [
+     0.34,
+     -0.05,
+     "io"
+    ],
+    [
+     0.5,
+     -0.02,
+     "io"
+    ],
+    [
+     0.8,
+     -0.035,
+     "io"
+    ],
+    [
+     1.4,
+     -0.035,
+     "io"
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     0.06,
+     "o"
+    ],
+    [
+     0.34,
+     -0.06,
+     "io"
+    ],
+    [
+     0.55,
+     0.11,
+     "io"
+    ],
+    [
+     1.4,
+     0.11,
+     "io"
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "shrug": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     2,
+     "o"
+    ],
+    [
+     0.35,
+     -14,
+     "io"
+    ],
+    [
+     0.47,
+     1,
+     "o"
+    ],
+    [
+     0.63,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     -17,
+     "o"
+    ],
+    [
+     0.35,
+     -3,
+     "io"
+    ],
+    [
+     0.47,
+     -10,
+     "o"
+    ],
+    [
+     0.59,
+     0,
+     "io"
+    ],
+    [
+     0.71,
+     -1,
+     "io"
+    ],
+    [
+     0.85,
+     0
+    ]
+   ],
+   "gunR": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     0.015,
+     "o"
+    ],
+    [
+     0.34,
+     -0.05,
+     "io"
+    ],
+    [
+     0.46,
+     0.03,
+     "o"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "kicks": [
+    [
+     0.29,
+     0,
+     -90,
+     -1.1
+    ],
+    [
+     0.42,
+     0,
+     100,
+     1.0
+    ]
+   ],
+   "face": [
+    [
+     0,
+     null
+    ],
+    [
+     0.34,
+     "wink"
+    ],
+    [
+     1.45,
+     null
+    ]
+   ],
+   "nearWin": [
+    0,
+    0.05
+   ],
+   "farWin": [
+    0,
+    0.05
+   ],
+   "nearLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.28,
+     0,
+     "o"
+    ],
+    [
+     0.35,
+     9,
+     "i"
+    ],
+    [
+     0.43,
+     0
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "farLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.29,
+     0,
+     "o"
+    ],
+    [
+     0.36,
+     9,
+     "i"
+    ],
+    [
+     0.44,
+     0
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "nearDx": [
+    [
+     0,
+     0
+    ],
+    [
+     1.7,
+     0
+    ]
+   ],
+   "farDx": [
+    [
+     0,
+     0
+    ],
+    [
+     1.7,
+     0
+    ]
+   ]
+  },
+  "nod": {
+   "dur": 0.95,
+   "cancelAt": 0.8,
+   "plant": true,
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.14,
+     0.2,
+     "io"
+    ],
+    [
+     0.3,
+     -0.03,
+     "io"
+    ],
+    [
+     0.44,
+     0.18,
+     "io"
+    ],
+    [
+     0.62,
+     0,
+     "io"
+    ],
+    [
+     0.95,
+     0
+    ]
+   ],
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.14,
+     5,
+     "io"
+    ],
+    [
+     0.3,
+     0,
+     "io"
+    ],
+    [
+     0.44,
+     5,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.14,
+     0.03,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.14,
+     -6,
+     "io"
+    ],
+    [
+     0.3,
+     0,
+     "io"
+    ],
+    [
+     0.44,
+     -6,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "happy"
+    ],
+    [
+     0.85,
+     null
+    ]
+   ]
+  },
+  "surprise": {
+   "dur": 0.9,
+   "cancelAt": 0.75,
+   "plant": true,
+   "hipY": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     -12,
+     "io"
+    ],
+    [
+     0.22,
+     4,
+     "io"
+    ],
+    [
+     0.36,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     -0.09,
+     "io"
+    ],
+    [
+     0.34,
+     -0.05,
+     "io"
+    ],
+    [
+     0.9,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     -0.12,
+     "io"
+    ],
+    [
+     0.34,
+     -0.05,
+     "io"
+    ],
+    [
+     0.9,
+     0
+    ]
+   ],
+   "shrug": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     -9,
+     "io"
+    ],
+    [
+     0.26,
+     0,
+     "io"
+    ],
+    [
+     0.42,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     -6,
+     "io"
+    ],
+    [
+     0.36,
+     0
+    ]
+   ],
+   "gunR": [
+    [
+     0,
+     0,
+     "o"
+    ],
+    [
+     0.08,
+     -0.025,
+     "io"
+    ],
+    [
+     0.3,
+     0.01,
+     "io"
+    ],
+    [
+     0.5,
+     0
+    ]
+   ],
+   "kicks": [
+    [
+     0.04,
+     0,
+     -70,
+     -0.6
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "surprised"
+    ],
+    [
+     0.55,
+     null
+    ]
+   ]
+  },
+  "hop": {
+   "dur": 1.0,
+   "cancelAt": 0.85,
+   "plant": false,
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     12,
+     "o"
+    ],
+    [
+     0.17,
+     -14
+    ],
+    [
+     0.22,
+     -50,
+     "io"
+    ],
+    [
+     0.32,
+     -47
+    ],
+    [
+     0.37,
+     -14
+    ],
+    [
+     0.41,
+     11,
+     "o"
+    ],
+    [
+     0.52,
+     -2,
+     "io"
+    ],
+    [
+     0.62,
+     0,
+     "io"
+    ],
+    [
+     1.0,
+     0
+    ]
+   ],
+   "nearLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.17,
+     0
+    ],
+    [
+     0.22,
+     36,
+     "io"
+    ],
+    [
+     0.32,
+     33
+    ],
+    [
+     0.37,
+     0
+    ],
+    [
+     1.0,
+     0
+    ]
+   ],
+   "farLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.17,
+     0
+    ],
+    [
+     0.22,
+     36,
+     "io"
+    ],
+    [
+     0.32,
+     33
+    ],
+    [
+     0.37,
+     0
+    ],
+    [
+     1.0,
+     0
+    ]
+   ],
+   "nearDx": [
+    [
+     0,
+     0
+    ],
+    [
+     1.0,
+     0
+    ]
+   ],
+   "farDx": [
+    [
+     0,
+     0
+    ],
+    [
+     1.0,
+     0
+    ]
+   ],
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     0.03,
+     "io"
+    ],
+    [
+     0.24,
+     -0.03,
+     "io"
+    ],
+    [
+     0.42,
+     0.03,
+     "io"
+    ],
+    [
+     0.7,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     0.04,
+     "io"
+    ],
+    [
+     0.24,
+     -0.07,
+     "io"
+    ],
+    [
+     0.42,
+     0.05,
+     "io"
+    ],
+    [
+     0.8,
+     0
+    ]
+   ],
+   "shrug": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     0,
+     "io"
+    ],
+    [
+     0.22,
+     -6,
+     "io"
+    ],
+    [
+     0.41,
+     0,
+     "o"
+    ],
+    [
+     0.55,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.12,
+     -15,
+     "o"
+    ],
+    [
+     0.22,
+     -4,
+     "io"
+    ],
+    [
+     0.34,
+     -6,
+     "io"
+    ],
+    [
+     0.41,
+     -15,
+     "o"
+    ],
+    [
+     0.52,
+     -2,
+     "io"
+    ],
+    [
+     0.62,
+     0
+    ]
+   ],
+   "kicks": [
+    [
+     0.41,
+     0,
+     90,
+     0.8
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "happy"
+    ],
+    [
+     0.95,
+     null
+    ]
+   ]
+  },
+  "sway": {
+   "dur": 2.0,
+   "cancelAt": 1.8,
+   "plant": true,
+   "lean": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.35,
+     -0.05,
+     "io"
+    ],
+    [
+     0.75,
+     0.04,
+     "io"
+    ],
+    [
+     1.15,
+     -0.05,
+     "io"
+    ],
+    [
+     1.5,
+     0.02,
+     "io"
+    ],
+    [
+     2.0,
+     0
+    ]
+   ],
+   "head": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.35,
+     0.13,
+     "io"
+    ],
+    [
+     0.75,
+     -0.1,
+     "io"
+    ],
+    [
+     1.15,
+     0.13,
+     "io"
+    ],
+    [
+     1.5,
+     0.06,
+     "io"
+    ],
+    [
+     2.0,
+     0
+    ]
+   ],
+   "hipY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.35,
+     6,
+     "io"
+    ],
+    [
+     0.55,
+     2,
+     "io"
+    ],
+    [
+     0.75,
+     6,
+     "io"
+    ],
+    [
+     0.95,
+     2,
+     "io"
+    ],
+    [
+     1.15,
+     6,
+     "io"
+    ],
+    [
+     1.5,
+     0
+    ]
+   ],
+   "gunR": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.35,
+     0.015,
+     "io"
+    ],
+    [
+     0.75,
+     -0.012,
+     "io"
+    ],
+    [
+     1.15,
+     0.015,
+     "io"
+    ],
+    [
+     1.5,
+     0
+    ]
+   ],
+   "gunY": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.35,
+     -7,
+     "io"
+    ],
+    [
+     0.55,
+     -2,
+     "io"
+    ],
+    [
+     0.75,
+     -7,
+     "io"
+    ],
+    [
+     0.95,
+     -2,
+     "io"
+    ],
+    [
+     1.15,
+     -7,
+     "io"
+    ],
+    [
+     1.5,
+     0
+    ]
+   ],
+   "breath": [
+    [
+     0,
+     0,
+     "io"
+    ],
+    [
+     0.5,
+     0.5,
+     "io"
+    ],
+    [
+     1.2,
+     0.5,
+     "io"
+    ],
+    [
+     2.0,
+     0
+    ]
+   ],
+   "face": [
+    [
+     0,
+     "happy"
+    ],
+    [
+     1.45,
+     "wink"
+    ],
+    [
+     1.95,
+     null
+    ]
+   ]
+  }
+ },
+ "segs": {},
+ "hidden": [],
+ "idleStance": {
+  "near": -10.0,
+  "far": 44.0
+ },
+ "cutHold": 0.3,
+ "gameNote": "14 네온 로시 v1(10-21): 4 러스트 로시 v1.1 과 같은 동작·반응·걸음(rig.json actions·gait·ui 그대로), 조각만 네온",
+ "blinkFaces": {
+  "half": "blink_half",
+  "closed": "blink_closed"
+ },
+ "faceNote": "10-21 07:59 DHL 조각 시트 머리 9장 → tools/faces14.py: 시트 기본 머리(2번)를 원화 얼굴에 맞추고(ECC .93), 칸마다 2번 머리카락에 맞춤(.97~.98) — 표정 7 = 얼굴 전체, 깜빡임 2 = 눈만"
+}
