@@ -29,7 +29,12 @@ FACE_C, FACE_R = V([262, 262]), (30, 36)                                        
 KB = [(0.00, 0.00, 0, 0), (0.10, -0.06, 0, 3), (0.20, 0.04, 0, 4), (0.28, 0.14, 0, 8), (0.36, 0.08, 0, 6), (0.42, -0.02, 0, 4), (0.48, 0.08, 0, 8),
       (0.54, 0.18, 0, 12), (0.64, 0.12, 0, 10), (0.84, 0.02, 0, 2), (1.00, 0.00, 0, 0)]
 # 가까운 팔(윗팔·팔뚝 세상 각) — 펴짐 ≤ .9 이려면 두 마디 사이 각 ≥ 57°
-KN = [(0.00, u0N, f0N), (0.10, 176, -126), (0.19, -126, -62), (0.28, 92, 15), (0.34, 96, 17), (0.42, 105, -10), (0.50, 135, -70), (0.62, 152, -94), (0.80, 160, -100), (1.00, u0N, f0N)]
+# v1.2(10-21 00:17, DHL 00:15 '팔이 떨어져 있어요' — 0.22초): 가까운 윗팔(34.5px)은 원화에서 거의 재킷 짧은 소매 속이고, 보이는 건 소매 입구 → 팔꿈치뿐.
+#   v1 은 윗팔을 대기 방향에서 +76°(머리 위, .19)~−66°(아래, .28~.42) 돌려서, 팔꿈치가 소매 입구를 벗어나 팔뚝이 소매·몸과 떨어져 보였음(윗팔 관은 상체·머리 뒤라 안 보임).
+#   → 윗팔은 소매 입구 방향(대기 158°) ±25° 안에서만(UCONE), 내려찍기는 팔꿈치 둘레 팔뚝 회전 + 몸 기울기로
+UCONE = 25
+KN = [(0.00, u0N, f0N), (0.10, 176, -126), (0.19, 180, -64), (0.28, 160, 18), (0.34, 160, 20), (0.40, 176, -64), (0.50, 172, -82), (0.62, 165, -96), (0.80, 160, -100), (1.00, u0N, f0N)]
+# v1 키(비교용): (0.19, -126, -62) (0.28, 92, 15) (0.34, 96, 17) (0.42, 105, -10) (0.50, 135, -70) (0.62, 152, -94)
 # 먼 팔(주먹 자리 원화 px · 도끼 세상 각) — 'a' = 그 둘레 ±28px 에서 펴짐 ≤ .86 · 손목 꺾임 최소인 자리로 찾음(rekey19 와 같은 생각)
 KF = [(0.00, FF, a0F), (0.10, (345, 287), -64), (0.28, (334, 262), -88), (0.40, (322, 254), -112, 'a'), (0.47, (366, 268), -45, 'a'), (0.54, (384, 352), 14, 'a'),
       (0.64, (380, 352), 15, 'a'), (0.84, (362, 300), -42, 'a'), (1.00, FF, a0F)]
@@ -94,7 +99,7 @@ def seg_face(p, q, th, off, n=12):   # 선분(팔꿈치→주먹)이 얼굴 타�
         if ((z[0] - C[0]) / FACE_R[0]) ** 2 + ((z[1] - C[1]) / FACE_R[1]) ** 2 <= 1: return True
     return False
 # ---- 1/60 표 ----
-rows = []; worst = dict(reachN=0, reachF=0, wrist=0, top=1e9, low=-1e9, faceN=0, faceF=0, handleN=0)
+rows = []; worst = dict(reachN=0, reachF=0, wrist=0, top=1e9, low=-1e9, faceN=0, faceF=0, handleN=0, upperN=0)
 for i in range(61):
     t = i / 60; th, off = body(t); n = near(t, th, off); f = far(t, th, off)
     QN = place(PN, n['F'], n['A']); QF = place(PF, f['F'], f['A'])
@@ -102,10 +107,10 @@ for i in range(61):
     fN = seg_face(n['E'], n['F'], th, off); fF = seg_face(f['E'], f['F'], th, off)
     hN = seg_face(n['F'], n['F'] + 150 * U(n['A']), th, off)   # 가까운 도끼 자루가 얼굴 위
     r = dict(t=round(t, 3), lean=round(th, 3), reachN=round(n['reach'], 3), reachF=round(f['reach'], 3), wristF=round(f['wrist'], 1), fuA=round(math.radians(n['fuA']), 3), flA=round(math.radians(n['flA']), 3),
-             axeN=round(n['A'], 1), axeF=round(f['A'], 1), top=round(top, 1), low=round(low, 1), faceN=bool(fN), faceF=bool(fF), handleN=bool(hN), overF=bool(f['over']))
+             upperN=round(wrap(n['u'] - u0N), 1), axeN=round(n['A'], 1), axeF=round(f['A'], 1), top=round(top, 1), low=round(low, 1), faceN=bool(fN), faceF=bool(fF), handleN=bool(hN), overF=bool(f['over']))
     rows.append(r); worst['reachN'] = max(worst['reachN'], r['reachN']); worst['reachF'] = max(worst['reachF'], r['reachF']); worst['wrist'] = max(worst['wrist'], abs(r['wristF']))
-    worst['top'] = min(worst['top'], top); worst['low'] = max(worst['low'], low); worst['faceN'] += fN; worst['faceF'] += fF; worst['handleN'] += hN
-bad = [r['t'] for r in rows if r['reachN'] > .9 or r['reachF'] > .9 or abs(r['wristF']) > 35 or r['top'] < TOPLIM or r['low'] > GROUND - 4 or r['overF']]
+    worst['top'] = min(worst['top'], top); worst['low'] = max(worst['low'], low); worst['faceN'] += fN; worst['faceF'] += fF; worst['handleN'] += hN; worst['upperN'] = max(worst['upperN'], abs(r['upperN']))
+bad = [r['t'] for r in rows if abs(r['upperN']) > UCONE or r['reachN'] > .9 or r['reachF'] > .9 or abs(r['wristF']) > 35 or r['top'] < TOPLIM or r['low'] > GROUND - 4 or r['overF']]
 summ = dict(arm={'near': [round(L1N, 1), round(L2N, 1)], 'far': [round(L1F, 1), round(L2F, 1)]}, restAngles={'near_upper': round(u0N, 1), 'near_fore': round(f0N, 1), 'near_axe_minus_fore': round(dN, 1), 'far_axe': round(a0F, 1), 'far_wrist_rest': round(wF0, 1)},
             limits={'top': TOPLIM, 'ground': GROUND}, worst={k: (round(v, 3) if isinstance(v, float) else v) for k, v in worst.items()}, badFrames=bad, hits=HIT,
             edgeLeads='두 도끼 모두 날이 오른쪽(앞) — 앞 아래로 내려찍는 시계 방향 회전이라 날이 앞장섬(19 v1.3 칼날 반전 교훈 확인)')
