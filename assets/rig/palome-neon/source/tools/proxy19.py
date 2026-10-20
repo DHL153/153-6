@@ -11,7 +11,7 @@ import numpy as np, cv2
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); RIG = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 SRC = os.path.join(RIG, 'palome-rust'); DST = os.path.join(RIG, '_proxy19')
-A19 = np.array(Image.open(os.path.join(RIG, '..', 'art', 'characters', 'char_0019.png')).convert('RGBA')).astype(np.float32)
+A19 = np.array(Image.open(os.path.join(HERE, '..', 'refs', 'ref_design_char0019.png')).convert('RGBA')).astype(np.float32)   # 옛 19 원화(게임 char_0019 는 새 원화로 바뀜)
 G19, T19, P19 = np.array([318., 288.]), np.array([502., 10.]), np.array([230., 400.])   # 날밑 가운데 · 칼끝 · 폼멜 고리 가운데 (char_0019 격자에서 읽음)
 S = 341 / 373.   # 19 몸 키 → 9 몸 키
 b = (T19 - G19) / np.linalg.norm(T19 - G19); n = np.array([-b[1], b[0]])

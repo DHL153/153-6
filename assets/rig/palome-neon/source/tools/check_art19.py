@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__)); RIG = os.path.abspath(os.path.join(HERE, '..', '..', '..')); ART = os.path.join(RIG, '..', 'art', 'characters')
 new = np.array(Image.open(sys.argv[1]).convert('RGBA').resize((512, 512), Image.LANCZOS) if Image.open(sys.argv[1]).size != (512, 512) else Image.open(sys.argv[1]).convert('RGBA'))
 out_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, '..', 'review', 'check_art19.png'); os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-a9 = np.array(Image.open(os.path.join(ART, 'char_0009.png')).convert('RGBA')); a19 = np.array(Image.open(os.path.join(ART, 'char_0019.png')).convert('RGBA'))
+a9 = np.array(Image.open(os.path.join(ART, 'char_0009.png')).convert('RGBA')); a19 = np.array(Image.open(os.path.join(HERE, '..', 'refs', 'ref_design_char0019.png')).convert('RGBA'))   # 옛 19 원화(디자인 기준 — 게임 char_0019 는 10-20 19:0x 새 원화로 바뀜)
 L9 = np.load(os.path.join(RIG, 'palome-rust', 'source', 'work', 'labels.npy'))
 GD, TP, PM = np.array([374.0, 239.0]), np.array([124.0, 66.0]), np.array([469.0, 327.0])   # 가이드 칼 점
 u = (TP - GD) / np.linalg.norm(TP - GD); nrm = np.array([-u[1], u[0]])
