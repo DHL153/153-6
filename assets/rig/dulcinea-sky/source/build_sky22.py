@@ -63,6 +63,16 @@ _vest = own['foreF'] & dil(own['torso'], 6) & (_RAi[..., 2] - _RAi[..., 0] >= -3
 _vest |= own['foreF'] & dil(_vest, 2) & (LUM < 60)   # 띠 바깥 검은 외곽선도 조끼 것(팔이 떠나면 조끼 가장자리에 외곽선이 남게) — 소매 끝 왼쪽은 build 의 둥근 팔꿈치 끝 외곽선
 _vest |= own['foreF'] & dil(own['torso'] | _vest, 3) & (LUM < 90)   # 조끼 쪽 3px 안 어두운 선 조각도(공격 팔꿈치 끝에 ㄴ자 검은 줄로 남았음)
 own['torso'] |= _vest; own['foreF'] &= ~_vest
+# 반바지 밑 허벅지 살(골반 칸에 들어가 있던 것) → 허벅지 칸: 달릴 때 골반과 같이 고정돼 반바지 왼쪽 아래에 살 초승달로 남았음(DHL 16:57 2·3 '표시한 살 부분')
+_sk0 = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV); _skin0 = (_sk0[..., 0] >= 5) & (_sk0[..., 0] <= 22) & (_sk0[..., 1] > 90) & (_sk0[..., 2] > 140) & (RA[..., 3] > 200)
+_hsk = own['hips'] & _skin0 & (yy > 340)
+#   살 덩어리만(밝은 살 V ≥ 230 · 20px 이상) — 색 범위만 보면 허리띠 밑 금 D고리·주머니 고리·갈색 띠 끝(y 341~)도 '살'로 들어가 허벅지로 옮겨졌고,
+#   달릴 때 허벅지가 그늘색 조각으로 바뀌니 골반 조각에 고리 아래가 빈칸으로 남았음(16:57 수정 확대 0.40)
+_hn, _hl, _hs, _ = cv2.connectedComponentsWithStats(_hsk.astype(np.uint8), 8)
+_hsk = np.isin(_hl, [i for i in range(1, _hn) if _hs[i, cv2.CC_STAT_AREA] >= 20 and RA[..., :3][_hl == i].max(-1).mean() >= 230])
+_hsk = ndimage.binary_dilation(_hsk, iterations=1) & own['hips'] & (yy > 340) & ~(_sk0[..., 2] > 200) | _hsk   # 살 둘레 1px(외곽선 아닌 살 가장자리)
+own['thighN'] |= _hsk & (xx < 232); own['thighF'] |= _hsk & (xx >= 232); own['hips'] &= ~_hsk
+print('  hips 밑 허벅지 살 → 허벅지', int((_hsk & (xx < 232)).sum()), int((_hsk & (xx >= 232)).sum()))
 print('  labels', {n: int(m.sum()) for n, m in own.items()}, '망치→머리', int(_to_head.sum()))
 
 # ---------------- 조각 오리기: 주인 칸 + 앞 조각 밑 3px 겹침 + 가려진 곳 메우기 ----------------
@@ -269,12 +279,22 @@ print('  legs near', legs['near']['thigh'], legs['near']['shin'], 'far', legs['f
 
 # ---------------- 달리기 다리 — 시트 20·21(허벅지) + 23(먼 부츠, 옆모습 앞코 오른쪽, 무릎 판 붙음)을 발목에서 나눔(12·러스트와 같은 방법) ----------------
 RS = 2.0                                                         # 시트 = 원화 배율 → 리그 ×2
+#   (10-20 DHL 16:57 ①타격 0.40 뒷다리 '길어지면서 얇아짐 — 두께는 비슷하게, 덜 뻗게' ②③달리기 '표시한 살 부분까지 없애야 자연스러움')
+#   원인: 달리는 허벅지 = 먼 다리 서 있는 길이 49(원화 px)를 시트 허벅지(폭 34, 원화 허벅지 44~47 보다 가늚)로 1.45배 늘여 그림 → 길고 가는 살 다리,
+#         달리는 부츠 = 시트 ×1(원화 가까운 부츠보다 약 15% 작음)이라 반바지 밑단~무릎 판 사이 살이 20~25px 보였음(12 네온은 무릎 보호대가 반바지 밑단 바로 밑)
+#   → 부츠 = 원화 가까운 부츠 크기(시트 ×1.19), 허벅지 = 무릎 판 위 끝이 반바지 밑단(뿌리 아래 약 13)에 오는 길이(원화 25), 굵기 = 원화 허벅지 굵기(44)
+RSB = float(os.environ.get('RSB', 2.38))                         # 달리는 부츠 배율(리그) — 원화 가까운 부츠 무릎 판 위~발목 약 87 = 시트 74 × 1.19
+RUN_TH = float(os.environ.get('RUN_TH', 50.0))                   # 달리는 허벅지 길이(리그) — 무릎 판 위 끝(무릎 위 10×1.19)이 반바지 밑단 높이
+RUN_THW = float(os.environ.get('RUN_THW', 72.0))                 # 달리는 허벅지 굵기(리그) — 무릎 판 폭(원화 36)만큼: 무릎이 굽어도 반바지·무릎 판 밖으로 안 나옴
+#   달리는 허벅지 = 살 대신 반바지 안 그늘색(청바지 가장 어두운 색) — 무릎이 굽을 때 반바지 밑단과 무릎 판 사이 틈이 생기면 그늘로 보임(16:57 '살 부분까지 없애야')
 _bf = sheet_rgba('bootF')
 KNEE_S, ANK_S = np.array([44.0, 10.0]), np.array([37.0, 74.0])    # 시트 부츠: 무릎(무릎 판 가운데 위) · 발목(발등 띠 위, 뒤꿈치 위)
 _Y, _X = np.mgrid[0:_bf.shape[0], 0:_bf.shape[1]]
 _sh = _bf.copy(); _sh[..., 3] = np.where(_Y < ANK_S[1] + 6, _bf[..., 3], 0); Image.fromarray(_sh).save(os.path.join(OUT, 'parts', 'rshin.png')); def_parts['rshin'] = dict(src='parts/rshin.png', pivot=[0, 0], scale=1.0)
-_ft = _bf.copy(); _ft[..., 3] = np.where(_Y > ANK_S[1] - 8, _bf[..., 3], 0); Image.fromarray(_ft).save(os.path.join(OUT, 'parts', 'rboot.png')); def_parts['rboot'] = dict(src='parts/rboot.png', pivot=ANK_S.tolist(), scale=RS)
-print('  run shin image len', round(float(np.linalg.norm(ANK_S - KNEE_S)), 1), 'want', round(SH_R / RS, 1))
+_ft = _bf.copy(); _ft[..., 3] = np.where(_Y > ANK_S[1] - 8, _bf[..., 3], 0); Image.fromarray(_ft).save(os.path.join(OUT, 'parts', 'rboot.png')); def_parts['rboot'] = dict(src='parts/rboot.png', pivot=ANK_S.tolist(), scale=RSB)
+RUN_SH = round(float(np.linalg.norm(ANK_S - KNEE_S)) * RSB, 1)   # 정강이 그림(w 1 = 같은 배율로 가로·세로) → 부츠 전체 ×RSB
+legs['thigh'], legs['shin'] = RUN_TH, RUN_SH
+print('  run legs thigh', RUN_TH, 'shin', RUN_SH, '(합', round(RUN_TH + RUN_SH, 1), '· 전 98.2 + 129.5)')
 def sole_sheet(a, ank):
     m = a[..., 3] > 128; ys = np.nonzero(m.any(1))[0]; yb = ys.max(); out = []
     for y in (yb - 6, yb - 3, yb):
@@ -285,9 +305,12 @@ for n in ['thighN', 'thighF']:   # 시트 허벅지: 위 = 반바지 속(곧게 
     a = sheet_rgba(n); m = a[..., 3] > 128
     _ys = np.nonzero(m.any(1))[0]; y0_, y1_ = _ys.min(), _ys.max(); ty, tx = np.nonzero(m[y0_:y0_ + 6]); top = [float(tx.mean()), float(ty.mean() + y0_)]
     kr = int(y0_ + (y1_ - y0_) * .80); kx = np.nonzero(m[kr])[0]; kn = [float(kx.mean()), float(kr)]
-    il = math.hypot(kn[0] - top[0], kn[1] - top[1]); s_ = TH_R / il
-    Image.fromarray(a).save(os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
-    rseg[n] = {'part': 'r' + n, 'a': [round(top[0], 1), round(top[1], 1)], 'b': [round(kn[0], 1), round(kn[1], 1)], 'w': round(RS / s_, 3)}
+    il = math.hypot(kn[0] - top[0], kn[1] - top[1]); s_ = RUN_TH / il
+    _wid = float(np.median([m[y].sum() for y in range(int(top[1]) + 4, kr)]))   # 시트 허벅지 폭(px)
+    _dk = np.zeros_like(a); _dk[..., 3] = np.where(m, 255, 0); _dd = ndimage.distance_transform_edt(m)
+    _dk[..., :3] = np.array([50, 56, 66], np.uint8); _dk[..., :3][m & (_dd <= 1.6)] = (24, 22, 26)   # 반바지 그늘색 + 외곽선
+    Image.fromarray(_dk).save(os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
+    rseg[n] = {'part': 'r' + n, 'a': [round(top[0], 1), round(top[1], 1)], 'b': [round(kn[0], 1), round(kn[1], 1)], 'w': round(RUN_THW / (_wid * s_), 3)}   # 굵기 = RUN_THW(원화 허벅지)
 legs['thighImg'] = rseg['thighF']; legs['near']['thighImg'] = rseg['thighN']; legs['far']['thighImg'] = rseg['thighF']
 legs['shinImg'] = {'part': 'rshin', 'a': KNEE_S.tolist(), 'b': ANK_S.tolist(), 'w': 1.0}
 legs['boot'] = {'part': 'rboot', 'sole': sole_sheet(_ft, ANK_S), 'ankleRange': [-0.35, 0.6]}   # 발목 앞 굽힘 .45 → .6: 가까운 정강이가 세로에서 29° 누운 원화(12 는 23°) — .45 면 서 있을 때 발을 7° 돌려 맞춤(15:5x 대기 비교)
@@ -331,7 +354,7 @@ _top = int(np.nonzero(own['head'][:, 265:326].any(1))[0].min())
 rig = {'name': 'dulcinea-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},
        'metrics': {'bodyHeight': round(2 * (O[1] - _top), 1), 'note': f'리그 단위; 땋은 머리 위(y{_top}, x 265~325 — 포니테일 빼고)~발바닥(485) ×2, 무기 제외'},
-       'armPhase': 0, 'gait': {'stance': 0.32, 'heelKick': 0.85, 'kneeLift': 0.95, 'strideBase': 70, 'strideK': 0.2, 'swingReach': 0.12, 'swingAng': 0.12, 'landAng': 0, 'hipBase': 6, 'bob': 16, 'lean': 0.2, 'strideFlex': [0.75, 1.5], 'headRun': 0.06, 'elbowRun': 1.2, 'armSwing': 0.55, 'armBias': 0.1},
+       'armPhase': 0, 'gait': {'stance': 0.32, 'heelKick': 0.85, 'kneeLift': 0.95, 'strideBase': 70, 'strideK': 0.2, 'swingReach': 0.12, 'swingAng': 0.12, 'landAng': 0, 'hipBase': 18, 'bob': 16, 'lean': 0.2, 'strideFlex': [0.75, 1.5], 'headRun': 0.06, 'elbowRun': 1.2, 'armSwing': 0.55, 'armBias': 0.1},
        'ponySway': 0.6, 'carrySwing': 0.4, 'wristRange': 0.3, 'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.35}],
        'bounce': [{'bone': 'flapF', 'stiff': 150, 'damp': 6, 'y': 0.35, 'rot': 0.008, 'max': 12}],
        'ui': {'attack': 'smash', 'touch': 'hop'},

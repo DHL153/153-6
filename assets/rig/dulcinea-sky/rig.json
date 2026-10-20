@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-sky",
- "version": "adfe5cf7",
+ "version": "77af8c6f",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   476.0,
@@ -235,7 +235,7 @@
     37.0,
     74.0
    ],
-   "scale": 2.0
+   "scale": 2.38
   },
   "rthighN": {
    "src": "parts/rthighN.png",
@@ -643,8 +643,8 @@
    0,
    28.0
   ],
-  "thigh": 98.5,
-  "shin": 132.0,
+  "thigh": 50.0,
+  "shin": 153.2,
   "thighFirst": true,
   "thighImg": {
    "part": "rthighF",
@@ -656,7 +656,7 @@
     16.5,
     35.0
    ],
-   "w": 0.655
+   "w": 1.719
   },
   "shinImg": {
    "part": "rshin",
@@ -720,7 +720,7 @@
      14.0,
      36.0
     ],
-    "w": 0.675
+    "w": 1.71
    },
    "stand": {
     "fade": [
@@ -844,7 +844,7 @@
      16.5,
      35.0
     ],
-    "w": 0.655
+    "w": 1.719
    }
   }
  },
@@ -894,7 +894,7 @@
   "swingReach": 0.12,
   "swingAng": 0.12,
   "landAng": 0,
-  "hipBase": 6,
+  "hipBase": 18,
   "bob": 16,
   "lean": 0.2,
   "strideFlex": [
@@ -1537,11 +1537,11 @@
     ],
     [
      0.4,
-     -80
+     -50
     ],
     [
      0.58,
-     -82,
+     -52,
      "io"
     ],
     [

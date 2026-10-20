@@ -85,7 +85,7 @@ smash = {
     'hipY': k((0, 0, 'io'), (LIFT, 10, 'io'), (WIND, 14, 'i'), (SW2, 24, 'o'), (HIT, 40, 'o'), (HIT + .05, 46, 'io'), (HOLD, 44, 'io'), (RET + .08, 0)),
     'lean': k((0, 0, 'io'), (LIFT, -.12, 'io'), (WIND, -.13, 'i'), (SW1, -.02), (SW2, .14, 'o'), (HIT, .30, 'o'), (HOLD, .32, 'io'), (RET + .08, 0)),
     'head': k((0, 0, 'io'), (LIFT, .05, 'io'), (WIND, .06, 'i'), (HIT, -.08, 'o'), (HOLD, -.06, 'io'), (RET + .08, 0)),
-    'nearDx': k((0, 0, 'io'), (SW1, 0, 'io'), (HIT, -80), (HOLD, -82, 'io'), (RET + .06, 0)),
+    'nearDx': k((0, 0, 'io'), (SW1, 0, 'io'), (HIT, -50), (HOLD, -52, 'io'), (RET + .06, 0)),   # (DHL 16:57 ① 뒷다리 덜 뻗게) 12 −80 · −82 → −50 · −52
     'farDx': k((0, 0, 'io'), (SW1, 0, 'io'), (HIT, 85), (HOLD, 85, 'io'), (RET + .06, 0)),
     'farLift': k((0, 0), (SW1, 0, 'io'), (SW2, 14, 'io'), (HIT, 0), (HOLD, 0, 'io'), (HOLD + .06, 10, 'io'), (RET + .06, 0)),
     'shake': k((0, 0), (HIT, 0, 'lin'), (HIT + .01, 1), (HIT + .12, 0)),
