@@ -7,8 +7,8 @@
  ],
  "near": {
   "SH": [
-   200,
-   318
+   207,
+   314
   ],
   "EL": [
    150,
@@ -28,7 +28,7 @@
   ],
   "ballR": 52,
   "len": {
-   "upper": 51.4,
+   "upper": 57.6,
    "fore_to_wrist": 44.0,
    "fore_to_fist": 65.6,
    "fist_to_ball": 174.4
@@ -37,8 +37,8 @@
  },
  "far": {
   "SH": [
-   289,
-   336
+   283,
+   330
   ],
   "EL": [
    325,
@@ -58,13 +58,21 @@
   ],
   "ballR": 52,
   "len": {
-   "upper": 38.6,
+   "upper": 46.5,
    "fore_to_wrist": 36.8,
    "fore_to_fist": 62.6,
    "fist_to_ball": 190.3
   },
   "axis_deg_from_vertical": 32.8
  },
+ "hip": [
+  252,
+  376
+ ],
+ "neck": [
+  264,
+  318
+ ],
  "legs": {
   "near": {
    "hip": [
@@ -104,5 +112,9 @@
   }
  },
  "bodyH": 339,
- "arm_over_body": 0.345
+ "gameTop_est": {
+  "note": "게임 전투 칸 위 끝 ≈ 땅 − 1.81 × 몸 키(9·19 팔로메 game_top 실측 비율) — 게임에 넣기 전 game_top.py 로 다시 잼(실수 36)",
+  "y": -117.6
+ },
+ "arm_over_body": 0.363
 }

@@ -1,6 +1,7 @@
 """20 네온 브루노 — 새 원화(0번 합격, ref512.png) 관절·철퇴 점 → ../measure20.json + ../review/measure20.png   (2026-10-21 01:10)
   팔·다리 점 = 원화 4배 격자(팔)·3배 격자(다리)에서 읽음 — 어깨 = 어깨갑 밑 윗팔 뿌리, 팔꿈치 = 윗팔(맨살)·팔뚝(크림 토시)이 꺾이는 곳 가운데,
   손목 = 토시 위 끝(금 리벳 띠) 가운데, 주먹 = 장갑 가운데, 무릎 = 무릎 가시판 가운데, 발목 = 부츠 목 가운데(10 measure10 과 같은 규칙)
+  어깨 = 어깨갑 가운데 밑(가까운 (207,314) · 먼 (283,330)) — 윗팔 위 끝 둥근 원(반지름 12)이 어느 각에서도 어깨갑에 덮이게(seg20 어깨갑 칸에서 읽음, 처음 값 (200,318)·(289,336) = 어깨갑 가장자리)
   철퇴 공 가운데 = check_art20(옛 원화 공과 SIFT) 값, 가시 끝 반지름 = 64 × 공 배율
 실행: python3 -I measure20.py
 """
@@ -10,8 +11,9 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.dirname(HERE)
 RA = Image.open(os.path.join(SRC, 'ref512.png')).convert('RGBA')
 M = {'art': 'char_0020.png (ref512.png, DHL 10-21 01:00)', 'sole_y': 496, 'hairTop': [236, 157],
-     'near': {'SH': [200, 318], 'EL': [150, 306], 'WR': [149, 262], 'fist': [141, 241], 'ball': [102, 71], 'ballR': 52},
-     'far': {'SH': [289, 336], 'EL': [325, 350], 'WR': [339, 316], 'fist': [351, 293], 'ball': [454, 133], 'ballR': 52},
+     'near': {'SH': [207, 314], 'EL': [150, 306], 'WR': [149, 262], 'fist': [141, 241], 'ball': [102, 71], 'ballR': 52},
+     'far': {'SH': [283, 330], 'EL': [325, 350], 'WR': [339, 316], 'fist': [351, 293], 'ball': [454, 133], 'ballR': 52},
+     'hip': [252, 376], 'neck': [264, 318],   # 골반 = 허리띠 가운데, 목 = 턱 아래 지퍼 깃 위(머리 조각 축) — 격자에서 읽음
      'legs': {'near': {'hip': [228, 386], 'knee': [211, 423], 'ankle': [188, 465]}, 'far': {'hip': [268, 388], 'knee': [303, 421], 'ankle': [318, 467]}}}
 d_ = lambda a, b: round(math.hypot(a[0] - b[0], a[1] - b[1]), 1)
 for sd in ('near', 'far'):
@@ -20,6 +22,7 @@ for sd in ('near', 'far'):
 for sd in ('near', 'far'):
     g = M['legs'][sd]; g['len'] = {'thigh': d_(g['hip'], g['knee']), 'shin': d_(g['knee'], g['ankle'])}
 M['bodyH'] = M['sole_y'] - M['hairTop'][1]
+M['gameTop_est'] = {'note': '게임 전투 칸 위 끝 ≈ 땅 − 1.81 × 몸 키(9·19 팔로메 game_top 실측 비율) — 게임에 넣기 전 game_top.py 로 다시 잼(실수 36)', 'y': round(M['sole_y'] - 1.81 * M['bodyH'], 1)}
 M['arm_over_body'] = round((M['near']['len']['upper'] + M['near']['len']['fore_to_fist']) / M['bodyH'], 3)
 json.dump(M, open(os.path.join(SRC, 'measure20.json'), 'w'), ensure_ascii=False, indent=1)
 # 확인 그림(2배)
