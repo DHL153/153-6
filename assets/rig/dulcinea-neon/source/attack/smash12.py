@@ -138,10 +138,11 @@ if _ov: smash.update(json.load(open(_ov)))
 # sideF(재킷 오른쪽 자락을 20px 늘인 조각)는 먼 팔이 올라가면 몸 옆에 네모 덩어리로 떠 보여서(10-19 15:20) 공격 순서에서 뺌
 DRAW_ATK0 = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 돌아옴 .86~.875(망치가 몸통 앞 5px)
 DRAW_ATK = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 망치 = 포니테일 뒤(대기 draw 와 같은 순서)
-DRAW_P = ['legFar', 'legNear', 'hips', 'armF', 'weapon', 'weaponA', 'torso', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 들어 올림·예비: 망치 = 포니테일·몸통·머리 뒤(이 구간 망치는 몸통과 안 겹침), 먼 팔뚝·주먹 앞
-DRAW_UP = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
+DRAW_P = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 들어 올림·예비: 망치 = 포니테일·몸통·머리 뒤(이 구간 망치는 몸통과 안 겹침), 먼 팔뚝·주먹 앞
+DRAW_UP = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
 DRAW_L = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'weapon', 'weaponA', 'foreFf', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-DRAW_M = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'weapon', 'weaponA', 'head', 'foreFf', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
+DRAW_M = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
+# (12 네온 10-20 DHL 11:23 '갑자기 팔이 막대처럼 나오는 것 이상 · 팔 레이어를 몸 뒤쪽으로') 먼 윗팔·팔뚝(armF·foreFf)은 공격 내내 상체·머리 뒤 — 원화 대기처럼 팔뚝이 몸 뒤에서 나와 주먹으로(주먹 foreF 는 그대로 맨 앞). 러스트는 휘두름~돌아옴에 팔뚝이 몸·머리 앞이었음
 SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawA0': DRAW_ATK0, 'drawP': DRAW_P, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
          'hidden': ['weaponA']}
