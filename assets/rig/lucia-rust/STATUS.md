@@ -35,3 +35,5 @@
 - gFh = 시트 19 ×1.3(tools/gfh7.py, 띠·살 잘라 손만 · 자루 토막 지움) foreDir −138.8° · 달리기 = 시트 허벅지·정강이+부츠·무릎 쇠판(kneeImg)
 - 게임: PC 1280×800 · 폰 390×844 시작 선택·미리보기·전투·필살기 컷신·마이룸 오류 0, 공격 중 도끼 꼭대기 = 칸 위 끝에서 PC 17 · 폰 16px 아래(tools/game_top.py) · 도감 gameRef x 247.4(fitArt 중심 254.4)
 - 진행 그림 review/lucia7_v1.jpg (tools/progress7.py)
+- 편집 툴 v153 (10-20 21:3x): '7 러스트 루시아 v1' + rigs/lucia-rust/rig.def.js(조각 data URI 한 파일, tools/pack_editor.py — 파일 500 → 502) + progress/lucia7_v1.jpg · 다른 세션 19 네온 v1.3 칸 그대로 둠(살아 있는 판 1172줄 다 읽고 그 위에 더함)
+- 다음: DHL 검수 — 달리기 방패 기울기·흔들림, 타격 손 높이(무릎), 17·27 루시아는 같은 구조
