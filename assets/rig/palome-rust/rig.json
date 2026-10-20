@@ -1,6 +1,6 @@
 {
  "name": "palome-rust",
- "version": "f55cf1d4",
+ "version": "0b33b054",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   563.0,
@@ -743,9 +743,9 @@
  "drawStrike": [
   "legFar",
   "legNear",
+  "armF",
   "torso",
   "skirt",
-  "armF",
   "foreFb",
   "armU",
   "armL",

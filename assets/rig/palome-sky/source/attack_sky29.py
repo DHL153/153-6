@@ -8,19 +8,21 @@ ipt = lambda off, p: [round(float(p[0] - off[0]), 1), round(float(p[1] - off[1])
 ud = (EL_F - WR_F) / np.linalg.norm(EL_F - WR_F)
 parts['gF'] = {'src': 'parts/fistF.png', 'pivot': ipt(fi_off, WR_F), 'grip': ipt(fi_off, G), 'elbow': ipt(fi_off, WR_F), 'wrist': ipt(fi_off, WR_F), 'scale': SC,
                'shaftDir': [round(float(UT[0]), 4), round(float(UT[1]), 4)], 'fore': 'foreFa', 'foreBone': 'foreFb', 'foreDir': [round(float(ud[0]), 4), round(float(ud[1]), 4)]}
-parts['foreFa'] = {'src': 'parts/foreF.png', 'pivot': ipt(fo_off, WR_F), 'elbow': ipt(fo_off, EL_F), 'scale': SC}
+parts['foreFa'] = {'src': 'parts/foreFc.png', 'pivot': ipt(fo_off, WR_F), 'elbow': ipt(fo_off, EL_F), 'scale': SC}
 rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
 # 그리는 순서: 칼날이 머리 뒤(메기·젖힘·돌아옴) → 머리 위를 넘어 앞으로 오면 칼·먼 팔이 몸 앞(타격)
 BASE = ['legFar', 'legNear']
 BASE = ['cape'] + BASE
-rig['drawA'] = BASE + ['armF', 'torso', 'skirt', 'pauldronF', 'foreFb', 'weapon', 'armU', 'pauldron', 'head', 'foreF', 'armL']   # 가까운 팔뚝+주먹 맨 앞
-rig['drawA0'] = [x for y in [[n] + (['guardArt', 'seamF'] if n == 'weapon' else []) for n in rig['drawA']] for x in y]
-rig['drawStrike'] = BASE + ['armF', 'torso', 'skirt', 'pauldronF', 'foreFb', 'armU', 'pauldron', 'head', 'weapon', 'foreF', 'armL']
+_dA = BASE + ['armF', 'torso', 'skirt', 'pauldronF', 'foreFb', 'weapon', 'armU', 'pauldron', 'head', 'foreF', 'armL']   # 가까운 팔뚝+주먹 맨 앞
+rig['drawA0'] = [x for y in [[n] + (['guardArt', 'seamF'] if n == 'weapon' else []) for n in _dA] for x in y]   # 공격 시작·끝(원화 상체·윗팔 + 원화 덧그림)
+# 0.04~0.85: 상체 = torsoM(깨끗한 먼 어깨), 먼 윗팔 = armFc(시트) — 윗팔이 상체 뒤라 pauldronF(원화 띠 덧그림)는 안 그림(원화 부스러기를 다시 얹었음, 10-20 10:41)
+rig['drawA'] = [n for n in _dA if n != 'pauldronF']
+rig['drawStrike'] = BASE + ['armF', 'torso', 'skirt', 'foreFb', 'armU', 'pauldron', 'head', 'weapon', 'foreF', 'armL']
 K = AK['keys']
 def trk(i, f=lambda v, k: v):   # 키 i 번째 값 → 엔진 트랙 [[t, v, easing]]
     return [[k[0], round(f(k[i], k), 4), k[6] if len(k) > 6 else 'io'] for k in K]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 0.9, 'hitAt': 0.45, 'hitStop': 0.07, 'cancelAt': 0.66,
-       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]], 'ikSideK': {'N': [[0, 1]]},
+       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF'], [0.04, 'armFc'], [0.85, 'armF']], 'tPiece': [[0, None], [0.04, 'torsoM'], [0.85, None]], 'armIK': [[0, 1]], 'ikSideK': {'N': [[0, 1]]},
        'gx': trk(1, lambda v, k: SC * v), 'gy': trk(2, lambda v, k: SC * (v - k[5])), 'sa': trk(3, lambda v, k: math.radians(v)),
        'lean': trk(4, lambda v, k: math.radians(v)), 'hipY': trk(5, lambda v, k: SC * v),
        'head': [[0, 0], [0.28, -0.06, 'io'], [0.45, 0.05, 'io'], [0.6, 0.04, 'io'], [0.86, 0]],

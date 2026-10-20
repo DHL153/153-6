@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "a283bfd7",
+ "version": "4810766a",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -80,6 +80,26 @@
     90.0,
     82.0
    ]
+  },
+  "armFc": {
+   "src": "parts/armFc.png",
+   "pivot": [
+    28.0,
+    29.0
+   ],
+   "scale": 2.0,
+   "elbow": [
+    90.0,
+    79.0
+   ]
+  },
+  "torsoM": {
+   "src": "parts/torsoM.png",
+   "pivot": [
+    140.0,
+    239.0
+   ],
+   "scale": 2.0
   },
   "foreF": {
    "src": "parts/foreF.png",
@@ -290,7 +310,7 @@
    ]
   },
   "foreFa": {
-   "src": "parts/foreF.png",
+   "src": "parts/foreFc.png",
    "pivot": [
     36.0,
     12.0
@@ -780,22 +800,6 @@
   "stretchMax": 1.05,
   "shoulderPush": 0
  },
- "drawA": [
-  "cape",
-  "legFar",
-  "legNear",
-  "armF",
-  "torso",
-  "skirt",
-  "pauldronF",
-  "foreFb",
-  "weapon",
-  "armU",
-  "pauldron",
-  "head",
-  "foreF",
-  "armL"
- ],
  "drawA0": [
   "cape",
   "legFar",
@@ -814,6 +818,21 @@
   "foreF",
   "armL"
  ],
+ "drawA": [
+  "cape",
+  "legFar",
+  "legNear",
+  "armF",
+  "torso",
+  "skirt",
+  "foreFb",
+  "weapon",
+  "armU",
+  "pauldron",
+  "head",
+  "foreF",
+  "armL"
+ ],
  "drawStrike": [
   "cape",
   "legFar",
@@ -821,7 +840,6 @@
   "armF",
   "torso",
   "skirt",
-  "pauldronF",
   "foreFb",
   "armU",
   "pauldron",
@@ -861,6 +879,28 @@
     [
      0,
      "armF"
+    ],
+    [
+     0.04,
+     "armFc"
+    ],
+    [
+     0.85,
+     "armF"
+    ]
+   ],
+   "tPiece": [
+    [
+     0,
+     null
+    ],
+    [
+     0.04,
+     "torsoM"
+    ],
+    [
+     0.85,
+     null
     ]
    ],
    "armIK": [
@@ -925,17 +965,17 @@
     ],
     [
      0.43,
-     380.0,
+     428.0,
      "lin"
     ],
     [
      0.45,
-     350.2,
+     457.0,
      "io"
     ],
     [
      0.6,
-     369.6,
+     444.0,
      "io"
     ],
     [
@@ -1012,17 +1052,17 @@
     ],
     [
      0.43,
-     8.0,
+     -20.0,
      "lin"
     ],
     [
      0.45,
-     60.4,
+     18.0,
      "io"
     ],
     [
      0.6,
-     61.8,
+     22.0,
      "io"
     ],
     [
@@ -1099,17 +1139,17 @@
     ],
     [
      0.43,
-     -0.7854,
+     -0.6981,
      "lin"
     ],
     [
      0.45,
-     0.096,
+     -0.0698,
      "io"
     ],
     [
      0.6,
-     0.096,
+     -0.0698,
      "io"
     ],
     [

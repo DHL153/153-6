@@ -118,6 +118,19 @@ _t0 = art(body & (YY < cut_y + OVL)); _t0[_ring & (sh3[..., 3] > 200)] = sh3[_ri
 print('  shoulder ring', int(_ring.sum()), 'px')
 torso = under(under(under(under(_t0, sh3, (OCC | _frag) & (SHOULDER_R > 0) & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
 o_torso = save('torso', torso)
+# 공격용 상체 torsoM (10-20 10:41 DHL '29 타격 때 어깨 위치를 무시하고 팔이 너무 아래로' → 손을 올리니 먼 어깨 둘레가 더 보임):
+#   먼 어깨 둘레 원화 부스러기(칼·손·토시 경계에서 라벨이 갈라진 크림 왕관·검은 뾰족 조각)는 빼고, 시트 3 먼 어깨(sh3)를 자기 알파로 통째 덮고,
+#   경계 띠에서 비운 구멍(날밑 자리 크림 판 홈)은 둘레 상체 색으로 메움. 공격 0.04~0.85 동안만(tPiece) — 서 있기·달리기 = 원화 상체(torso + seamF)
+tm = torso.copy(); _z2 = (XX > 318) & (YY < 345)
+_deb = _z2 & (tm[..., 3] > 0) & (SHOULDER_R == 0) & ~(sh3[..., 3] > 60); tm[_deb] = 0
+_cl = cv2.morphologyEx((tm[..., 3] > 128).astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))) > 0
+_hole = (sh3[..., 3] <= 200) & _cl & (tm[..., 3] < 128) & _z2 & (YY > 280)
+_inp = cv2.inpaint(np.ascontiguousarray(tm[..., :3]), _hole.astype(np.uint8) * 255, 5, cv2.INPAINT_TELEA); tm[_hole, :3] = _inp[_hole]; tm[_hole, 3] = 255
+_hedge = _hole & (cv2.dilate((tm[..., 3] < 128).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0); tm[_hedge, :3] = (34, 30, 34)   # 메운 곳 바깥 가장자리 = 외곽선
+_ga3 = sh3[..., 3:4].astype(np.float32) / 255; _ta3 = tm[..., 3:4].astype(np.float32) / 255; _oa3 = _ga3 + _ta3 * (1 - _ga3)
+_rgb3 = (sh3[..., :3] * _ga3 + tm[..., :3] * _ta3 * (1 - _ga3)) / np.maximum(_oa3, 1e-6); _m3 = sh3[..., 3] > 0
+tm[_m3, :3] = np.clip(_rgb3[_m3], 0, 255).astype(np.uint8); tm[_m3, 3] = np.clip(_oa3[_m3, 0] * 255, 0, 255).astype(np.uint8)
+o_tm = save('torsoM', tm); print('  torsoM: debris', int(_deb.sum()), 'hole', int(_hole.sum()), 'shoulder', int(_m3.sum()))
 # 치마: 주먹 밑(주머니 윗덮개·허리띠)은 시트 골반의 주머니를 원화 주머니 위 두 모서리에 맞춰(시트 10,10 → 138,355 · 90,12 → 198,357) — 시트 전체 맞춤은 3/4 휘어짐이 달라 안 맞음
 shp = warp(col_match(sheet('hips'), body & (YY >= cut_y)), simil((10, 10), (90, 12), (138, 355), (198, 357)))
 skirt = under(under(art(body & (YY >= cut_y)), shp, lab('foreN') & (YY >= cut_y)), bflat, fillN & (YY >= cut_y))
@@ -143,9 +156,16 @@ huF = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(huF, cv2.convexHull(np.
 huF = dil(huF > 0, 8)
 o_pF = save('pauldronF', art(body & huF & (YY < 330) & ~SEAM))   # SEAM(날밑·어깨 경계 원화)은 seamF 가 서 있을 때만
 o_aF = save('armF', under(art(lab('upperF')), ufw, (body & huF & (YY < 330)) | lab('foreF') | lab('sword') | lab('handF') | lab('head')))   # 몸 쪽 메움은 덮개 밑에서만
+# 공격용 먼 윗팔 armFc (nUpper 0.04~0.85): 원화 라벨에 붙어 있던 검은 깃발·가죽 끈 줄·크림·금 조각이 팔과 같이 돌아 찢겨 보였음 → 스카이 시트 2 윗팔만(늘이지 않음)
+o_aFc = save('armFc', ufw)   # 시트 윗팔 그대로(원화 조각을 위에 남기면 남색 쐐기·검은 점이 이음매로 보였음)
 # 먼 팔뚝(토시): 원화 + 손·손잡이 밑은 껍질 안 inpaint
 finp, ffill = hull_inpaint(lab('foreF'), lab('handF') | lab('sword'), 5)
 o_fF = save('foreF', under(art(lab('foreF')), finp, ffill))
+# 공격용 먼 팔뚝 foreFc(gF 의 fore): 떨어진 작은 조각(손·날밑 경계 크림 줄 — 타격 때 팔뚝 옆에 떠 보였음) 뺌. 대기 foreF 는 원화 그대로
+_ff = under(art(lab('foreF')), finp, ffill); _nc, _cc2, _st2, _ = cv2.connectedComponentsWithStats((_ff[..., 3] > 20).astype(np.uint8), connectivity=8)
+_big = np.argmax(_st2[1:, 4]) + 1; _ff[(_cc2 != _big) & (_ff[..., 3] > 0)] = 0
+OFF['foreFc'] = OFF['foreF']; Image.fromarray(_ff[OFF['foreF'][1]:OFF['foreF'][1] + np.array(Image.open(os.path.join(PARTS, 'foreF.png'))).shape[0], OFF['foreF'][0]:OFF['foreF'][0] + np.array(Image.open(os.path.join(PARTS, 'foreF.png'))).shape[1]]).save(os.path.join(PARTS, 'foreFc.png'))
+print('  foreFc: removed', int(sum(_st2[i, 4] for i in range(1, _nc) if i != _big)), 'px in', _nc - 2, 'bits')
 # 먼 손(칼 쥔 손, 원화 그대로)
 o_fist = save('fistF', art(lab('handF')))
 # 망토: 원화 + 몸·팔 밑(가려진 위쪽)은 시트 망토(왼쪽 말린 끝 5,125 → 33,362 · 아래 가운데 100,190 → 100,415)
@@ -287,7 +307,7 @@ parts = {}
 def P_(name, at, **kw): parts[name] = dict({'src': f'parts/{name}.png', 'pivot': piv(name, at), 'scale': SC}, **kw)
 P_('torso', HIP); P_('skirt', HIP, mesh={'cols': 8, 'rows': 6}); P_('head', NECK)
 P_('pauldron', SH_N); P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armL', EL_N, fist=piv('armL', WR_N + (WR_N - EL_N) * .2))
-P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('foreF', EL_F); P_('fistF', WR_F); P_('pauldronF', SH_F); P_('seamF', HIP)
+P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('armFc', SH_F, elbow=piv('armFc', EL_F)); P_('torsoM', HIP); P_('foreF', EL_F); P_('fistF', WR_F); P_('pauldronF', SH_F); P_('seamF', HIP)
 CAPE_P = np.array([118.0, 300.0])   # 망토 뿌리(가까운 어깨 뒤, 팔·어깨갑에 가려짐) — 엔진 cape 뼈가 달리기 속도만큼 뒤로 젖히고 메시가 펄럭임
 P_('cape', CAPE_P, mesh={'cols': 6, 'rows': 7})
 parts['guardArt'] = {'src': 'parts/guardArt.png', 'pivot': [round(float(W_PIV[0]), 1), round(float(W_PIV[1]), 1)], 'scale': SC / UPS}
