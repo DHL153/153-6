@@ -296,8 +296,11 @@ rig = {'name': 'dulcinea-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)'
        'metrics': {'bodyHeight': round(2 * (O[1] - 119), 1), 'note': '리그 단위; 머리카락 위(y119)~발바닥(486) ×2, 무기 제외'},
        'armPhase': 0, 'gait': {'stance': 0.32, 'heelKick': 0.85, 'kneeLift': 0.95, 'strideBase': 70, 'strideK': 0.2, 'swingReach': 0.12, 'swingAng': 0.12, 'landAng': 0, 'hipBase': 6, 'bob': 16, 'lean': 0.2, 'strideFlex': [0.75, 1.5], 'headRun': 0.06, 'elbowRun': 1.2, 'armSwing': 0.55, 'armBias': 0.1},
        'carrySwing': 0.4, 'wristRange': 0.3, 'follow': [{'bone': 'pauldron', 'src': 'armU', 'k': 0.35}],
-       'ui': {'attack': 'smash', 'touch': 'hop'}, 'cutHold': 0.32,
-       'note': '12 네온 둘시네 시험판 p2 (2026-10-20 — 원화 조각 + 시트 표정·망치·쥔 손·달리기 다리, 러스트 v6.4 한 손 내려찍기 키를 네온 팔에 옮김). 게임·편집 툴에 아직 안 넣음.'}
+       'ui': {'attack': 'smash', 'touch': 'hop'},
+       'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - 269.5)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
+                   'note': '게임 그림 char_0012.png(512) = 원화(md5 같음, source/ref512.png). x = 도감 칸(fitArt 중심 269.5, index.html measureBox 를 브라우저에서 같은 계산 — 2·9·29 값 248.9·253.1·251.5 로 맞는지 확인)에서 골반(hip x 223)이 가운데 (2 러스트 둘시네와 같은 규칙)'},
+       'cutHold': 0.32,   # 10-20 13:53 스킬 컷인 = 망치를 머리 위로 높이 든 휘두름 시작(2 러스트와 같은 시각) — 외침 얼굴·망치 다 보임(.20~.34 후보 비교)
+       'note': '12 네온 둘시네 v1.4 (2026-10-20 — 원화 조각 + 시트 표정·망치·쥔 손·달리기 다리, 러스트 v6.4 한 손 내려찍기 키를 네온 팔·몸 안 어깨에 맞춤, 손·망치 = 다리·머리 뒤). 13:53 게임 반영(REGISTRY 12).'}
 rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())
