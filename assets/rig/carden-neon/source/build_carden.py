@@ -83,6 +83,11 @@ if NR:   # 가까운 팔(어깨갑 아래 소매 + 편 장갑) = 원화(ref1024)
         _pm = Image.new('L', (4096, 4096), 0); _D.Draw(_pm).polygon([(x * 4, y * 4) for x, y in T('pauldronRef', None)['poly']], fill=255)
         _pm = np.asarray(_pm.resize((1024, 1024), Image.LANCZOS)).astype(np.float32) / 255
         _pm = _nd.grey_erosion(_pm, size=(2 * NR['padCut'] + 1, 2 * NR['padCut'] + 1)); _a[..., 3] = (_a[..., 3] * (1 - _pm)).astype(np.uint8)
+    CL = NR.get('cutLine')
+    if CL:   # 팔 오림 안쪽(몸 쪽) 잘린 끝에 외곽선 (DHL 10-20 23:50): 서 있을 땐 멜빵 외곽선과 겹쳐 안 보이고, 달릴 때 팔이 몸에서 떨어지면 소매 끝 선으로 보임
+        _lm = Image.new('L', (4096, 4096), 0); _D.Draw(_lm).line([(x * 4, y * 4) for x, y in CL['pts']], fill=255, width=int(CL.get('width', 4) * 4), joint='curve')
+        _lm = np.asarray(_lm.resize((1024, 1024), Image.LANCZOS)).astype(np.float32)[..., None] / 255
+        _c = _a[..., :3].astype(np.float32); _a[..., :3] = (_c * (1 - _lm) + np.array(CL.get('color', [28, 24, 20]), np.float32) * _lm).astype(np.uint8)
     _ys, _xs = np.nonzero(_a[..., 3] > 2); _ox, _oy = int(_xs.min()), int(_ys.min()); _a = _a[_oy:_ys.max() + 1, _ox:_xs.max() + 1]
     Image.fromarray(_a, 'RGBA').save(os.path.join(HERE, 'parts_work/armL_ref.png'))
     EN = A(NR['elbow']); ML = A([[1, 0, _ox], [0, 1, _oy]]); PT['armL'] = ([NR['elbow'][0] - _ox, NR['elbow'][1] - _oy], [NR['hand'][0] - _ox, NR['hand'][1] - _oy])
@@ -131,6 +136,31 @@ if TE:   # 몸통 시트 조각의 가까운 소매 토막(크림 관·회색 �
     _t = Image.open(os.path.join(HERE, P['torso']['file'])).convert('RGBA'); _m = Image.new('L', (_t.width * 4, _t.height * 4), 255); _D.Draw(_m).polygon([(x * 4, y * 4) for x, y in TE], fill=0)
     _m = np.asarray(_m.resize(_t.size, Image.LANCZOS)).astype(np.float32) / 255; _a = np.asarray(_t).copy(); _a[..., 3] = (_a[..., 3] * _m).astype(np.uint8)
     os.makedirs(os.path.join(HERE, 'parts_work'), exist_ok=True); Image.fromarray(_a, 'RGBA').save(os.path.join(HERE, 'parts_work/torso.png')); P['torso']['file'] = 'parts_work/torso.png'
+TF = T('torsoFill', None)
+if TF:   # 몸통 가까운 옆(가까운 팔 뒤) 채움 (DHL 10-20 23:50 '조립 사이 공간 없애 줘요'): 팔 오림(nearArmRef) 오른쪽 ~ 멜빵 왼쪽의 크림(원화) + 팔 밑(가려진 곳)은 조끼 크림 + 옆구리 외곽선
+    #   몸통 뼈에 붙고 몸통보다 먼저 그림(멜빵·몸통 조각이 위) → 서 있을 땐 원화 그대로, 달릴 때 팔이 흔들려도 팔과 몸 사이로 배경이 안 비침
+    from PIL import ImageDraw as _D
+    from scipy import ndimage as _nd
+    _R = np.asarray(Image.open(os.path.join(HERE, 'ref1024.png')).convert('RGBA')).astype(np.float32)
+    def _pm(poly):
+        m_ = Image.new('L', (4096, 4096), 0); _D.Draw(m_).polygon([(x * 4, y * 4) for x, y in poly], fill=255)
+        return np.asarray(m_.resize((1024, 1024), Image.LANCZOS)).astype(np.float32) / 255
+    _reg = _pm(TF['poly']); _arm = _pm(NR['poly']) if NR else np.zeros_like(_reg)
+    _armIn = _nd.grey_erosion(_arm, size=(2 * TF.get('seam', 4) + 1,) * 2)   # 팔 오림 가장자리 seam px 안쪽까지는 원화(이음 자리 = 원화 그대로, 밝은 줄 안 생김)
+    _org = _reg * (1 - _armIn)                                           # 팔 오림 밖(+이음 띠) = 원화 그대로
+    _hard = _reg > .5; _cr = _hard & (_arm < .5) & (_R[..., 3] > 200) & (_R[..., :3].mean(-1) > 170)
+    _base = np.median(_R[_cr][:, :3], 0) if _cr.sum() > 20 else np.array(TF.get('color', [236, 224, 198]), np.float32)
+    _out = (_hard & ~_nd.binary_erosion(_hard, iterations=TF.get('line', 3))) & (_armIn > .5)   # 팔 밑 쪽 테두리 = 옆구리 외곽선
+    _dist = _nd.distance_transform_edt(~(_hard & ~_nd.binary_erosion(_hard, iterations=1) & (_armIn > .5)))
+    _sh = np.clip(1 - (_dist - TF.get('line', 3)) / TF.get('shade', 10), 0, 1)[..., None] * (1 - TF.get('shadeK', .82))
+    _syn = _base * TF.get('tone', 1.0) * (1 - _sh)                     # 팔 밑 그늘 톤(tone) + 외곽선 쪽으로 더 어둡게
+    _syn[_out] = np.array(TF.get('lineColor', [28, 24, 20]), np.float32)
+    _rgb = _R[..., :3] * (_org / np.maximum(_reg, 1e-3))[..., None] + _syn * (1 - _org / np.maximum(_reg, 1e-3))[..., None]
+    _al = _reg * _R[..., 3]                                             # 원화가 빈 곳(장갑과 몸 사이 원래 틈)은 채우지 않음 — 서 있을 땐 원화와 같게
+    _a = np.dstack([_rgb, _al]).clip(0, 255).astype(np.uint8)
+    _ys, _xs = np.nonzero(_a[..., 3] > 2); _ox, _oy = int(_xs.min()), int(_ys.min()); _a = _a[_oy:_ys.max() + 1, _ox:_xs.max() + 1]
+    os.makedirs(os.path.join(HERE, 'parts_work'), exist_ok=True); Image.fromarray(_a, 'RGBA').save(os.path.join(HERE, 'parts_work/torsoFill.png'))
+    P['torsoFill'] = dict(file='parts_work/torsoFill.png', M=A([[1, 0, _ox], [0, 1, _oy]]), at=WAIST)
 UF = T('armUfadeTop', 0)
 if UF:   # 가까운 윗팔 소매 위 끝(회색 열린 구멍)을 흐리게 — 어깨갑 밑에서 소매가 시작(달릴 때 어깨 위로 구멍 테가 보였음)
     _u = np.asarray(Image.open(os.path.join(HERE, P['armU']['file'])).convert('RGBA')).copy(); _yy = np.arange(_u.shape[0])[:, None]
@@ -140,6 +170,9 @@ if UF:   # 가까운 윗팔 소매 위 끝(회색 열린 구멍)을 흐리게 �
         _xx = np.arange(_u.shape[1])[None, :]; _xs = np.nonzero(_u[UB, :, 3] > 100)[0]; _cx, _hw = (_xs.min() + _xs.max()) / 2, (_xs.max() - _xs.min()) / 2 + 1
         _ye = UB + 7 * np.clip(1 - ((_xx - _cx) / _hw) ** 2, 0, 1)   # 둥근 끝(가운데가 더 김)
         _u[..., 3] = (_u[..., 3] * np.clip((_ye - _yy) / 3, 0, 1)).astype(np.uint8)   # 아래(팔꿈치 쪽 열린 구멍)도 잘라 짧게 — 그림이 뼈(upperRun 55)보다 길어 팔꿈치 너머로 관 끝이 튀어나왔음
+    UL = T('armUcutLeft', 0)
+    if UL:   # 윗팔 소매 왼쪽 끝(어깨갑 왼쪽 위로 삐져나온 흐린 토막)을 지움 (DHL 10-20 23:50)
+        _xx = np.arange(_u.shape[1])[None, :]; _u[..., 3] = (_u[..., 3] * np.clip((_xx - UL) / 4, 0, 1)).astype(np.uint8)
     Image.fromarray(_u, 'RGBA').save(os.path.join(HERE, 'parts_work/armU.png')); P['armU']['file'] = 'parts_work/armU.png'
 for n_, ec_ in T('endCuts', {}).items():   # 소매 조각 끝의 회색 열린 구멍(관 끝) 지움: top = 위 끝 흐리게, bottom = 아래 끝 둥글게 자름 — 달릴 때 먼 팔꿈치가 수염 밑으로 나오며 관 끝이 보였음 (16 네온 10-18 14:05)
     if n_ not in P: continue
@@ -151,10 +184,10 @@ for n_, ec_ in T('endCuts', {}).items():   # 소매 조각 끝의 회색 열린 
     Image.fromarray(_u, 'RGBA').save(os.path.join(HERE, f'parts_work/{n_}.png')); P[n_]['file'] = f'parts_work/{n_}.png'
 for n_, f_ in T('pieceScale', {}).items():   # 조각 하나만 키움(시트에서 원화보다 작게 그려진 조각) — 관절점(at) 기준
     if n_ in P: m_ = P[n_]['M'].copy(); at_ = A(P[n_]['at']); P[n_]['M'] = np.c_[m_[:, :2] * f_, at_ + f_ * (m_[:, 2] - at_)]
-bones = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('cape', 'hip'), ('hips', 'hip'), ('pouch', 'hip'), ('torso', 'hip'),
+bones = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('cape', 'hip'), ('hips', 'hip'), ('pouch', 'hip'), ('torso', 'hip'), ('torsoFill', 'torso'),
          ('head', 'torso'), ('tuftL', 'head'), ('tuftR', 'head'), ('beard', 'head'), ('armU', 'torso'), ('armL', 'armU'), ('pauldron', 'torso'),
          ('armF', 'torso'), ('foreF', 'armF'), ('fistF', 'foreF'), ('weapon', 'fistF')] + ([('braid', 'head' if 'beard' in SKIP else 'beard')] if BR else [])
-bones = [b_ for b_ in bones if b_[0] not in SKIP]
+bones = [b_ for b_ in bones if b_[0] not in SKIP and (b_[0] != 'torsoFill' or 'torsoFill' in P)]
 world = {'root': (ROOT, 0.0), 'hip': (WAIST, 0.0), 'skirt': (WAIST, 0.0), 'cape': (NECK, 0.0)}
 parts = {}; out_bones = []
 BAKE = {'fistF': 'foreF'}   # 손목 꺾임 0 (8 엔진 가정): 뼈 각도 = 팔뚝, 그 차이만큼 그림을 미리 돌려 저장
@@ -435,6 +468,9 @@ if T('gameRef', None): rig['gameRef'] = T('gameRef', None)
 DSO = T('drawStaffOrder', None)
 if DSO and 'drawStaff' in rig:   # 찌르기 팔 그리는 순서: 팔뚝(팔꿈치) > 어깨갑 > 윗팔 (DHL 10-18 12:45 '팔꿈치 레이어가 어깨보다 앞으로' — 이전부터 반복 지적, 메모)
     i0 = rig['drawStaff'].index('weapon'); rig['drawStaff'] = rig['drawStaff'][:i0] + DSO
+if 'torsoFill' in P:   # 몸통 채움은 몸통 바로 밑(먼저 그림) — 모든 그리는 순서에
+    for k_ in ['draw', 'drawStaff', 'drawWave']:
+        if k_ in rig and 'torsoFill' not in rig[k_]: rig[k_].insert(rig[k_].index('torso'), 'torsoFill')
 for k_ in ['draw', 'drawStaff', 'drawWave']:
     if k_ in rig:
         rig[k_] = [x for x in rig[k_] if x not in SKIP]
