@@ -1,4 +1,7 @@
 /*  CharacterRig + RunAnimator v4 — cut-out 2D rig for a side-scroller (no dependencies, Canvas2D).
+ *  2026-10-21 carry (4 러스트 로시 = 개틀링 수녀 v7.8): 두 손 무거운 무기 모드(팔뚝+장갑 = 손잡이 뼈 한 몸 rigidFore, 총 무게 스프링,
+ *  누르는 동안 연사 fire(true/false), 탄띠 사슬)를 스킬 엔진 v16에서 옮김. rig.json에 맨 위 `carry` 블록이 있을 때만 켜짐(opt-in) —
+ *  다른 리그는 바뀐 픽셀 0 (engine 회귀 검사). 이름이 겹치지 않게: 탄띠 "belt" 그리기는 carry.belt 가 있을 때만(2 둘시네 parts.belt 와 겹침).
  *
  *  const rig  = await CharacterRig.load("rig.json");   // loads parts/*.png next to rig.json
  *  const anim = new RunAnimator(rig);
@@ -26,6 +29,8 @@
   const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
   const rotT = (x, y, a) => { const c = Math.cos(a), s = Math.sin(a); return [c, s, -s, c, x, y] };
   const set = (ctx, M) => ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]);
+  // carry(v16): 동작의 발 옮김 시간창 [t0,t1] — 숫자 두 개 배열일 때만 (rig.json actions.*.nearWin/farWin, 없으면 기본 시간창)
+  const win = (w, d) => Array.isArray(w) && w.length === 2 && typeof w[0] === "number" && typeof w[1] === "number" ? w : d;
 
   class CharacterRig {
     constructor(def, images) {
@@ -88,6 +93,7 @@
           if (oimg && oa > .003) { const k = op_.scale || 1, M = mul(mul(base, ob.m), [k, 0, 0, k, 0, 0]); ctx.save(); set(ctx, M); const [rx, ry, rw, rh] = ov.rect;
             ctx.beginPath(); ctx.rect(rx - op_.pivot[0], ry - op_.pivot[1], rw, rh); ctx.clip(); ctx.globalAlpha = oa; ctx.drawImage(oimg, -op_.pivot[0], -op_.pivot[1]); ctx.restore() }
           continue }
+        if (name === "belt" && this.def.carry && this.def.carry.belt) { this._drawBelt(ctx, base); continue }   // carry(v16): 배낭 입구 → 총 급탄구 탄띠 (carry.belt 있을 때만)
         // headFront (opt-in, 알론소 v4): 머리 그림의 얼굴·귀·앞머리 부분만 한 번 더 그림(def.headFront.clip = 머리 그림 px 다각형)
         //   → 칼은 뒷머리 위로 지나가고, 손잡이는 얼굴·귀 뒤로 숨음(키 포즈와 같은 겹침). 표정 패치·깜빡임도 같이 그림
         if (name === "headFront" || name.startsWith("headFront_")) { const hf = this.def[name], hb = this.by.head;   // headFront_* (opt-in): 다른 클립 다각형(예: 얼굴만) if (!hf || !hb) continue;
@@ -132,6 +138,54 @@
           ctx.globalAlpha = T.a * .5 * k1; ctx.fillStyle = "#FFF1DC"; ctx.beginPath();
           ctx.moveTo(p[0] + nx * w0, p[1] + ny * w0); ctx.lineTo(q[0] + nx * w1, q[1] + ny * w1); ctx.lineTo(q[0] - nx * w1, q[1] - ny * w1); ctx.lineTo(p[0] - nx * w0, p[1] - ny * w0); ctx.closePath(); ctx.fill() } }
       ctx.globalAlpha = 1;
+    }
+    // ---- carry(v16, 4 러스트 로시): 탄띠 — 아래 두 함수는 skill engine v16 그대로 ----
+    // ammo belt: the straight belt image laid along a cubic curve from the pack opening to the gun's feed; the curve keeps the belt's own length
+    _drawBelt(ctx, base) {
+      const Bt = this.def.carry && this.def.carry.belt; if (Bt && Bt.links) return this._drawChain(ctx, base, Bt);
+      const part = this.def.parts.belt, img = this.images.belt; if (!Bt || !img) return;
+      const k = part.scale || 1, hh = img.height * k / 2, Lt = img.width * k, A = this.partPoint("pack", ...Bt.from), B = this.partPoint("gun", ...Bt.to);
+      const dirW = (bone, v) => { const m = this.by[bone].m, x = m[0] * v[0] + m[2] * v[1], y = m[1] * v[0] + m[3] * v[1], l = Math.hypot(x, y) || 1; return [x / l, y / l] };
+      const da = dirW("pack", Bt.fromDir), db = dirW("gun", Bt.toDir), sag = Bt.sag || 0;
+      const bez = (h, t) => { const P1 = [A[0] + da[0] * h, A[1] + da[1] * h + sag], P2 = [B[0] - db[0] * h, B[1] - db[1] * h + sag], u = 1 - t;
+        return [u * u * u * A[0] + 3 * u * u * t * P1[0] + 3 * u * t * t * P2[0] + t * t * t * B[0], u * u * u * A[1] + 3 * u * u * t * P1[1] + 3 * u * t * t * P2[1] + t * t * t * B[1]] };
+      const N = 30, len = h => { let s = 0, p = bez(h, 0); for (let i = 1; i <= N; i++) { const q = bez(h, i / N); s += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q } return s };
+      let lo = 0, hi = Lt * 2; for (let it = 0; it < 24; it++) { const m = (lo + hi) / 2; if (len(m) < Lt) lo = m; else hi = m }
+      const h = (lo + hi) / 2, pts = []; for (let i = 0; i <= N; i++) pts.push(bez(h, i / N));
+      const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      const n = N + 1, sx = new Float32Array(2 * n), sy = new Float32Array(2 * n), dx = new Float32Array(2 * n), dy = new Float32Array(2 * n), fl = Bt.flip ? -1 : 1;
+      for (let i = 0; i <= N; i++) { const a = pts[Math.max(0, i - 1)], c = pts[Math.min(N, i + 1)], ex = c[0] - a[0], ey = c[1] - a[1], l = Math.hypot(ex, ey) || 1, nx = -ey / l * fl, ny = ex / l * fl;
+        const X = Math.min(img.width, cum[i] / Math.max(1e-6, cum[N]) * img.width * Math.min(1, cum[N] / Lt));
+        sx[i] = sx[n + i] = X; sy[i] = 0; sy[n + i] = img.height;
+        dx[i] = pts[i][0] - nx * hh; dy[i] = pts[i][1] - ny * hh; dx[n + i] = pts[i][0] + nx * hh; dy[n + i] = pts[i][1] + ny * hh }
+      this.beltPts = pts;
+      for (let i = 0; i < N; i++) { this._tri(ctx, base, img, sx, sy, dx, dy, i, i + 1, n + i + 1); this._tri(ctx, base, img, sx, sy, dx, dy, i, n + i + 1, n + i) }
+    }
+    // ammo belt as a chain of single links (sheet G1): a cubic curve from the pack mouth to the gun feed whose length = n links x spacing.
+    // Each link is laid along the curve (no stretching); the cartridge tip points to the inside of the curve, as in the original.
+    _drawChain(ctx, base, Bt) {
+      // path = the original belt's curve, carried by the chest; its two ends ride on the pack mouth and the gun feed
+      const C = this.by.chest.m, cr = Bt.chestRest, K = Bt.path.map(p => apply(C, p[0] - cr[0], p[1] - cr[1]));
+      { // the belt's ends ride on the pack mouth and the gun feed (both sway); the whole original C curve follows them as one
+        // similarity (rotate + scale + move), so the belt never folds or fans at the mouth, whatever the gun does
+        const A = this.partPoint("pack", ...Bt.from), B = this.partPoint("gun", ...Bt.to), n = K.length, P0 = K[0], P1 = K[n - 1];
+        const ux = P1[0] - P0[0], uy = P1[1] - P0[1], vx = B[0] - A[0], vy = B[1] - A[1], uu = ux * ux + uy * uy || 1;
+        const a = (ux * vx + uy * vy) / uu, b = (ux * vy - uy * vx) / uu;
+        for (let i = 0; i < n; i++) { const x = K[i][0] - P0[0], y = K[i][1] - P0[1]; K[i] = [A[0] + a * x - b * y, A[1] + b * x + a * y] } }
+      const q = [], N = 120, M = K.length - 1;
+      for (let i = 0; i <= N; i++) { const f = i / N * M, j = Math.min(M - 1, Math.floor(f)), t = f - j, p0 = K[Math.max(0, j - 1)], p1 = K[j], p2 = K[j + 1], p3 = K[Math.min(M, j + 2)];
+        const c = (a, b, c_, d) => .5 * (2 * b + (-a + c_) * t + (2 * a - 5 * b + 4 * c_ - d) * t * t + (-a + 3 * b - 3 * c_ + d) * t * t * t);
+        q.push([c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])]) }
+      const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + Math.hypot(q[i][0] - q[i - 1][0], q[i][1] - q[i - 1][1]));
+      const at = s => { let i = 1; while (i < N && cum[i] < s) i++; const t = (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]), p = q[i - 1], r = q[i];
+        const tx = r[0] - p[0], ty = r[1] - p[1], l = Math.hypot(tx, ty) || 1; return [p[0] + tx * t, p[1] + ty * t, tx / l, ty / l] };
+      this.beltPts = q;
+      const nL = Math.max(1, Math.floor(cum[N] / Bt.spacing));
+      for (let kk = 0; kk < nL; kk++) { const k = Bt.reverse ? nL - 1 - kk : kk;   // reverse: links nearer the pack drawn on top (as in the drawing)
+        const nm = Bt.links[k % Bt.links.length], part = this.def.parts[nm], img = this.images[nm]; if (!img) continue;
+        const [x, y, tx, ty] = at((k + .5) * Bt.spacing), sc = part.scale || 1;
+        // image x -> along the curve, image y -> away from the inside (so the cartridge tip, image -y, points inward)
+        const [la, lc] = Bt.linkScale || [1, 1]; set(ctx, mul(base, [tx * sc * la, ty * sc * la, -ty * sc * lc, tx * sc * lc, x, y])); ctx.drawImage(img, -part.pivot[0], -part.pivot[1]) }
     }
     // map an image segment (joint a → joint b, in image px) onto a world segment (P → Q); w = thickness factor
     _seg(R, a, b, P, Q, w) {
@@ -221,7 +275,8 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineWidth = 2;
       const dot = (p, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, TAU); ctx.fill() };
       for (const b of this.bones) { const p = apply(mul(base, b.m), 0, 0);
-        if (b.parent) { const q = apply(mul(base, this.by[b.parent].m), 0, 0); ctx.strokeStyle = "rgba(62,224,176,.75)"; ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(p[0], p[1]); ctx.stroke() } dot(p, "#3EE0B0") }
+        if (b.prop && this.def.carry) { ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, TAU); ctx.fill(); continue }   // carry(v16): 붙은 물건(총·배낭·깃…)은 관절이 아님
+        if (b.parent && !(this.def.carry && (this.by[b.parent].prop || b.parent === "root"))) { const q = apply(mul(base, this.by[b.parent].m), 0, 0); ctx.strokeStyle = "rgba(62,224,176,.75)"; ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(p[0], p[1]); ctx.stroke() } dot(p, "#3EE0B0") }
       if (this.legPose) for (const s of ["far", "near"]) { const P = this.legPose[s], R = mul(base, this.by.root.m), h = apply(R, ...P.hip), kn = apply(R, ...P.knee), an = apply(R, ...P.ankle);
         ctx.strokeStyle = s === "near" ? "#FFB020" : "#C98A2A"; ctx.beginPath(); ctx.moveTo(h[0], h[1]); ctx.lineTo(kn[0], kn[1]); ctx.lineTo(an[0], an[1]); ctx.stroke(); dot(h, "#FFB020"); dot(kn, "#FFB020"); dot(an, "#FFB020") }
       const g = apply(base, 0, 0); ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.moveTo(g[0] - 400, g[1]); ctx.lineTo(g[0] + 400, g[1]); ctx.stroke();
@@ -367,12 +422,23 @@
     wave() { return this.attack("wave") }
     /** opts.speed: play the action faster (>1) or slower (<1) without re-keying it */
     attack(name = "thrust", opts = {}) {
-      const def = (this.rig.def.actions && this.rig.def.actions[name]) || ACTIONS[name]; if (!def) return false;   // per-character actions in rig.json override the built-ins
+      const def = (this.rig.def.actions && this.rig.def.actions[name]) || (this.rig.def.carry ? null : ACTIONS[name]); if (!def) return false;   // per-character actions in rig.json override the built-ins · carry(v16): 두 손이 총에 붙은 캐릭터는 내장 동작(찌르기·인사 등 손 그림이 바뀌는 것)을 쓰지 않음(G28)
       if (this.act && this.act.t < this.act.def.cancelAt) return false;
       const e = {}; for (const s of ["near", "far"]) { const f = this.ft[s]; e[s] = { x: f.x, lift: f.lift, ang: f.ang, lockW: this.odo + f.x } }
-      this.act = { name, def, t: 0, speed: opts.speed || 1, entry: e, hit: false, prev: this.act ? { def: this.act.def, t: this.act.t } : null }; return true;
+      this.act = { name, def, t: 0, speed: opts.speed || 1, entry: e, hit: false, prev: this.act ? { def: this.act.def, t: this.act.t } : null };
+      this.autoHold = def.holdAt != null ? (opts.hold || 0) : 0;   // opts.hold(초, opt-in 2026-10-21 4 로시): 누르고 있는 것처럼 holdAt 자세에서 그만큼 연사 — 게임 전투 '짧은 연사'
+      return true;
     }
     get busy() { return !!this.act }
+    /** hold-to-fire (carry characters, rig.json actions.fire): fire(true) on press, fire(false) on release.
+        While held the pose stays braced and shots repeat (event "fire" per shot); a tap still fires a short burst. (carry v16) */
+    fire(on) {
+      const D = this.rig.def.actions && this.rig.def.actions.fire; if (!D) return false;
+      this.trigger = !!on; if (!on) return true;
+      const a = this.act;
+      if (a && a.name === "fire") { if (a.t > D.holdAt && a.t < D.cancelAt) { a.t = D.holdAt; return true } if (a.t <= D.holdAt) return true }
+      return this.attack("fire");
+    }
     /** change the movement feel at runtime: gait = preset object (see GAIT_PRESETS / references/05_tuning.md); null = rig.json default */
     setGait(gait) { this.G = Object.assign({}, GAIT_DEFAULTS, this.rig.def.gait || {}, typeof gait === "string" ? GAIT_PRESETS[gait] : gait || {}); this.stance = this.G.stance }
     /** base expression when no action overrides it: null | "happy" | "sad" | "angry" | "focus" | "relaxed" | "effort" | "shout" | "grimace" */
@@ -411,7 +477,9 @@
     _stand(side) { return this._standW(side) > 0 ? this.L[side].stand : null }
     _boot(side) { const st = this._stand(side); return st && st.boot ? st.boot : this.L.boot }
     _ankleFor(gx, lift, ang, side = null) { // ankle height so the lowest sole point (heel / ball / toe tip) touches the ground
-      const c = Math.cos(ang), s = Math.sin(ang), lowOf = (bt, kb) => { let lo = -1e9; for (const [x, y] of bt.sole) lo = Math.max(lo, (x * s + y * c) * kb); return lo };
+      const c = Math.cos(ang), s = Math.sin(ang), tw = 1 - smooth(1, 25, lift);
+      // boot.toeX(opt-in, carry v16): 긴 발끝은 땅 가까이에서만 접지로 셈 — 공중에서는 발목을 지렛대처럼 들었다 놨다 함(무릎 튐, G20)
+      const lowOf = (bt, kb) => { let lo = -1e9; const tx = bt.toeX ?? 1e9; for (const [x, y] of bt.sole) { const v = (x * s + y * c) * kb, v0 = y * kb; lo = Math.max(lo, x > tx ? v0 + (v - v0) * tw : v) } return lo };
       let low = lowOf(this.L.boot, this.kb); const w = this._standW(side), sb = w > 0 && this.L[side].stand.boot;
       if (sb) low = lerp(low, lowOf(sb, this.rig.def.parts[sb.part].scale || 1), w);
       return [gx, -low - lift];
@@ -433,8 +501,8 @@
         const f = this.ft[side], rest = this.hipX[side] + (1 - A) * ((this.rig.def.idleStance || {})[side] || 0);   // idleStance: 서 있을 때만 발을 더 벌림 (opt-in, 18 네온)
         if (act && !act.def.plant) {   // action owns the feet: lead foot steps out and back, rear foot stays where it was planted
           const D = act.def, t = act.t, E = act.entry[side], land = 1 - smooth(0, .1, t);
-          if (side === "far") { f.x = lerp(E.x, rest, smooth(.17, .29, t)) + track(D.farDx, t); f.lift = Math.max(track(D.farLift, t), E.lift * land); f.ang = track(D.farAng, t) + E.ang * land }
-          else { f.x = lerp(E.lockW - this.odo, rest, smooth(.03, .15, t)) + track(D.nearDx, t); f.lift = Math.max(track(D.nearLift, t), E.lift * land); f.ang = track(D.nearAng, t) + E.ang * land }
+          if (side === "far") { f.x = lerp(E.x, rest, smooth(...win(D.farWin, [.17, .29]), t)) + track(D.farDx, t); f.lift = Math.max(track(D.farLift, t), E.lift * land); f.ang = track(D.farAng, t) + E.ang * land }
+          else { f.x = lerp(E.lockW - this.odo, rest, smooth(...win(D.nearWin, [.03, .15]), t)) + track(D.nearDx, t); f.lift = Math.max(track(D.nearLift, t), E.lift * land); f.ang = track(D.nearAng, t) + E.ang * land }
           f.step = null; f.planted = f.lift < .01; if (f.planted) f.lockW = this.odo + f.x; f.off = 0; continue;
         }
         if (moving) {
@@ -443,12 +511,12 @@
           // legs.near/far.runX (opt-in, 알론소 v4): 달릴 때 발이 지나가는 가운데 줄 — 서 있을 때의 넓은 발 자리(A자)를 달리기에 그대로 쓰면
           // 먼 다리는 몸 훨씬 앞에, 가까운 다리는 몸 바로 밑에 착지해서 어긋나 보임 → 속도(A)에 따라 몸 가운데 줄로 모음
           const Ls = this.rig.def.legs[side], runRest = Ls.runX != null ? this.rig.by.hip.pos[0] + this.rig.def.legs.hip[0] + Ls.runX : rest;
-          const gx = lerp(rest, runRest, A) + fx * A, gl = lift * A, ga = ang * A * (this.G.angK ?? 1);   // gait.angK (opt-in, 6 카르덴): 발목 꺾임 줄임 — 짧은 다리가 바짓단 밑에서 종종걸음
+          const gx = lerp(rest, runRest, A) + fx * A, gl = lift * A, ga = ang * A * (this.G.angK ?? 1) * (stance ? 1 : (this.G.swingFoot ?? 1));   // gait.swingFoot(opt-in, carry v16): 긴 부츠는 공중에서 덜 꺾음(발끝이 긴 지렛대) · gait.angK (opt-in, 6 카르덴): 발목 꺾임 줄임 — 짧은 다리가 바짓단 밑에서 종종걸음
           if (f.settled) { f.settled = false; f.off = f.x - gx; f.planted = f.lift < .01 && gl < .5; if (f.planted) f.lockW = this.odo + f.x }   // 멈춤 발걸음 → 다시 달리기: 발 위치가 끊기지 않게 이어받음 (방향 바꿀 때 한 프레임 튐 수정)
           if ((stance && gl === 0) || (f.planted && gl < .5)) {   // a foot still touching the ground stays locked until it really lifts (no toe drag)
             if (!f.planted) { f.planted = true; f.lockW = this.odo + gx + f.off }
             const lx = f.lockW - this.odo; f.off = lx - gx;
-            if (Math.abs(f.off) > 85) { f.planted = false; f.off = clamp(f.off, -85, 85) } // never stretch a leg to keep a lock
+            const lm = this.G.lockMax || 85; if (Math.abs(f.off) > lm) { f.planted = false; f.off = clamp(f.off, -lm, lm) } // never stretch a leg to keep a lock · gait.lockMax(opt-in, carry v16 짧은 다리)
             f.x = gx + f.off;
           } else { f.planted = false; f.off = damp(f.off, 0, 9, dt); f.x = gx + f.off }
           f.lift = gl; f.ang = ga;
@@ -1051,6 +1119,149 @@
       rig.trail = null;
       rig.compute();
     }
+    // ---- carry(v16, 4 러스트 로시 = 개틀링 수녀 v7.8): 두 손 무거운 무기 — 아래 함수들은 skill engine v16 그대로 (rig.json carry 있을 때만 불림) ----
+    /* carry (gatling-nun): both hands stay on the gun. The gun rides on the torso and lags the bob a little.
+       Each arm is a real chain: shoulder (sleeve) -> elbow (forearm+glove drawn as one piece, wrist as drawn) -> hand on the grip.
+       Two-bone IK puts the elbow where both segments keep their drawn length; the elbow stays on its drawn side (down / back). */
+    // arms solved on the gun; during an action that swaps in its own far-arm drawing (fire: F1) only the near arm is solved
+    _arms() { const A = this.rig.def.carry.arms; return this.touchOn ? [] : this.farFree ? A.filter(a => a[0] !== "shoulderF") : A }
+    // exact two-bone IK of one carried arm toward a root-space point (elbow keeps its drawn side)
+    // fire: the far sleeve (shoulder → elbow) is solved so its elbow sits where the F1 forearm drawing (fixed length, gripping the
+    // top handle) can reach it — elbow below the handle, in front of the chest. The forearm is then drawn elbow → wrist.
+    _farToF1() {
+      const rig = this.rig, b = rig.by, R = this._arm.shoulderF, L2 = rig.def.carry.f1Len; rig.compute();
+      const S = rig.point("shoulderF"), W = rig.point("f1G"), dx = W[0] - S[0], dy = W[1] - S[1], d = clamp(Math.hypot(dx, dy), Math.abs(R.L1 - L2) + 1, (R.L1 + L2) * .995), bA = Math.atan2(dy, dx);
+      const al = Math.acos(clamp((R.L1 * R.L1 + d * d - L2 * L2) / (2 * R.L1 * d), -1, 1));
+      const e1 = [S[0] + Math.cos(bA + al) * R.L1, S[1] + Math.sin(bA + al) * R.L1], e2 = [S[0] + Math.cos(bA - al) * R.L1, S[1] + Math.sin(bA - al) * R.L1], E = e1[1] > e2[1] ? e1 : e2;
+      b.shoulderF.ar = wrapA(Math.atan2(E[1] - S[1], E[0] - S[0]) - wAng(rig.by[b.shoulderF.parent].m) - b.shoulderF.rot - R.a1); rig.compute();
+      this.f1Reach = Math.hypot(dx, dy) / (R.L1 + L2);
+    }
+    _armTo(sl, fo, G) {
+      const rig = this.rig, b = rig.by, R = this._arm[sl], S = rig.point(sl);
+      const dx = G[0] - S[0], dy = G[1] - S[1], d = clamp(Math.hypot(dx, dy), Math.abs(R.L1 - R.L2) + 1, (R.L1 + R.L2) * .995), bA = Math.atan2(dy, dx);
+      const al = Math.acos(clamp((R.L1 * R.L1 + d * d - R.L2 * R.L2) / (2 * R.L1 * d), -1, 1)), sg = R.side;
+      const E = [S[0] + Math.cos(bA + sg * al) * R.L1, S[1] + Math.sin(bA + sg * al) * R.L1];
+      b[sl].ar = wrapA(Math.atan2(E[1] - S[1], E[0] - S[0]) - wAng(rig.by[b[sl].parent].m) - b[sl].rot - R.a1); rig.compute();
+      b[fo].ar = wrapA(Math.atan2(G[1] - E[1], G[0] - E[0]) - wAng(b[sl].m) - b[fo].rot - R.a2); rig.compute();
+    }
+    /* touch (gatling-nun): heave the gun onto the near shoulder behind the head, near hand on its rear grip, far fist on the hip,
+       wink. tw (0..1) drives the gun from the carry pose to the shoulder pose; the hands swap to the touch drawings at tw .35. */
+    _touchGun(D) {
+      const b = this.rig.by, Tc = D.touch, tw = this._tr('tw'), r = Tc.rot * tw, g = this.rig.by.gripN.pos, c = Math.cos(r), s_ = Math.sin(r);
+      const g0 = [b.gun.pos[0] + b.gun.ax + g[0], b.gun.pos[1] + b.gun.ay + g[1]], arc = Math.sin(Math.PI * Math.min(1, tw)) * (Tc.arc || 0);
+      const tx = lerp(g0[0], Tc.grip[0], tw) - arc * .4, ty = lerp(g0[1], Tc.grip[1], tw) + arc;
+      b.gun.ar += r; b.gun.ax = tx - (c * g[0] - s_ * g[1]) - b.gun.pos[0]; b.gun.ay = ty - (s_ * g[0] + c * g[1]) - b.gun.pos[1];
+    }
+    _touchArms(D) {
+      const rig = this.rig, b = rig.by, Tc = D.touch, tw = this._tr('tw'), C = rig.def.carry;
+      const gN = rig.point("gripN"), m = b.chest.m, off = (v) => [m[0] * v[0] + m[2] * v[1], m[1] * v[0] + m[3] * v[1]];
+      const on = Tc.nearOff ? off(Tc.nearOff) : [0, 0]; this._armTo("shoulderN", "elbowN", [gN[0] + on[0], gN[1] + on[1]]);
+      if (!this.touchF0) this.touchF0 = rig.point("gripF");
+      const hip = apply(m, ...Tc.hip), k = smooth(.35, .75, tw), F = [lerp(this.touchF0[0], hip[0], k), lerp(this.touchF0[1], hip[1], k) - Math.sin(Math.PI * k) * 18];
+      this._armTo("shoulderF", "elbowF", F);
+    }
+    _armIK() {
+      const rig = this.rig, b = rig.by, C = rig.def.carry;
+      for (const [sl, fo, tip, grip] of this._arms()) {
+        const S = rig.point(sl), G = rig.point(grip), R = this._arm[sl];
+        // rigid forearm (drawn on the hand): the forearm + glove ride on the grip as ONE drawing (wrist exactly as drawn);
+        // only the sleeve turns at the shoulder to aim its elbow at the forearm's upper end, which slides inside the sleeve
+        const RF = C.rigidFore && C.rigidFore[sl];
+        if (RF) { const Et = rig.point(grip, RF[0], RF[1]); rig.compute(); const E0 = rig.point(fo);
+          b[sl].ar = wrapA(b[sl].ar + Math.atan2(Et[1] - S[1], Et[0] - S[0]) - Math.atan2(E0[1] - S[1], E0[0] - S[0])); rig.compute();
+          this.sleeveGap = Math.max(this.sleeveGap || 0, Math.hypot(Et[0] - S[0], Et[1] - S[1]) - R.L1); continue }
+        // exact two-bone IK (no soft reach: the hand must stay on the grip); if the grip is out of reach the arm points at it
+        const dx = G[0] - S[0], dy = G[1] - S[1], d = Math.min(Math.hypot(dx, dy), (R.L1 + R.L2) * .999), bA = Math.atan2(dy, dx);
+        const al = Math.acos(clamp((R.L1 * R.L1 + d * d - R.L2 * R.L2) / (2 * R.L1 * d), -1, 1)), sg = R.side;
+        const E = [S[0] + Math.cos(bA + sg * al) * R.L1, S[1] + Math.sin(bA + sg * al) * R.L1];
+        b[sl].ar = wrapA(Math.atan2(E[1] - S[1], E[0] - S[0]) - wAng(rig.by[b[sl].parent].m) - b[sl].rot - R.a1); rig.compute();
+        b[fo].ar = wrapA(Math.atan2(G[1] - E[1], G[0] - E[0]) - wAng(b[sl].m) - b[fo].rot - R.a2); rig.compute();
+        this.armErr = Math.max(this.armErr || 0, Math.hypot(...[0, 1].map(k => rig.point(tip)[k] - G[k])));
+      }
+    }
+    _carry(dt, A, I, br, accel) {
+      const rig = this.rig, b = rig.by, C = rig.def.carry;
+      if (!this._arm) { this.gunLag = new Spring(70, 11); this.gunRot = new Spring(90, 12); this._arm = {};
+        const keep = rig.bones.map(x => [x.ax, x.ay, x.ar, x.asx, x.asy]); rig.resetPose(); rig.compute();
+        for (const [sl, fo, tip, grip] of C.arms) { const S = rig.point(sl), E = rig.point(fo), T = rig.point(tip), pr = wAng(rig.by[b[sl].parent].m);
+          const sols = solve2(S, T, Math.hypot(E[0] - S[0], E[1] - S[1]), Math.hypot(T[0] - E[0], T[1] - E[1]));
+          this._arm[sl] = { L1: Math.hypot(E[0] - S[0], E[1] - S[1]), L2: Math.hypot(T[0] - E[0], T[1] - E[1]),
+            a1: Math.atan2(E[1] - S[1], E[0] - S[0]) - pr - b[sl].rot, a2: Math.atan2(T[1] - E[1], T[0] - E[0]) - wAng(b[sl].m) - b[fo].rot,
+            side: Math.sign((T[0] - S[0]) * (E[1] - S[1]) - (T[1] - S[1]) * (E[0] - S[0])) || 1 } }
+        rig.bones.forEach((x, i) => { [x.ax, x.ay, x.ar, x.asx, x.asy] = keep[i] }) }
+      const hy = b.hip.ay, lag = this.gunLag.step(hy, dt) - hy;           // the gun's weight trails the pelvis bob
+      b.gun.ay = lag * C.lagY;
+      // the arms are never locked straight: the gun rides a little closer to the shoulders than in the drawing (elbows soft),
+      // breathes with the chest and is pumped by each step; the shoulders roll alternately with the waddle
+      { const Lf = C.lift || 0, psi = (this.cyc * 2) % 1, st = Math.sin(TAU * psi);
+        b.gun.ay -= Lf + I * br * (C.breathLift || 0) + A * Math.abs(st) * (C.stepPump || 0); b.gun.ax -= (C.pullIn || 0);
+        b.shoulderN.ay += A * st * (C.shoulderRoll || 0) - I * br * 1.5; b.shoulderF.ay -= A * st * (C.shoulderRoll || 0) + I * br * 1.5 }
+      if (this.act) { const sh = this._tr('shrug'); b.shoulderN.ay += sh; b.shoulderF.ay += sh; b.gun.ay += sh;   // shrug: the shoulder girdle lifts the gun
+        for (const k of this.act.def.kicks || []) { if (this.act.t >= k[0] && !(this.act.kicked ||= {})[k[0]]) { this.act.kicked[k[0]] = 1; this.kick = [k[1], k[2], k[3]] } } }   // impulses into the gun spring (toss / catch)
+      b.gun.ar = -b.torso.ar * C.counterWaddle + this.gunRot.step(this.hipVy * C.lagRot - accel * .00003 * (C.accelRot ?? 1), dt) + I * br * .004;
+      b.chest.ar = -(b.torso.ar - (this.actLean || 0)) * (C.chestSteady ?? .35);   // a heavy carried gun keeps the chest steady; the pelvis does the rocking (an action's own lean is kept)
+      if (this.act) { b.gun.ax += this._tr('gunX'); b.gun.ay += this._tr('gunY'); b.gun.ar += this._tr('gunR'); if (this.act.def.touch) this._touchGun(this.act.def) }
+      b.neck.ar = I * br * .01;
+      rig.compute(); this.armErr = 0; this._armIK();
+    }
+    /* weighted gun (gatling-nun): the gun is a heavy body held by two hands. Relative to the chest it is a damped spring
+       driven by the chest's own acceleration (inertia): it trails the body's rise and fall, dips muzzle-first on every
+       footfall (front-heavy), swings forward when she stops and back when she starts, and droops a little while she stands.
+       The arms absorb it: the hands stay locked on the grips and the elbows bend (two-bone IK). The sway is scaled down
+       automatically whenever an arm would leave its reach or bend its wrist past the drawing (no hand ever leaves a grip). */
+    _gunSoft(dt, A, I) {
+      const rig = this.rig, b = rig.by, C = rig.def.carry, S_ = C.soft; if (!S_) { this._armIK(); return }
+      if (!this.gsx) { this.gsx = new Spring(S_.k, S_.c); this.gsy = new Spring(S_.k, S_.c); this.gsr = new Spring(S_.kr, S_.cr); this.pv = null; this.pa = [0, 0] }
+      if (this.kick) { this.gsx.v += this.kick[0]; this.gsy.v += this.kick[1]; this.gsr.v += this.kick[2]; this.kick = null }   // recoil impulse (fire)
+      rig.compute();
+      const P = rig.point("chest"), Wp = [this.odo + P[0], P[1]];
+      if (this.pv && dt > 0) { const v = [(Wp[0] - this.pv[0]) / dt, (Wp[1] - this.pv[1]) / dt], pv0 = this.pvel || v;
+        const a = [(v[0] - pv0[0]) / dt, (v[1] - pv0[1]) / dt]; this.pa = [damp(this.pa[0], clamp(a[0], -6000, 6000), 30, dt), damp(this.pa[1], clamp(a[1], -6000, 6000), 30, dt)]; this.pvel = v }
+      this.pv = Wp;
+      const T = this.t, ty = -this.pa[1] * S_.accY + I * Math.sin(T * 1.15) * S_.idleY, tx = -this.pa[0] * S_.accX;
+      const y = clamp(this.gsy.step(ty, dt), -S_.maxY, S_.maxY), x = clamp(this.gsx.step(tx, dt), -S_.maxX, S_.maxX);
+      const r = clamp(this.gsr.step(y * S_.rotY + x * S_.rotX + I * Math.sin(T * 1.7 + .6) * S_.idleR, dt), -S_.maxR, S_.maxR);
+      const base = [b.gun.ax, b.gun.ay, b.gun.ar, b.chest.ar], sh = this._arms().map(([sl]) => [b[sl].ax, b[sl].ay]), sf = S_.shoulderFollow ?? 0;
+      // the shoulder girdle carries part of the load: both shoulders sink / slide with the gun (hidden under the sleeve and collar overlap)
+      const apply_ = k => { b.gun.ax = base[0] + x * k; b.gun.ay = base[1] + y * k; b.gun.ar = base[2] + r * k; b.chest.ar = base[3] - x * k * S_.leanBack;
+        this._arms().forEach(([sl], i) => { b[sl].ax = sh[i][0] + x * k * sf; b[sl].ay = sh[i][1] + y * k * sf }); rig.compute() };
+      const reach = () => { for (const [sl, fo, tip, grip] of this._arms()) { const R = this._arm[sl], S0 = rig.point(sl), G = rig.point(grip), d = Math.hypot(G[0] - S0[0], G[1] - S0[1]), lim = (R.L1 + R.L2) * .975;
+          if (d > lim) { const m = Math.min(d - lim, S_.shoulderSlide ?? 0), T_ = rig.by[b[sl].parent].m, det = T_[0] * T_[3] - T_[1] * T_[2], ux = (G[0] - S0[0]) / d * m, uy = (G[1] - S0[1]) / d * m;
+            b[sl].ax += (T_[3] * ux - T_[2] * uy) / det; b[sl].ay += (-T_[1] * ux + T_[0] * uy) / det } } rig.compute() };
+      const apply2 = k => { apply_(k); reach() };
+      const ok = () => { for (const [sl, fo, tip, grip] of this._arms()) { const R = this._arm[sl], RF = C.rigidFore && C.rigidFore[sl];
+          if (RF) { const Et = rig.point(grip, RF[0], RF[1]), S0 = rig.point(sl), gp = Math.hypot(Et[0] - S0[0], Et[1] - S0[1]) - R.L1; if (gp > (C.rigidSlack || 14) || gp < -(C.rigidSlack || 14)) return false; continue }
+          const d = Math.hypot(...[0, 1].map(q => rig.point(grip)[q] - rig.point(sl)[q]));
+          if (d > (R.L1 + R.L2) * .985 || d < Math.abs(R.L1 - R.L2) + 4) return false }
+        const im = rig.images.gun; if (im && Math.max(...[[0, im.height], [im.width, im.height], [im.width * .5, im.height], [im.width, im.height * .7]].map(p => rig.partPoint("gun", ...p)[1])) > -(S_.floor ?? 4)) return false;
+        return true };
+      let k = 1; apply2(1);
+      if (!ok()) { let lo = 0, hi = 1; for (let it = 0; it < 10; it++) { const m = (lo + hi) / 2; apply2(m); if (ok()) lo = m; else hi = m } k = lo; apply2(k) }
+      this.gunK = k; this.gunOff = [x * k, y * k, r * k];
+      // the ammo pack rides on the back: same inertia, less travel (straps), never more than 3 units
+      if (b.pack) { if (!this.psy) this.psy = new Spring(40, 7); const pm = C.packSway ?? 3, py = clamp(this.psy.step(ty * .45, dt), -pm, pm); b.pack.ay = py; b.pack.ar = 0; rig.compute() }
+      this.armErr = 0; this._armIK();
+      // wrist guard: if the glove (on the grip) and the forearm disagree more than the drawing allows, reduce the sway too
+      const wristOk = () => { for (const [sl, fo, tip, grip] of this._arms()) { if (C.rigidFore && C.rigidFore[sl]) continue; const w = Math.abs(wrapA(wAng(b[fo].m) - wAng(b[grip].m) - (this._w0[sl] ?? 0))); if (w > S_.maxWrist) return false } return true };
+      if (!this._w0) { this._w0 = {}; for (const [sl, fo, tip, grip] of C.arms) this._w0[sl] = wrapA(wAng(b[fo].m) - wAng(b[grip].m)) }
+      if (!wristOk()) { let lo = 0, hi = k; for (let it = 0; it < 8; it++) { const m = (lo + hi) / 2; apply2(m); this._armIK(); if (wristOk()) lo = m; else hi = m } apply2(lo); this._armIK(); this.gunK = lo }
+    }
+    // shots: while the fire action is in its firing window (and the trigger is held), one "fire" event per 1/rate s at the
+    // muzzle, with the bore direction; each shot kicks the gun spring (back + muzzle up). Effects/sound are the game's job.
+    _fireTick(dt) {
+      const F = this.rig.def.carry && this.rig.def.carry.fire, a = this.act; if (!F) return;
+      const D = a && a.name === "fire" ? a.def : null;
+      const on = !!D && a.t >= D.fireFrom && (this.trigger || this.autoHold > 0 || a.t <= D.holdAt + 1e-6) && a.t < D.dur;
+      if (on) {
+        if (!this.firing) { this.firing = true; this.shotT = 0; this.shots = 0; this.events.push({ type: "fireStart" }) }
+        this.shotT -= dt;
+        while (this.shotT <= 0) { this.shotT += 1 / F.rate; this.shots++;
+          const M = this.rig.partPoint("gun", ...F.muzzle), Bp = this.rig.partPoint("gun", ...F.bore), dx = M[0] - Bp[0], dy = M[1] - Bp[1], l = Math.hypot(dx, dy) || 1;
+          this.events.push({ type: "fire", x: M[0], y: M[1], dx: dx / l, dy: dy / l, n: this.shots });
+          const j = () => .8 + Math.random() * .4; this.kick = [-F.kickX * j(), -F.kickY * j(), -F.kickR * j()] }
+      } else if (this.firing) { this.firing = false; this.events.push({ type: "fireEnd", shots: this.shots }) }
+      this.heat = damp(this.heat || 0, on ? 1 : 0, on ? 14 : 6, dt);
+    }
     update(dt, s = {}) {
       dt = Math.min(dt, .05); this.t += dt; this.dt = dt;
       const rig = this.rig, b = rig.by, L = this.L; rig.resetPose();
@@ -1061,7 +1272,7 @@
       this.turnT = Math.max(0, this.turnT - dt);
       const lvx = vx * this.facing, sp = Math.abs(vx);
       this.odo += lvx * dt; this.events.length = 0;
-      const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
+      const act = this.act; if (act) { if (act.freeze > 0) act.freeze -= dt; else act.t += dt * (act.speed || 1); if (this.autoHold > 0 && act.t >= act.def.holdAt) this.autoHold -= dt; /* 누름 시간은 holdAt 자세에 닿은 뒤부터 */ if (act.def.holdAt != null && (this.trigger || this.autoHold > 0) && act.t > act.def.holdAt) act.t = act.def.holdAt; /* holdAt(carry v16): 누르고 있는 동안 연사 자세 유지 */ /* freeze: 타격 정지(hitStop, opt-in) 동안 동작 시간 멈춤 — 몸·칼 흔들림은 계속 */ if (act.prev) { act.prev.t = Math.min(act.prev.def.dur, act.prev.t + dt); if (act.t > .1) act.prev = null } if (act.t >= act.def.dur) this.act = null }
       const D = act && act.def, at = act ? act.t : 0;
       this.A = damp(this.A, act ? 0 : smooth(15, 200, sp), act ? (D.aDamp || 14) : 8, dt);   // aDamp(opt-in, 2 러스트 둘시네 10-19): 달리다 공격하면 달리기 다리→선 다리를 빨리(기본 14) — 달리기 그림이 선 자세로 꺾이는 사이 프레임·두 그림 겹침을 줄임
       this.legRunV = act && D.legRun ? clamp(this._tr("legRun"), 0, 1) : 0;   // legRun(opt-in 동작 트랙, 11 네온 알론소 런지): 다리 길이·그림을 달리기 쪽(A)으로 — 서 있는 원화 다리는 짧아 런지 뒷다리가 못 뻗음
@@ -1071,28 +1282,35 @@
       //   보폭 = 2·속도·stance ÷ 걸음/초 (디딘 발은 그대로 땅과 같이 감). 캐릭터 보폭에서 G.strideFlex 배(기본 0.75~1.35) 안으로만 바꾸고, 넘치면 땅에 닿는 몫(stance)을 바꿔 박자를 맞춤 — 짧은 다리가 못 닿는 보폭 금지
       if (s.stepHz > 0 && sp > 14) { const fx_ = G.strideFlex || [.75, 1.35], Sc_ = 2 * sp * G.stance / s.stepHz, S2_ = clamp(Sc_, S * fx_[0], S * fx_[1]); this.stance = clamp(s.stepHz * S2_ / (2 * sp), .12, .6); S = S2_ }
       if (!act) this.cyc = (this.cyc + dt * (sp * this.stance / S)) % 1;          // cadence chosen so the planted foot moves exactly with the ground
+      if (!act && G.startPhase != null && this.A < .02 && sp < 14) this.cyc = G.startPhase;   // gait.startPhase(opt-in, carry v16): 서 있을 때 뒷발이 먼저 내딛게 (넓게 선 자세에서 첫걸음 골반 꺼짐, G15)
       // body velocity from the action's hip drive (feeds cape / skirt / hem drag like real forward motion)
       const ax_ = act ? this._tr('hipX') : 0; this.actV = damp(this.actV, (ax_ - this.prevActX) / Math.max(dt, 1e-4), 25, dt); this.prevActX = ax_;
       const accel = (lvx - this.prevLVx) / Math.max(dt, 1e-4) + (act ? this.actV * 6 : 0); this.prevLVx = lvx;
       const T = this.t, br = Math.sin(T * TAU / 2.9), ph = this.cyc, psi = (ph * 2) % 1;
 
       // ---------- pelvis & spine ----------
-      const leanA = this.lean.step(act ? 0 : clamp(accel * .0003, -.2, .2), dt);
+      const leanA = this.lean.step(act ? 0 : clamp(accel * .0003 * (G.accelLean ?? 1), -.2, .2), dt);   // gait.accelLean(opt-in, carry v16)
       const bob = Math.cos(TAU * (psi - .12));                          // +1 lowest (just after contact), -1 highest (flight)
-      b.hip.ay = I * br * 4 + A * (G.hipBase + bob * G.bob);
+      b.hip.ay = (G.idleRise ? I * (br * 4 - G.idleRise) : I * br * 4) + A * (G.hipBase + bob * G.bob);   // gait.idleRise(opt-in, carry v16)
       b.torso.ar = I * br * .012 + A * (G.lean + G.leanBob * bob + G.waddle * Math.sin(TAU * psi)) + leanA;   // waddle: body rocks with each step
-      b.torso.asy = 1 + I * br * .013 - A * bob * .01; b.torso.asx = 1 - I * br * .006;
+      if (G.breathScale != null) { const bs = G.breathScale; b.torso.asy = 1 + (I * br * .013 - A * bob * .01) * bs; b.torso.asx = 1 - I * br * .006 * bs }   // gait.breathScale(opt-in, carry v16): 두 손 무기는 0 — 숨쉬기 세로 늘임이 가슴 자식(총·손)을 찌그러뜨림(G29)
+      else { b.torso.asy = 1 + I * br * .013 - A * bob * .01; b.torso.asx = 1 - I * br * .006 }
       const hipY = b.hip.ay; this.hipVy = damp(this.hipVy, (hipY - this.prevHipY) / Math.max(dt, 1e-4), 20, dt); this.prevHipY = hipY;
       const hl = this.headLag.step(this.hipVy * .006, dt);
       b.head.ar = I * Math.sin(T * .8) * .025 - A * (G.headRun ?? .15) - leanA * .6 + hl * .02;   // gait.headRun(opt-in, 11 네온 알론소): 달릴 때 머리 앞 숙임(기본 .15) — 원화를 오린 머리는 많이 돌면 목·어깨 경계가 벌어짐
       b.head.ay = -I * br * 1.4 + hl * 2.5 + A * G.headBob * bob;
       b.skirt.ar = -leanA * .25 - A * .03;
       let twist = 0;
+      this.actLean = act ? this._tr('lean') : 0;
+      { const h = this.heat || 0, F = this.rig.def.carry && this.rig.def.carry.fire;   // carry(v16) sustained fire: the body is pushed back and buzzes a little
+        if (F && h > .001) { b.hip.ax -= h * (F.push || 0); b.torso.ar += Math.sin(T * 47) * .004 * h; b.head.ar += Math.sin(T * 57) * (F.headShake || 0) * h; b.head.ay += Math.sin(T * 83) * .7 * h } }
       if (act) { const lean = this._tr('lean'), brt = this._tr('breath'); twist = this._tr('twist');
         b.hip.ax += ax_; b.hip.ay += this._tr('hipY'); b.torso.ar += lean; b.head.ar += this._tr('head') - lean * .35; b.skirt.ar -= lean * .3;
         b.torso.asy += brt * .022; b.torso.asx -= Math.abs(twist) * .03; b.head.ay -= brt * 5 }
       if (rig.def.skirtFollow) b.skirt.ar += (b.torso.ar - I * br * .012) * rig.def.skirtFollow;   // 허리(골반)가 상체를 따라 기울어 치마 위 끝이 상체 밑단에서 떨어지지 않게 (opt-in)
 
+      let wl = 0;   // 창·칼 흔들림 (아래 spearGrip 이 씀)
+      if (rig.def.carry) this._carry(dt, A, I, br, accel); else {   // carry(v16): 두 팔은 총 손잡이에 — 아래 팔 흔들기·무기 팔은 안 씀
       // ---------- near arm (opposite to the near leg) ----------
       const swing = Math.cos(TAU * (ph + (rig.def.armPhase || 0)));   // armPhase .5: 자유 팔이 화면 뒤쪽 팔인 캐릭터(알론소) — 같은 쪽 팔다리가 함께 나가지 않게                                 // +1 when the near foot strikes in front
       const fwd = -swing;                                               // near arm forward when the near leg is back
@@ -1107,12 +1325,13 @@
       // ---------- far arm + spear: the shaft is locked in the fist; the arm lifts it so the butt clears the ground ----------
       const CS = rig.def.carrySwing ?? 1;   // 무기 팔을 달릴 때 뒤로 젖히는 양 (0 = 서 있을 때 각도 유지)
       b.armF.ar = I * br * .02 + A * (-.30 + .035 * swing) * CS - leanA * .3;
-      const wl = this.weapon.step(this.hipVy * .00016 - accel * .00006, dt);
+      wl = this.weapon.step(this.hipVy * .00016 - accel * .00006, dt);
       const torsoTilt = b.torso.ar, want_ = I * br * .01 + A * (-.06 + (rig.def.runTilt || 0)) + wl;    // spear world tilt (rad, 0 = as in the reference)
       const FB = A * (rig.def.runForeBend || 0); b.foreF.ar += FB;   // 달릴 때 창 팔 팔꿈치를 더 굽혀 창을 듦 (긴 창 캐릭터, opt-in — 없으면 0)
       const WR = rig.def.wristRange || .28; b.fistF.ar = clamp(want_ - torsoTilt - b.armF.ar - FB, -WR, WR);   // wrist
       b.weapon.ar = 0;
       if (rig.def.runSlide || rig.def.carryDrop) { const rs = A * (rig.def.runSlide || 0) - (1 - A) * (rig.def.carryDrop || 0); b.weapon.ax = Math.sin(b.weapon.rot) * rs; b.weapon.ay = -Math.cos(b.weapon.rot) * rs }   // 달릴 때만 봉을 손 안에서 위로 밀어 올림 — 서 있을 땐 원화 그대로 (짧은 다리 + 긴 봉, 6 카르덴 opt-in) · carryDrop: 서 있을 때 봉을 그만큼 내림(집게가 땅 가까이, 6 카르덴 10-18)
+      }
 
       // ---------- feet + legs ----------
       this._feet(dt, sp, lvx, S, A);
@@ -1137,8 +1356,8 @@
       else if (act && D.kind === "sword" && rig.def.swordGrip) this._swordArms(D, at, T);
       else if (act && D.kind === "smash") this._smashArms(D, at, T, act);
       else if (act && D.kind === "staff") this._staffArms(D, at, T, act);   // 봉 키 찌르기 (6 카르덴 opt-in)
-      else if (act) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
-      else { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null; if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // guard(opt-in, 11 네온 알론소): 대기·달리기도 두 손으로 칼을 쥠
+      else if (act && !rig.def.carry) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
+      else if (!act) { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null; if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // guard(opt-in, 11 네온 알론소): 대기·달리기도 두 손으로 칼을 쥠
       if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       // weaponFloor (opt-in, 6 카르덴 10-18): 봉 끝(그림 아래 가운데)이 땅 위 weaponFloor 보다 내려가면 봉을 손 안에서 그만큼 위로 밀어 올림
       //   — 서 있기·달리기 모두 집게를 땅 바로 위까지 내리되(DHL '표시한 곳까지') 팔 흔들림·가속에서 땅을 뚫지 않게. 봉 키 찌르기(staff) 중엔 키가 봉을 정함
@@ -1151,7 +1370,7 @@
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
-        const [r0, r1] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9];   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
+        const [r0, r1_] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9], fs_ = this.ft[side], r1 = L.boot.idleDorsi ? r1_ + L.boot.idleDorsi * (fs_.dw = damp(fs_.dw || 0, (1 - this.A) * (1 - smooth(0, 3, fs_.lift)), 5, this.dt || 0)) : r1_;   // boot.idleDorsi(opt-in, carry v16): 서 있는 디딘 발은 발목을 더 굽혀(해부학 범위 안) 발바닥을 평평하게   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
         const kN_ = side === "near" ? "kneeOutN" : "kneeOutF", kw = act && D[kN_] ? clamp(this._tr(kN_), 0, 1) : (L[side].kneeOut ? L[side].kneeOut * this.koW : 0);   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게) · kneeOutN/F(opt-in 동작 트랙, 11 네온 알론소 런지): 쪽별 무릎 돌림 — 앞다리 무릎이 화면 쪽으로 나와 허벅지가 짧아 보이게(원근), 시작·끝 값은 평소 값과 같게
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);
@@ -1160,6 +1379,14 @@
         sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side, true); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
       }
       rig.legPose = lp;
+      if (rig.def.carry) {
+        const sw = act && act.def.farSwap ? this._tr('farSwap') >= .5 : false; this.farFree = sw;   // far arm: IK arm ↔ the action's own drawing (one-frame swap during fast motion)
+        const tw = act && act.def.touch ? this._tr('tw') : 0, ton = tw >= .35; if (!ton) this.touchF0 = null; this.touchOn = ton;
+        for (const n of ["shoulderF", "elbowF", "gripF", "foreSegF", "foreRigF"]) rig.alpha[n] = sw ? 0 : 1; rig.alpha.f1Up = rig.alpha.f1Hand = sw ? 1 : 0; rig.alpha.f1Fore = rig.alpha.f1G = rig.alpha.f1Sleeve = rig.alpha.f1S = sw ? 1 : 0;   // F1: foreshortened sleeve (shoulder → cuff) + forearm drawing
+        rig.alpha.gripN = rig.alpha.gripF = ton ? 0 : 1; if (sw) rig.alpha.gripF = 0; rig.alpha.handTN = rig.alpha.handTF = ton ? 1 : 0; rig.alpha.handBackN = ton ? 0 : 1;
+        rig.drawOrder = act && act.def.touch && tw >= (act.def.touch.layerAt ?? .8) ? rig.def.drawTouch : act && act.def.touch && tw >= (act.def.touch.midAt ?? .45) ? (rig.def.drawTouchMid || null) : null;   // gun: in front → over the torso but behind the head → behind the veil
+        rig.beltBlend = smooth(.2, .8, tw);
+        this._gunSoft(dt, this.A, 1 - this.A); if (ton) this._touchArms(act.def); this._fireTick(dt) }   // carry(v16): 총 무게 스프링 → 팔(소매 회전·rigidFore) → 연사
 
       // ---------- skirt: knees push the front of the hem, the kicking heel lifts the back ----------
       const sk = b.skirt, skP = rig.def.parts.skirt;
@@ -1208,9 +1435,15 @@
 
       // ---------- cape: trails behind, flutters, lags the bounce ----------
       const capeA = this.cape.step(clamp(lvx * .0011 + accel * .00012, -.25, .9), dt);
-      b.cape.ar = capeA * .22;
+      b.cape.ar = capeA * .22; if (rig.def.carry && b.capeFill) b.capeFill.ar = b.cape.ar;   // carry(v16): the veil's backing turns with the veil
       const wph = T * (2.4 + sp * .009), wamp = 5 + sp * .02;
-      rig.meshFx.cape = (u, v) => { const w = Math.pow(v, 1.25) * (.35 + .65 * (1 - u)); const wave = Math.sin(wph - v * 4.2 - (1 - u) * 2.4);
+      if (rig.def.carry) { const capeK = rig.def.carry.capeAmp ?? 1;   // carry(v16): 베일 흔들림 배율 + 두건에 닿는 위 가장자리는 고정(베일·두건 사이 틈 없음)
+        rig.meshFx.cape = (u, v) => { const w = Math.pow(v, 1.25) * (.35 + .65 * (1 - u)) * capeK * (1 - smooth(.72, 1, u)); const wave = Math.sin(wph - v * 4.2 - (1 - u) * 2.4);
+          return [(-capeA * 85 + wave * wamp) * w, (-this.hipVy * .035 + wave * wamp * .45 - capeA * 30 * (1 - u)) * w] };
+        // the veil's dark backing bends exactly like the veil (sampled at the same cape-image coordinates) — no hole where the cloth swings
+        const fx = rig.meshFx.cape, pc = rig.def.parts.cape, ic = rig.images.cape;
+        if (rig.def.parts.capeFill && rig.def.parts.capeFill.mesh && ic) rig.meshFx.capeFill = (u, v, x, y) => fx(clamp((pc.pivot[0] + x / (pc.scale || 1)) / ic.width, 0, 1), clamp((pc.pivot[1] + y / (pc.scale || 1)) / ic.height, 0, 1)) }
+      else rig.meshFx.cape = (u, v) => { const w = Math.pow(v, 1.25) * (.35 + .65 * (1 - u)); const wave = Math.sin(wph - v * 4.2 - (1 - u) * 2.4);
         return [(-capeA * 85 + wave * wamp) * w, (-this.hipVy * .035 + wave * wamp * .45 - capeA * 30 * (1 - u)) * w] };
 
       // ---------- streamers (opt-in, 알론소 v4 목도리 긴 꼬리): 그림 오른쪽 끝(pivot)이 뿌리, 왼쪽(뒤)으로 날리는 천.
