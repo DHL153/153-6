@@ -32,3 +32,16 @@
 - 편집 툴 '공격'도 ui.attackOpts 를 넘김(게임과 같은 짧은 연사 4발) — attackOpts 없는 캐릭터는 그대로
 - 확인: 로컬 PC 1280×900 · 폰 390×844 목록·서기·달리기·공격(4발) 페이지 오류 0
 - 실수 기록: review/rig-mistakes-and-todo.md 2026-10-21 (3)~(6)
+
+## 10-21 06:20 v1.1 표정·깜빡임·반응 (DHL 05:59 '기본 표정도 없네요, 눈이 깜빡이는 것도 없어요, 반응도 같이')
+- 시트: DHL 06:06 source/sheets_faces_0606.png — 원화 머리 다시 그리기 3×2(프롬프트 하나, 첨부 = source/refs/attach_E_face.png = 사례집 E1~E3 첨부). 사례집 9칸은 선이 깨졌지만 6칸·넓은 간격은 깨끗(칸 배율 1.9 → 4배 조각)
+- source/tools/faces4.py: 칸마다 두건·이마 띠·머리카락(얼굴 빼고, head.png 알파 안)에 SIFT 닮음 → ECC affine(.98) → 얼굴만 오려 원화 머리 위 조각, 살빛 맞춤
+  - 웃음·화남·슬픔·놀람 = 얼굴 전체(이마 띠 아래 가장자리까지) · 깜빡임 반·감음 = 눈 부분만(위 y169~174 = 다시 그린 눈썹 줄 뺌, 코 선·입 = 원화)
+  - faces: happy·angry·sad·surprised(+grimace) 추가 · blinkFaces {half, closed} · 기본 = 원화 얼굴 · 윙크·외침·집중 = v7.8 그대로
+- 반응(source/tools/react4.py): nod 끄덕 · hop 작은 폴짝 · surprise 움찔 · sway 살랑(길게, 끝 윙크) — 손은 손잡이에서 안 뗌(G28), 몸·어깨·총 오프셋만
+  - ui.tap = heft → nod → hop → surprise · ui.long = sway
+  - 검사(actprobe, 서서): 다리 펴짐 ≤ .98(폴짝) · 디딘 발 미끄러짐 0 · 총 바닥 여유 ≥ 4(몸이 낮아질 때 gunY 로 총을 듦) · 소매 회전 = 승인된 heft 범위 안(폴짝 12.6/−11.3 ≤ heft 16.2/−11.5) · 손 이탈 0
+  - 걷다가 누르면 바닥 여유가 2.3까지 줄어듦(땅 위, 공통 반응과 같은 넘어감) 📝
+- 게임 확인 PC·폰: 마이룸 터치 차례 heft → nod(웃음) → hop(웃음) → surprise · 길게 sway · 페이지 오류 0
+- 편집 툴 v163: '4 러스트 로시 v1.1' · 새 '반응' 줄(rig.json ui.tap·ui.long 이 있는 캐릭터만 보임 — 지금은 로시) · 진행 칸 v1.1
+- 📝 DHL 검수: 반응 4종 움직임 크기 · 깜빡임 때 눈 밑 그늘이 잠깐 옅어짐(다시 그린 눈엔 그늘이 없음)
