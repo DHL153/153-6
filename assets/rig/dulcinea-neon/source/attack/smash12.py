@@ -16,10 +16,11 @@ DHL 14:24 '팔이 꼬임·늘어남 — 기존의 팔이 움직이도록' → 15
 def unit(v): v = np.array(v, float); return [round(float(x), 4) for x in v / np.linalg.norm(v)]
 # ---- 공 손목(3 러스트 산초 v2 '공 손목 관 팔' 방식): 주먹 = 장갑만, 손목 키 = 쥔 점(주먹 가운데) — 팔뚝 끝을 장갑 밑 가운데까지 이어 그려서
 #      팔뚝이 어느 각도로 들어와도 장갑 밑으로 들어감(손목이 꺾인 '팔 없는' 모양이 안 생김). 팔 길이 = 원화 어깨→팔꿈치→주먹 가운데 그대로.
-def capsule(a, o, p0, p1, col):   # 원화 좌표 p0→p1 을 a(틀 o) 안에 팔뚝 굵기로 이어 그림 — 이미 불투명한 곳은 그대로
+def capsule(a, o, p0, p1, col, hwmax=None):   # 원화 좌표 p0→p1 을 a(틀 o) 안에 팔뚝 굵기로 이어 그림 — 이미 불투명한 곳은 그대로
     ax = (p1 - p0) / np.linalg.norm(p1 - p0); hh, ww = a.shape[:2]; yy, xx = np.mgrid[0:hh, 0:ww]; X, Y = xx + o[0], yy + o[1]
     near0 = (np.abs((X - p0[0]) * ax[0] + (Y - p0[1]) * ax[1]) < 4) & (a[..., 3] > 200)
     hw = max(6.0, float(np.abs((X - p0[0]) * -ax[1] + (Y - p0[1]) * ax[0])[near0].max()) - 1.5)   # 손목 굵기의 반(외곽선 안쪽)
+    if hwmax: hw = min(hw, hwmax)   # (12 네온) 손목 = 흰 보호대 끝이라 재면 장갑 테두리까지 19px — 주먹 밖으로 삐져나오지 않게 보호대 반지름으로
     t = (X - p0[0]) * ax[0] + (Y - p0[1]) * ax[1]; d = np.abs((X - p0[0]) * -ax[1] + (Y - p0[1]) * ax[0])
     m = (t >= -2) & (t <= np.linalg.norm(p1 - p0) + 2) & (d <= hw) & ~(a[..., 3] > 200)
     a[..., :3][m] = col; a[..., 3][m] = 255; return a, round(hw, 1)
@@ -27,8 +28,8 @@ def capsule(a, o, p0, p1, col):   # 원화 좌표 p0→p1 을 a(틀 o) 안에 �
 oF, oA = O_['fistF'], O_['foreF']
 _fa = np.array(Image.open(os.path.join(W, 'foreFArt.png')).convert('RGBA')); _cv = np.zeros((512, 512, 4), np.uint8); _cv[int(oA[1]):int(oA[1]) + _fa.shape[0], int(oA[0]):int(oA[0]) + _fa.shape[1]] = _fa
 _wr = (np.hypot(*(np.mgrid[0:512, 0:512][::-1] - WR_F[:, None, None])) < 7) & (_cv[..., 3] > 200)
-_cv, _hwF = capsule(_cv, np.zeros(2), WR_F, G, np.median(_cv[..., :3][_wr], 0).astype(np.uint8))
-_ys, _xs = np.nonzero(_cv[..., 3] > 0); oA2 = np.array([_xs.min() - 2, _ys.min() - 2], float)
+_gd = (np.hypot(*(np.mgrid[0:512, 0:512][::-1] - WR_F[:, None, None])) < 14) & (_cv[..., 3] > 200) & (_cv[..., :3].min(-1) > 170)   # (12 네온) 흰 손목 보호대 색
+_cv, _hwF = capsule(_cv, np.zeros(2), WR_F, G, np.median(_cv[..., :3][_gd if _gd.sum() > 10 else _wr], 0).astype(np.uint8), hwmax=float(os.environ.get('HW_WRIST', 12)))
 # 공격용 팔뚝 afFart2: 팔꿈치 쪽 끝의 어두운 재킷 소매 끝(원화에선 몸통 옆 재킷 밑)을 살색 둥근 팔꿈치로 — 팔을 들면 몸통 밖으로 나와 얼굴·배 옆에 검은 덩어리로 보였음(10-19 15:45)
 _ax = (WR_F - EL_F) / np.linalg.norm(WR_F - EL_F); _yy, _xx = np.mgrid[0:512, 0:512].astype(np.float32)
 _t = (_xx - EL_F[0]) * _ax[0] + (_yy - EL_F[1]) * _ax[1]; _dp = (_xx - EL_F[0]) * -_ax[1] + (_yy - EL_F[1]) * _ax[0]
@@ -43,6 +44,7 @@ _cap = (np.hypot(_xx - _cen[0], _yy - _cen[1]) <= _hw) & (_t < _t0 + 3)
 _cv2[..., :3][_cap] = np.median(_cv[..., :3][_sk], 0).astype(np.uint8); _cv2[..., 3][_cap] = 255
 _rim = _cap & (np.hypot(_xx - _cen[0], _yy - _cen[1]) > _hw - 1.8) & (_t < _t0 + 1.5)   # 둥근 끝 외곽선(원화 선 굵기)
 _cv2[..., :3][_rim] = np.array([34, 26, 22], np.uint8)
+_ys, _xs = np.nonzero((_cv[..., 3] > 0) | (_cv2[..., 3] > 0)); oA2 = np.array([_xs.min() - 2, _ys.min() - 2], float)   # (12 네온) 둥근 팔꿈치 끝이 원래 팔뚝 그림 밖까지 나와서 틀(bbox)을 둘 다로 — 잘려 네모 끝이 됐었음
 Image.fromarray(_cv2[int(oA2[1]):_ys.max() + 3, int(oA2[0]):_xs.max() + 3]).save(os.path.join(OUT, 'parts', 'afFart2.png'))
 print('  smash afFart2 살 시작 t', round(_t0, 1), '팔꿈치 반지름', round(_hw, 1))
 Image.fromarray(_cv[int(oA2[1]):_ys.max() + 3, int(oA2[0]):_xs.max() + 3]).save(os.path.join(OUT, 'parts', 'afFart.png'))
@@ -91,6 +93,7 @@ if os.path.exists(_KF) and not os.environ.get('RUST_KEYS'):
     _KG = json.load(open(_KF))['G']; POSE = [(p[0], *_KG[str(p[0])], p[3], p[4]) if str(p[0]) in _KG else p for p in POSE]
     print('  smash keys12.json 쥔 점', len(_KG), '키')
 PT = lambda i: [[p[0], p[i]] + ([p[4]] if p[4] else []) for p in POSE]
+SHX12 = float(os.environ.get('SHX12', 22))
 smash = {
     'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': END, 'hitAt': HIT, 'hitStop': .12, 'cancelAt': .78, 'freeArm': True,
     'aDamp': 30, 'standStep': True,   # 달리다 공격(게임 전투는 늘 달리다 공격): 발을 0.1초 안에 딛고, 달리기 다리 그림 → 원화 다리 그림은 한 프레임 계단(반투명 겹침 없음)
@@ -101,7 +104,7 @@ smash = {
     'armIK': k((0, 1)), 'ikSideK': {'N': [[0, 1]]},   # 21:42 DHL '원래 팔로 구부리지 말고' — 먼 팔꿈치는 대기처럼 늘 아래·재킷 쪽(+1), 타격 때 위로 솟는 −1 없앰   # 먼 팔꿈치: 들어 올림~휘두름 = 안쪽으로 접힘(+1) · 타격·버팀 = 팔꿈치가 바깥 위(−1, 못 박는 망치질) — 바꾸는 순간(SW2·RET1)은 팔이 곧게 펴질 때(두 해가 만남)
     'gx': PT(1), 'gy': PT(2), 'sa': PT(3),
     # 먼 어깨(armF, 몸 뒤라 안 보임)를 바깥으로 — 먼 팔꿈치가 늘 얼굴 오른쪽 바깥(풀이 solve/one2.py: 팔꿈치 x ≥ 170)
-    'shFx': k((0, 0, 'io'), (LIFT, 30, 'io'), (WIND, 32, 'io'), (SW1, 35), (SW2, 40, 's'), (HIT, -40, 'io'), (HOLD, -40, 'io'), (RET1, 35, 'io'), (RET + .06, 0)),   # 21:42 타격·버팀 먼 어깨(몸 뒤)를 안쪽 위로 — 팔뚝이 재킷 옆에서 주먹으로, 손목 꺾임 ≈ 30°
+    'shFx': k((0, 0, 'io'), (LIFT, 30 + SHX12, 'io'), (WIND, 32 + SHX12, 'io'), (SW1, 35 + SHX12), (SW2, 40 + SHX12, 's'), (HIT, -40 + SHX12, 'io'), (HOLD, -40 + SHX12, 'io'), (RET1, 35 + SHX12, 'io'), (RET + .06, 0)),   # (12 네온) + SHX12: 네온 먼 어깨가 러스트보다 22 안쪽(골반 기준 54 vs 76) → 움직이는 동안 러스트 자리로 — 들어 올릴 때 먼 팔꿈치가 턱 옆 머리카락 위에 왔음(표 '팔꿈치얼굴')   # 21:42 타격·버팀 먼 어깨(몸 뒤)를 안쪽 위로 — 팔뚝이 재킷 옆에서 주먹으로, 손목 꺾임 ≈ 30°
     'shFy': k((0, 0, 'io'), (LIFT, -20, 'io'), (WIND, -22, 'io'), (SW1, -10), (SW2, 0, 's'), (HIT, -20, 'io'), (HOLD, -20, 'io'), (RET1, 0, 'io'), (END, 0)),   # SW2→HIT 's'(망치와 같은 내려치기 곡선) — 휘두름 중 팔 펴짐 0.87~0.90
     # 가까운 팔(칼 안 쥔 팔, 원화 그대로): 예비 때 주먹을 앞으로(−), 타격 때 뒤로(+) — 엔진 opt-in freeArm
     'fuA': k((0, 0, 'io'), (LIFT, -.5, 'io'), (WIND, -.55, 'i'), (SW2, .1, 'o'), (HIT, .5, 'o'), (HOLD, .45, 'io'), (RET + .08, 0)),

@@ -74,6 +74,7 @@ for n in DRAW_ART:
     _ab = dil(own[n], 3) & above(n) & AL
     if n in ('torso', 'hips', 'thighN', 'thighF'): _ab &= ~MOVING          # 움직이는 팔·주먹·망치 밑 겹침은 안 가져옴(외곽선이 떠 보임) — 그 밑은 메우기
     if n == 'hammer': _ab &= ~own['head']                                 # 머리 밑 겹침은 머리카락 — 안 가져옴
+    if n == 'foreF': _ab &= ~(own['torso'] | own['hips'])                # 먼 팔뚝은 상체·골반 밑 겹침을 안 가져옴 — 팔이 몸에서 떨어지면 크롭 탑 조각이 팔뚝에 붙어 다녔음
     m = own[n] | _ab; a = RA.copy(); a[..., 3] = np.where(m, RA[..., 3], 0); ART[n] = a
 _hsv = cv2.cvtColor(RA[..., :3], cv2.COLOR_RGB2HSV)
 SKIN = (_hsv[..., 0] >= 5) & (_hsv[..., 0] <= 22) & (_hsv[..., 1] > 90) & (_hsv[..., 2] > 140) & (RA[..., 3] > 200)
@@ -113,8 +114,10 @@ ART['hammer'][..., :3][_fillH] = np.clip((_hw[..., :3][_fillH] - _mu_s) / _sd_s 
 print('  hammer sheet fill(머리카락 밑)', int(_fillH.sum()), 'px · sheet scale', _rh['scale'], 'rot', _rh['rot'], 'inl', _rh['inl'])
 # 먼 팔뚝: 상체 밑으로 팔꿈치까지 살색 이어 그림(공격에서 팔이 돌면 드러남)
 _ext = np.zeros((512, 512), np.uint8); cv2.line(_ext, tuple(int(v) for v in EL_F - (WR_F - EL_F) / np.linalg.norm(WR_F - EL_F) * 4), (252, 314), 1, 20)   # 굵기 = 원화 먼 팔뚝 살 폭(약 20, 외곽선 포함 24)
+cv2.circle(_ext, tuple(int(round(v)) for v in EL_F - (WR_F - EL_F) / np.linalg.norm(WR_F - EL_F) * 4), 10, 1, -1)   # 팔꿈치 끝 둥글게(네모 끝이 휘두를 때 상체 옆에 네모 덩어리로 보였음)
 _ext = _ext.astype(bool) & ~(ART['foreF'][..., 3] > 200)
 ART['foreF'] = inpaint_into(ART['foreF'], _ext, own['foreF'] & SKIN)
+ART['foreF'] = outline_cut(ART['foreF'], dil(_ext, 1) | own['torso'] | own['hips'])   # 이어 그린 살·몸에 붙어 있던 위아래 끝에도 원화 같은 외곽선
 # 가까운 윗팔: 어깨 보호대 밑으로 어깨까지 살색(달릴 때 팔이 흔들리면 드러남) + 팔꿈치 둥근 끝(윗팔 아래·팔뚝 위)
 _ext = np.zeros((512, 512), np.uint8); cv2.line(_ext, tuple(int(v) for v in SH_N), tuple(int(v) for v in EL_N), 1, 18)
 _ext = _ext.astype(bool) & ~(ART['armU'][..., 3] > 200) & (own['pauldron'] | dil(own['armU'], 2)) & ~own['armL']
