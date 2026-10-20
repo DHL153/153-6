@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "4810766a",
+ "version": "7b21fc8a",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -12,7 +12,7 @@
   "torso": {
    "src": "parts/torso.png",
    "pivot": [
-    140.0,
+    149.0,
     239.0
    ],
    "scale": 2.0
@@ -20,7 +20,7 @@
   "skirt": {
    "src": "parts/skirt.png",
    "pivot": [
-    140.0,
+    143.0,
     41.0
    ],
    "scale": 2.0,
@@ -96,7 +96,7 @@
   "torsoM": {
    "src": "parts/torsoM.png",
    "pivot": [
-    140.0,
+    149.0,
     239.0
    ],
    "scale": 2.0
@@ -243,15 +243,15 @@
    "src": "parts/bootStandN.png",
    "pivot": [
     27.0,
-    25.0
+    35.0
    ],
    "scale": 2.0
   },
   "bootStandF": {
    "src": "parts/bootStandF.png",
    "pivot": [
-    35.0,
-    23.0
+    39.0,
+    38.0
    ],
    "scale": 2.0
   },
@@ -562,7 +562,7 @@
     22,
     46
    ],
-   "k": 1.8,
+   "k": 1.2,
    "runBoot": true
   },
   "near": {

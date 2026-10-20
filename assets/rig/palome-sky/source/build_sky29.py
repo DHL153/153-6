@@ -102,6 +102,60 @@ for _j in range(1, _k):
     if _st[_j, 4] < 150: _frag |= _cc == _j
 _sh3a = cv2.warpAffine((np.array(Image.open(os.path.join(PC, 'p3_shoulderF3.png')).convert('RGBA'))[..., 3] > 100).astype(np.uint8), np.array(GEO['p3_shoulderF3']['M'], np.float32), (512, 512), flags=cv2.INTER_NEAREST) > 0
 body = body & ~_frag; print('  shoulder fragments removed', int(_frag.sum()), 'px')
+# 다리 윗부분 (10-20 13:47 DHL '알파가 잘 안 따진 곳 · 필요 없는 부분' — 부츠 위 두 곳): 치마 밑단 아래 무릎 토시·끈·바지가 원화 라벨에서 몸(body)으로 가 치마 조각에 붙어 있었음
+#   → 대기 숨쉬기로 치마가 ±2px 오르내리면 토시 위(치마)·아래(서 있는 다리)가 갈라져 찢긴 조각·파란 틈으로 보였음.
+#   밑단 선(토시 윗 외곽선) 아래 몸 픽셀 = 서 있는 다리 조각(토시 통째), 치마는 그 선에서 끝남(선 한 줄은 두 조각 모두 — 대기 = 원화)
+HEM = {'near': np.array([[146, 431], [212, 431], [215, 436], [232, 437]], float), 'far': np.array([[294, 437], [339, 437], [347, 428], [364, 429], [376, 433]], float)}   # 먼 쪽: 치마 판 아래 외곽선 → 판 오른쪽 아래 모서리 사선 → 토시 윗 외곽선
+HEMX = {'near': (146, 232), 'far': (294, 376)}
+hem_y = {sd: np.ceil(np.interp(XX, HEM[sd][:, 0], HEM[sd][:, 1]) - 1e-6) for sd in HEM}   # 칸마다 다리 첫 줄(정수)
+legTop = {sd: body & (XX >= HEMX[sd][0]) & (XX <= HEMX[sd][1]) & (YY >= hem_y[sd]) & (YY < 470) for sd in HEM}
+LEGTOP_ALL = legTop['near'] | legTop['far']
+SKIRT_CUT = (legTop['near'] & (YY > hem_y['near'])) | (legTop['far'] & (YY > hem_y['far']))   # 치마에서 뺄 곳(밑단 선 한 줄은 치마에도 남김)
+print('  leg tops from body', {sd: int(legTop[sd].sum()) for sd in legTop})
+# 가까운 주먹 둘레 (DHL 같은 지적 — 주먹 오른쪽): 대기 숨쉬기 팔 흔들림(윗팔 ±.03 + 팔뚝 ±.04 rad → 주먹 ±6~7px)으로 주먹이 비키면 그 밑 상체 메움(시트 상체 크림)이
+#   둘레 원화(밤색 천)와 달라 톱니 크림 조각으로 보였고, 주먹 외곽선 바깥 1~2px(라벨에서 몸으로 간 어두운 선)이 상체에 남아 실금처럼 보였음
+#   → ①주먹 둘레 2px 어두운 선 + 토시 끝 작은 크림 조각(몸 라벨로 간 것)은 주먹 조각으로 ②주먹 밑 12px 띠 = 재질별 납작한 색(아래 _MAT, 경계 1px 외곽선)
+#     ③주먹 오른쪽 아래 크림 배 판은 보이는 두 외곽선을 주먹 밑으로 이어 판 모서리를 그림(아래 PLATE_H)
+#   대기 그대로: ①은 주먹이 같은 자리에 그리고 ②③은 주먹 밑(대기 중 주먹이 비키는 만큼만 보임)
+from scipy import ndimage as _ndi
+FN = lab('foreN'); _lumA = RA[..., :3].astype(int).mean(-1)
+RING_N = body & dil(FN, 2) & ~FN & (_lumA < 70)
+_cr = body & ~FN & (_lumA > 140) & dil(FN, 4); _ccn, _ccl, _ccs, _ = cv2.connectedComponentsWithStats(_cr.astype(np.uint8), connectivity=8)
+for _j in range(1, _ccn):   # 주먹 토시 끝이 몸 라벨로 간 작은 크림 조각(< 60px, 주먹에 닿음) → 주먹 조각으로
+    if _ccs[_j, 4] < 60 and (dil(FN, 1) & (_ccl == _j)).any(): RING_N |= _ccl == _j
+# 재질(밤색 천·남색 천·쇠 버클)을 색 규칙으로 나눠, 띠의 각 점 = 가장 가까운 재질의 납작한 가운데 색 — 원화 색을 그대로 이으면 줄무늬·톱니,
+#   k-평균은 판 가장자리 안티에일리어스를 재질로 잡아 얼룩(10-20 확대 비교: 그대로 이음·TELEA·섞기·k-평균 모두 얼룩)
+_R, _G, _B = (RA[..., c].astype(int) for c in range(3))
+_MAT = [(_R - _B >= 18) & (_R - _G >= 12) & (_lumA >= 45) & (_lumA <= 140),   # 밤색 천(가운데 띠)
+        (_B - _R >= 4) & (_lumA >= 25) & (_lumA <= 95),                       # 남색 천(위)
+        (np.abs(_R - _B) < 14) & (_lumA >= 95) & (_lumA <= 175)]              # 쇠 버클(아래)
+_srcN = body & ~FN & ~RING_N & (RA[..., 3] > 200) & dil(FN, 16)
+_kmap = np.full((512, 512), -1, int)
+for _j, _m in enumerate(_MAT): _kmap[_srcN & _m & (_kmap < 0)] = _j
+_srcN &= _kmap >= 0
+_kmed = np.array([np.median(RA[_srcN & (_kmap == j)][:, :3], 0) for j in range(len(_MAT))])
+_dN, _iN = _ndi.distance_transform_edt(~_srcN, return_indices=True)
+BAND_N = (FN | RING_N) & (_ndi.distance_transform_edt(~(body & ~FN & ~RING_N)) <= 12)   # 띠 = 몸 경계에서 12px
+_kfill = _kmap[_iN[0], _iN[1]]
+_dm = _ndi.distance_transform_edt(~(_srcN & (_kmap == 2))); _cl = _srcN & (_kmap < 2)
+_dc, _ic = _ndi.distance_transform_edt(~_cl, return_indices=True)
+_kfill = np.where((_kfill == 2) & (_dm > 4), _kmap[_ic[0], _ic[1]], _kfill)   # 쇠 버클은 4px 까지만 이음(버클 테 굵기) — 더 이으면 회색 덩어리
+EXT_N = RA.copy(); EXT_N[..., :3] = np.clip(_kmed[_kfill] + np.clip(cv2.GaussianBlur(np.random.default_rng(4).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 3) * 12, -5, 5)[..., None], 0, 255).astype(np.uint8); EXT_N[..., 3] = 255
+print('  fist fill materials', [tuple(int(v) for v in c) for c in _kmed], [int((_srcN & (_kmap == j)).sum()) for j in range(len(_MAT))])
+_kd = np.zeros((512, 512), bool)
+for _sy, _sx in ((0, 1), (1, 0)): _kd |= _kfill != np.roll(_kfill, (-_sy, -_sx), (0, 1))
+EXT_N[BAND_N & _kd, :3] = (34, 30, 34)   # 채운 띠 안에서 재질이 바뀌는 곳 = 외곽선 1px(원화처럼 판·천 경계에 선)
+# 주먹 오른쪽 아래 크림 배 판: 원화에선 판 왼쪽 위 외곽선(236,336 → 227,347)과 왼쪽 아래 외곽선(224,369 → 228,373)만 보이고 그 사이 판 가장자리는
+#   주먹 외곽선이 겸함 → 주먹이 비키면 판이 외곽선 없이 톱니로 끝나 '흰 조각'(DHL 동그라미 1). 두 선을 주먹 밑으로 이어(만나는 점 ≈ 216,361) 판을 그리고 안쪽 2px 외곽선,
+#   선 밖은 위 재질 채움(밤색 천). 판 색 = 가장 가까운 원화 판 픽셀
+_d1 = (XX - (227 - 0.8 * (YY - 347))) / math.hypot(1, 0.8); _d2 = (XX - (224 + (YY - 369))) / math.sqrt(2)
+_plate = body & (_lumA > 150) & (XX >= 214) & (XX <= 245) & (YY >= 330) & (YY <= 380) & ~FN & ~RING_N
+PLATE_H = (FN | RING_N) & (_d1 > 0) & (_d2 > 0) & (YY >= 340) & (YY <= 375)
+_dp, _ip = _ndi.distance_transform_edt(~_plate, return_indices=True)
+_o = np.clip(2.3 - np.minimum(_d1, _d2), 0, 1)[..., None]
+EXT_N[PLATE_H, :3] = np.clip(RA[_ip[0], _ip[1], :3] * (1 - _o) + np.array([34, 30, 34]) * _o, 0, 255)[PLATE_H].astype(np.uint8)
+BAND_N |= PLATE_H
+print('  fist ring', int(RING_N.sum()), 'band', int(BAND_N.sum()), 'hidden plate', int(PLATE_H.sum()))
 bflat2, fillO = flat_fill(body, (OCC | _frag) & (SHOULDER_R > 0))
 fillO &= ~(_zone & ~(stw[..., 3] > 100))   # 오른쪽 위(칼·먼 팔 자리)는 시트 상체 윤곽 안만 — 밖을 남색으로 채우면 팔이 떠난 뒤 남색 깃발처럼 보였음(10-20 09:00)   # 그 밖의 앞 조각(칼 날밑·손잡이·먼 토시·수염) 밑도 시트가 못 덮는 곳은 남색 천 — 칼을 들면 날밑 자리에 배경 구멍·찢어진 조각이 보였음
 _OK = (~_zone | (SHOULDER_R > 0)) & (YY < cut_y + OVL)
@@ -117,6 +171,7 @@ SEAM = _ring.copy()   # 대기 그대로를 위해 원화 경계 픽셀은 seamF
 _t0 = art(body & (YY < cut_y + OVL)); _t0[_ring & (sh3[..., 3] > 200)] = sh3[_ring & (sh3[..., 3] > 200)]; _t0[_ring & (sh3[..., 3] <= 200), 3] = 0
 print('  shoulder ring', int(_ring.sum()), 'px')
 torso = under(under(under(under(_t0, sh3, (OCC | _frag) & (SHOULDER_R > 0) & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
+_bt = BAND_N & (YY < cut_y + OVL); torso[_bt] = EXT_N[_bt]   # 주먹 밑 띠 = 둘레 원화 몸 색 이음(위 '가까운 주먹 둘레')
 o_torso = save('torso', torso)
 # 공격용 상체 torsoM (10-20 10:41 DHL '29 타격 때 어깨 위치를 무시하고 팔이 너무 아래로' → 손을 올리니 먼 어깨 둘레가 더 보임):
 #   먼 어깨 둘레 원화 부스러기(칼·손·토시 경계에서 라벨이 갈라진 크림 왕관·검은 뾰족 조각)는 빼고, 시트 3 먼 어깨(sh3)를 자기 알파로 통째 덮고,
@@ -133,7 +188,8 @@ tm[_m3, :3] = np.clip(_rgb3[_m3], 0, 255).astype(np.uint8); tm[_m3, 3] = np.clip
 o_tm = save('torsoM', tm); print('  torsoM: debris', int(_deb.sum()), 'hole', int(_hole.sum()), 'shoulder', int(_m3.sum()))
 # 치마: 주먹 밑(주머니 윗덮개·허리띠)은 시트 골반의 주머니를 원화 주머니 위 두 모서리에 맞춰(시트 10,10 → 138,355 · 90,12 → 198,357) — 시트 전체 맞춤은 3/4 휘어짐이 달라 안 맞음
 shp = warp(col_match(sheet('hips'), body & (YY >= cut_y)), simil((10, 10), (90, 12), (138, 355), (198, 357)))
-skirt = under(under(art(body & (YY >= cut_y)), shp, lab('foreN') & (YY >= cut_y)), bflat, fillN & (YY >= cut_y))
+skirt = under(under(art(body & (YY >= cut_y) & ~SKIRT_CUT), shp, lab('foreN') & (YY >= cut_y)), bflat, fillN & (YY >= cut_y))   # 밑단 아래 토시·끈은 서 있는 다리로
+_bs = BAND_N & (YY >= cut_y); skirt[_bs] = EXT_N[_bs]
 o_skirt = save('skirt', skirt)
 # 머리+수염 (원화 그대로, 꽁지머리·귀·안경 포함)
 o_head = save('head', art(lab('head')))
@@ -148,7 +204,7 @@ def arm_piece(nm, top, bot, SH, EL):   # 시트 2 윗팔 조각을 늘이지 않
 uw = arm_piece('upperN2', (24, 19), (24, 101), SH_N, EL_N)   # 가까운 윗팔 = 스카이 시트 2(09:00) 4번: 둥근 끝 사이 82(원화 87) — 위 끝은 큰 어깨갑 밑, 늘이지 않음
 o_aU = save('armU', under(art(_nv | (lab('upperN') & (RA[..., :3].mean(-1) < 45))), uw, lab('pauldron') | lab('foreN') | lab('upperN')))
 # 가까운 팔뚝+주먹(토시 + 쇠 장갑 주먹, 원화 그대로 — 맨 앞)
-o_aL = save('armL', art(lab('foreN')))
+o_aL = save('armL', art(lab('foreN') | RING_N))   # 주먹 둘레 어두운 외곽선 2px 포함(움직이면 같이 감)
 # 먼 윗팔(남색 소매): 원화 보이는 곳 + 앞 조각(몸 어깨판·토시·칼) 밑은 시트 먼 윗팔(어깨 → 팔꿈치), 색 = 원화 먼 소매 × .9
 ufw = arm_piece('upperF2', (24, 21), (24, 107), SH_F, EL_F)   # 먼 윗팔 = 스카이 시트 2 2번: 둥근 끝 사이 86(원화 80, 위 끝은 몸 띠 밑), 늘이지 않음
 # 먼 어깨 덮개(pauldronF 뼈, 몸통에 붙음): 먼 소매 둘레의 몸 그림(가죽 띠·크림 판)을 먼 윗팔 위에 한 번 더 — 대기 = 원화, 팔이 돌면 소매가 띠 밑으로 들어감
@@ -244,7 +300,13 @@ Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png')); print('  guardAr
 W_PIV = vpt(G); W_TIP = vpt(TIP); W_GUARD = vpt(HA0); W_POM = vpt(HA1)
 print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), 'rot', round(rot_deg, 2))
 # 다리: 서 있을 때 = 원화 다리(바짓단 아래 바지 + 부츠) 그대로 / 달릴 때 = 먼 부츠(앞코 오른쪽) + 바지 통(shinP)
-o_lN = save('bootStandN', art(lab('legN'))); o_lF = save('bootStandF', art(lab('legF')))
+def stand_leg(sd, lm):   # 서 있는 다리 = 원화 다리 + 밑단 아래 몸 픽셀(토시 통째) + 밑단 위 6px 남색 바지(치마 밑에 숨음 — 숨쉬기로 치마가 올라가도 틈 없음)
+    m = lm | legTop[sd]; a = art(m); hy = hem_y[sd]
+    _legc = (m & (YY >= hy) & (YY <= hy + 4)).any(0)   # 다리 조각 윗부분이 있는 칸
+    ext = (YY >= hy - 6) & (YY < hy) & _legc[None, :] & body & ~SKIRT_CUT & (RA[..., 3] > 200) & (XX >= HEMX[sd][0]) & (XX <= HEMX[sd][1])   # 그 칸의 치마 밑(치마가 덮는 곳만)
+    f = np.zeros_like(RA); f[..., :3] = np.clip(NAVY[None, None] + np.random.default_rng(5).normal(0, 2.0, (512, 512, 1)), 0, 255).astype(np.uint8); f[..., 3] = np.where(ext, 255, 0)
+    return under(a, f, ext)
+o_lN = save('bootStandN', stand_leg('near', lab('legN'))); o_lF = save('bootStandF', stand_leg('far', lab('legF')))
 # 달리는 부츠 = 시트 먼 부츠(깨끗한 한 장, 앞코 오른쪽, 남색 목까지) → 원화 먼 부츠 바닥 양 끝에 맞춤(시트 0,48 → 303,471 · 69,48 → 382,471, 1.15배) · 색 = 원화 부츠
 #   (원화 다리를 밑단 아래에서 잘라 쓰면 목의 금 장식이 잘려 찢어진 조각처럼 보였음)
 # 달리는 부츠(쪽별) = 시트 부츠 그대로 그림 크기 1.1배(늘이지 않음, 원화 부츠 길이에 맞춤) · 색 = 원화 부츠. 발목 점 = 정강이 판 아래(시트 x 26, 밑창 위 20px)
@@ -335,12 +397,13 @@ for name, parent in BONES:
 # armL: 뼈 rot +0.3 과 엔진 대기 굽힘 −0.3 이 상쇄 → 그림은 원화 방향 그대로 저장
 
 # ---------------- 다리 (카르덴식: 바지 통 + 부츠, 서 있을 땐 원화 다리) ----------------
+TUBE_K = 1.2   # 바지 통 굵기 1.8 → 1.2 (10-20 13:47): 서 있을 때 가까운 다리 통이 원화 끈·부츠 사이 홈(배경)으로 삐져나와 어두운 쐐기로 보였음(원화 밖 픽셀 119 → 16) — 달릴 땐 달리기 부츠가 거의 다 덮어 차이 없음(1.8·1.5·1.2 비교)
 hipY = SC * (LEG['near']['hip'][1] - HIP[1])
 LEGL = float(np.linalg.norm(LEG['near']['ankle'] - LEG['near']['hip'])) * SC   # 엉덩이→발목(리그) — 짧은 드워프 다리: 허벅지·정강이 = 반씩 + 5%
 legs = {'hip': [0, round(hipY, 1)], 'thigh': round(LEGL * .525, 1), 'shin': round(LEGL * .525, 1),
         'thighImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001}, 'shinImg': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'w': 0.001},
         'boot': {'part': 'bootFRun', 'sole': RB['far'][1], 'ankleRange': [-1.7, 1.7]},   # 발목 범위 넓게 — 짧은 다리라 정강이(통) 각이 크게 흔들려도 부츠는 땅과 거의 평평(좁으면 부츠가 통을 따라 돌아 발끝이 아래로 꺾임)
-        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': 1.8, 'runBoot': True}}
+        'tube': {'part': 'shinP', 'a': [22, 0], 'b': [22, 46], 'k': TUBE_K, 'runBoot': True}}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     legs[sd] = {'x': round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1), 'shade': 0, 'thighImg': legs['thighImg'], 'shinImg': legs['shinImg'], 'runBoot': 'bootNRun' if sd == 'near' else 'bootFRun',
                 'stand': {'fade': [0.12, 0.4], 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], O[1])}}}
