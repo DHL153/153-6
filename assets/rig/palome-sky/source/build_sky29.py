@@ -25,6 +25,18 @@ _shape = _ndi0.binary_fill_holes(_shape).astype(np.uint8); _shape = cv2.morpholo
 _shape = cv2.dilate(_shape, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0   # 손가락 바깥 외곽선 2px 까지
 _clothN = _F8 & ~_shape & (_xx >= 195)   # 손가락 오른쪽 밖(밤색 천 + 그 천·판의 외곽선)
 LAB = LAB.copy(); LAB[_clothN] = 12; print('  fist label cloth -> body', int(_clothN.sum()), 'px')
+# 망토 라벨(9)에 붙은 앞 부품 외곽선 (10-20 16:01 DHL 망토~주머니 동그라미): 주머니·치마·팔 외곽선(어두운 1~2px)이 원화 라벨에서 망토로 가 있어
+#   달릴 때 망토가 펄럭이면 망토를 따라 주머니 왼쪽 검은 톱니·망토 단 가운데 검은 세로 금으로 다님 → 닿은 앞 부품 라벨로 되돌림(대기 = 원화 그대로)
+_cp = LAB == 9; _dk = _lmi < 52; YY_ = np.mgrid[0:512, 0:512][0]
+_capeLike = (((_RAi[..., 2] - _RAi[..., 0]) >= 3) & (_lmi >= 22)) | (_lmi > 95)   # 망토 재질 = 남색 천 · 크림 안감·단(밝음, 단 오른쪽 끝 어두운 크림 100~125 포함 — 빼면 공격 때 주머니 옆 크림 부스러기) — 그 밖(검은 선·밤색 끈)은 앞 부품 것
+for _lid in (12, 8, 7, 6):   # 몸(주머니·치마) · 가까운 토시 주먹 · 가까운 윗팔 · 어깨갑
+    _near = cv2.dilate((LAB == _lid).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0
+    _mv = _cp & _dk & _near & (_xx >= 70)
+    if _lid == 12: _mv &= (YY_ < 383) | (_xx >= 133)   # 망토 단(y ≥ 383)의 위·아래 외곽선은 망토 것(옮기면 공격 때 주머니 옆에 검은 실선이 매달림) — 단 오른쪽 끝 세로선(x ≥ 133)만 주머니 외곽선
+    if _lid == 12:   # 주머니 왼쪽 밤색 끈 토막·망토 단 오른쪽 끝 중간 회색 외곽선(주머니가 가리던 끝)까지 3px — 끈을 옮긴 뒤 그 끈의 왼쪽 검은 외곽선도 한 번 더
+        for _it in range(2):
+            _mv |= _cp & ~_capeLike & (cv2.dilate(((LAB == 12) | _mv).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0) & (_xx >= 110) & ((YY_ < 383) | (_xx >= 133))
+    LAB[_mv] = _lid; _cp &= ~_mv; print('  cape edge outline ->', _lid, int(_mv.sum()), 'px')
 NAMES = ['head', 'sword', 'handF', 'foreF', 'upperF', 'pauldron', 'upperN', 'foreN', 'cape', 'legN', 'legF', 'body']
 PO_ = json.load(open(os.path.join(HERE, 'polys29.json')))
 def poly_(pts):
@@ -124,9 +136,30 @@ HEM = {'near': np.array([[146, 431], [205, 431], [207, 437], [232, 438]], float)
  'far': np.array([[294, 437], [339, 437], [347, 428], [364, 429], [376, 433]], float)}   # 먼 쪽: 치마 판 아래 외곽선 → 판 오른쪽 아래 모서리 사선 → 토시 윗 외곽선
 HEMX = {'near': (146, 232), 'far': (294, 376)}
 hem_y = {sd: np.ceil(np.interp(XX, HEM[sd][:, 0], HEM[sd][:, 1]) - 1e-6) for sd in HEM}   # 칸마다 다리 첫 줄(정수)
+# 가까운 쪽 밑단 = 칸마다 '앞 판·주머니 아래 남색 바지 띠'가 끝나는 줄(토시 윗 외곽선·그 밑 그림자 바로 위) — 10-20 16:01 DHL 앞 크림 판 아래 동그라미:
+#   직선 HEM 은 x 148~172 에서 토시 왼쪽 위 조각·그림자를, x 205~215 에서 토시 윗 외곽선을 치마에 남겨 달릴 때(서 있는 다리 조각을 안 그림) 치마 아래 끝에 검은·회색 톱니로 보였음.
+#   띠 끝을 칸마다 찾고(남색 = B−R ≥ 3·밝기 22~100, 어두운 줄은 띠 안 주름) 중앙값 9·평균 5 로 매끈하게, 옛 선보다 아래로는 안 감 → 그 아래는 서 있는 다리 조각(대기 = 원화 그대로)
+from scipy.ndimage import median_filter as _medf, uniform_filter1d as _uf1
+_lumH = RA[..., :3].astype(int).mean(-1); _navH = ((RA[..., 2].astype(int) - RA[..., 0].astype(int)) >= 3) & (_lumH >= 22) & (_lumH <= 100)
+_hb = hem_y['near'][0].copy()
+for _x in range(HEMX['near'][0], HEMX['near'][1] + 1):
+    _seen, _rd = False, 0
+    for _y in range(404, 446):
+        if not body[_y, _x] or not (_navH[_y, _x] or _lumH[_y, _x] < 22):
+            if _seen: _hb[_x] = _y - _rd; break
+            _rd = 0; continue
+        if _navH[_y, _x]: _seen, _rd = True, 0
+        else: _rd += 1
+# 띠 두께를 고르게: 주머니·앞 판 아래 외곽선(원화 격자에서 읽음 — 판 아래 선이 오른쪽으로 갈수록 낮아짐) + 8줄까지만 — 판 오른쪽에서 토시가 낮아져 띠가 계단처럼 두꺼워졌음
+_OUTN = np.array([[146, 409], [152, 412], [164, 416], [176, 418], [188, 420], [212, 430], [232, 437]], float)
+_hb = np.minimum(_hb, np.interp(np.arange(512), _OUTN[:, 0], _OUTN[:, 1]) + np.interp(np.arange(512), [196, 210], [8, 3]))   # 판 오른쪽(x ≥ 210, 토시가 끝나 띠 = 판 그림자뿐)은 외곽선 + 2줄
+_seg = slice(HEMX['near'][0] - 6, HEMX['near'][1] + 8)
+_hs = _uf1(_medf(_hb[_seg], 9, mode='nearest').astype(float), 5, mode='nearest')
+_hn = hem_y['near'][0].copy(); _hn[_seg] = np.ceil(np.minimum(hem_y['near'][0][_seg], _hs) - 1e-6)
+hem_y['near'] = np.broadcast_to(_hn, (512, 512)).copy(); print('  near hem from trouser band: raised', int((hem_y['near'][0] < np.ceil(np.interp(np.arange(512), HEM['near'][:, 0], HEM['near'][:, 1]) - 1e-6)).sum()), 'columns')
 legTop = {sd: body & (XX >= HEMX[sd][0]) & (XX <= HEMX[sd][1]) & (YY >= hem_y[sd]) & (YY < 470) for sd in HEM}
 LEGTOP_ALL = legTop['near'] | legTop['far']
-SKIRT_CUT = (legTop['near'] & (YY > hem_y['near'])) | (legTop['far'] & (YY > hem_y['far']))   # 치마에서 뺄 곳(밑단 선 한 줄은 치마에도 남김)
+SKIRT_CUT = (legTop['near'] & (YY >= hem_y['near'])) | (legTop['far'] & (YY > hem_y['far']))   # 치마에서 뺄 곳(먼 쪽: 밑단 선 한 줄은 치마에도 남김 · 가까운 쪽: 밑단 줄 = 토시 윗 외곽선이라 치마에 두면 달릴 때 치마 아래 끝 검은 톱니 — 다리 조각 위 6px 남색이 숨쉬기 틈을 막음)
 print('  leg tops from body', {sd: int(legTop[sd].sum()) for sd in legTop})
 # 가까운 주먹 둘레 (DHL 같은 지적 — 주먹 오른쪽): 대기 숨쉬기 팔 흔들림(윗팔 ±.03 + 팔뚝 ±.04 rad → 주먹 ±6~7px)으로 주먹이 비키면 그 밑 상체 메움(시트 상체 크림)이
 #   둘레 원화(밤색 천)와 달라 톱니 크림 조각으로 보였고, 주먹 외곽선 바깥 1~2px(라벨에서 몸으로 간 어두운 선)이 상체에 남아 실금처럼 보였음
@@ -143,7 +176,9 @@ for _j in range(1, _ccn):   # 주먹 토시 끝이 몸 라벨로 간 작은 크�
 RING_N |= body & (_lumA > 110) & dil(FN, 5) & (XX >= 148) & (XX <= 185) & (YY >= 350) & (YY <= 368)   # 토시 아래 끝 크림 띠(161~172, 356~364, 49px — 위 조각 크기 조건에 안 걸림) — 남으면 주머니 위 흰 긁힘(DHL 15:00 큰 동그라미 안)
 _Bv = RA[..., 2].astype(int) - RA[..., 0].astype(int)
 _bits = body & ~((_Bv >= 4) & (_lumA >= 25) & (_lumA <= 95)) & dil(FN, 5) & (XX >= 115) & (XX <= 200) & (YY <= 353) & (YY < cut_y)
-RING_N |= _bits; print('  cuff-bottom bits -> fist', int(_bits.sum()), 'px')   # 토시 아래 끝과 주머니 사이 갈색 끈 토막·금 조각·외곽선 — 상체에 남기면 달릴 때 남색 천 위에 떠다녔음
+_gold = body & ((RA[..., 0].astype(int) - RA[..., 2].astype(int)) >= 40) & (_lumA >= 55) & dil(FN, 6) & (XX >= 125) & (XX <= 150) & (YY <= 357)   # 토시 금 버클 아래 끝(y 354~356, 치마 줄 아래) — 남기면 달릴 때 주머니 왼쪽 위에 금 조각(10-20 16:01)
+_bits |= _gold
+RING_N |= _bits; print('  cuff-bottom bits -> fist', int(_bits.sum()), 'px (gold', int(_gold.sum()), ')')   # 토시 아래 끝과 주머니 사이 갈색 끈 토막·금 조각·외곽선 — 상체에 남기면 달릴 때 남색 천 위에 떠다녔음
 # 주먹 밑(주먹이 비키면 드러나는 곳) = DHL 15:00 '1번을 삭제한 2번의 모습처럼 디테일 살려서' — 목표 그림 refs/ref_U_under_fist_dhl.png
 #   (주먹이 위로 비킨 장면: 주머니 위 남색 천 · 주머니 윗뚜껑 둥근 모서리 · 버클 고리 · 크림 판 가장자리 깨끗).
 #   그 그림을 원화 자리로 옮겨 붙여 보니(SIFT) 주머니를 더 크고 높게 다시 그려 원화 주머니와 어긋나 겹친 곳이 톱니 → 픽셀은 안 쓰고 같은 모습을 원화로 만듦:
@@ -208,6 +243,13 @@ _bt = BAND_N & (YY < cut_t + OVL); torso[_bt] = BEH[_bt]   # 주먹 밑 = 위 '�
 _ovl = (body | BAND_N) & (YY >= cut_y) & (YY < cut_t + OVL) & (XX >= 108) & (XX <= 215)
 torso[_ovl] = BEH[_ovl]
 print('  torso overlap under pouch/belt -> cloth behind', int(_ovl.sum()), 'px')
+# 가까운 팔 뒤 상체 메움은 몸 뒤 선(x 130@y250 → 128@y352, 주머니 왼쪽 위)까지만 (10-20 16:01 DHL 망토~토시 동그라미): 시트 상체가 팔 왼쪽 끝(x≈80)까지 남색 덩어리로 채워
+#   달릴 때 팔이 흔들리면 망토 위에 톱니 가장자리 남색 덩어리로 보였음 → 그 밖(팔 뒤 왼쪽)은 망토(남색 천)가 보이게 비움. 대기는 팔이 덮어 그대로
+_bx = 130.0 - 2.0 * (YY - 250.0) / 102.0
+_noT = ((lab('foreN') | lab('upperN') | lab('pauldron')) & ~body & (XX < _bx) & (YY >= 225) & (YY <= 362)) | ((torso[..., 3] > 0) & (XX < _bx) & (YY >= cut_y) & (YY <= 400))   # 몸 뒤 선 밖 아래쪽 겹침 띠(대기엔 치마가 덮음)도 — 달릴 때 망토 위에 밝은 남색 띠·검은 줄
+torso[_noT] = 0; print('  torso behind near arm cleared left of back line', int(_noT.sum()), 'px')
+_bk = (lab('foreN') | lab('upperN') | lab('pauldron')) & ~body & (torso[..., 3] > 0) & (cv2.distanceTransform((~_noT).astype(np.uint8), cv2.DIST_L2, 3) < 2.2)
+torso[_bk, :3] = (24, 24, 30)   # 새 몸 뒤 선 = 외곽선 2px(망토 남색과 상체 남색 사이)
 o_torso = save('torso', torso)
 # 공격용 상체 torsoM (10-20 10:41 DHL '29 타격 때 어깨 위치를 무시하고 팔이 너무 아래로' → 손을 올리니 먼 어깨 둘레가 더 보임):
 #   먼 어깨 둘레 원화 부스러기(칼·손·토시 경계에서 라벨이 갈라진 크림 왕관·검은 뾰족 조각)는 빼고, 시트 3 먼 어깨(sh3)를 자기 알파로 통째 덮고,
@@ -271,6 +313,28 @@ cape = under(art(lab('cape')), cw, body | lab('foreN') | lab('upperN') | lab('pa
 CB = np.zeros((512, 512), np.uint8); cv2.fillPoly(CB, [np.array([(62, 262), (150, 270), (168, 330), (140, 362), (36, 352)], np.int32)], 1)
 cfl, _ = flat_fill(lab('cape') | (CB > 0), (CB > 0) & (lab('foreN') | lab('upperN') | lab('pauldron')))
 cape = under(cape, cfl, (CB > 0) & (lab('foreN') | lab('upperN') | lab('pauldron')))
+# 망토 가려진 곳(원화 망토 라벨 밖 — 시트 망토·남색 천) = 망토 겉 남색 하나 (10-20 16:01 DHL 망토~주머니 동그라미): 시트 망토의 안감 크림 세로 띠·금 단추·깃이
+#   원화 망토와 자리가 달라, 달릴 때 망토가 펄럭이면 주머니 옆에 찢긴 크림 조각으로 보였고, 대기에도 앞 조각 가장자리 1px 로 밝은 실금이 비쳤음.
+#   단(크림 띠, y ≈ 386~ — 원화 단과 이어짐)은 시트 망토 그대로, 망토 바깥 가장자리 2px 는 외곽선
+_cnv = lab('cape') & ((RA[..., 2].astype(int) - RA[..., 0].astype(int)) >= 4) & (RA[..., :3].mean(-1) >= 28) & (RA[..., :3].mean(-1) <= 90) & (XX >= 100)
+C_CNAV = np.median(RA[_cnv][:, :3], 0)
+_cl = cape[..., :3].astype(int).mean(-1)
+_hidC = (cape[..., 3] > 0) & ~lab('cape') & ((YY < 386) | ((YY < 392) & (_cl < 120)))   # 단(크림 띠, y ≈ 386~) 위는 모두 남색 — 시트 안감 띠 끝·단 위 밝은 남색 칸까지
+_cnz = np.clip(cv2.GaussianBlur(np.random.default_rng(7).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 4) * 14, -6, 6)[..., None]
+cape[_hidC, :3] = np.clip(C_CNAV + _cnz, 0, 255)[_hidC].astype(np.uint8); cape[_hidC, 3] = 255
+# 망토 단(크림 띠) 가려진 오른쪽 = 원화 단을 줄마다 옆으로 이음(시트 단은 색·높이가 달라 이음매에 세로 점선) — 칸 모양(알파)은 시트 단 그대로
+_hemH = (cape[..., 3] > 0) & ~lab('cape') & (YY >= 384) & (YY <= 412) & (XX >= 110)
+_capeOK = lab('cape') & (RA[..., 3] > 240)
+for _y in range(384, 413):
+    _xs = np.nonzero(_capeOK[_y, 110:150])[0]
+    if len(_xs) == 0 or not _hemH[_y].any(): continue
+    _sx = 110 + _xs.max() - 1; cape[_y, _hemH[_y], :3] = RA[_y, _sx, :3]
+_hcr = [y for y in range(384, 413) if len(np.nonzero(_capeOK[y, 110:150])[0]) and np.nonzero(_capeOK[y, 110:150])[0].max() >= 16 and RA[y, 110 + np.nonzero(_capeOK[y, 110:150])[0].max() - 1, :3].mean() > 100]   # 원화 단 오른쪽 끝(x ≥ 126)이 크림인 줄
+_hbot = (max(_hcr) if _hcr else 397) + 2   # 이은 단 아래 끝 = 원화 단 크림 마지막 줄 + 외곽선 2줄, 그 아래(시트 단이 더 내려온 곳)는 비움
+cape[_hemH & (YY > _hbot), 3] = 0; _hemH &= YY <= _hbot; cape[_hemH & (YY > _hbot - 2), :3] = (26, 25, 32)
+_hidC = _hidC & ~_hemH
+_crim = (_hidC | _hemH) & (cv2.distanceTransform((cape[..., 3] > 0).astype(np.uint8), cv2.DIST_L2, 3) < 2.2); cape[_crim, :3] = (26, 25, 32)
+print('  cape hidden -> navy', int(_hidC.sum()), 'px, colour', C_CNAV.astype(int).tolist())
 o_cape = save('cape', cape)
 # 칼: 원화 + 머리 뒤 칼날은 칼날 띠 좌표(가장자리 맞춤 선 사이 0~1)로 왼쪽 D px 칼날을 옮겨 메움 (무늬 없는 날 — 홈·가장자리 선이 이어짐)
 sw = art(lab('sword')); SW0 = sw.copy()   # SW0 = 원화 칼 픽셀(바뀐 곳은 guardArt 로 서 있을 때만 다시 그림)
