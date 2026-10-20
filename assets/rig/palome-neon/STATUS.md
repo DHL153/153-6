@@ -79,3 +79,10 @@
 
 ## 20:44 (10-20) 편집 툴 v150(버전 1792496680-ce52) — '19 네온 팔로메 v1.3' 올림
 - 편집기용 rig.def.js(rig 43a77fc4) · 진행 그림 progress/palome19_v13.jpg(v12 지움) · 파일 수 500 그대로 · rig.js 141954 bytes(md5 109d8d61…) 그대로 · 올리기 전 살아 있던 판 = v149(다른 세션 변경 없음)
+
+## 20:56 (10-20) 인게임 반영(DHL 20:45 '바로 인게임 반영') — v1.3 그대로
+- index.html: REGISTRY 19:'palome-neon' · `assets/rig/palome-neon/rig.def.js?v=43a77fc4` · REGISTRY 주석. 엔진(rig.js) 안 바꿈. gameRef x 245.6(fitArt 중심 253.6)·cutHold .25 는 rig.json 에 이미 있음, char_0019.png = ref512(md5 a2b6be57… 같음)
+- 전투 칸 위 끝(game_top, 무대 위에서 CSS px): PC 1280×800 최소 7(9 러스트 6) · 폰 430×900 최소 8 — 칼끝 칸 안
+- palome-rust/source/tools/game_check·game_check2·game_dexclick(NUM=19) PC·폰: 전투·공격 + 트레일(위 → 아래)·스킬 컷인·필살기 컷신(마이룸 그림 얼굴)·도감 2장(둘 다 리그, 칼날 반전)·도감 클릭 공격·시작 선택·미리보기·마이룸(리그), 페이지 오류 0
+- 원화 칼 방향 그대로인 정지 그림: 시작 선택 목록 썸네일(battle_char_0019)·필살기 컷신 얼굴 클로즈업(char_0019) — 맞출지 DHL 확인
+- 주의: 확인 스크립트 5개를 동시에 돌리면 폰 컷인 사진 시각이 밀려 빈 무대로 찍힘(시간 측정 착시) — 하나씩 돌려 다시 봄
