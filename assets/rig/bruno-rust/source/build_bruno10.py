@@ -324,7 +324,7 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 1.0, 'hitAt':
        'nearLift': [[0, 0], [0.03, 0, 'io'], [0.09, 10, 'io'], [0.15, 0]], 'farLift': [[0, 0], [0.17, 0, 'io'], [0.23, 10, 'io'], [0.29, 0]],
        'aDamp': 9, 'standStep': True}
 rig['actions'] = {'smash': act}
-rig['cutHold'] = 0.1
+rig['cutHold'] = 0.1   # 스킬 컷인 멈춤(10-21 게임 넣기): 후보 .10·.17·.20·.23·.48·.53 — .20(가까운 도끼를 머리 위로 곧게)은 컷인 칸 위 끝에 도끼 날이 닿아(1~2px) .10 예비(가까운 도끼를 뒤로 젖히고 먼 도끼 듦, 화남 얼굴)
 # 도감 몸 가운데: index.html measureBox(160px) 흉내 → fitArt 가운데, 골반이 가운데
 _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters', 'char_0010.png')).convert('RGBA').resize((160, 160), Image.BOX))[..., 3]
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
