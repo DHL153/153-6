@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "7a6a50bd",
+ "version": "a283bfd7",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -128,7 +128,7 @@
   "guardArt": {
    "src": "parts/guardArt.png",
    "pivot": [
-    80.0,
+    78.0,
     847.0
    ],
    "scale": 1.0
@@ -136,30 +136,30 @@
   "weapon": {
    "src": "parts/weapon.png",
    "pivot": [
-    80.0,
+    78.0,
     847.0
    ],
    "scale": 1.0,
    "tip": [
-    90.9,
+    88.9,
     4.6
    ],
    "tips": [
     [
-     78.9,
+     76.9,
      24.6
     ],
     [
-     118.9,
+     116.9,
      24.6
     ]
    ],
    "guard": [
-    90.6,
+    88.6,
     755.7
    ],
    "pommel": [
-    62.4,
+    60.4,
     997.7
    ]
   },

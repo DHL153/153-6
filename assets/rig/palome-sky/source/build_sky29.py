@@ -167,7 +167,7 @@ _gsil = cv2.dilate((gd3[..., 3] > 100).astype(np.uint8), cv2.getStructuringEleme
 sw[(XX >= 170) & (XX <= 372) & ((v < -0.08) | (v > 1.08)) & ~_gsil] = 0   # 날 띠 밖 조각(머리카락 외곽선·어깨 판 크림 조각)은 칼에서 뺌 — 날밑 둘레까지
 hid = (XX >= 170) & (XX <= 372) & (v > -0.1) & (v < 1.1) & (sw[..., 3] < 250) & (RA[..., 3] > 40) & ~lab('handF') & ~lab('foreF')   # 띠 안 빈 곳은 라벨과 상관없이(머리카락 사이 틈까지) 메움 — 대기엔 머리가 덮음
 # 띠 좌표 v 는 그대로, 날 길이 방향으로는 머리카락 왼쪽(x 168~174)의 단면 평균을 늘려 씀 → 홈·가장자리가 곧게 이어짐(왼쪽 D px 복사는 날이 좁아지며 홈이 계단처럼 어긋났음)
-cols = []
+cols = []; swc = sw.copy()   # 단면 뽑을 원본(아래 칼날 다시 그릴 때도 같은 단면)
 for xr in range(168, 175):
     ys_r = yT(xr) + v * (yB(xr) - yT(xr)); cols.append(cv2.remap(sw.astype(np.float32), np.full_like(ys_r, xr, np.float32), ys_r.astype(np.float32), cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)))
 src = np.mean(cols, 0); put = hid & (src[..., 3] > 200); sw[put] = np.clip(src[put], 0, 255).astype(np.uint8); hid &= ~put
@@ -182,11 +182,29 @@ _gcut = _near & ~_gsil & ~_band & ~_hband & ~poly_(PO_['pommel']) & (sw[..., 3] 
 # seamF: 원화의 날밑·어깨 경계 픽셀(위에서 바꾸거나 뺀 곳) — 서 있을 때·달릴 때만 칼 위에 그려 대기 = 원화, 공격(칼이 움직임) 땐 안 그림
 _sm = (SEAM | _gcut) & (RA[..., 3] > 40); o_seam = save('seamF', art(_sm)); print('  seamF', int(_sm.sum()), 'px')
 _gfill = (gd3[..., 3] > 200) & (_gsil & ~_band | (sw[..., 3] < 200)) & (cv2.dilate((RA[..., 3] > 40).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0); sw[_gfill] = gd3[_gfill]   # 날밑 = 시트 날밑 통째(움직일 때 깨끗) — 서 있을 땐 guardArt(원화)가 위에
-# 날밑 바로 앞 칼날 뿌리(금·크림 장식): 원화는 어깨 판에 반쯤 가려 들쭉날쭉 → 시트 칼(22번, SIFT)의 같은 곳으로 (서 있을 땐 guardArt 가 원화)
-swS = cv2.warpAffine(desp(np.array(Image.open(os.path.join(PC, 'sword.png')).convert('RGBA'))), np.array(GEO['sword']['M'], np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
-_root = (v > -0.15) & (v < 1.15) & (_al > -40) & (_al < 2) & ~_gsil
-sw[_root & (swS[..., 3] > 200)] = swS[_root & (swS[..., 3] > 200)]; sw[_root & (swS[..., 3] <= 100)] = 0
-print('  guard: cut', int(_gcut.sum()), 'filled', int(_gfill.sum()), 'root', int(_root.sum()))
+# 칼날(머리 오른쪽 ~ 날밑): 움직일 때 쓰는 칼 그림은 머리 왼쪽 깨끗한 단면(x168~174 평균)을 날 방향으로 그대로 이어 붙인 날 하나로 — 원화 조각(머리·날밑 사이)·시트 칼 뿌리를
+#   섞으면 홈 위치·폭이 달라 '깨진 칼'로 보였음(10-20 09:15 DHL). 서 있을 땐 guardArt 가 원화 칼날을 위에 그림 (칼 길이·폭 = 원화 그대로)
+# 원화 칼날은 머리 오른쪽 부분이 머리 왼쪽보다 6.5~11px 아래로 어긋나 그려져 있음(머리에 가려 안 보이던 이음매) → 움직일 땐 그 어긋남이 '깨진 칼'
+#   → 윗날 선을 머리 뒤(x170~260)에서 아주 완만히 휘어(최대 4°) 오른쪽 원화 윗날(x310~366)보다 살짝 안쪽으로 지나가게 → 날 하나로 매끈, 대기엔 원화(guardArt)가 덮음
+K_TOP, W_TOP = 0.0726, 90.0
+_off = np.where(XX < 170, 0.0, np.where(XX < 170 + W_TOP, K_TOP * (XX - 170.0) ** 2 / (2 * W_TOP), K_TOP * (XX - 170.0 - W_TOP / 2)))
+yT2 = yT(XX) + _off; v2 = (YY - yT2) / (yB(XX) - yT2)
+cols2 = []
+for xr in range(168, 175):
+    ys_r = yT(xr) + v2 * (yB(xr) - yT(xr)); cols2.append(cv2.remap(swc.astype(np.float32), np.full_like(ys_r, xr, np.float32), ys_r.astype(np.float32), cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)))
+src2 = np.mean(cols2, 0)
+_gcore = gd3[..., 3] > 200
+_root = (XX >= 170) & (_al < -1) & ~_gcore & (((v > -0.12) & (v < 1.12)) | ((v2 > -0.12) & (v2 < 1.12)))
+sw[_root] = 0; _rp = _root & (v2 > -0.12) & (v2 < 1.12) & (src2[..., 3] > 4); sw[_rp] = np.clip(src2[_rp], 0, 255).astype(np.uint8)
+# 날밑 마무리: 날밑 둘레 고리(_gsil 안, 날밑 본체 밖)에 남은 원화 조각(금색·크림 부스러기 — 휘두를 때 날밑 아래가 찢겨 보였음) 지우고
+#   시트 날밑을 자기 알파 그대로 칼날 위에 덮어 그림(날이 날밑 홈으로 들어가는 모양) — 원화 실루엣 밖(배경) 날밑은 예전처럼 뺌
+_gring = _gsil & ~_gcore & ~_hband & ~poly_(PO_['pommel']) & ~_rp
+sw[_gring] = 0
+_ga = gd3[..., 3:4].astype(np.float32) / 255 * (cv2.dilate((RA[..., 3] > 40).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0)[..., None]
+_sa = sw[..., 3:4].astype(np.float32) / 255; _oa = _ga + _sa * (1 - _ga)
+_rgb = (gd3[..., :3] * _ga + sw[..., :3] * _sa * (1 - _ga)) / np.maximum(_oa, 1e-6)
+_gc = _gsil & (gd3[..., 3] > 0); sw[_gc, :3] = np.clip(_rgb[_gc], 0, 255).astype(np.uint8); sw[_gc, 3] = np.clip(_oa[_gc, 0] * 255, 0, 255).astype(np.uint8)
+print('  guard: cut', int(_gcut.sum()), 'filled', int(_gfill.sum()), 'ring', int(_gring.sum()), 'blade', int(_root.sum()))
 o_sw_art = save('_sword_art', sw); os.remove(os.path.join(PARTS, '_sword_art.png'))
 ang_tip = math.atan2(UT[1], UT[0]); rot_deg = math.degrees(-math.pi / 2 - ang_tip)
 UPS = 2
