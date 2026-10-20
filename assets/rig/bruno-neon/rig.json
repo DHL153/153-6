@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "9ffcabca",
+ "version": "ff6391c7",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -545,7 +545,8 @@
    "ankleRange": [
     -1.2,
     1.4
-   ]
+   ],
+   "runLock": 0.0
   },
   "near": {
    "x": -128.0,

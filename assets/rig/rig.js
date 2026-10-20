@@ -1370,7 +1370,8 @@
         const f = this.ft[side], H = apply(b.hip.m, L.hip[0] + (L[side].hipX ?? L[side].x), L.hip[1]);
         // ankle range: the boot shaft follows the shin within real dorsi/plantar-flexion limits (re-solve if clamped)
         // ankle range of motion: rotate the boot into range, then re-solve (the ground contact point moves with the angle)
-        const [r0, r1_] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9], fs_ = this.ft[side], r1 = L.boot.idleDorsi ? r1_ + L.boot.idleDorsi * (fs_.dw = damp(fs_.dw || 0, (1 - this.A) * (1 - smooth(0, 3, fs_.lift)), 5, this.dt || 0)) : r1_;   // boot.idleDorsi(opt-in, carry v16): 서 있는 디딘 발은 발목을 더 굽혀(해부학 범위 안) 발바닥을 평평하게   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
+        let [r0, r1_] = (this.act && this.act.def.ankleRange) || L.boot.ankleRange || [-9, 9], fs_ = this.ft[side], r1 = L.boot.idleDorsi ? r1_ + L.boot.idleDorsi * (fs_.dw = damp(fs_.dw || 0, (1 - this.A) * (1 - smooth(0, 3, fs_.lift)), 5, this.dt || 0)) : r1_;
+        if (L.boot.runLock != null) { const w_ = L[side].stand ? this._standW(side, true) : 0; r0 = lerp(L.boot.runLock, r0, w_); r1 = lerp(L.boot.runLock, r1, w_) }   // boot.runLock(opt-in, 20 네온 브루노 10-21): 달리기 다리 그림(시트 정강이·부츠)이면 발목 고정 — 부츠가 정강이와 한 줄(꺾이면 정강이 아래 끝이 부츠 목 옆으로 튀어나옴), 서 있는 원화 다리 그림 비율만큼 원래 범위   // boot.idleDorsi(opt-in, carry v16): 서 있는 디딘 발은 발목을 더 굽혀(해부학 범위 안) 발바닥을 평평하게   // 동작별 발목 범위(opt-in: 런지 뒷발을 평평하게)
         const soft = smooth(0, 3, f.lift);   // lifted foot: soft reach; planted foot: exact (the pelvis drop above keeps the knee soft)
         const kN_ = side === "near" ? "kneeOutN" : "kneeOutF", kw = act && D[kN_] ? clamp(this._tr(kN_), 0, 1) : (L[side].kneeOut ? L[side].kneeOut * this.koW : 0);   // kneeOut: 서 있을 때만 무릎 바깥(달리기·공격이면 0으로 부드럽게) · kneeOutN/F(opt-in 동작 트랙, 11 네온 알론소 런지): 쪽별 무릎 돌림 — 앞다리 무릎이 화면 쪽으로 나와 허벅지가 짧아 보이게(원근), 시작·끝 값은 평소 값과 같게
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);

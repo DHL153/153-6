@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.1(달리기 부츠 발목 점 = 원화 발목 높이) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.2(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -237,7 +237,8 @@ def sole_pts(m, ankle, ground=None):
     xlow = max(bot, key=lambda x: bot[x]); cols_ = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
     lift = 0.0 if ground is None else float(ground - bot[xlow]); return [[float(x - ankle[0]), float(bot[x] - ankle[1] + lift)] for x in cols_ if x in bot]
 o_lN = save('bootStandN', underlay(art(lab('legN')), lab('legN'), lab('hips'))[0]); o_lF = save('bootStandF', underlay(art(lab('legF')), lab('legF'), lab('hips'))[0])
-BOOT_UP = float(os.environ.get('BOOT_UP', 0) or 0)   # 실험용 — 0 = 원화 발목 높이
+BOOT_UP = float(os.environ.get('BOOT_UP', 0) or 0)
+RUNLOCK = None if os.environ.get('RUNLOCK') == 'off' else 0.0   # 달리기 다리 그림(시트 정강이·부츠)이면 발목 고정 — 부츠 = 정강이와 한 줄(엔진 opt-in boot.runLock). DHL v1.1 검수: 달리기·달리다 공격 때 정강이 아래 끝이 부츠 목 옆으로 튀어나옴 · 무릎·골반 움직임으로 충분해 두 발목 모두 고정. 서 있는 원화 다리 그림은 원래 범위(대기 = 원화)   # 실험용 — 0 = 원화 발목 높이
 def run_boot(nm, lm, sd):   # 발목 점 높이 = 원화 발목(부츠 목 가운데)~밑창 거리(가까운 31 · 먼 29) — v1 은 16 이라 부츠 목이 정강이 2/3 를 덮어 달릴 때 다리가 짧고 무릎판이 부츠 위에 붙어 보였음(DHL v1 검수)
     up = BOOT_UP or (SOLE - LEG[sd]['ankle'][1])
     b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * 0.32), ys.max() - up)
@@ -337,7 +338,7 @@ for name, parent in BONES:
     bones.append(b)
 # ---------------- 다리 정의(10 v1.1 구조: x = 서 있는 발 자리 · hipX = 다리 뿌리 · runX = 달리는 줄) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
-        'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'bootNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4]}}
+        'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'bootNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], **({} if RUNLOCK is None else {'runLock': RUNLOCK})}}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
     _root = round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1); _rest = round(SC * (LEG[sd]['ankle'][0] - HIP[0]), 1)
