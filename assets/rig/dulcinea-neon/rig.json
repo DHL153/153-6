@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-neon",
- "version": "990eb92e",
+ "version": "0b7b99b2",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   442.0,
@@ -1644,7 +1644,7 @@
      "drawM"
     ],
     [
-     0.68,
+     0.7250000000000001,
      "drawU"
     ],
     [
@@ -1734,16 +1734,16 @@
   "armL"
  ],
  "drawM": [
+  "armF",
+  "foreFf",
+  "weapon",
+  "weaponA",
+  "foreF",
   "legFar",
   "legNear",
   "hips",
-  "armF",
-  "foreFf",
   "torso",
-  "weapon",
-  "weaponA",
   "head",
-  "foreF",
   "armU",
   "pauldron",
   "armL"

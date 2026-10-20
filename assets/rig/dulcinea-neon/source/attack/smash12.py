@@ -44,6 +44,24 @@ _cap = (np.hypot(_xx - _cen[0], _yy - _cen[1]) <= _hw) & (_t < _t0 + 3)
 _cv2[..., :3][_cap] = np.median(_cv[..., :3][_sk], 0).astype(np.uint8); _cv2[..., 3][_cap] = 255
 _rim = _cap & (np.hypot(_xx - _cen[0], _yy - _cen[1]) > _hw - 1.8) & (_t < _t0 + 1.5)   # 둥근 끝 외곽선(원화 선 굵기)
 _cv2[..., :3][_rim] = np.array([34, 26, 22], np.uint8)
+# (12 네온 10-20 DHL 11:45 타격 0.40 '이상함' 표시) 공격 팔뚝 가장자리 정리 — 원화 팔뚝은 몸통 밑에서 오린 그림이라 ①윗선이 계단처럼 꺾이고 살 부스러기가 붙어 있었고
+#   ②흰 손목 보호대 아래로 원화 장갑·자루의 검은 조각이 매달려 있었음(타격 때 주먹 왼쪽 아래에 보임) → 팔뚝 살 부분 = 팔꿈치→손목 축의 곧은 관(위 −9.8→−11.5 · 아래 9.8→12.5, 원화에서 잰 폭)
+#   = 둥근 팔꿈치 + 곧은 관 밖은 지우고, 안의 빈칸·잘린 선 조각은 살색(원화 살 색 그대로 둔 곳은 그대로), 가장자리 1.7px 는 원화 선 색 · 보호대 구간은 아래 17.5 밖(매달린 조각)만 지움. 그림·길이·굵기 그대로
+def _tidy_fore(a):
+    _u = (WR_F - EL_F) / np.linalg.norm(WR_F - EL_F); _n = np.array([-_u[1], _u[0]])
+    _T = (_xx - EL_F[0]) * _u[0] + (_yy - EL_F[1]) * _u[1]; _D = (_xx - EL_F[0]) * _n[0] + (_yy - EL_F[1]) * _n[1]
+    _tc = _t0 + 1.5; _k = np.clip(_T / 21.0, 0, 1); _top = -10.3 - 1.2 * _k; _bot = 10.3 + 2.2 * _k
+    _tube = (((_T >= _tc) & (_D >= _top) & (_D <= _bot)) | (np.hypot(_T - _tc, _D) <= 10.3)) & (_T < 22.5)   # 둥근 팔꿈치 + 곧은 관(손목 보호대 앞까지)
+    _zs = (_T < 22.5) & (_T > _tc - 12)
+    a[..., 3][(_zs & ~_tube) | ((_T >= 22.5) & (_T <= 47) & (_D > 17.5))] = 0
+    _dist = cv2.distanceTransform(np.ascontiguousarray(_tube.astype(np.uint8)), cv2.DIST_L2, 3)
+    _inner = _tube & (_dist > 1.7); _sk = _inner & (a[..., 3] > 200) & (a[..., 0] > 150) & (a[..., :3].max(-1) > 110)
+    _fix = _inner & ((a[..., 3] < 200) | (a[..., :3].max(-1) < 110))   # 빈칸·안쪽에 남은 잘린 선 → 살색
+    a[..., :3][_fix] = np.median(a[..., :3][_sk], 0).astype(np.uint8); a[..., 3][_fix] = 255
+    _edge = _tube & (_dist <= 1.7) & ~((_T > 21.0) & (a[..., :3].min(-1) > 150)); a[..., :3][_edge] = np.array([34, 26, 22], np.uint8); a[..., 3][_edge] = 255
+    _ge = (_T >= 22.5) & (_T <= 47) & (_D > 16) & (_D <= 17.5) & (a[..., 3] > 128); a[..., :3][_ge] = np.array([22, 20, 24], np.uint8)
+    return a
+_cv2 = _tidy_fore(_cv2); _cv = _tidy_fore(_cv)
 _ys, _xs = np.nonzero((_cv[..., 3] > 0) | (_cv2[..., 3] > 0)); oA2 = np.array([_xs.min() - 2, _ys.min() - 2], float)   # (12 네온) 둥근 팔꿈치 끝이 원래 팔뚝 그림 밖까지 나와서 틀(bbox)을 둘 다로 — 잘려 네모 끝이 됐었음
 Image.fromarray(_cv2[int(oA2[1]):_ys.max() + 3, int(oA2[0]):_xs.max() + 3]).save(os.path.join(OUT, 'parts', 'afFart2.png'))
 print('  smash afFart2 살 시작 t', round(_t0, 1), '팔꿈치 반지름', round(_hw, 1))
@@ -131,7 +149,7 @@ smash = {
     # 공격 중 망치 = weaponA(쇠 머리 왼쪽 아래 홈·흰 앞머리 외곽선 초승달 정리, build _fix_hammer) — 대기 자리를 떠난 뒤 .061 ~ 돌아오기 전 .93 (21:40)
     'fade': {'weapon': k((0, 1), (.06, 1, 'lin'), (.061, 0), (.93, 0, 'lin'), (.931, 1)), 'weaponA': k((0, 0), (.06, 0, 'lin'), (.061, 1), (.93, 1, 'lin'), (.931, 0))},
     # 그리는 순서: 대기(먼 팔뚝 몸 뒤) → 움직이는 동안(먼 팔뚝이 머리·몸 앞 — 얼굴 오른쪽 바깥이라 얼굴은 안 가림) → 대기 순서 — 바꾸는 순간은 움직일 때
-    'order': [[0, 'drawA'], [.03, 'drawP'], [SW2, 'drawM'], [RET1, 'drawU'], [.86, 'drawA0'], [.875, 'drawA']],   # 10-20 06:10 들어 올림~예비 drawP(망치 포니테일 뒤) · .875 부터 대기와 같은 순서   # 21:42 휘두름~버팀 drawM: 먼 팔뚝(붕대)이 망치 자루 끝 위 — 원화처럼 팔뚝 → 주먹이 보임(자루 끝은 팔뚝 밑)   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
+    'order': [[0, 'drawA'], [.03, 'drawP'], [SW2, 'drawM'], [RET1 + .045, 'drawU'], [.86, 'drawA0'], [.875, 'drawA']],   # (12 네온 10-20 DHL 11:45 '손·무기 다리 뒤로') drawM = 먼 팔·망치·주먹이 다리·골반·몸 뒤 — .36~.725(.36: 겹침 0 · .725: 팔∩골반 0 · 주먹∩몸 0 · 망치∩다리 26px@.8 뿐, tools/overlap12.py)   # 10-20 06:10 들어 올림~예비 drawP(망치 포니테일 뒤) · .875 부터 대기와 같은 순서   # 21:42 휘두름~버팀 drawM: 먼 팔뚝(붕대)이 망치 자루 끝 위 — 원화처럼 팔뚝 → 주먹이 보임(자루 끝은 팔뚝 밑)   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
 }
 _ov = os.environ.get('SMASH_KEYS')   # 맞추기용: 키 덮어쓰기 JSON
 if _ov: smash.update(json.load(open(_ov)))
@@ -141,7 +159,7 @@ DRAW_ATK = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 
 DRAW_P = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 들어 올림·예비: 망치 = 포니테일·몸통·머리 뒤(이 구간 망치는 몸통과 안 겹침), 먼 팔뚝·주먹 앞
 DRAW_UP = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
 DRAW_L = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'weapon', 'weaponA', 'foreFf', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-DRAW_M = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 21:42 먼 팔뚝이 망치(자루 끝) 위
+DRAW_M = ['armF', 'foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'hips', 'torso', 'head', 'armU', 'pauldron', 'armL']   # (12 네온 10-20 11:45) 휘두름 끝~버팀~들어 돌림: 먼 팔·망치·쥔 주먹 = 다리 뒤(타격 때 먼 무릎이 주먹·자루를 덮음)   # 21:42 먼 팔뚝이 망치(자루 끝) 위
 # (12 네온 10-20 DHL 11:23 '갑자기 팔이 막대처럼 나오는 것 이상 · 팔 레이어를 몸 뒤쪽으로') 먼 윗팔·팔뚝(armF·foreFf)은 공격 내내 상체·머리 뒤 — 원화 대기처럼 팔뚝이 몸 뒤에서 나와 주먹으로(주먹 foreF 는 그대로 맨 앞). 러스트는 휘두름~돌아옴에 팔뚝이 몸·머리 앞이었음
 SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawA0': DRAW_ATK0, 'drawP': DRAW_P, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
