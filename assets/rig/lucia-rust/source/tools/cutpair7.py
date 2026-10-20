@@ -4,7 +4,7 @@
 import os, sys
 exec(open(os.path.dirname(os.path.abspath(__file__)) + '/game_base.py').read())
 W = int(sys.argv[1]); H = int(sys.argv[2]); tag = sys.argv[3]
-HOLD7 = os.environ.get('HOLD7', '')   # 시험: 7 루시아 cutHold 바꿔 보기(예 .40)
+HOLDS7 = [h for h in os.environ.get('HOLD7', '').split(',') if h]   # 시험: 7 루시아 cutHold 바꿔 보기(예 .32,.40 — 값마다 모든 팀)
 TEAMS = [[int(x) for x in t.split(',')] for t in (sys.argv[4] if len(sys.argv) > 4 else '7,2;9,7;1,3;7').split(';')]
 SET = r"""(ids)=>{for(const i of ids)battleCharInventory[i]=Object.assign({},Object.values(battleCharInventory)[0]||{},{count:1});
   battleTeam=[ids[0],ids[1]??null,ids[2]??null];selectedBattleTeamSlot=0;commitBattleTeamLive(0);return [...activeBattleTeam];}"""
@@ -21,9 +21,9 @@ MEASURE = r"""()=>{const st=document.querySelector('#battle-stage').getBoundingC
   return {stage:[Math.round(st.width),Math.round(st.height)],members:res};}"""
 with sync_playwright() as p:
     b, pg, errs = play(p, W, H)
-    for ti, team in enumerate(TEAMS):
+    for ti, (HOLD7, team) in enumerate([(h, t) for h in (HOLDS7 or ['']) for t in TEAMS]):
         got = pg.evaluate(SET, [n - 1 for n in team]); time.sleep(3)
-        name = '-'.join(f'{n:02d}' for n in team)
+        name = '-'.join(f'{n:02d}' for n in team) + (f'_h{HOLD7.lstrip("0.")}' if HOLD7 else '')
         for tr in range(4):   # 컷인이 막히면(경고·다른 연출) 다시 — 칸 그림을 먼저 찍고 바로 잼(찍는 동안 컷인이 끝나지 않게)
             if HOLD7: pg.evaluate(f"()=>{{window.MR_RIG_DEFS['lucia-rust'].cutHold={HOLD7}}}")
             pg.evaluate(CUT, len(team) > 1); time.sleep(2.4)   # 6초 컷인의 40% (= 2.5초 컷인 1.0초와 같은 단계) — 찍는 데 오래 걸려도 컷인 안
