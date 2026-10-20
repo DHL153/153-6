@@ -1,6 +1,6 @@
 {
  "name": "bruno-rust",
- "version": "e89b3f00",
+ "version": "96221879",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   486.0,
@@ -12,8 +12,8 @@
   "torso": {
    "src": "parts/torso.png",
    "pivot": [
-    82.0,
-    105.0
+    86.0,
+    109.0
    ],
    "scale": 2.0
   },
@@ -21,7 +21,7 @@
    "src": "parts/hips.png",
    "pivot": [
     63.0,
-    23.0
+    27.0
    ],
    "scale": 2.0
   },
@@ -37,7 +37,31 @@
    "src": "parts/pony.png",
    "pivot": [
     79.0,
-    5.0
+    9.0
+   ],
+   "scale": 2.0
+  },
+  "headB": {
+   "src": "parts/headB.png",
+   "pivot": [
+    92.0,
+    -7.0
+   ],
+   "scale": 2.0
+  },
+  "torsoB": {
+   "src": "parts/torsoB.png",
+   "pivot": [
+    86.0,
+    70.0
+   ],
+   "scale": 2.0
+  },
+  "hipsB": {
+   "src": "parts/hipsB.png",
+   "pivot": [
+    -44.0,
+    35.0
    ],
    "scale": 2.0
   },
@@ -68,12 +92,12 @@
   "armL": {
    "src": "parts/armL.png",
    "pivot": [
-    33.0,
+    36.0,
     73.0
    ],
    "scale": 2.0,
    "fist": [
-    21.0,
+    24.0,
     -5.0
    ]
   },
@@ -199,15 +223,15 @@
    "src": "parts/bootStandN.png",
    "pivot": [
     30.0,
-    77.0
+    81.0
    ],
    "scale": 2.0
   },
   "bootStandF": {
    "src": "parts/bootStandF.png",
    "pivot": [
-    42.0,
-    81.0
+    44.0,
+    82.0
    ],
    "scale": 2.0
   },
@@ -479,6 +503,33 @@
     76.0,
     -94.0
    ]
+  },
+  {
+   "name": "headB",
+   "parent": "head",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "headB"
+  },
+  {
+   "name": "torsoB",
+   "parent": "torso",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "torsoB"
+  },
+  {
+   "name": "hipsB",
+   "parent": "skirt",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "hipsB"
   }
  ],
  "legs": {
@@ -542,7 +593,9 @@
    ]
   },
   "near": {
-   "x": -44.0,
+   "x": -128.0,
+   "hipX": -44.0,
+   "runX": -44.0,
    "shade": 0,
    "thighImg": {
     "part": "thighN",
@@ -571,8 +624,8 @@
    "runBoot": "bootNRun",
    "stand": {
     "fade": [
-     0.12,
-     0.4
+     0.05,
+     0.1
     ],
     "thighImg": {
      "part": "thighN",
@@ -626,7 +679,9 @@
    }
   },
   "far": {
-   "x": 24.0,
+   "x": 100.0,
+   "hipX": 24.0,
+   "runX": 24.0,
    "shade": 0,
    "thighImg": {
     "part": "thighF",
@@ -655,8 +710,8 @@
    "runBoot": "bootFRun",
    "stand": {
     "fade": [
-     0.12,
-     0.4
+     0.05,
+     0.1
     ],
     "thighImg": {
      "part": "thighF",
@@ -714,6 +769,9 @@
   "pony",
   "legFar",
   "legNear",
+  "headB",
+  "torsoB",
+  "hipsB",
   "armF",
   "foreF",
   "armU",
@@ -738,10 +796,6 @@
   "half": "face_half",
   "closed": "face_closed"
  },
- "idleStance": {
-  "near": -84.0,
-  "far": 76.0
- },
  "gait": {
   "stance": 0.26,
   "strideBase": 40,
@@ -760,7 +814,6 @@
   "armBias": 0.0,
   "headRun": 0.05
  },
- "footReach": 0.97,
  "carrySwing": 0.15,
  "wristRange": 0.2,
  "dropLift": 8,
@@ -795,6 +848,9 @@
   "pony",
   "legFar",
   "legNear",
+  "headB",
+  "torsoB",
+  "hipsB",
   "armF",
   "foreFb",
   "armU",
@@ -1535,16 +1591,12 @@
      "angry"
     ],
     [
-     0.08,
-     "effort"
-    ],
-    [
      0.24,
      "shout"
     ],
     [
      0.38,
-     "effort"
+     "angry"
     ],
     [
      0.5,
@@ -1564,7 +1616,49 @@
      0,
      "drawA"
     ]
-   ]
+   ],
+   "nearLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.03,
+     0,
+     "io"
+    ],
+    [
+     0.09,
+     10,
+     "io"
+    ],
+    [
+     0.15,
+     0
+    ]
+   ],
+   "farLift": [
+    [
+     0,
+     0
+    ],
+    [
+     0.17,
+     0,
+     "io"
+    ],
+    [
+     0.23,
+     10,
+     "io"
+    ],
+    [
+     0.29,
+     0
+    ]
+   ],
+   "aDamp": 9,
+   "standStep": true
   }
  },
  "cutHold": 0.1,
@@ -1577,5 +1671,5 @@
   "refLift": 0,
   "note": "게임 그림 char_0010.png(512) = 0번 합격 원화(ref512). x = 도감 칸(fitArt 중심 243.4, index.html measureBox 와 같은 계산)에서 골반(hip x 250)이 가운데"
  },
- "note": "10 러스트 브루노 v1(대기·달리기·번갈아 내려찍기). 쌍도끼 계열 기준. 조각 = 원화를 부품별로 나눔(seg10.py) + 가려진 곳 임시 inpaint(프롬프트 2·3 그림 오면 바꿈), 시트 = 표정·깜빡임·달리는 다리·부츠"
+ "note": "10 러스트 브루노 v1.1(대기·달리기·번갈아 내려찍기). 쌍도끼 계열 기준. 조각 = 원화를 부품별로 나눔(seg10.py) + 가려진 곳 = 그 부품만 지운 원화(프롬프트 2·3: sheets/nonear_2345·nofar_2344), 시트 = 표정·깜빡임·달리는 다리·부츠"
 }
