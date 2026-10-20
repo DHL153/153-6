@@ -5,7 +5,7 @@
 // ms = 1/1000초, size = 기본 크기 배율, x·y = 캐릭터 그림 안 위치(0~1)
 window.MR_FX_TUNING={
  "version":1,
- "trail":{"lead":-95,"len":190,"imgDelay":60,"size":1.5,"opacity":1,"x":0.58,"y":0.52,"cw":true,"frameStart":3,"frameEnd":22,"rotStart":0,"spin":0,"alphaCurve":null,"colorCurve":null},
+ "trail":{"lead":-60,"len":300,"imgDelay":60,"size":2.25,"opacity":1,"x":0.73,"y":0.53,"cw":true,"frameStart":3,"frameEnd":22,"rotStart":-105,"spin":0,"alphaCurve":[[0,0],[0.211,1],[0.833,1],[1,0]],"colorCurve":null},
  "hit":{"offset":0,"len":300,"size":1.5,"opacity":1,"spin":true,"syncRig":true,"alphaCurve":null,"colorCurve":null},
  "lightning":{"start":0.18,"span":0.52,"opacity":0.94,"alphaCurve":null,"colorCurve":null},
  "mergeRing":{"playMs":125,"fadeMs":125,"cell":1.8,"rCell":2.0,"peak":9,"rPeak":7,"alphaCurve":null,"colorCurve":null},
