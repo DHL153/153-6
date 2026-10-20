@@ -3,7 +3,7 @@
 바꾼 것: ①쥔 점·자루 각·골반·숙임 키 = attack/keys7.json(tools/keyfit7.py 로 잼 — 루시아 팔: 주먹 = 쥔 점, 팔뚝 = 쥔 점→팔꿈치)
   — 타격·버팀: 날 앞 끝이 땅에 닿게(도끼가 몸 키보다 커서 12 키 그대로면 날이 땅속으로 들어감 — 연구 10-20 20:3x), 손목 꺾임 ±40° 안
   ②먼 팔 조각: 윗팔 = 원화 걷은 갈색 소매 upF(v1.2 — v1 은 민무늬 관 auFart) + 들어 올림~휘두름만 같은 무늬 곧은 관 upFs · 팔뚝 afFart = 원화 살 팔뚝 + 손목 띠 + 주먹 가운데(G)까지 띠 색 관 + 둥근 팔꿈치 끝
-  ③gFh = 시트 19칸(tools/gfh7.py, ×1.3 — 시트 주먹이 원화보다 작음) ④가까운 팔 = 방패(자유 팔 fuA 를 follow 로 12% 따라 돎)
+  ③먼 주먹 = 내내 원화 주먹(gFart·gFart2 — v1.3, v1.2 까지 휘두름~버팀은 시트 19칸 gFh) ④가까운 팔 = 방패(자유 팔 fuA 를 follow 로 12% 따라 돎)
 입력 전역: def_parts, bones, O_, pc, HIP, SH_F, EL_F, WR_F, G, HU, OUT, W, HERE, json, np, os, cv2, Image, own, RA, LUM, SKIN, BLADE_LO, TIPU
 출력: SMASH(rig 에 합칠 dict)"""
 def unit(v): v = np.array(v, float); return [round(float(x), 4) for x in v / np.linalg.norm(v)]
@@ -90,16 +90,17 @@ bones.append(dict(name='armFs', parent='armF', pos=[0, 0], part='upFs'))
 print(f'  smash 윗팔: 원화 소매(upF) + 곧은 소매 관 upFs 반폭 {_RS:.1f} · 소매 축 {np.degrees(np.arctan2(_as[1], _as[0])):.1f}° (뼈 {np.degrees(np.arctan2(_ub[1], _ub[0])):.1f}°) · 가운데 줄 {_SOFF:+.1f} · 메움 {int(_miss.sum())}px')
 bones.append(dict(name='foreFf', parent='torso', pos=[0, 0], part='afFart'))
 print('  smash 손목 띠 관 굵기 반(원화 px)', _hwF, '· 띠 색', _BDC.tolist())
-# 휘두름~버팀 먼 손 = 시트 19칸 '자루 따라 쥔 손'(gFh, tools/gfh7.py)
-AD = os.environ.get('GFH_DIR') or os.path.join(HERE, 'attack'); AP = json.load(open(os.path.join(AD, 'pieces.json')))
-_j = AP['gFh']; shutil.copy(os.path.join(AD, 'pieces', 'gFh.png'), os.path.join(OUT, 'parts', 'gFh.png')); _g = [round(float(_j['grip'][0]), 1), round(float(_j['grip'][1]), 1)]
-def_parts['gFh'] = dict(src='parts/gFh.png', pivot=_g, scale=_j['scale'], grip=_g, wrist=_g, elbow=_g, shaftDir=[float(v) for v in _j['shaftDir']],
-                        fore='afFart2', foreBone='foreFf', foreDir=unit(np.array(_j['wrist']) - np.array(_j['grip'])))
+# (v1.2 까지) 휘두름~버팀 먼 손 = 시트 19칸 '자루 따라 쥔 손'(gFh, tools/gfh7.py) — v1.3 부터 안 씀: 원화 주먹이 손목 ±40° 안에 들고, 시트 손은 펴진 손바닥(악수)처럼 보였음(DHL 23:29)
+if os.environ.get('GFH') == '1':   # 비교용으로만 되살림
+    AD = os.environ.get('GFH_DIR') or os.path.join(HERE, 'attack'); AP = json.load(open(os.path.join(AD, 'pieces.json')))
+    _j = AP['gFh']; shutil.copy(os.path.join(AD, 'pieces', 'gFh.png'), os.path.join(OUT, 'parts', 'gFh.png')); _g = [round(float(_j['grip'][0]), 1), round(float(_j['grip'][1]), 1)]
+    def_parts['gFh'] = dict(src='parts/gFh.png', pivot=_g, scale=_j['scale'], grip=_g, wrist=_g, elbow=_g, shaftDir=[float(v) for v in _j['shaftDir']],
+                            fore='afFart2', foreBone='foreFf', foreDir=unit(np.array(_j['wrist']) - np.array(_j['grip'])))
 
 # ---- 시간표 (애니 초) — 12·22 와 같음 ----
 LIFT, WIND, SW1, SW2, HIT, HOLD, RET1, RET, END = .18, .27, .32, .36, .40, .58, .68, .82, 1.0
 k = lambda *kv: [list(x) for x in kv]
-UPS_T = [float(v) for v in os.environ.get('UPS_T', '0.09,0.36').split(',')]   # 곧은 소매 관을 쓰는 구간(들어 올림 시작 ~ 휘두름 가장 빠른 때 — gFh 바꿈과 같은 .36)
+UPS_T = [float(v) for v in os.environ.get('UPS_T', '0.09,0.36').split(',')]   # 곧은 소매 관을 쓰는 구간(들어 올림 시작 ~ 휘두름 가장 빠른 때 .36)
 KF = json.load(open(os.environ.get('KEYS7') or os.path.join(HERE, 'attack', 'keys7.json')))
 KEYS = KF['keys']   # [t, gx, gy(리그 px, 골반 기준), 자루 각(도), 숙임(rad), 골반 x, 골반 y, 쥔 손(키 표 확인용), 이음]
 _g0 = (G - HIP) * 2; _a0 = math.atan2(HU[1], HU[0])
@@ -112,7 +113,7 @@ smash = {
     'ankleRange': [-.45, 1.1], 'legRun': k((0, 0), (SW1 - .01, 0, 'lin'), (SW1 + .02, 1), (HOLD + .04, 1, 'io'), (RET + .045, .12, 'lin'), (RET + .055, 0)),
     'w': k((0, 0, 'io'), (.12, 1), (END - .03, 1, 'io'), (END, 0)),
     'reach': k((0, 0)), 'sN': k((0, 0)),
-    'nPiece': k((0, 'gFart'), (.05, 'gFart2'), (SW2, 'gFh'), (KF.get('artBack', RET1), 'gFart2'), (.88, 'gFart')),
+    'nPiece': k((0, 'gFart'), (.05, 'gFart2'), (.88, 'gFart')),   # v1.3: 먼 손 = 내내 원화 주먹(gFh 바꿈 없음 — 시트 손은 악수처럼 펴져 보였음)
     'armIK': k((0, 1)), 'ikSideK': {'N': [[0, 1]]},
     'gx': PT(1), 'gy': PT(2), 'sa': PT(3, math.radians), 'lean': PT(4), 'hipX': PT(5), 'hipY': PT(6),
     'fuA': k((0, 0)),   # 자유 팔 = 방패 뒤 빈 뼈(방패는 상체 숙임을 60% 되돌려 세움 — build follow)
