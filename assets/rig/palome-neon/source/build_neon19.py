@@ -103,6 +103,17 @@ _skc = cv2.erode(((NOARM[..., 3] > 200) & (YY >= cut_y - 4)).astype(np.uint8), n
 _ovNA = ARM_OCC & (YY >= cut_y) & (YY < cut_y + OVL) & _skc
 torso[ARM_OCC & (YY >= cut_y) & (YY < cut_y + OVL) & ~_skc] = 0
 torso[_ovNA, :3] = np.clip(_cb[_srow[XX], XX] + _nzt, 0, 255)[_ovNA].astype(np.uint8); torso[_ovNA, 3] = 255
+# 칼·먼 주먹·먼 토시만 지운 원화 (DHL 10-20 20:19, sheets/nosword_2019.png — 프롬프트 3 + 가이드 refs/ref_X19): 원화와 SIFT 749점 · 배율 1.0000 · 0.0px, 지운 곳 밖 색 차이 0.48
+#   → 칼·손·토시가 가리던 곳(+1px) 중 상체 몫(나눔선 위) = 이 그림 그대로: 먼 어깨갑(흰 판·금 테) · 몸 오른쪽 · 수염 오른쪽 아래 판. 그림에서 투명한 곳(칼이 있던 몸 밖)은 비움 —
+#   시트 상체가 칼 자리까지 채워 공격 때 오른쪽 위에 흰 띠 조각이 떠 있었음(29 는 시트 3 + torsoM 으로 따로 메웠던 곳)
+NOSW = np.array(Image.open(os.path.join(HERE, 'sheets', 'nosword_2019.png')).convert('RGBA'))
+_hh = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(_hh, cv2.convexHull(np.argwhere(lab('head'))[:, ::-1].astype(np.int32)), 1); HEAD_HULL = _hh > 0
+#   머리 껍질 안(머리카락·수염 사이로 칼날·날밑이 보이던 틈)은 상체가 아니라 머리 몫 → 공격 표정 조각에만 그림 머리카락으로 메움(아래 표정) — 상체에 두면 머리가 돌 때 머리카락 조각이 몸에 남음
+HFILL = dil(lab('sword') | lab('handF') | lab('foreF'), 1) & HEAD_HULL & ~lab('head') & (NOSW[..., 3] > 200)
+_SWZ = dil(lab('sword') | lab('handF') | lab('foreF'), 1) & ~lab('head') & ~HEAD_HULL
+SW_OCC = _SWZ & (NOSW[..., 3] > 200) & (YY < cut_y); SW_OUT = _SWZ & (NOSW[..., 3] <= 200) & ~body
+torso[SW_OCC] = NOSW[SW_OCC]; torso[SW_OUT & (YY < cut_y + OVL)] = 0
+print('  torso behind sword/far hand <- no-sword art', int(SW_OCC.sum()), 'px · cleared', int((SW_OUT & (YY < cut_y + OVL)).sum()))
 print('  torso behind near arm <- no-arm art', int(_tNA.sum()), 'px · overlap cloth', int(_ovNA.sum()), '· cleared outside body', int((ARM_OUT & (YY < cut_y + OVL)).sum()))
 o_torso = save('torso', torso)
 # 밑단(치마 아래 배 판의 아래 외곽선, 격자 hem19.png 에서 읽음): 그 아래 몸 픽셀(검은 바지·무릎 판 윗부분)은 서 있는 다리 조각으로 —
@@ -159,6 +170,22 @@ for xr in range(227, 232):
 src = np.mean(cols, 0)
 sw[REPL] = 0; put = REPL & (src[..., 3] > 4); sw[put] = np.clip(src[put], 0, 255).astype(np.uint8)
 print('  blade rebuilt from section x227~231:', int(put.sum()), 'px')
+# 손잡이(주먹에 가려진 곳): 날밑과 주먹 사이 보이는 손잡이 단면(축 거리 14~20 평균)을 손잡이 축으로 이어 메움 — 메기 때 주먹이 칼을 따라 돌며 날밑~주먹 사이 손잡이 구멍이 흰 실금으로 보였음
+_nh = np.array([-_ax[1], _ax[0]]); _lat = (XX - HA0[0]) * _nh[0] + (YY - HA0[1]) * _nh[1]
+_hl = np.linalg.norm(HA1 - HA0); _HZ = (_al >= 12) & (_al <= _hl - 14) & (np.abs(_lat) <= 8.5) & (sw[..., 3] < 250)
+_hc = []
+for _a in range(14, 21):
+    _px = HA0[0] + _a * _ax[0] + _lat * _nh[0]; _py = HA0[1] + _a * _ax[1] + _lat * _nh[1]
+    _hc.append(cv2.remap(SW0.astype(np.float32), _px.astype(np.float32), _py.astype(np.float32), cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)))
+_hsrc = np.mean(_hc, 0); _hput = _HZ & (_hsrc[..., 3] > 128)
+sw[_hput] = np.clip(np.where(sw[_hput][:, 3:4] > 0, (sw[_hput].astype(np.float32) * sw[_hput][:, 3:4] / 255 + _hsrc[_hput] * (1 - sw[_hput][:, 3:4] / 255)), _hsrc[_hput]), 0, 255).astype(np.uint8); sw[_hput, 3] = 255
+print('  handle under fist filled', int(_hput.sum()), 'px')
+# 날밑 아래쪽(수염·머리카락에 가려진 반): 날밑 위쪽 반을 금 고리 가운데(356,230)에서 칼날 방향 축으로 거울 — 휘두를 때 날밑 아래가 톱니로 잘려 보였음(시트 칼은 SIFT 자리가 어긋나 못 씀)
+_RC = np.array([356.0, 230.0]); _ga_ = (XX - _RC[0]) * UT[0] + (YY - _RC[1]) * UT[1]; _gb_ = (XX - _RC[0]) * -UT[1] + (YY - _RC[1]) * UT[0]
+_mx_ = _RC[0] + _ga_ * UT[0] + (-_gb_) * -UT[1]; _my_ = _RC[1] + _ga_ * UT[1] + (-_gb_) * UT[0]
+_gm_src = cv2.remap(SW0.astype(np.float32), _mx_.astype(np.float32), _my_.astype(np.float32), cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0))
+_GZ = (np.abs(_ga_) <= 13) & (np.abs(_gb_) <= 38) & (sw[..., 3] < 128) & lab('head') & (_gm_src[..., 3] > 200)
+sw[_GZ] = np.clip(_gm_src[_GZ], 0, 255).astype(np.uint8); print('  guard lower half mirrored', int(_GZ.sum()), 'px')
 for _x in (215, 342):   # 머리 양쪽 원화 칼날 윗변 vs 맞춤 선(어긋나면 이은 날이 대기와 달라짐)
     _c = np.nonzero(lab('sword')[:, _x] & (np.abs(v[:, _x] - 0.5) < 0.8))[0]
     if len(_c): print(f'  blade top @x{_x}: art {_c.min()} vs line {yT(_x):.1f}')
@@ -234,8 +261,10 @@ for n in FACE_N + BLINK_N:
     o_ = RA.astype(np.float32).copy(); o_[..., :3] = o_[..., :3] * (1 - al[..., None]) + wf[..., :3] * al[..., None]
     fc = o_[hy0:hy0 + hh, hx0:hx0 + hw].astype(np.uint8); fc[..., 3] = hb[..., 3]
     fc[..., :3] = np.where((face[hy0:hy0 + hh, hx0:hx0 + hw] == 0)[..., None], hb[..., :3], fc[..., :3])
+    if n in FACE_N:   # 공격 표정: 칼날·날밑이 보이던 머리카락 틈 = 칼 지운 원화 머리카락(대기 머리·깜빡임은 원화 그대로)
+        _hf = HFILL[hy0:hy0 + hh, hx0:hx0 + hw] & (fc[..., 3] < 250); fc[_hf] = NOSW[hy0:hy0 + hh, hx0:hx0 + hw][_hf]
     Image.fromarray(fc).save(os.path.join(PARTS, f'face_{n}.png'))
-print('  face patch px', int(face.sum()))
+print('  face patch px', int(face.sum()), '· hair gap fill (attack faces)', int(HFILL.sum()))
 
 # ---------------- 뼈·조각 정의 ----------------
 SC = 2.0
