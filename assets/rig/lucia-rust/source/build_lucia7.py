@@ -359,7 +359,7 @@ rig = {'name': 'lucia-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', '
        'ui': {'attack': 'smash', 'touch': 'hop'},
        'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - 254.4)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
                    'note': '게임 그림 char_0007.png(512) = 원화(md5 같음, source/ref512.png). x = 도감 칸(fitArt 중심 254.4 — index.html measureBox 를 파이썬 같은 계산, 22·12 값 282.4·269.4 로 확인)에서 골반(hip x 280)이 가운데 (2·12·22 와 같은 규칙)'},
-       'cutHold': 0.32,   # 스킬 컷인 = 도끼를 머리 위로 높이 든 휘두름 시작(2·12·22 와 같은 시각)
+       'cutHold': 0.34,   # 스킬 컷인 = 도끼를 앞에 세운 채 내려치는 중(10-21 06:16 DHL '추천으로' — .32 는 머리 위 도끼·방패가 칸 위로 17px 잘림, .34 는 PC·폰 모두 칸 안 · tools/cutpair7.py HOLD7)
        'note': '7 러스트 루시아 v1.1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음 · v1.1 다리 = 옷 뒤 + 드워프 종종걸음)'}
 rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())

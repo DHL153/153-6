@@ -1,6 +1,6 @@
 {
  "name": "lucia-rust",
- "version": "9e4c23f5",
+ "version": "c1beeb10",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   546.0,
@@ -1014,7 +1014,7 @@
   "refLift": 0,
   "note": "게임 그림 char_0007.png(512) = 원화(md5 같음, source/ref512.png). x = 도감 칸(fitArt 중심 254.4 — index.html measureBox 를 파이썬 같은 계산, 22·12 값 282.4·269.4 로 확인)에서 골반(hip x 280)이 가운데 (2·12·22 와 같은 규칙)"
  },
- "cutHold": 0.32,
+ "cutHold": 0.34,
  "note": "7 러스트 루시아 v1.1 (2026-10-20 — 원화 조각 + 시트 표정·자루·쥔 손·달리기 다리·무릎 쇠판, 12 네온 v1.4 한 손 내려찍기·그리는 순서, 방패 = 가까운 어깨에 붙음 · v1.1 다리 = 옷 뒤 + 드워프 종종걸음)",
  "actions": {
   "smash": {
