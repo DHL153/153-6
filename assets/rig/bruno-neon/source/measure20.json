@@ -1,0 +1,108 @@
+{
+ "art": "char_0020.png (ref512.png, DHL 10-21 01:00)",
+ "sole_y": 496,
+ "hairTop": [
+  236,
+  157
+ ],
+ "near": {
+  "SH": [
+   200,
+   318
+  ],
+  "EL": [
+   150,
+   306
+  ],
+  "WR": [
+   149,
+   262
+  ],
+  "fist": [
+   141,
+   241
+  ],
+  "ball": [
+   102,
+   71
+  ],
+  "ballR": 52,
+  "len": {
+   "upper": 51.4,
+   "fore_to_wrist": 44.0,
+   "fore_to_fist": 65.6,
+   "fist_to_ball": 174.4
+  },
+  "axis_deg_from_vertical": -12.9
+ },
+ "far": {
+  "SH": [
+   289,
+   336
+  ],
+  "EL": [
+   325,
+   350
+  ],
+  "WR": [
+   339,
+   316
+  ],
+  "fist": [
+   351,
+   293
+  ],
+  "ball": [
+   454,
+   133
+  ],
+  "ballR": 52,
+  "len": {
+   "upper": 38.6,
+   "fore_to_wrist": 36.8,
+   "fore_to_fist": 62.6,
+   "fist_to_ball": 190.3
+  },
+  "axis_deg_from_vertical": 32.8
+ },
+ "legs": {
+  "near": {
+   "hip": [
+    228,
+    386
+   ],
+   "knee": [
+    211,
+    423
+   ],
+   "ankle": [
+    188,
+    465
+   ],
+   "len": {
+    "thigh": 40.7,
+    "shin": 47.9
+   }
+  },
+  "far": {
+   "hip": [
+    268,
+    388
+   ],
+   "knee": [
+    303,
+    421
+   ],
+   "ankle": [
+    318,
+    467
+   ],
+   "len": {
+    "thigh": 48.1,
+    "shin": 48.4
+   }
+  }
+ },
+ "bodyH": 339,
+ "arm_over_body": 0.345
+}
