@@ -140,6 +140,8 @@ _kfill = _kmap[_iN[0], _iN[1]]
 _dm = _ndi.distance_transform_edt(~(_srcN & (_kmap == 2))); _cl = _srcN & (_kmap < 2)
 _dc, _ic = _ndi.distance_transform_edt(~_cl, return_indices=True)
 _kfill = np.where((_kfill == 2) & (_dm > 4), _kmap[_ic[0], _ic[1]], _kfill)   # 쇠 버클은 4px 까지만 이음(버클 테 굵기) — 더 이으면 회색 덩어리
+_oh = np.stack([cv2.blur((_kfill == j).astype(np.float32), (7, 7)) for j in range(len(_MAT))], -1)
+_kfill = np.where(FN | RING_N, np.argmax(_oh, -1), _kfill)   # 재질 경계를 7px 다수결로 매끈하게(작은 섬·톱니 없앰)
 EXT_N = RA.copy(); EXT_N[..., :3] = np.clip(_kmed[_kfill] + np.clip(cv2.GaussianBlur(np.random.default_rng(4).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 3) * 12, -5, 5)[..., None], 0, 255).astype(np.uint8); EXT_N[..., 3] = 255
 print('  fist fill materials', [tuple(int(v) for v in c) for c in _kmed], [int((_srcN & (_kmap == j)).sum()) for j in range(len(_MAT))])
 _kd = np.zeros((512, 512), bool)
