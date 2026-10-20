@@ -1,5 +1,5 @@
 // 이펙트 조절 값 — '이펙트 조절실' 아티팩트에서 맞춘 값을 이 파일로 PR 함 (게임 코드는 이 값만 읽음)
-// alphaCurve = 진하기 커브 [[진행 0~1, 배율],…] · colorCurve = 색 커브 [[진행 0~1, "#색", 세기 0~1],…] (null = 안 씀)
+// alphaCurve = 진하기 커브 [[진행 0~1, 배율],…] · sizeCurve = 크기 커브 [[진행 0~1, 배율],…] · colorCurve = 색 커브 [[진행 0~1, "#색", 세기 0~1],…] (null = 안 씀)
 // chars = 캐릭터별(전투 캐릭터 번호 1~30) trail·hit 값 — 적힌 값만 공통 값을 덮음 · custom[].chars = 그 캐릭터들만
 // custom[] 플립북: cols×rows 시트, frameStart~frameEnd, fps(0 = len 에 맞춤)·loops·pingpong, blend "screen"(검은 배경 지움) | "normal"(투명 PNG 그대로)
 // ms = 1/1000초, size = 기본 크기 배율, x·y = 캐릭터 그림 안 위치(0~1)
@@ -20,5 +20,7 @@ window.MR_FX_TUNING={
   ]
  },
  "chars":{},
- "custom":[]
+ "custom":[
+  {"name":"새 이펙트","src":"assets/art/effects/battle/fx_battle_attack_slash_blue_0001.png","trigger":"attack","anchor":"hero","chars":[],"cols":2,"rows":2,"frameStart":0,"frameEnd":3,"fps":15,"loops":1,"pingpong":false,"blend":"normal","at":-60,"len":90,"size":2.9,"opacity":1,"x":0.85,"y":0.15,"rotate":-140,"spin":195,"flipX":false,"fadeOut":0,"off":false,"alphaCurve":[[0,0],[0.172,1],[0.52,1],[0.642,0.146],[0.845,0],[1,0]],"sizeCurve":[[0,0],[0.13790714743750943,1],[1,1]]}
+ ]
 };
