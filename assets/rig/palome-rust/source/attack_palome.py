@@ -16,7 +16,8 @@ rig['drawA'] = BASE + ['armF', 'torso', 'skirt', 'foreFb', 'weapon', 'armU', 'ar
 rig['drawStrike'] = BASE + ['armF', 'torso', 'skirt', 'foreFb', 'armU', 'armL', 'pauldron', 'head', 'weapon', 'foreF']
 rig['drawR'] = [n for n in rig['drawA'] if n != 'armF']
 # 먼 팔 몸 뒤(10-20 12:12 DHL 0.37 '표시한 팔 레이어를 몸 뒤로 — 몸 뒤에서 움직입니다'): 손이 어깨 아래(배 옆)로 내려와 있는 동안 먼 팔뚝·주먹·칼을 몸통 뒤에
-rig['drawB'] = BASE + ['foreFb', 'weapon', 'foreF', 'torso', 'skirt', 'armU', 'armL', 'pauldron', 'head']   # 0.72~ 칼을 다시 멜 때: 먼 윗팔은 대기처럼 안 그림 — 팔꿈치가 배 옆으로 나와 비늘 윗팔 끝이 손 밑에 덩어리로 보였음(10-20 11:50 DHL '표시 저 부분이 어색')
+rig['drawB'] = BASE + ['armF', 'foreFb', 'weapon', 'foreF', 'torso', 'skirt', 'armU', 'armL', 'pauldron', 'head']   # 윗팔도 같이 몸 뒤(12:55 DHL '여기에 팔은 있어야지요' — 타격 때 몸과 팔뚝 사이 윗팔)
+rig['drawB0'] = [n for n in rig['drawB'] if n != 'armF']   # 0.31~0.35: 손은 어깨 높이·팔꿈치만 배 옆으로 접힌 순간 — 윗팔 끝이 손 밑 덩어리로 보여(11:50) 안 그림, 0.35 부터는 팔꿈치가 배 뒤라 같이 그려도 안 튐   # 0.72~ 칼을 다시 멜 때: 먼 윗팔은 대기처럼 안 그림 — 팔꿈치가 배 옆으로 나와 비늘 윗팔 끝이 손 밑에 덩어리로 보였음(10-20 11:50 DHL '표시 저 부분이 어색')
 K = AK['keys']
 def trk(i, f=lambda v, k: v):   # 키 i 번째 값 → 엔진 트랙 [[t, v, easing]]
     return [[k[0], round(f(k[i], k), 4), k[6] if len(k) > 6 else 'io'] for k in K]
@@ -27,6 +28,6 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 0.9, 'hitAt':
        'head': [[0, 0], [0.28, -0.06, 'io'], [0.45, 0.05, 'io'], [0.6, 0.04, 'io'], [0.86, 0]],
        'freeArm': True, 'fuA': [[0, 0], [0.28, -0.12, 'io'], [0.45, 0.3, 'o'], [0.6, 0.26, 'io'], [0.86, 0]], 'flA': [[0, 0], [0.28, -0.08, 'io'], [0.45, 0.18, 'o'], [0.6, 0.15, 'io'], [0.86, 0]],
        'face': [[0, 'angry'], [0.12, 'effort'], [0.4, 'shout'], [0.62, 'focus'], [0.82, None]],
-       'order': [[0, 'drawA'], [0.31, 'drawB'], [0.73, 'drawR']]}   # 0.31~0.73: 손이 어깨 아래(배 옆) — 먼 팔뚝·주먹·칼 = 몸통 뒤(DHL 12:12), 먼 윗팔 안 그림 · 0.73~: 다시 멜 때 대기처럼 팔뚝·주먹 앞(몸과 가장 덜 겹치는 순간에 바꿈), 먼 윗팔 안 그림
+       'order': [[0, 'drawA'], [0.31, 'drawB0'], [0.35, 'drawB'], [0.73, 'drawR']]}   # 0.31~0.73: 손이 어깨 아래(배 옆) — 먼 팔뚝·주먹·칼 = 몸통 뒤(DHL 12:12), 먼 윗팔 안 그림 · 0.73~: 다시 멜 때 대기처럼 팔뚝·주먹 앞(몸과 가장 덜 겹치는 순간에 바꿈), 먼 윗팔 안 그림
 rig['actions'] = {'smash': act}
 rig['cutHold'] = 0.25   # 스킬 컷인: 칼을 어깨 뒤로 눕혀 멘 힘줌 자세(메기 꼭대기 .28 직전, 게임은 한 프레임 더 가서 약 .27~.29) — 낮은 버팀(.45~.6)은 11 네온 알론소 때 DHL '쪼그려 앉은 듯', v1.1 휘두르는 순간(.37~.41)은 손이 배 앞이라 컷인으로 약함
