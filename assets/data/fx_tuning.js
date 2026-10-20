@@ -1,6 +1,7 @@
 // 이펙트 조절 값 — '이펙트 조절실' 아티팩트에서 맞춘 값을 이 파일로 PR 함 (게임 코드는 이 값만 읽음)
 // alphaCurve = 진하기 커브 [[진행 0~1, 배율],…] · colorCurve = 색 커브 [[진행 0~1, "#색", 세기 0~1],…] (null = 안 씀)
 // chars = 캐릭터별(전투 캐릭터 번호 1~30) trail·hit 값 — 적힌 값만 공통 값을 덮음 · custom[].chars = 그 캐릭터들만
+// custom[] 플립북: cols×rows 시트, frameStart~frameEnd, fps(0 = len 에 맞춤)·loops·pingpong, blend "screen"(검은 배경 지움) | "normal"(투명 PNG 그대로)
 // ms = 1/1000초, size = 기본 크기 배율, x·y = 캐릭터 그림 안 위치(0~1)
 window.MR_FX_TUNING={
  "version":1,

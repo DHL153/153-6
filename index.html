@@ -2676,6 +2676,9 @@ html.game-booting #app{visibility:hidden!important;}
 /* This layer is contained by the existing battle viewport in both modes. */
 #battle-stage #mr-battle-fx-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;pointer-events:none!important;z-index:24!important;mix-blend-mode:screen;contain:strict;}
 #battle-stage #mr-battle-fx-canvas[hidden]{display:none!important;}
+/* 2026-10-20 플립북(새 이펙트) 중 투명 배경 그림 = 섞지 않고 그대로 그리는 캔버스 (검은 배경 시트는 위 screen 캔버스) */
+#battle-stage #mr-battle-fx-canvas-n{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;pointer-events:none!important;z-index:24!important;contain:strict;}
+#battle-stage #mr-battle-fx-canvas-n[hidden]{display:none!important;}
 #battle-stage[data-mr-skill-fx="on"] #skill-cinematic::before{display:none!important;}
 </style>
 
@@ -3908,7 +3911,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 </div>
 </div>
 <script src="assets/ui/icon-nodes.js"></script>
-<script src="assets/data/fx_tuning.js?v=49e660e8"></script>
+<script src="assets/data/fx_tuning.js?v=6029838c"></script>
 <script src="assets/ui/presentation.js"></script>
 <script id="mr-battle-sprite-effects-player">
 /* Battle-only sprite playback. Original sheets stay lossless on disk.
@@ -3942,6 +3945,8 @@ window.MRBattleFX=(()=>{
  const canvas=document.createElement('canvas');canvas.id='mr-battle-fx-canvas';
  canvas.setAttribute('aria-hidden','true');stage.appendChild(canvas);
  const ctx=canvas.getContext('2d');
+ const canvasN=document.createElement('canvas');canvasN.id='mr-battle-fx-canvas-n';canvasN.setAttribute('aria-hidden','true');canvasN.hidden=true;stage.appendChild(canvasN);
+ const ctxN=canvasN.getContext('2d');
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
  let jobs=[],raf=0,last=0,attackIndex=0,width=0,height=0;
  const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -3951,7 +3956,8 @@ window.MRBattleFX=(()=>{
  function clear(){
   if(raf)cancelAnimationFrame(raf);raf=0;last=0;jobs=[];
   if(ctx)ctx.clearRect(0,0,canvas.width,canvas.height);
-  canvas.hidden=true;delete stage.dataset.mrSkillFx;
+  if(ctxN)ctxN.clearRect(0,0,canvasN.width,canvasN.height);
+  canvas.hidden=true;canvasN.hidden=true;delete stage.dataset.mrSkillFx;
  }
  function clearSkill(){
   jobs=jobs.filter(j=>j.type!=='skill');delete stage.dataset.mrSkillFx;
@@ -4019,7 +4025,7 @@ window.MRBattleFX=(()=>{
   jobs.push({...job,elapsed:0});
   // Bound the work even when many merges complete together.
   if(jobs.length>6){const index=jobs.findIndex(j=>j.type!=='skill');jobs.splice(index<0?0:index,1);}
-  canvas.hidden=false;
+  canvas.hidden=false;if(job.custom?.blend==='normal')canvasN.hidden=false;
   if(!raf){last=0;raf=requestAnimationFrame(tick);}
   return true;
  }
@@ -4056,25 +4062,29 @@ window.MRBattleFX=(()=>{
  // 2026-10-20 DHL: 캐릭터 30종마다 다르게 — fx_tuning.js chars["11"].trail / .hit 가 공통 값을 덮음 (없는 값은 공통 그대로)
  function charNum(elId){const n=Number(document.getElementById(elId||'')?.dataset.battleCharacter);return n>0?n:0;}
  function tuneFor(key,n){const base=TUNE(key),o=n&&window.MR_FX_TUNING?.chars?.[String(n)]?.[key];return o?{...base,...o}:base;}
+ // 플립북: fps 가 있으면 칸 수 ÷ fps × 반복(loops), 왕복(pingpong)이면 끝에서 되돌아옴. fps 없으면 len(ms)에 맞춰 한 번
+ function customFrames(c){const cols=Math.max(1,c.cols|0),rows=Math.max(1,c.rows|0),fs=clamp(num(c.frameStart,0)|0,0,cols*rows-1),fe=clamp(num(c.frameEnd,cols*rows-1)|0,fs,cols*rows-1);return {cols,rows,fs,fe,n:fe-fs+1};}
+ function customLen(c){const fps=num(c.fps,0);if(fps>0){const {n}=customFrames(c),per=c.pingpong&&n>1?2*n-2:n;return Math.max(30,per/fps*1000*Math.max(1,num(c.loops,1)|0));}return Math.max(30,num(c.len,300));}
  function playCustom(trigger,who,hitMs,base=0,attacker=0){
   const list=(window.MR_FX_TUNING&&window.MR_FX_TUNING.custom)||[];
   for(const c of list){if(!c||c.off||c.trigger!==trigger||!c.src)continue;if(Array.isArray(c.chars)&&c.chars.length&&!c.chars.map(Number).includes(attacker))continue;customSheet(c);
-   const delay=Math.max(0,base+(trigger==='attack'?hitMs:0)+num(c.at,0)),len=Math.max(30,num(c.len,300));
+   const delay=Math.max(0,base+(trigger==='attack'?hitMs:0)+num(c.at,0)),len=customLen(c);
    add({type:trigger==='attack'?'attack':'hit',name:'custom',custom:c,delay,duration:delay+len,sourceId:who});}
  }
  function draw(job){
   const p=clamp(job.elapsed/job.duration,0,1);
   if(job.name==='custom'){
    const c=job.custom,im=customSheet(c);if(!im||job.elapsed<job.delay)return;
-   const q=clamp((job.elapsed-job.delay)/(job.duration-job.delay),0,1),cols=Math.max(1,c.cols|0),rows=Math.max(1,c.rows|0);
-   const fs=clamp(num(c.frameStart,0)|0,0,cols*rows-1),fe=clamp(num(c.frameEnd,cols*rows-1)|0,fs,cols*rows-1),f=Math.min(fe,fs+Math.floor(q*(fe-fs+1)));
+   const q=clamp((job.elapsed-job.delay)/(job.duration-job.delay),0,1),{cols,rows,fs,fe,n}=customFrames(c),fps=num(c.fps,0);
+   let k;if(fps>0){const per=c.pingpong&&n>1?2*n-2:n;k=Math.floor((job.elapsed-job.delay)*fps/1000);k=Math.min(k,per*Math.max(1,num(c.loops,1)|0)-1)%per;if(k>=n)k=per-k;}else k=Math.min(n-1,Math.floor(q*n));
+   const f=fs+k,g=c.blend==='normal'?ctxN:ctx;
    const who=c.anchor==='hero'?(job.sourceId&&job.sourceId!=='enemy'?job.sourceId:'hero'):'enemy';
    const a=c.anchor==='stage'?{x:num(c.x,.5),y:num(c.y,.5),s:height*.6}:target(who,true,num(c.x,.5),num(c.y,.5));
    const size=(a.s>0?a.s:height*.6)*num(c.size,1);
    const sw=im.naturalWidth/cols,sh=im.naturalHeight/rows,fade=num(c.fadeOut,0)>0?Math.min(1,(1-q)/num(c.fadeOut,0)):1;
-   const look=lookAt(c.colorCurve,q);
-   ctx.save();ctx.translate(width*a.x,height*a.y);ctx.rotate((num(c.rotate,0)+num(c.spin,0)*q)*Math.PI/180);ctx.scale(c.flipX?-1:1,1);ctx.globalAlpha=clamp(num(c.opacity,1)*fade*curveAt(c.alphaCurve,q),0,1);
-   if(look)ctx.drawImage(tinted(im,(f%cols)*sw,Math.floor(f/cols)*sh,sw,sh,look),-size/2,-size/2,size,size);else ctx.drawImage(im,(f%cols)*sw,Math.floor(f/cols)*sh,sw,sh,-size/2,-size/2,size,size);ctx.restore();return;
+   const look=lookAt(c.colorCurve,q),dw=size*sw/sh,dh=size; // 칸 모양 그대로 (높이 = size)
+   g.save();g.translate(width*a.x,height*a.y);g.rotate((num(c.rotate,0)+num(c.spin,0)*q)*Math.PI/180);g.scale(c.flipX?-1:1,1);g.globalAlpha=clamp(num(c.opacity,1)*fade*curveAt(c.alphaCurve,q),0,1);
+   if(look)g.drawImage(tinted(im,(f%cols)*sw,Math.floor(f/cols)*sh,sw,sh,look),-dw/2,-dh/2,dw,dh);else g.drawImage(im,(f%cols)*sw,Math.floor(f/cols)*sh,sw,sh,-dw/2,-dh/2,dw,dh);g.restore();return;
   }
   if(job.type==='skill'){
    if(job.elapsed<job.delay)return;
@@ -4148,6 +4158,7 @@ window.MRBattleFX=(()=>{
   if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
   ctx.globalCompositeOperation='lighter';ctx.imageSmoothingEnabled=true;
+  if(!canvasN.hidden){if(canvasN.width!==pw||canvasN.height!==ph){canvasN.width=pw;canvasN.height=ph;}ctxN.setTransform(dpr,0,0,dpr,0,0);ctxN.clearRect(0,0,width,height);ctxN.imageSmoothingEnabled=true;}
   for(const job of jobs)job.elapsed+=delta;
   jobs=jobs.filter(j=>j.elapsed<j.duration);
   for(const job of jobs)draw(job);
@@ -13927,7 +13938,7 @@ html body #battle-chain-pop[data-tier="max"].bump{animation:fxMaxPulse .5s ease-
 <style id="mr-reveal-quiet-style">
 /* 2026-10-16: 뽑기 결과 창이 열려 있는 동안 게임 효과를 가림 (게임 진행·보상은 계속) */
 html.mr-reveal-quiet .mrfx-orb,html.mr-reveal-quiet .mr-frag-plus,html.mr-reveal-quiet .mr-frag-fly,html.mr-reveal-quiet #app .floating-text,
-html.mr-reveal-quiet #mr-battle-fx-canvas,html.mr-reveal-quiet .merge-ring-fx,html.mr-reveal-quiet .merge-sheet-fx,html.mr-reveal-quiet .merge-burst,
+html.mr-reveal-quiet #mr-battle-fx-canvas,html.mr-reveal-quiet #mr-battle-fx-canvas-n,html.mr-reveal-quiet .merge-ring-fx,html.mr-reveal-quiet .merge-sheet-fx,html.mr-reveal-quiet .merge-burst,
 html.mr-reveal-quiet .hit-effect-sprite,
 html.mr-reveal-quiet .mrfx-flash,html.mr-reveal-quiet .mrfx-hitburst,html.mr-reveal-quiet .mrfx-shard,
 html.mr-reveal-quiet #battle-chain-pop,html.mr-reveal-quiet #skill-cinematic,html.mr-reveal-quiet .mrfx-notice,html.mr-reveal-quiet .flying-enemy-art{visibility:hidden!important;}
