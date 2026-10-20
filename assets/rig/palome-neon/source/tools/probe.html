@@ -1,0 +1,10 @@
+<!doctype html><meta charset=utf-8><body><script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
+<script>
+// 엔진 값 찍기: probe.html?pre=1&code=식 (결과를 document.title 에 JSON)
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['palome-neon'],base='../../';
+const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
+const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});const VX=+(Q.get('vx')||0);
+for(let i=0;i<+(Q.get('pre')||1);i++)an.update(1/60,{vx:VX,facing:1});
+if(Q.get('atk')){an.attack(Q.get('atk'));for(let i=0;i<+(Q.get('apre')||0);i++)an.update(1/60,{vx:VX,facing:1})}
+const out=eval(Q.get('code')||'an.legPose');document.title='OK '+JSON.stringify(out,(k,v)=>typeof v==='number'?Math.round(v*100)/100:v)})().catch(e=>{document.title='ERR '+e.stack});
+</script>
