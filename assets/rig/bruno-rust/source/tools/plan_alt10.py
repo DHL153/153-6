@@ -25,8 +25,9 @@ FACE_C, FACE_R = V([262, 262]), (30, 36)                                        
 # ---- 키 (시각 s, 몸: lean 라디안 + 골반 이동 px / 가까운 팔: 윗팔·팔뚝 세상 각 / 먼 팔: 주먹 자리 + 도끼 세상 각) ----
 #  ① 0~.10 예비(몸 살짝 뒤로, 가까운 도끼를 머리 뒤로 더 젖힘)  ② .10~.28 가까운 도끼 내려찍기(머리 위를 넘어 앞 아래, 날이 앞장섬) — 1타 .28
 #  ③ .28~.40 가까운 도끼 버팀 → 다시 들기(풍차처럼: 한쪽이 내려오면 다른 쪽이 올라감), 먼 도끼 젖힘   ④ .40~.54 먼 도끼 내려찍기 — 2타 .54   ⑤ .54~1.0 둘 다 대기 자세로
-KB = [(0.00, 0.00, 0, 0), (0.10, -0.06, -3, 3), (0.20, 0.04, 2, 4), (0.28, 0.14, 6, 8), (0.36, 0.08, 4, 6), (0.42, -0.02, 2, 4), (0.48, 0.08, 6, 8),
-      (0.54, 0.18, 10, 12), (0.64, 0.12, 8, 10), (0.84, 0.02, 2, 2), (1.00, 0.00, 0, 0)]
+# 몸(시각, 기울기 rad, 골반 x, 골반 y) — 엔진 칼 동작엔 골반 x 트랙이 없어 x = 0(골반은 hipY 로 내려감만)
+KB = [(0.00, 0.00, 0, 0), (0.10, -0.06, 0, 3), (0.20, 0.04, 0, 4), (0.28, 0.14, 0, 8), (0.36, 0.08, 0, 6), (0.42, -0.02, 0, 4), (0.48, 0.08, 0, 8),
+      (0.54, 0.18, 0, 12), (0.64, 0.12, 0, 10), (0.84, 0.02, 0, 2), (1.00, 0.00, 0, 0)]
 # 가까운 팔(윗팔·팔뚝 세상 각) — 펴짐 ≤ .9 이려면 두 마디 사이 각 ≥ 57°
 KN = [(0.00, u0N, f0N), (0.10, 176, -126), (0.19, -126, -62), (0.28, 92, 15), (0.34, 96, 17), (0.42, 105, -10), (0.50, 135, -70), (0.62, 152, -94), (0.80, 160, -100), (1.00, u0N, f0N)]
 # 먼 팔(주먹 자리 원화 px · 도끼 세상 각) — 'a' = 그 둘레 ±28px 에서 펴짐 ≤ .86 · 손목 꺾임 최소인 자리로 찾음(rekey19 와 같은 생각)
@@ -108,7 +109,12 @@ bad = [r['t'] for r in rows if r['reachN'] > .9 or r['reachF'] > .9 or abs(r['wr
 summ = dict(arm={'near': [round(L1N, 1), round(L2N, 1)], 'far': [round(L1F, 1), round(L2F, 1)]}, restAngles={'near_upper': round(u0N, 1), 'near_fore': round(f0N, 1), 'near_axe_minus_fore': round(dN, 1), 'far_axe': round(a0F, 1), 'far_wrist_rest': round(wF0, 1)},
             limits={'top': TOPLIM, 'ground': GROUND}, worst={k: (round(v, 3) if isinstance(v, float) else v) for k, v in worst.items()}, badFrames=bad, hits=HIT,
             edgeLeads='두 도끼 모두 날이 오른쪽(앞) — 앞 아래로 내려찍는 시계 방향 회전이라 날이 앞장섬(19 v1.3 칼날 반전 교훈 확인)')
-json.dump(dict(summary=summ, rows=rows, keys=dict(body=KB, near=KN, far=[(k[0], list(map(float, k[1])), k[2]) for k in KF])), open(os.path.join(SRC, 'review', 'plan_alt10.json'), 'w'), ensure_ascii=False, indent=1)
+TK = sorted(set([k[0] for k in KB] + [k[0] for k in KN] + [k[0] for k in KF]))
+ENG = []
+for t in TK:   # 엔진 키: [t, gx, gy(골반 기준, 원화 px — 엔진엔 ×2, gy 는 hipY 를 빼서), sa(도), lean(rad), hipY(원화 px), fuA, flA(rad)]
+    th, off = body(t); n = near(t, th, off); f = far(t, th, off)
+    ENG.append([round(t, 3), round(float(f['F'][0] - H[0]), 2), round(float(f['F'][1] - H[1]), 2), round(float(f['A']), 2), round(th, 4), round(float(off[1]), 2), round(math.radians(n['fuA']), 4), round(math.radians(n['flA']), 4)])
+json.dump(dict(summary=summ, rows=rows, engine=ENG, keys=dict(body=KB, near=KN, far=[(k[0], list(map(float, k[1])), k[2]) for k in KF])), open(os.path.join(SRC, 'review', 'plan_alt10.json'), 'w'), ensure_ascii=False, indent=1)
 print(json.dumps(summ, ensure_ascii=False, indent=1))
 # ---- 키 자세 그림 ----
 def warp(img, Mx, W, Hh): return cv2.warpAffine(img, Mx, (W, Hh), flags=cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0))
