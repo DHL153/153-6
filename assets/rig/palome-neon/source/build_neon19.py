@@ -85,6 +85,25 @@ OCC = lab('head') | lab('handF') | lab('foreF') | lab('upperF') | lab('sword') |
 # 가까운 팔 밑 몸 가장자리: 몸 껍질 안 inpaint(시트 상체가 못 덮는 곳) — 프롬프트 2 '가까운 팔만 지운 원화'가 오면 그 그림으로 바꿈
 binp, fillN = hull_inpaint(body, lab('foreN') | lab('upperN') | lab('pauldron'))
 torso = under(under(art(body & (YY < cut_y + OVL)), stw, OCC & (YY < cut_y + OVL)), binp, fillN & (YY < cut_y + OVL))
+# 가까운 팔만 지운 원화 (DHL 10-20 19:50, sheets/noarm_1950.png — 프롬프트 2 + 가이드 refs/ref_W19): 원화와 SIFT 803점 · 배율 1.0000 · 0.0px, 팔 밖 색 차이 0.06
+#   → 팔(소매·토시·주먹 + 외곽선)이 가리던 곳(+1px)만 이 그림 그대로: 상체(나눔선 위) · 치마(나눔선 아래). 몸 밖(그림에서 투명)은 비움 — 시트 상체·inpaint 로 채웠던 곳(공격 때 흰 줄·톱니)
+NOARM = np.array(Image.open(os.path.join(HERE, 'sheets', 'noarm_1950.png')).convert('RGBA'))
+_ARMZ = dil(lab('foreN') | lab('upperN'), 1)
+ARM_OCC = _ARMZ & (NOARM[..., 3] > 200); ARM_OUT = _ARMZ & (NOARM[..., 3] <= 200) & ~body
+_tNA = ARM_OCC & (YY < cut_y); torso[_tNA] = NOARM[_tNA]; torso[ARM_OUT & (YY < cut_y + OVL)] = 0
+#   상체 아래 겹침 띠(나눔선 아래 14px — 대기엔 치마가 덮고, 공격 때 상체가 기울면 보임): 그림 픽셀(허리띠·금 판)을 상체에 두면 치마 허리띠와 두 겹(48번) →
+#   나눔선 바로 위 '천' 색(밝은 판·외곽선 빼고 σ4 정규화 흐림)을 아래로 늘임(29 v2.0)
+_lumNA = NOARM[..., :3].astype(int).mean(-1)
+_RN, _GN, _BN = (NOARM[..., c].astype(int) for c in range(3))
+_clo = ((NOARM[..., 3] > 200) & (_lumNA >= 25) & (_lumNA <= 95) & ~((_RN - _BN >= 40) & (_GN - _BN >= 20))).astype(np.float32)   # 검은 누빔·버건디 천만(금 판·흰 판·외곽선 빼고 — 금색이 섞여 공격 때 주먹 밑에 금빛 번짐)
+_cb = cv2.GaussianBlur(NOARM[..., :3].astype(np.float32) * _clo[..., None], (0, 0), 4) / np.maximum(cv2.GaussianBlur(_clo, (0, 0), 4)[..., None], 1e-3)
+_srow = np.clip(np.floor(cut_y[0]).astype(int) - 3, 0, 511)
+_nzt = np.clip(cv2.GaussianBlur(np.random.default_rng(4).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 3) * 10, -4, 4)[..., None]
+_skc = cv2.erode(((NOARM[..., 3] > 200) & (YY >= cut_y - 4)).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0   # 치마(그림) 안쪽 4px — 가장자리까지 채우면 공격 때 상체가 기울며 띠가 치마 왼쪽 밖으로 삐져나옴
+_ovNA = ARM_OCC & (YY >= cut_y) & (YY < cut_y + OVL) & _skc
+torso[ARM_OCC & (YY >= cut_y) & (YY < cut_y + OVL) & ~_skc] = 0
+torso[_ovNA, :3] = np.clip(_cb[_srow[XX], XX] + _nzt, 0, 255)[_ovNA].astype(np.uint8); torso[_ovNA, 3] = 255
+print('  torso behind near arm <- no-arm art', int(_tNA.sum()), 'px · overlap cloth', int(_ovNA.sum()), '· cleared outside body', int((ARM_OUT & (YY < cut_y + OVL)).sum()))
 o_torso = save('torso', torso)
 # 밑단(치마 아래 배 판의 아래 외곽선, 격자 hem19.png 에서 읽음): 그 아래 몸 픽셀(검은 바지·무릎 판 윗부분)은 서 있는 다리 조각으로 —
 #   치마에 두면 숨쉬기·달리기로 치마가 움직일 때 무릎 판 위가 갈라져 찢긴 조각·검은 띠(29 v1.7 교훈, 첫 렌더에서도 보였음)
@@ -97,6 +116,8 @@ SKIRT_CUT = legTop['near'] | legTop['far']
 print('  leg tops from body', {sd: int(legTop[sd].sum()) for sd in legTop})
 shw = warp(col_match(sheet('hips'), body & (YY >= cut_y)), GEO['hips']['M'])
 skirt = under(under(art(body & (YY >= cut_y) & ~SKIRT_CUT), shw, lab('foreN') & (YY >= cut_y)), binp, fillN & (YY >= cut_y))
+_sNA = ARM_OCC & (YY >= cut_y) & ~SKIRT_CUT; skirt[_sNA] = NOARM[_sNA]; skirt[ARM_OUT & (YY >= cut_y)] = 0   # 주먹 밑 허리띠·금 판·아래 배 판 = 그림 그대로
+print('  skirt under fist <- no-arm art', int(_sNA.sum()), 'px')
 o_skirt = save('skirt', skirt)
 # 머리+수염 (원화 그대로, 안경 포함)
 o_head = save('head', art(lab('head')))

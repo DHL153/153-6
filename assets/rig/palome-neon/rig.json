@@ -1,6 +1,6 @@
 {
  "name": "palome-neon",
- "version": "7a892966",
+ "version": "82fa9ab7",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   560.0,
@@ -12,7 +12,7 @@
   "torso": {
    "src": "parts/torso.png",
    "pivot": [
-    159.0,
+    182.0,
     164.0
    ],
    "scale": 2.0
@@ -20,7 +20,7 @@
   "skirt": {
    "src": "parts/skirt.png",
    "pivot": [
-    118.0,
+    133.0,
     18.0
    ],
    "scale": 2.0,
