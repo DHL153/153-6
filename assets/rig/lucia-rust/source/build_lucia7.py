@@ -343,7 +343,7 @@ exec(open(os.path.join(HERE, 'attack', 'smash7.py')).read())
 #   v1.1 (DHL 10-20 21:44 '다리 레이어가 옷 뒤로'): 다리 = 상체(튜닉)·골반(허리띠 + 치맛단) 뒤 — 달릴 때 무릎이 튜닉 위로 올라와 보이던 것.
 #     팔뚝·도끼·쥔 주먹은 다리보다 더 뒤(12 규칙), 윗팔 소매만 상체 앞(원화). 대기 원화 겹침 차이 = v1 과 같은 762 px (tools/ordercheck7.py)
 #   방패·가까운 주먹 = 맨 앞, 먼 어깨 보호대 = 머리 앞·방패 뒤
-draw = ['foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'torso', 'armF', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
+draw = ['foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'torso', 'armF', 'armFs', 'hips', 'head', 'pauldronF', 'armU', 'armL', 'shield', 'fistN']
 _top = 170
 rig = {'name': 'lucia-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},

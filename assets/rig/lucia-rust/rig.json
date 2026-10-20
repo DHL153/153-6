@@ -1,6 +1,6 @@
 {
  "name": "lucia-rust",
- "version": "9115f019",
+ "version": "d3152acb",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   546.0,
@@ -382,24 +382,24 @@
   "afFart": {
    "src": "parts/afFart.png",
    "pivot": [
-    57.4,
+    58.4,
     11.0
    ],
    "scale": 2.0,
    "elbow": [
-    12.0,
+    13.0,
     54.0
    ]
   },
   "afFart2": {
    "src": "parts/afFart.png",
    "pivot": [
-    57.4,
+    58.4,
     11.0
    ],
    "scale": 2.0,
    "elbow": [
-    12.0,
+    13.0,
     54.0
    ]
   },
@@ -433,16 +433,16 @@
     0.688
    ]
   },
-  "auFart": {
-   "src": "parts/auFart.png",
+  "upFs": {
+   "src": "parts/upFs.png",
    "pivot": [
-    15.5,
-    15.5
+    20.0,
+    20.0
    ],
    "scale": 2.0,
    "elbow": [
-    73.5,
-    15.5
+    54.0,
+    67.0
    ]
   },
   "gFh": {
@@ -650,6 +650,15 @@
     0,
     -200
    ]
+  },
+  {
+   "name": "armFs",
+   "parent": "armF",
+   "pos": [
+    0,
+    0
+   ],
+   "part": "upFs"
   },
   {
    "name": "foreFf",
@@ -942,6 +951,7 @@
   "legNear",
   "torso",
   "armF",
+  "armFs",
   "hips",
   "head",
   "pauldronF",
@@ -951,7 +961,8 @@
   "fistN"
  ],
  "hidden": [
-  "weaponA"
+  "weaponA",
+  "armFs"
  ],
  "faces": {
   "happy": "face_happy",
@@ -1631,6 +1642,54 @@
       0.931,
       0
      ]
+    ],
+    "armF": [
+     [
+      0,
+      1
+     ],
+     [
+      0.09,
+      1,
+      "lin"
+     ],
+     [
+      0.091,
+      0
+     ],
+     [
+      0.36,
+      0,
+      "lin"
+     ],
+     [
+      0.361,
+      1
+     ]
+    ],
+    "armFs": [
+     [
+      0,
+      0
+     ],
+     [
+      0.09,
+      0,
+      "lin"
+     ],
+     [
+      0.091,
+      1
+     ],
+     [
+      0.36,
+      1,
+      "lin"
+     ],
+     [
+      0.361,
+      0
+     ]
     ]
    },
    "order": [
@@ -1650,6 +1709,7 @@
   "legNear",
   "torso",
   "armF",
+  "armFs",
   "hips",
   "head",
   "pauldronF",
@@ -1661,7 +1721,7 @@
  "swordGrip": {
   "tipDepth": -202.9,
   "near": {
-   "upper": "auFart",
+   "upper": "upF",
    "carry": "gFart"
   },
   "far": {
