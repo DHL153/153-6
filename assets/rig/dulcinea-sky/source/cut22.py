@@ -1,4 +1,4 @@
-# 12 네온 둘시네 조각 시트(프롬프트 1: 3072², 자홍 배경, 6×6 칸에 27조각) 자르기 — 키잉·덩어리 = 6 카르덴 cut_sheet, 이름 = 칸 번호(프롬프트 1 순서)
+# 22 스카이 둘시네 조각 시트(프롬프트 1: 3072², 자홍 배경, 5×5 칸에 25조각) 자르기 (12 cut12 복사) — 키잉·덩어리 = 6 카르덴 cut_sheet, 이름 = 칸 번호(프롬프트 1 순서)
 #   python3 -I cut12.py [sheets/sheet1.png] → pieces/<이름>.png + pieces/index.json   (10-20 07:40 시트 오기 전에 가짜 시트로 시험)
 import json, os, sys
 import numpy as np
@@ -7,16 +7,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from cut_sheet import key, blobs
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAMES = ['pose', 'head', 'face_neutral', 'face_happy', 'face_angry', 'face_focus', 'face_shout', 'face_effort', 'blink_half', 'blink_closed',
-         'hammer', 'torso', 'padN', 'hips', 'upperN', 'foreN', 'upperF', 'foreF', 'fistN', 'gFv', 'gFh',
-         'thighN', 'thighF', 'bootN', 'bootF', 'kneeN', 'kneeF']
+         'pony', 'hammer', 'torso', 'padN', 'hips', 'flap', 'fistN', 'gFv', 'gFh', 'thighN', 'thighF', 'bootN', 'bootF', 'kneeN', 'kneeF']
+GRID = 5
 if __name__ == '__main__':
     fn = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'sheets', 'sheet1.png')
     out = os.environ.get('PIECES', os.path.join(HERE, 'pieces'))
-    src = np.asarray(Image.open(fn).convert('RGB')); H, W = src.shape[:2]; cw, ch = W / 6, H / 6
+    src = np.asarray(Image.open(fn).convert('RGB')); H, W = src.shape[:2]; cw, ch = W / GRID, H / GRID
     rgba, alpha = key(src)
     bs = [b for b in blobs(alpha, minpx=60) if b['px'] > 60]
     def cell(b):   # 긴 조각(망치)은 위 끝이 든 칸
-        y = b['y0'] + ch * .3 if b['y1'] - b['y0'] > ch * .9 else b['cy']; return int(min(5, y // ch)), int(min(5, b['cx'] // cw))
+        y = b['y0'] + ch * .3 if b['y1'] - b['y0'] > ch * .9 else b['cy']; return int(min(GRID - 1, y // ch)), int(min(GRID - 1, b['cx'] // cw))
     cells = {}
     for b in bs: cells.setdefault(cell(b), []).append(b)
     order = sorted(cells)

@@ -1,4 +1,4 @@
-# 12 네온 둘시네: 시트 조각 → 새 원화 자리 맞춤 (SIFT + RANSAC 닮음, 29 스카이 팔로메 reg29.py 그대로) — python3 -I reg12.py → work/geom.json + review/reg_<이름>.png
+# 22 스카이 둘시네: 시트 조각 → 새 원화 자리 맞춤 (12 reg12 복사) (SIFT + RANSAC 닮음, 29 스카이 팔로메 reg29.py 그대로) — python3 -I reg12.py → work/geom.json + review/reg_<이름>.png
 #   찾을 곳(REG)은 새 원화가 러스트 둘시네 자세라 러스트 원화(char_0002) 자리로 미리 잡아 둠 — 원화 오면 한 번 보고 고침(10-20 07:45)
 #   시트 1번(전체 자세)은 원화와 같지만 조각들은 다시 그린 그림(1:1 복사 아님) → 큰 조각만 SIFT, 작은 조각은 build 에서 관절 두 점으로
 import json, os, math, sys
@@ -29,10 +29,10 @@ def match(n, region=None):
     bg = Image.new('RGBA', (512, 512), (255, 255, 255, 255)); bg.alpha_composite(out); bg.alpha_composite(ov); os.makedirs(os.path.join(HERE, 'review'), exist_ok=True); bg.save(os.path.join(HERE, 'review', f'reg_{n}.png'))
     return dict(M=M.tolist(), inl=int(inl.sum()), good=len(good), scale=round(math.hypot(M[0, 0], M[1, 0]), 4), rot=round(math.degrees(math.atan2(M[1, 0], M[0, 0])), 2),
                 xy=[round(float(M[0, 2]), 1), round(float(M[1, 2]), 1)], diff=round(d, 1))
-# (10-20 08:43) 새 원화 자리로 고침(seg12 부품 칸 범위 + 여유)
-REG = {'head': [118, 108, 335, 272], 'face_neutral': [118, 108, 335, 272], 'torso': [160, 242, 272, 332], 'hips': [138, 305, 270, 382], 'padN': [118, 232, 197, 312],
-       'upperN': [118, 268, 172, 318], 'foreN': [88, 284, 162, 348], 'fistN': [84, 318, 162, 382], 'foreF': [232, 292, 298, 345], 'gFv': [268, 284, 332, 356],
-       'thighN': [138, 338, 218, 398], 'thighF': [212, 344, 298, 402], 'bootN': [78, 358, 218, 492], 'bootF': [218, 368, 362, 492], 'hammer': [238, 100, 492, 392], 'pose': [0, 0, 512, 512]}
+# (22 스카이 10-20 15:05) 새 원화(ref512) 자리 — 포니테일·천자락 더함, 팔 칸 없음
+REG = {'head': [40, 30, 350, 275], 'face_neutral': [40, 30, 350, 275], 'pony': [30, 30, 260, 210], 'torso': [150, 240, 310, 340], 'hips': [130, 315, 300, 395], 'padN': [130, 230, 215, 295],
+       'flap': [280, 320, 340, 400], 'fistN': [95, 290, 175, 355], 'gFv': [285, 270, 360, 345], 'thighN': [120, 330, 220, 410], 'thighF': [200, 340, 300, 410],
+       'bootN': [40, 350, 240, 495], 'bootF': [225, 355, 390, 495], 'hammer': [270, 70, 512, 420], 'pose': [0, 0, 512, 512]}
 if __name__ == '__main__':
     out = {}
     for n, rg in REG.items():

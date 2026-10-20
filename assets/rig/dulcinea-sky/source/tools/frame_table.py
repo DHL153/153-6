@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__)); root = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 ID = os.environ.get('RID', 'dulcinea-sky'); VX = float(sys.argv[1]) if len(sys.argv) > 1 else 0; T0 = float(sys.argv[2]) if len(sys.argv) > 2 else 0
 T1 = float(sys.argv[3]) if len(sys.argv) > 3 else 1; STEP = eval(sys.argv[4]) if len(sys.argv) > 4 else 1 / 60
-FACEBOX = '[[-55,-345],[140,-345],[140,-140],[-55,-140]]' if ID == 'dulcinea-rust' else '[[-46,-400],[154,-400],[154,-140],[-46,-140]]'   # 얼굴 상자(대기 골반 기준 리그 px)
+FACEBOX = {'dulcinea-rust': '[[-55,-345],[140,-345],[140,-140],[-55,-140]]', 'dulcinea-neon': '[[-46,-400],[154,-400],[154,-140],[-46,-140]]'}.get(ID, '[[-64,-330],[186,-330],[186,-142],[-64,-142]]')   # 얼굴 상자(대기 골반 기준 리그 px) — 22: 얼굴 살·안경(원화 x 190~315, y 170~262)
 html = f'''<!doctype html><meta charset=utf-8><script src="rig.js?x={time.time()}"></script><script src="{ID}/rig.def.js?x={time.time()}"></script><script>
 (async()=>{{const d=MR_RIG_DEFS['{ID}'];const ims=await Promise.all(Object.entries(d.parts).map(([k,p])=>new Promise((r,j)=>{{const im=new Image();im.onload=()=>r([k,im]);im.onerror=()=>j(p.src);im.src='{ID}/'+p.src}})));
 const IM=Object.fromEntries(ims);const inv=m=>{{const q=m[0]*m[3]-m[1]*m[2];return [m[3]/q,-m[1]/q,-m[2]/q,m[0]/q,(m[2]*m[5]-m[3]*m[4])/q,(m[1]*m[4]-m[0]*m[5])/q]}};
@@ -34,7 +34,7 @@ try:
         if errs: print('errors', errs[:5])
 finally:
     srv.terminate(); os.remove(os.path.join(root, '_ft.html'))
-LN, LF = (202.3, 188.8) if ID == 'dulcinea-rust' else (186.5, 183.8)   # 팔 길이(리그): 먼 팔 어깨→팔꿈치→쥔 점 · 가까운 팔 어깨→팔꿈치→주먹 (build 출력)
+LN, LF = {'dulcinea-rust': (202.3, 188.8), 'dulcinea-neon': (186.5, 183.8)}.get(ID, (186.8, 162.4))   # 팔 길이(리그): 먼 팔 어깨→팔꿈치→쥔 점 · 가까운 팔 어깨→팔꿈치→주먹 (build 출력, 22 = 186.8 · 81.2×2)
 def inside(poly, q, m=0):
     xs = [p[0] for p in poly]; ys = [p[1] for p in poly]
     return q is not None and min(xs) - m <= q[0] <= max(xs) + m and min(ys) - m <= q[1] <= max(ys) + m
