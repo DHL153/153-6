@@ -59,3 +59,8 @@
 
 ## 00:23 (10-21) 편집 툴 버전 1792509807-1f47 — '10 러스트 브루노 v1.2' 올림
 - 그 사이 다른 세션이 7 루시아 v1.5 를 올려(1792509730-a972) 그 위에 합침 · 편집기용 rig.def.js(rig 34fb4ff1) · progress/bruno10_v12.jpg 더함 · **파일 수 510/511 — 다음에 올릴 땐 하나 빼야 함**(예: bruno10_v11.jpg 를 v12 그림에 합치거나 지움) · rig.js 그대로
+
+## 00:35 (10-21) 게임 반영 (DHL 00:24 '좋아요, 인게임에 넣어줘요') — 커밋 84ee77e
+- index.html: `assets/rig/bruno-rust/rig.def.js?v=34fb4ff1` · REGISTRY 10:'bruno-rust' · 도감 몸 가운데 gameRef x 236.4(fitArt 중심 243.4) · 맞는 효과 = 1타 .28 한 번(hitAt — 2타 효과는 엔진·게임 opt-in 이 필요해 DHL 결정 대기)
+- 스킬 컷인 cutHold: 후보 .10·.17·.20·.23·.48·.53 → .20(머리 위 도끼)은 PC 컷인 칸 위 끝에 도끼 날이 닿아(1~2px) **.10 예비**(두 도끼 V 자, 화남 얼굴) — rig 버전은 편집 툴과 같은 34fb4ff1
+- 확인(palome-rust/source/tools, NUM=10, 차례대로): game_top PC 1280×800 공격 중 가장 위 점 = 칸 위 끝에서 21px · 폰 430×900 20px(대기와 같음, 잘림 없음) · game_check PC·폰(전투 달리기·공격 12장·트레일·스킬 컷인·컷인 뒤·도감 2장) · game_check2 PC·폰(시작 선택 리그·미리보기·필살기 컷신 Twin Axe Drop·마이룸 리그) · game_dexclick PC(도감 클릭) — 페이지 오류 0
