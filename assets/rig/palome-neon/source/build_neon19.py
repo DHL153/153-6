@@ -72,7 +72,7 @@ TOPL, BOTL = (0.7051, -40.6), (0.7051, 9.6)                       # 칼날 위·
 MID = ((TOPL[0] + BOTL[0]) / 2, (TOPL[1] + BOTL[1]) / 2); UT = -np.array([1.0, MID[0]]) / math.hypot(1, MID[0])   # 칼끝 방향(날 가운데 선)
 TIP = np.array([44.0, 10.0])
 LEG = {'near': dict(hip=np.array([226.0, 438.0]), ankle=np.array([222.0, 483.0])), 'far': dict(hip=np.array([333.0, 438.0]), ankle=np.array([338.0, 482.0]))}
-FIT_CX = 253.6   # 도감 fitArt 가운데(index.html measureBox 를 160px 로 흉내: 19 새 원화)
+FIT_CX = 252.0   # 도감 fitArt 가운데(index.html measureBox 를 160px 로 흉내) — 칼날 뒤집은 char_0019(10-20 21:05, 원화 그대로였을 땐 253.6)
 
 # ---------------- 상체·치마 ----------------
 # 허리띠 윗변(큰 버클 위 389, 나머지 394)에서 나눔 — 치마 = 허리띠·아래 배 판, 상체 = 그 위 + 14px 겹침
@@ -217,10 +217,18 @@ if FLIP_BLADE:
         out = img.copy(); ys_ = slice(0, YCUT); xd = np.arange(XL, XR + 1); xs_ = np.round(2 * BCX - xd).astype(int)
         blk = img[ys_][:, xs_].copy(); out[ys_, XL:XR + 1] = blk; return out
     swv = _mir(swv); gav = _mir(gav)
+    # 칼날 위 guardArt(원화 칼날 픽셀)는 뒤집으면 머리 외곽선에서 잘렸던 끝이 머리 밖으로 나와 칼날에 톱니·흰 조각(21:05 char_0019 만들며 찾음) → 칼날은 공격과 같은 이은 칼날, guardArt 는 날밑·손잡이만
+    gav[:YCUT, XL:XR + 1] = 0
     W_TIP = np.array([2 * BCX - W_TIP[0], W_TIP[1]])
     Image.fromarray(swv).save(os.path.join(PARTS, 'weapon.png')); Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png'))
     print('  blade flipped about x', BCX, 'rows <', YCUT, 'cols', XL, '~', XR)
 TIPS_DX = (12, -28) if FLIP_BLADE else (-12, 28)   # 칼끝 두 모서리(날 쪽·등 쪽)도 같이 거울
+# 게임 정지 그림(char_0019 — 카드·필살기 컷신) 칼날도 같게 뒤집으려고(tools/art_flip19.py): 대기 때 보이는 칼(원화 칼 픽셀 + 가려진 곳 이은 칼날, 원화 공간) + 세운 그림 변환
+_q = (Rm[:, :2] @ np.stack([XX.ravel() * UPS, YY.ravel() * UPS]) + Rm[:, 2:3] - np.array([[x0], [y0]])).reshape(2, 512, 512)
+_bladeA = (_q[1] < YCUT) & (_q[0] >= 3) & (_q[0] <= XR) if FLIP_BLADE else np.zeros((512, 512), bool)   # 원화 공간에서 거울하는 칼날 칸
+_swi = sw.copy(); _gm2 = _gm & ~_bladeA; _swi[_gm2] = SW0[_gm2]; Image.fromarray(_swi).save(os.path.join(HERE, 'work', 'sword_idle_art.png'))
+json.dump({'Rm': Rm.tolist(), 'x0': int(x0), 'y0': int(y0), 'UPS': UPS, 'BCX': BCX if FLIP_BLADE else None, 'YCUT': YCUT if FLIP_BLADE else None, 'XL': 3, 'XR': (XR if FLIP_BLADE else None)},
+          open(os.path.join(HERE, 'work', 'sword_flip.json'), 'w'))
 Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png')); print('  guardArt', int(_gm.sum()), 'px')
 print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), 'rot', round(rot_deg, 2))
 # ---------------- 다리 ----------------
@@ -335,7 +343,7 @@ rig = {'name': 'palome-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 
        'bounce': [], 'metrics': {'bodyHeight': round(2 * (501 - 159)), 'note': 'rig units; 머리카락 위(y159)~발바닥(501) ×2, 칼 제외'},
        'ui': {'attack': 'smash', 'touch': 'hop'},
        'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
-                   'note': f'게임 그림 char_0019.png(512) = 새 원화(ref512). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x 288)이 가운데 (9·29 팔로메와 같은 규칙)'},
+                   'note': f'게임 그림 char_0019.png(512) = 새 원화(ref512)에서 칼날만 좌우 반전(tools/art_flip19.py, v1.3). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x 288)이 가운데 (9·29 팔로메와 같은 규칙)'},
        'note': '19 네온 팔로메 v1(대기·달리기·한 손 내려찍기). 9 러스트 팔로메 구조(드워프 몸, 먼 팔이 칼을 어깨에 멤, 칼날 머리 뒤). 조각 = 원화를 부품별로 나눔(seg19.py) + 가려진 곳만 시트·inpaint 로 메움'}
 exec(open(os.path.join(HERE, 'attack_neon19.py'), encoding='utf-8').read())   # 한 손 내려찍기(9 v1.1 지렛대)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())

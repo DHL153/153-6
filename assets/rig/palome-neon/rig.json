@@ -1,6 +1,6 @@
 {
  "name": "palome-neon",
- "version": "43a77fc4",
+ "version": "964993be",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   560.0,
@@ -707,12 +707,12 @@
  },
  "gameRef": {
   "refOrigin": [
-   245.6,
+   244.0,
    501.0
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0019.png(512) = 새 원화(ref512). x = 도감 칸(fitArt 중심 253.6, index.html measureBox 와 같은 계산)에서 골반(hip x 288)이 가운데 (9·29 팔로메와 같은 규칙)"
+  "note": "게임 그림 char_0019.png(512) = 새 원화(ref512)에서 칼날만 좌우 반전(tools/art_flip19.py, v1.3). x = 도감 칸(fitArt 중심 252.0, index.html measureBox 와 같은 계산)에서 골반(hip x 288)이 가운데 (9·29 팔로메와 같은 규칙)"
  },
  "note": "19 네온 팔로메 v1(대기·달리기·한 손 내려찍기). 9 러스트 팔로메 구조(드워프 몸, 먼 팔이 칼을 어깨에 멤, 칼날 머리 뒤). 조각 = 원화를 부품별로 나눔(seg19.py) + 가려진 곳만 시트·inpaint 로 메움",
  "swordGrip": {
