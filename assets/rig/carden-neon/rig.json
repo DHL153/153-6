@@ -1,6 +1,6 @@
 {
  "name": "carden-neon",
- "version": "ae700f10",
+ "version": "3f146ec5",
  "units": "rig px (reference x2)",
  "refOrigin": [
   236.0,
@@ -32,6 +32,14 @@
     100.0
    ],
    "scale": 2.34
+  },
+  "torsoFill": {
+   "src": "parts/torsoFill.png",
+   "pivot": [
+    164.0,
+    220.0
+   ],
+   "scale": 1.0
   },
   "head": {
    "src": "parts/head.png",
@@ -365,6 +373,16 @@
    "part": "torso"
   },
   {
+   "name": "torsoFill",
+   "parent": "torso",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "rot": -0.0873,
+   "part": "torsoFill"
+  },
+  {
    "name": "head",
    "parent": "torso",
    "pos": [
@@ -605,6 +623,7 @@
   "legNear",
   "armF",
   "skirt",
+  "torsoFill",
   "torso",
   "pouch",
   "foreF",
@@ -1433,6 +1452,7 @@
   "legNear",
   "armF",
   "skirt",
+  "torsoFill",
   "torso",
   "pouch",
   "foreF",
