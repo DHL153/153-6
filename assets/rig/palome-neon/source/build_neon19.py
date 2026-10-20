@@ -205,6 +205,22 @@ _gm = (SW0[..., 3] > 0) & ((np.abs(SW0.astype(int) - sw.astype(int)).max(-1) > 8
 ga = np.zeros_like(SW0); ga[_gm] = SW0[_gm]
 ga2 = cv2.resize(ga, None, fx=UPS, fy=UPS, interpolation=cv2.INTER_LANCZOS4); ga2[..., 3] = np.clip(cv2.resize(ga[..., 3], None, fx=UPS, fy=UPS, interpolation=cv2.INTER_LINEAR), 0, 255)
 gav = cv2.warpAffine(ga2, Rm, (WS, HS), flags=cv2.INTER_CUBIC, borderValue=(0, 0, 0, 0))[y0:y0 + swv.shape[0], x0:x0 + swv.shape[1]]
+# 칼날 좌우 반전(10-20 20:38 DHL '칼을 좌우반전 · 칼날이 뒤에 있어요'): 원화는 크림 날이 어깨 쪽(아래), 회색 등이 위 → 앞으로 내려찍으면 등이 앞장섬.
+#   세운 칼 그림에서 날밑 위 칼날만 칼날 가운데 세로선(날밑 바로 위 칼날 폭 가운데)으로 거울 — 날밑·손잡이·폼멜은 그대로(주먹·쥔 점·칼 방향·길이 그대로).
+#   날밑 오른쪽 위 뿔(x > 102)은 날밑 것이라 빼고, 날밑 윗선(y ≥ 748)부터는 그대로. guardArt(대기 원화 칼 픽셀)도 같은 거울 → 대기 = '원화 칼을 뒤집은 것'
+FLIP_BLADE = True
+if FLIP_BLADE:
+    _al_ = swv[..., 3] > 40; _gy = int(round(W_GUARD[1])); _rows = [y for y in range(_gy - 40, _gy - 30) if _al_[y].any()]
+    _bx = [np.nonzero(_al_[y])[0] for y in _rows]; BCX = float(np.median([(b.min() + b.max()) / 2 for b in _bx]))   # 날밑 바로 위 칼날 폭 가운데
+    YCUT = _gy - 24; XL, XR = 3, int(2 * BCX) - 3
+    def _mir(img):
+        out = img.copy(); ys_ = slice(0, YCUT); xd = np.arange(XL, XR + 1); xs_ = np.round(2 * BCX - xd).astype(int)
+        blk = img[ys_][:, xs_].copy(); out[ys_, XL:XR + 1] = blk; return out
+    swv = _mir(swv); gav = _mir(gav)
+    W_TIP = np.array([2 * BCX - W_TIP[0], W_TIP[1]])
+    Image.fromarray(swv).save(os.path.join(PARTS, 'weapon.png')); Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png'))
+    print('  blade flipped about x', BCX, 'rows <', YCUT, 'cols', XL, '~', XR)
+TIPS_DX = (12, -28) if FLIP_BLADE else (-12, 28)   # 칼끝 두 모서리(날 쪽·등 쪽)도 같이 거울
 Image.fromarray(gav).save(os.path.join(PARTS, 'guardArt.png')); print('  guardArt', int(_gm.sum()), 'px')
 print('  sword vertical: tip', np.round(W_TIP, 1), 'grip', np.round(W_PIV, 1), 'rot', round(rot_deg, 2))
 # ---------------- 다리 ----------------
@@ -275,7 +291,7 @@ P_('torso', HIP); P_('skirt', HIP, mesh={'cols': 8, 'rows': 6}); P_('head', NECK
 P_('pauldron', SH_N); P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armL', EL_N, fist=piv('armL', WR_N + (WR_N - EL_N) * .2))
 P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('foreF', EL_F); P_('fistF', WR_F)
 parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [round(float(W_PIV[0]), 1), round(float(W_PIV[1]), 1)], 'scale': SC / UPS,
-                   'tip': [round(float(W_TIP[0]), 1), round(float(W_TIP[1]), 1)], 'tips': [[round(float(W_TIP[0]) - 6 * UPS, 1), round(float(W_TIP[1]) + 10 * UPS, 1)], [round(float(W_TIP[0]) + 14 * UPS, 1), round(float(W_TIP[1]) + 10 * UPS, 1)]],
+                   'tip': [round(float(W_TIP[0]), 1), round(float(W_TIP[1]), 1)], 'tips': [[round(float(W_TIP[0]) + TIPS_DX[0], 1), round(float(W_TIP[1]) + 10 * UPS, 1)], [round(float(W_TIP[0]) + TIPS_DX[1], 1), round(float(W_TIP[1]) + 10 * UPS, 1)]],
                    'guard': [round(float(W_GUARD[0]), 1), round(float(W_GUARD[1]), 1)], 'pommel': [round(float(W_POM[0]), 1), round(float(W_POM[1]), 1)]}
 parts['guardArt'] = {'src': 'parts/guardArt.png', 'pivot': [round(float(W_PIV[0]), 1), round(float(W_PIV[1]), 1)], 'scale': SC / UPS}
 for n in FACE_N + BLINK_N: parts[f'face_{n}'] = {'src': f'parts/face_{n}.png', 'pivot': parts['head']['pivot'], 'scale': SC}
