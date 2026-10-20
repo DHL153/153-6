@@ -92,8 +92,17 @@ _KF = os.path.join(HERE, 'attack', 'keys12.json')   # (10-20 08:43) tools/gen_ke
 if os.path.exists(_KF) and not os.environ.get('RUST_KEYS'):
     _KG = json.load(open(_KF))['G']; POSE = [(p[0], *_KG[str(p[0])], p[3], p[4]) if str(p[0]) in _KG else p for p in POSE]
     print('  smash keys12.json 쥔 점', len(_KG), '키')
+# (10-20 DHL 10:37 '0.35초 표시한 팔 길이가 이상 — 원래 리소스 유지하면서') tools/shoulder12.py: 먼 어깨를 몸(상체·머리) 실루엣 안 깊이 ≥ 20 에 두고
+#   쥔 점은 러스트 방향 그대로 팔이 닿는 곳(펴짐 ≤ .86)으로 — 러스트 키는 어깨를 몸 밖 허공(목 옆)으로 밀어 윗팔 관·남색 소매 끝이 보이고 팔이 거의 다 펴졌음(.35초 .96)
+#   조각 그림(원화 팔뚝·주먹·윗팔)·팔 길이는 그대로, 자세(어깨 자리·쥔 점)만 바꿈. 들어 올림·예비 = 어깨를 턱·머리카락 뒤로(얼굴 밖 팔꿈치 그대로)
+_KB = os.path.join(HERE, 'attack', 'keys12b.json'); K12B = None
+if os.path.exists(_KB) and not os.environ.get('RUST_KEYS') and not os.environ.get('NO_K12B'):
+    K12B = json.load(open(_KB))['keys']; POSE = [(p[0], *K12B[f'{p[0]:.2f}']['G'], p[3], p[4]) if f'{p[0]:.2f}' in K12B else p for p in POSE]
+    print('  smash keys12b.json 어깨·쥔 점', len(K12B), '키')
 PT = lambda i: [[p[0], p[i]] + ([p[4]] if p[4] else []) for p in POSE]
 SHX12 = float(os.environ.get('SHX12', 22))
+def _shk(j):   # keys12b 의 어깨(상체 기준) → shFx·shFy 키(POSE 와 같은 시각·같은 보간)
+    v0 = (54.0, -114.0)[j]; return [[p[0], (round(K12B[f'{p[0]:.2f}']['shL'][j] - v0, 1) if f'{p[0]:.2f}' in K12B else 0)] + ([p[4]] if p[4] else []) for p in POSE]
 smash = {
     'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': END, 'hitAt': HIT, 'hitStop': .12, 'cancelAt': .78, 'freeArm': True,
     'aDamp': 30, 'standStep': True,   # 달리다 공격(게임 전투는 늘 달리다 공격): 발을 0.1초 안에 딛고, 달리기 다리 그림 → 원화 다리 그림은 한 프레임 계단(반투명 겹침 없음)
@@ -105,7 +114,8 @@ smash = {
     'gx': PT(1), 'gy': PT(2), 'sa': PT(3),
     # 먼 어깨(armF, 몸 뒤라 안 보임)를 바깥으로 — 먼 팔꿈치가 늘 얼굴 오른쪽 바깥(풀이 solve/one2.py: 팔꿈치 x ≥ 170)
     'shFx': k((0, 0, 'io'), (LIFT, 30 + SHX12, 'io'), (WIND, 32 + SHX12, 'io'), (SW1, 35 + SHX12), (SW2, 40 + SHX12, 's'), (HIT, -40 + SHX12, 'io'), (HOLD, -40 + SHX12, 'io'), (RET1, 35 + SHX12, 'io'), (RET + .06, 0)),   # (12 네온) + SHX12: 네온 먼 어깨가 러스트보다 22 안쪽(골반 기준 54 vs 76) → 움직이는 동안 러스트 자리로 — 들어 올릴 때 먼 팔꿈치가 턱 옆 머리카락 위에 왔음(표 '팔꿈치얼굴')   # 21:42 타격·버팀 먼 어깨(몸 뒤)를 안쪽 위로 — 팔뚝이 재킷 옆에서 주먹으로, 손목 꺾임 ≈ 30°
-    'shFy': k((0, 0, 'io'), (LIFT, -20, 'io'), (WIND, -22, 'io'), (SW1, -10), (SW2, 0, 's'), (HIT, -20, 'io'), (HOLD, -20, 'io'), (RET1, 0, 'io'), (END, 0)),   # SW2→HIT 's'(망치와 같은 내려치기 곡선) — 휘두름 중 팔 펴짐 0.87~0.90
+    'shFy': k((0, 0, 'io'), (LIFT, -20, 'io'), (WIND, -22, 'io'), (SW1, -10), (SW2, 0, 's'), (HIT, -20, 'io'), (HOLD, -20, 'io'), (RET1, 0, 'io'), (END, 0)),
+    **({'shFx': _shk(0), 'shFy': _shk(1)} if K12B else {}),   # SW2→HIT 's'(망치와 같은 내려치기 곡선) — 휘두름 중 팔 펴짐 0.87~0.90
     # 가까운 팔(칼 안 쥔 팔, 원화 그대로): 예비 때 주먹을 앞으로(−), 타격 때 뒤로(+) — 엔진 opt-in freeArm
     'fuA': k((0, 0, 'io'), (LIFT, -.5, 'io'), (WIND, -.55, 'i'), (SW2, .1, 'o'), (HIT, .5, 'o'), (HOLD, .45, 'io'), (RET + .08, 0)),
     'flA': k((0, 0, 'io'), (LIFT, -.6, 'io'), (WIND, -.65, 'i'), (SW2, -.1, 'o'), (HIT, .15, 'o'), (HOLD, .12, 'io'), (RET + .08, 0)),
