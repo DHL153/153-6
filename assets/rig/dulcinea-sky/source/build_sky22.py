@@ -282,11 +282,13 @@ RS = 2.0                                                         # 시트 = 원�
 #   (10-20 DHL 16:57 ①타격 0.40 뒷다리 '길어지면서 얇아짐 — 두께는 비슷하게, 덜 뻗게' ②③달리기 '표시한 살 부분까지 없애야 자연스러움')
 #   원인: 달리는 허벅지 = 먼 다리 서 있는 길이 49(원화 px)를 시트 허벅지(폭 34, 원화 허벅지 44~47 보다 가늚)로 1.45배 늘여 그림 → 길고 가는 살 다리,
 #         달리는 부츠 = 시트 ×1(원화 가까운 부츠보다 약 15% 작음)이라 반바지 밑단~무릎 판 사이 살이 20~25px 보였음(12 네온은 무릎 보호대가 반바지 밑단 바로 밑)
-#   → 부츠 = 원화 가까운 부츠 크기(시트 ×1.19), 허벅지 = 무릎 판 위 끝이 반바지 밑단(뿌리 아래 약 13)에 오는 길이(원화 25), 굵기 = 원화 허벅지 굵기(44)
-RSB = float(os.environ.get('RSB', 2.38))                         # 달리는 부츠 배율(리그) — 원화 가까운 부츠 무릎 판 위~발목 약 87 = 시트 74 × 1.19
-RUN_TH = float(os.environ.get('RUN_TH', 50.0))                   # 달리는 허벅지 길이(리그) — 무릎 판 위 끝(무릎 위 10×1.19)이 반바지 밑단 높이
-RUN_THW = float(os.environ.get('RUN_THW', 72.0))                 # 달리는 허벅지 굵기(리그) — 무릎 판 폭(원화 36)만큼: 무릎이 굽어도 반바지·무릎 판 밖으로 안 나옴
-#   달리는 허벅지 = 살 대신 반바지 안 그늘색(청바지 가장 어두운 색) — 무릎이 굽을 때 반바지 밑단과 무릎 판 사이 틈이 생기면 그늘로 보임(16:57 '살 부분까지 없애야')
+#   v1.1(17:15): 부츠 ×1.19 + 짧은 그늘색 허벅지(살 안 보임) → (10-20 17:48 DHL '달릴 때·공격할 때 표시한 다리(반바지 밑~무릎 판 사이 허벅지 살)를 표현 · 전처럼 바지에 붙이지 말고 · 부츠를 살짝 내리거나 줄여서 보이게')
+#   v1.2: 허벅지 = 살(시트 허벅지, 원화 허벅지 살 색에 맞춤) · 굵기 = 원화 대기 허벅지 굵기(가까운 44·먼 37 원화 px — 반바지 밑~무릎 판 사이에서 잼) · 길이 = 대기 가까운 허벅지(78.6)
+#         부츠 = 시트 ×1.0(v1.1 ×1.19 에서 줄임) · 허벅지 96(대기 먼 허벅지 98.5 쯤) → 반바지 밑단(가까운 다리 뿌리 아래 14.5 원화 px)~무릎 판 위 끝 사이 살이 원화 대기처럼 보임
+#         (비교 4안 17:5x: 부츠 ×1.05·허벅지 79 / ×1.05·90 / ×1.0·96 / ×1.0·104 — 79·90 은 달릴 때 살이 거의 안 보이고, 104 는 다리가 v1 보다 길어짐)
+RSB = float(os.environ.get('RSB', 2.0))                          # 달리는 부츠 배율(리그) — 시트 ×1.0
+RUN_TH = float(os.environ.get('RUN_TH', 96.0))                   # 달리는 허벅지 길이(리그) — 다리 전체 96 + 128.8 = 224.8(v1 227.7 · v1.1 203.2)
+RUN_THW = {'thighN': float(os.environ.get('RUN_THWN', 86.0)), 'thighF': float(os.environ.get('RUN_THWF', 76.0))}   # 달리는 허벅지 굵기(리그) = 원화 대기 허벅지 굵기 ×2(가까운 44 · 먼 37 원화 px, 반바지 밑~무릎 판 사이 가운데)
 _bf = sheet_rgba('bootF')
 KNEE_S, ANK_S = np.array([44.0, 10.0]), np.array([37.0, 74.0])    # 시트 부츠: 무릎(무릎 판 가운데 위) · 발목(발등 띠 위, 뒤꿈치 위)
 _Y, _X = np.mgrid[0:_bf.shape[0], 0:_bf.shape[1]]
@@ -301,16 +303,19 @@ def sole_sheet(a, ank):
         xs = np.nonzero(m[y])[0]; out += [[round(float(xs.min() - ank[0]), 1), round(float(y - ank[1]), 1)], [round(float(xs.max() - ank[0]), 1), round(float(y - ank[1]), 1)]]
     return out
 rseg = {}
+_skA = RA[..., :3][SKIN & (own['thighN'] | own['thighF'])].astype(float)   # 원화 허벅지 살 색(평균·편차) — 시트 살은 조금 밝고 노람
 for n in ['thighN', 'thighF']:   # 시트 허벅지: 위 = 반바지 속(곧게 잘림), 아래 = 둥근 무릎
     a = sheet_rgba(n); m = a[..., 3] > 128
     _ys = np.nonzero(m.any(1))[0]; y0_, y1_ = _ys.min(), _ys.max(); ty, tx = np.nonzero(m[y0_:y0_ + 6]); top = [float(tx.mean()), float(ty.mean() + y0_)]
     kr = int(y0_ + (y1_ - y0_) * .80); kx = np.nonzero(m[kr])[0]; kn = [float(kx.mean()), float(kr)]
     il = math.hypot(kn[0] - top[0], kn[1] - top[1]); s_ = RUN_TH / il
     _wid = float(np.median([m[y].sum() for y in range(int(top[1]) + 4, kr)]))   # 시트 허벅지 폭(px)
-    _dk = np.zeros_like(a); _dk[..., 3] = np.where(m, 255, 0); _dd = ndimage.distance_transform_edt(m)
-    _dk[..., :3] = np.array([50, 56, 66], np.uint8); _dk[..., :3][m & (_dd <= 1.6)] = (24, 22, 26)   # 반바지 그늘색 + 외곽선
-    Image.fromarray(_dk).save(os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
-    rseg[n] = {'part': 'r' + n, 'a': [round(top[0], 1), round(top[1], 1)], 'b': [round(kn[0], 1), round(kn[1], 1)], 'w': round(RUN_THW / (_wid * s_), 3)}   # 굵기 = RUN_THW(원화 허벅지)
+    _dd = ndimage.distance_transform_edt(m); _in = m & (_dd > 1.8) & (a[..., :3].astype(int).mean(-1) > 90)   # 외곽선 안 살
+    _sk = a[..., :3][_in].astype(float); _mu_s, _sd_s = _sk.mean(0), _sk.std(0) + 1
+    a = a.copy(); a[..., :3][_in] = np.clip((a[..., :3][_in] - _mu_s) / _sd_s * _skA.std(0) + _skA.mean(0), 0, 255).astype(np.uint8)
+    Image.fromarray(a).save(os.path.join(OUT, 'parts', 'r' + n + '.png')); def_parts['r' + n] = dict(src=f'parts/r{n}.png', pivot=[0, 0], scale=1.0)
+    rseg[n] = {'part': 'r' + n, 'a': [round(top[0], 1), round(top[1], 1)], 'b': [round(kn[0], 1), round(kn[1], 1)], 'w': round(RUN_THW[n] / (_wid * s_), 3)}   # 굵기 = 원화 대기 허벅지
+    print('  run', n, '시트 폭', _wid, '길이 배율', round(s_, 2), '→ 굵기', RUN_THW[n], '(가로 배율', round(RUN_THW[n] / _wid, 2), ')')
 legs['thighImg'] = rseg['thighF']; legs['near']['thighImg'] = rseg['thighN']; legs['far']['thighImg'] = rseg['thighF']
 legs['shinImg'] = {'part': 'rshin', 'a': KNEE_S.tolist(), 'b': ANK_S.tolist(), 'w': 1.0}
 legs['boot'] = {'part': 'rboot', 'sole': sole_sheet(_ft, ANK_S), 'ankleRange': [-0.35, 0.6]}   # 발목 앞 굽힘 .45 → .6: 가까운 정강이가 세로에서 29° 누운 원화(12 는 23°) — .45 면 서 있을 때 발을 7° 돌려 맞춤(15:5x 대기 비교)
