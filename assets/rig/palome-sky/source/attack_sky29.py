@@ -13,9 +13,9 @@ rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pie
 # 그리는 순서: 칼날이 머리 뒤(메기·젖힘·돌아옴) → 머리 위를 넘어 앞으로 오면 칼·먼 팔이 몸 앞(타격)
 BASE = ['legFar', 'legNear']
 BASE = ['cape'] + BASE
-rig['drawA'] = BASE + ['torso', 'skirt', 'armF', 'pauldronF', 'foreFb', 'weapon', 'armU', 'pauldron', 'head', 'foreF', 'armL']   # 가까운 팔뚝+주먹 맨 앞
+rig['drawA'] = BASE + ['armF', 'torso', 'skirt', 'pauldronF', 'foreFb', 'weapon', 'armU', 'pauldron', 'head', 'foreF', 'armL']   # 가까운 팔뚝+주먹 맨 앞
 rig['drawA0'] = [x for y in [[n] + (['guardArt', 'seamF'] if n == 'weapon' else []) for n in rig['drawA']] for x in y]
-rig['drawStrike'] = BASE + ['torso', 'skirt', 'armF', 'pauldronF', 'foreFb', 'armU', 'pauldron', 'head', 'weapon', 'foreF', 'armL']
+rig['drawStrike'] = BASE + ['armF', 'torso', 'skirt', 'pauldronF', 'foreFb', 'armU', 'pauldron', 'head', 'weapon', 'foreF', 'armL']
 K = AK['keys']
 def trk(i, f=lambda v, k: v):   # 키 i 번째 값 → 엔진 트랙 [[t, v, easing]]
     return [[k[0], round(f(k[i], k), 4), k[6] if len(k) > 6 else 'io'] for k in K]

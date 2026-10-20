@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "443da3bc",
+ "version": "7a6a50bd",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -48,13 +48,13 @@
   "armU": {
    "src": "parts/armU.png",
    "pivot": [
-    81.0,
-    21.0
+    82.0,
+    19.0
    ],
    "scale": 2.0,
    "elbow": [
-    19.0,
-    82.0
+    20.0,
+    80.0
    ]
   },
   "armL": {
@@ -72,13 +72,13 @@
   "armF": {
    "src": "parts/armF.png",
    "pivot": [
-    10.0,
-    18.0
+    28.0,
+    32.0
    ],
    "scale": 2.0,
    "elbow": [
-    72.0,
-    68.0
+    90.0,
+    82.0
    ]
   },
   "foreF": {
@@ -101,7 +101,7 @@
    "src": "parts/pauldronF.png",
    "pivot": [
     10.0,
-    13.0
+    27.0
    ],
    "scale": 2.0
   },
@@ -784,9 +784,9 @@
   "cape",
   "legFar",
   "legNear",
+  "armF",
   "torso",
   "skirt",
-  "armF",
   "pauldronF",
   "foreFb",
   "weapon",
@@ -800,9 +800,9 @@
   "cape",
   "legFar",
   "legNear",
+  "armF",
   "torso",
   "skirt",
-  "armF",
   "pauldronF",
   "foreFb",
   "weapon",
@@ -818,9 +818,9 @@
   "cape",
   "legFar",
   "legNear",
+  "armF",
   "torso",
   "skirt",
-  "armF",
   "pauldronF",
   "foreFb",
   "armU",

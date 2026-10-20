@@ -1,5 +1,5 @@
 # 29 스카이 팔로메 추가 조각 시트 2(4칸, 3072×1024, 10-20 07:57) 자르기 → pieces/p2_<이름>.png
-#   (10-20 08:09 DHL: 07:57 시트는 네온 팔로메 것 — 스카이 시트 받으면 다시 검수)
+#   (10-20 08:09 DHL: 07:57 시트는 네온 팔로메 것이었음 → 09:00 스카이 시트로 다시: 1번 = 원화 IoU 0.993, 2·4번 윗팔 합격(둥근 끝 사이 86·82 ≈ 원화 80·87), 3번 어깨 = 시트 3 과 같은 그림)
 import os, sys, numpy as np
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, '..', '..', 'carden-rust', 'source'))

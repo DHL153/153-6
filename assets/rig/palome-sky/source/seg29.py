@@ -51,6 +51,10 @@ for n in NAMES:
         if j == big or st[j, 4] > 600: continue
         isl = cc == j; ring = dil(isl, 1) & ~isl & (lab > 0) & (lab != LID[n]) & (lab != LID['sword'])
         if ring.any(): nb = np.bincount(lab[ring]).argmax(); lab[isl] = nb; print(f'  island {n} {int(st[j, 4])}px @({st[j, 0]},{st[j, 1]}) -> {NAMES[nb - 1]}')
+# 먼 팔: 가죽 끈 오른쪽(x 376~400, y 228~325)의 몸 라벨은 먼 소매·토시 위 끝 → 먼 윗팔로 (몸에 남으면 팔이 떠난 뒤 남색 깃발처럼 보였음, 10-20 09:00)
+_YY, _XX = np.mgrid[0:512, 0:512]; _m = (lab == LID['body']) & (_XX >= 376) & (_XX <= 400) & (_YY >= 228) & (_YY <= 325)
+_nv = (np.abs(RA[..., :3].astype(int) - np.array([46, 45, 54])).max(-1) < 45) | (lum < 45)   # 남색 소매·외곽선 → 먼 윗팔, 나머지(크림·금·강철 = 토시 위 끝) → 먼 토시
+lab[_m & _nv] = LID['upperF']; lab[_m & ~_nv] = LID['foreF']; print('  far sleeve from body', int((_m & _nv).sum()), 'vambrace', int((_m & ~_nv).sum()))
 # 가까운 소매(upperN)에 섞인 남색 아닌 점(토시 윗선 밝은 점·가죽 띠 조각)은 이웃 부품으로 — 소매는 남색 관으로 메우므로
 NAVY = np.array([46, 45, 54]); un = (lab == LID['upperN']) & (np.abs(RA[..., :3].astype(int) - NAVY).max(-1) >= 60) & (lum >= 45)
 for y, x in zip(*np.nonzero(un)):
