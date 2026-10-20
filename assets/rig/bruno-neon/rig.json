@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "296dc6fd",
+ "version": "9ffcabca",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -223,7 +223,7 @@
    "src": "parts/bootNRun.png",
    "pivot": [
     18.2,
-    33.0
+    18.0
    ],
    "scale": 2.0
   },
@@ -231,7 +231,7 @@
    "src": "parts/bootFRun.png",
    "pivot": [
     18.2,
-    29.0
+    16.0
    ],
    "scale": 2.0
   },
@@ -523,23 +523,23 @@
    "sole": [
     [
      -16.2,
-     14.0
+     29.0
     ],
     [
      -4.2,
-     14.0
+     29.0
     ],
     [
      9.8,
-     15.0
+     30.0
     ],
     [
      24.8,
-     16.0
+     31.0
     ],
     [
      36.8,
-     14.0
+     29.0
     ]
    ],
    "ankleRange": [

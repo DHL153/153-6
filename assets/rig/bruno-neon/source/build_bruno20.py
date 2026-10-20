@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1 — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.1(달리기 부츠 발목 점 = 원화 발목 높이) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -237,11 +237,13 @@ def sole_pts(m, ankle, ground=None):
     xlow = max(bot, key=lambda x: bot[x]); cols_ = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
     lift = 0.0 if ground is None else float(ground - bot[xlow]); return [[float(x - ankle[0]), float(bot[x] - ankle[1] + lift)] for x in cols_ if x in bot]
 o_lN = save('bootStandN', underlay(art(lab('legN')), lab('legN'), lab('hips'))[0]); o_lF = save('bootStandF', underlay(art(lab('legF')), lab('legF'), lab('hips'))[0])
-def run_boot(nm, lm):
-    b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * 0.32), ys.max() - 16.0)
+BOOT_UP = float(os.environ.get('BOOT_UP', 0) or 0)   # 실험용 — 0 = 원화 발목 높이
+def run_boot(nm, lm, sd):   # 발목 점 높이 = 원화 발목(부츠 목 가운데)~밑창 거리(가까운 31 · 먼 29) — v1 은 16 이라 부츠 목이 정강이 2/3 를 덮어 달릴 때 다리가 짧고 무릎판이 부츠 위에 붙어 보였음(DHL v1 검수)
+    up = BOOT_UP or (SOLE - LEG[sd]['ankle'][1])
+    b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * 0.32), ys.max() - up)
     Image.fromarray(b).save(os.path.join(PARTS, f'{nm}Run.png')); bot = {x: ys[xs == x].max() for x in range(xs.min(), xs.max() + 1) if (xs == x).any()}; xl, xr = min(bot), max(bot)
     return piv, [[round(float(x - piv[0]), 1), round(float(bot[x] - piv[1]), 1)] for x in sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))]
-RB = {'near': run_boot('bootN', lab('legN')), 'far': run_boot('bootF', lab('legF'))}
+RB = {'near': run_boot('bootN', lab('legN'), 'near'), 'far': run_boot('bootF', lab('legF'), 'far')}
 def limb_piece(nm, lm, top_pad, bot_pad, ref):
     p = sheet(nm); Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))   # 색 맞춤 안 함 — 원화 띠·무릎판·금 리벳이 섞여 허벅지가 청록으로 바뀜(첫 v1 달리기), 시트 색이 원화와 비슷
     ys, xs = np.nonzero(p[..., 3] > 128); cx = float((xs.min() + xs.max()) / 2); return {'part': nm, 'a': [round(cx, 1), float(ys.min() + top_pad)], 'b': [round(cx, 1), float(ys.max() - bot_pad)], 'w': 1.0}
