@@ -14,6 +14,7 @@ rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pie
 BASE = ['legFar', 'legNear']
 rig['drawA'] = BASE + ['armF', 'torso', 'skirt', 'foreFb', 'weapon', 'armU', 'armL', 'pauldron', 'head', 'foreF']
 rig['drawStrike'] = BASE + ['armF', 'torso', 'skirt', 'foreFb', 'armU', 'armL', 'pauldron', 'head', 'weapon', 'foreF']
+rig['drawR'] = [n for n in rig['drawA'] if n != 'armF']   # 0.72~ 칼을 다시 멜 때: 먼 윗팔은 대기처럼 안 그림 — 팔꿈치가 배 옆으로 나와 비늘 윗팔 끝이 손 밑에 덩어리로 보였음(10-20 11:50 DHL '표시 저 부분이 어색')
 K = AK['keys']
 def trk(i, f=lambda v, k: v):   # 키 i 번째 값 → 엔진 트랙 [[t, v, easing]]
     return [[k[0], round(f(k[i], k), 4), k[6] if len(k) > 6 else 'io'] for k in K]
@@ -24,6 +25,6 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 0.9, 'hitAt':
        'head': [[0, 0], [0.28, -0.06, 'io'], [0.45, 0.05, 'io'], [0.6, 0.04, 'io'], [0.86, 0]],
        'freeArm': True, 'fuA': [[0, 0], [0.28, -0.12, 'io'], [0.45, 0.3, 'o'], [0.6, 0.26, 'io'], [0.86, 0]], 'flA': [[0, 0], [0.28, -0.08, 'io'], [0.45, 0.18, 'o'], [0.6, 0.15, 'io'], [0.86, 0]],
        'face': [[0, 'angry'], [0.12, 'effort'], [0.4, 'shout'], [0.62, 'focus'], [0.82, None]],
-       'order': [[0, 'drawA'], [0.375, 'drawStrike'], [0.72, 'drawA']]}
+       'order': [[0, 'drawA'], [0.31, 'drawR'], [0.375, 'drawStrike'], [0.72, 'drawR']]}   # 0.31~0.375·0.72~: 팔꿈치가 배 옆(어깨보다 아래)으로 내려오는 구간 — 먼 윗팔은 대기처럼 안 그림
 rig['actions'] = {'smash': act}
 rig['cutHold'] = 0.25   # 스킬 컷인: 칼을 어깨 뒤로 눕혀 멘 힘줌 자세(메기 꼭대기 .28 직전, 게임은 한 프레임 더 가서 약 .27~.29) — 낮은 버팀(.45~.6)은 11 네온 알론소 때 DHL '쪼그려 앉은 듯', v1.1 휘두르는 순간(.37~.41)은 손이 배 앞이라 컷인으로 약함
