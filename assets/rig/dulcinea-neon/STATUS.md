@@ -49,3 +49,7 @@
 - SHX12 = 22: 들어 올림~들어 돌림(LIFT..RET1) 먼 어깨 키 +22 → 들어 올릴 때 팔꿈치가 얼굴 칸에 들어가던 것 없앰 → gen_keys12 로 쥔 점 키 다시 뽑음(keys12.json)
 - 대기 = 원화 그대로(rig_shots t0 vs ref512 IoU 0.973)
 - 남은 것: 휘두름(.40) 가까운 상체·어깨 판 가장자리 톱니 · .70 먼 남색 소매가 네모로 읽힘 · 게임(game_top·컷인) · 편집 툴
+
+## 10-20 10:00 편집 툴 반영(v1) — 게임은 아직
+- source/tools/pack_editor.py(29 것 복사): rig.json + 조각 + 원화 1024 webp(MR_REF_ART)를 rig.def.js 한 파일로 → 편집 툴 rigs/dulcinea-neon/rig.def.js?v=47a4f17c · progress/dulcinea12_v1.jpg(원화·대기·표정 / 공격 8장면 / 달리기 8장면)
+- 편집 툴 라이브 판(29 v1.5)에 합쳐 올림 — rig.js 해시 = 라이브 그대로(엔진 안 바꿈) · 로컬 확인: 오류 0, 기준 그림(원화) 겹치기·공격 재생
