@@ -123,7 +123,7 @@ smash = {
     'farDx': k((0, 0, 'io'), (SW1, 0, 'io'), (HIT, 64), (HOLD, 64, 'io'), (RET + .06, 0)),
     'farLift': k((0, 0), (SW1, 0, 'io'), (SW2, 11, 'io'), (HIT, 0), (HOLD, 0, 'io'), (HOLD + .06, 8, 'io'), (RET + .06, 0)),
     'shake': k((0, 0), (HIT, 0, 'lin'), (HIT + .01, 1), (HIT + .12, 0)),
-    'face': [[0, 'focus'], [.08, 'effort'], [WIND, 'shout'], [HIT + .14, 'focus'], [RET + .08, None]],
+    'face': [[0, 'angry'], [WIND, 'shout'], [HIT + .14, 'angry'], [RET + .08, None]],   # v1.4(DHL 23:58 '공격할때 눈 감지 않도록') — 힘줌(effort = 두 눈 꽉 감음)·집중(focus = 눈꺼풀 반 내림) 대신 화남(눈 뜸) → 외침(눈 크게) → 화남
     'fade': {'weapon': k((0, 1), (.06, 1, 'lin'), (.061, 0), (.93, 0, 'lin'), (.931, 1)), 'weaponA': k((0, 0), (.06, 0, 'lin'), (.061, 1), (.93, 1, 'lin'), (.931, 0)),
              'armF': k((0, 1), (UPS_T[0], 1, 'lin'), (UPS_T[0] + .001, 0), (UPS_T[1], 0, 'lin'), (UPS_T[1] + .001, 1)),     # 윗팔: 원화 소매 ↔ 곧은 소매 관(들어 올림~휘두름)
              'armFs': k((0, 0), (UPS_T[0], 0, 'lin'), (UPS_T[0] + .001, 1), (UPS_T[1], 1, 'lin'), (UPS_T[1] + .001, 0))},

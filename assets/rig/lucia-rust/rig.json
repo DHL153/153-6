@@ -1,6 +1,6 @@
 {
  "name": "lucia-rust",
- "version": "6ec6ff61",
+ "version": "06cd6df0",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   546.0,
@@ -1537,11 +1537,7 @@
    "face": [
     [
      0,
-     "focus"
-    ],
-    [
-     0.08,
-     "effort"
+     "angry"
     ],
     [
      0.27,
@@ -1549,7 +1545,7 @@
     ],
     [
      0.54,
-     "focus"
+     "angry"
     ],
     [
      0.8999999999999999,
