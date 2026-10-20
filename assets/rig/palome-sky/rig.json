@@ -1,6 +1,6 @@
 {
  "name": "palome-sky",
- "version": "dd54c7ff",
+ "version": "33ccee00",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   526.0,
@@ -12,7 +12,7 @@
   "torso": {
    "src": "parts/torso.png",
    "pivot": [
-    149.0,
+    189.0,
     239.0
    ],
    "scale": 2.0
@@ -96,7 +96,7 @@
   "torsoM": {
    "src": "parts/torsoM.png",
    "pivot": [
-    149.0,
+    189.0,
     239.0
    ],
    "scale": 2.0

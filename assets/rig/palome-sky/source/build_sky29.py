@@ -14,6 +14,17 @@ if os.path.isdir(PARTS): shutil.rmtree(PARTS)
 os.makedirs(PARTS); os.makedirs(W, exist_ok=True)
 RA = np.array(Image.open(os.path.join(HERE, 'ref512.png')).convert('RGBA'))
 LAB = np.load(os.path.join(W, 'labels.npy'))
+# 가까운 주먹 라벨(foreN)이 주먹 오른쪽 밤색 천(허리 앞 띠)까지 먹고 있었음 → 주먹이 움직이면 밤색 천 조각이 주먹을 따라 판 위로 다녔음
+#   (DHL 10-20 15:00 동그라미 오른쪽 위 '갈색 띠') → x ≥ 205 의 밤색 픽셀은 몸(상체 천)으로 되돌림
+_RAi = np.array(Image.open(os.path.join(HERE, 'ref512.png')).convert('RGBA')).astype(int); _lmi = _RAi[..., :3].mean(-1)
+_F8 = LAB == 8; _xx = np.mgrid[0:512, 0:512][1]
+_core = _F8 & ~((_RAi[..., 0] - _RAi[..., 2] >= 12) & (_lmi >= 30)) & (_lmi >= 48)   # 쇠 장갑 손가락·토시(회색·크림·금) — 밤색 천·검은 선 뺌
+_shape = cv2.morphologyEx(_core.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+from scipy import ndimage as _ndi0
+_shape = _ndi0.binary_fill_holes(_shape).astype(np.uint8); _shape = cv2.morphologyEx(_shape, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))   # 가는 줄(천·판 외곽선) 떼어 냄
+_shape = cv2.dilate(_shape, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0   # 손가락 바깥 외곽선 2px 까지
+_clothN = _F8 & ~_shape & (_xx >= 195)   # 손가락 오른쪽 밖(밤색 천 + 그 천·판의 외곽선)
+LAB = LAB.copy(); LAB[_clothN] = 12; print('  fist label cloth -> body', int(_clothN.sum()), 'px')
 NAMES = ['head', 'sword', 'handF', 'foreF', 'upperF', 'pauldron', 'upperN', 'foreN', 'cape', 'legN', 'legF', 'body']
 PO_ = json.load(open(os.path.join(HERE, 'polys29.json')))
 def poly_(pts):
@@ -86,8 +97,12 @@ def sleeve(p0, p1, r, col=NAVY):   # 소매 관(둥근 끝 캡슐): 가로 음�
     out[..., :3] = np.clip(col[None, None] * shade[..., None], 0, 255).astype(np.uint8); out[..., 3] = np.where(inside, 255, 0)
     out[inside & (d > r - 2), :3] = (24, 24, 30); return out
 # 상체·치마: 몸(body)을 허리띠 위 선에서 나눔 (치마 = 허리띠·주머니·남색 아랫자락, 상체 = 그 위 + 14px 겹침)
-CUT = np.array([[110, 352], [205, 356], [215, 370], [250, 377], [300, 382], [350, 381], [410, 375]], float)
+CUT = np.array([[110, 352], [188, 354.9], [189, 367.5], [213, 369], [215, 370], [250, 377], [300, 382], [350, 381], [410, 375]], float)
+#   x 189~213(주머니 오른쪽 ~ 버클 위, 주먹 밑): 선을 버클 윗변(368)까지 내림 — 그 위 밤색 천·판 모서리는 상체가 통째로 가짐.
+#   공격 때 상체가 치마보다 ~0.14 rad 더 기울어 주먹 밑에서 상체가 치마보다 위·오른쪽으로 ~10px 움직임 → 한 천을 두 조각이 나눠 가지면 두 겹으로 어긋나 갈색 덩어리(DHL 15:00)
 cut_y = np.interp(XX, CUT[:, 0], CUT[:, 1]); OVL = 14
+from scipy.ndimage import maximum_filter1d as _mf1
+cut_t = np.where(XX <= 215, _mf1(cut_y, 31, axis=1), cut_y)   # 상체 아래 끝 = 둘레 ±15칸 중 가장 낮은 선 + 14 — x 188/189 계단 옆에서 상체가 위·오른쪽으로 비키면 계단 모서리에 배경 구멍이 났음(공격)
 body = lab('body')
 # 상체 메움: 시트 상체 → 가슴 버클(시트 110,75 → 원화 289,291)·먼 어깨 금 단추(172,40 → 351,247) 두 점 닮음
 st = sheet('torso'); MT = simil((110, 75), (172, 40), (289, 291), (351, 247)); stw = warp(col_match(st, lab('body') & (YY < 380)), MT)   # 색 = 원화 몸통(시트 크림이 더 밝고 노람)
@@ -105,7 +120,8 @@ body = body & ~_frag; print('  shoulder fragments removed', int(_frag.sum()), 'p
 # 다리 윗부분 (10-20 13:47 DHL '알파가 잘 안 따진 곳 · 필요 없는 부분' — 부츠 위 두 곳): 치마 밑단 아래 무릎 토시·끈·바지가 원화 라벨에서 몸(body)으로 가 치마 조각에 붙어 있었음
 #   → 대기 숨쉬기로 치마가 ±2px 오르내리면 토시 위(치마)·아래(서 있는 다리)가 갈라져 찢긴 조각·파란 틈으로 보였음.
 #   밑단 선(토시 윗 외곽선) 아래 몸 픽셀 = 서 있는 다리 조각(토시 통째), 치마는 그 선에서 끝남(선 한 줄은 두 조각 모두 — 대기 = 원화)
-HEM = {'near': np.array([[146, 431], [212, 431], [215, 436], [232, 437]], float), 'far': np.array([[294, 437], [339, 437], [347, 428], [364, 429], [376, 433]], float)}   # 먼 쪽: 치마 판 아래 외곽선 → 판 오른쪽 아래 모서리 사선 → 토시 윗 외곽선
+HEM = {'near': np.array([[146, 431], [205, 431], [207, 437], [232, 438]], float),   # 가까운 쪽 x ≥ 207: 앞 판(크림) 아래 검은 외곽선·그림자는 치마로(다리로 두면 공격 때 치마가 들리며 판 아래 검은 혹 — DHL 15:00 아래 동그라미)
+ 'far': np.array([[294, 437], [339, 437], [347, 428], [364, 429], [376, 433]], float)}   # 먼 쪽: 치마 판 아래 외곽선 → 판 오른쪽 아래 모서리 사선 → 토시 윗 외곽선
 HEMX = {'near': (146, 232), 'far': (294, 376)}
 hem_y = {sd: np.ceil(np.interp(XX, HEM[sd][:, 0], HEM[sd][:, 1]) - 1e-6) for sd in HEM}   # 칸마다 다리 첫 줄(정수)
 legTop = {sd: body & (XX >= HEMX[sd][0]) & (XX <= HEMX[sd][1]) & (YY >= hem_y[sd]) & (YY < 470) for sd in HEM}
@@ -119,48 +135,61 @@ print('  leg tops from body', {sd: int(legTop[sd].sum()) for sd in legTop})
 #   대기 그대로: ①은 주먹이 같은 자리에 그리고 ②③은 주먹 밑(대기 중 주먹이 비키는 만큼만 보임)
 from scipy import ndimage as _ndi
 FN = lab('foreN'); _lumA = RA[..., :3].astype(int).mean(-1)
-RING_N = body & dil(FN, 2) & ~FN & (_lumA < 70)
+RING_N = body & dil(FN, 2) & ~FN & (_lumA < 48)   # 주먹 둘레 검은 외곽선(라벨에서 몸으로 간 것) → 주먹 조각으로
 _cr = body & ~FN & (_lumA > 140) & dil(FN, 4); _ccn, _ccl, _ccs, _ = cv2.connectedComponentsWithStats(_cr.astype(np.uint8), connectivity=8)
+_cc_x = lambda j: float(np.nonzero(_ccl == j)[1].mean())
 for _j in range(1, _ccn):   # 주먹 토시 끝이 몸 라벨로 간 작은 크림 조각(< 60px, 주먹에 닿음) → 주먹 조각으로
-    if _ccs[_j, 4] < 60 and (dil(FN, 1) & (_ccl == _j)).any(): RING_N |= _ccl == _j
-# 재질(밤색 천·남색 천·쇠 버클)을 색 규칙으로 나눠, 띠의 각 점 = 가장 가까운 재질의 납작한 가운데 색 — 원화 색을 그대로 이으면 줄무늬·톱니,
-#   k-평균은 판 가장자리 안티에일리어스를 재질로 잡아 얼룩(10-20 확대 비교: 그대로 이음·TELEA·섞기·k-평균 모두 얼룩)
+    if _ccs[_j, 4] < 60 and _cc_x(_j) < 190 and (dil(FN, 1) & (_ccl == _j)).any(): RING_N |= _ccl == _j   # 토시 쪽만(x<190) — 오른쪽 크림 배 판 조각까지 옮기면 주먹을 따라 흰 톱니로 다녔음
+RING_N |= body & (_lumA > 110) & dil(FN, 5) & (XX >= 148) & (XX <= 185) & (YY >= 350) & (YY <= 368)   # 토시 아래 끝 크림 띠(161~172, 356~364, 49px — 위 조각 크기 조건에 안 걸림) — 남으면 주머니 위 흰 긁힘(DHL 15:00 큰 동그라미 안)
+_Bv = RA[..., 2].astype(int) - RA[..., 0].astype(int)
+_bits = body & ~((_Bv >= 4) & (_lumA >= 25) & (_lumA <= 95)) & dil(FN, 5) & (XX >= 115) & (XX <= 200) & (YY <= 353) & (YY < cut_y)
+RING_N |= _bits; print('  cuff-bottom bits -> fist', int(_bits.sum()), 'px')   # 토시 아래 끝과 주머니 사이 갈색 끈 토막·금 조각·외곽선 — 상체에 남기면 달릴 때 남색 천 위에 떠다녔음
+# 주먹 밑(주먹이 비키면 드러나는 곳) = DHL 15:00 '1번을 삭제한 2번의 모습처럼 디테일 살려서' — 목표 그림 refs/ref_U_under_fist_dhl.png
+#   (주먹이 위로 비킨 장면: 주머니 위 남색 천 · 주머니 윗뚜껑 둥근 모서리 · 버클 고리 · 크림 판 가장자리 깨끗).
+#   그 그림을 원화 자리로 옮겨 붙여 보니(SIFT) 주머니를 더 크고 높게 다시 그려 원화 주머니와 어긋나 겹친 곳이 톱니 → 픽셀은 안 쓰고 같은 모습을 원화로 만듦:
+#   ①바탕 = 남색 천(셔츠) ②주머니 = 원화 주머니를 걸쇠 가운데(x 155.5)로 좌우 뒤집어 가려진 오른쪽 위를 채움(윗뚜껑 둥근 모서리·솔기 그대로)
+#   ③크림 배 판 모서리 + 판을 따라 밤색 띠(원화에서 보이는 띠를 이음) ④상체 아래 겹침 띠의 주머니·허리띠는 남색 천(공격 때 상체가 기울면 삐져나왔음)
 _R, _G, _B = (RA[..., c].astype(int) for c in range(3))
-_MAT = [(_R - _B >= 18) & (_R - _G >= 12) & (_lumA >= 45) & (_lumA <= 140),   # 밤색 천(가운데 띠)
-        (_B - _R >= 4) & (_lumA >= 25) & (_lumA <= 95),                       # 남색 천(위)
-        (np.abs(_R - _B) < 14) & (_lumA >= 95) & (_lumA <= 175)]              # 쇠 버클(아래)
-_srcN = body & ~FN & ~RING_N & (RA[..., 3] > 200) & dil(FN, 16)
-_kmap = np.full((512, 512), -1, int)
-for _j, _m in enumerate(_MAT): _kmap[_srcN & _m & (_kmap < 0)] = _j
-_srcN &= _kmap >= 0
-_kmed = np.array([np.median(RA[_srcN & (_kmap == j)][:, :3], 0) for j in range(len(_MAT))])
-_dN, _iN = _ndi.distance_transform_edt(~_srcN, return_indices=True)
-BAND_N = (FN | RING_N) & (_ndi.distance_transform_edt(~(body & ~FN & ~RING_N)) <= 12)   # 띠 = 몸 경계에서 12px
-_kfill = _kmap[_iN[0], _iN[1]]
-_dm = _ndi.distance_transform_edt(~(_srcN & (_kmap == 2))); _cl = _srcN & (_kmap < 2)
-_dc, _ic = _ndi.distance_transform_edt(~_cl, return_indices=True)
-_kfill = np.where((_kfill == 2) & (_dm > 4), _kmap[_ic[0], _ic[1]], _kfill)   # 쇠 버클은 4px 까지만 이음(버클 테 굵기) — 더 이으면 회색 덩어리
-_oh = np.stack([cv2.blur((_kfill == j).astype(np.float32), (7, 7)) for j in range(len(_MAT))], -1)
-_kfill = np.where(FN | RING_N, np.argmax(_oh, -1), _kfill)   # 재질 경계를 7px 다수결로 매끈하게(작은 섬·톱니 없앰)
-EXT_N = RA.copy(); EXT_N[..., :3] = np.clip(_kmed[_kfill] + np.clip(cv2.GaussianBlur(np.random.default_rng(4).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 3) * 12, -5, 5)[..., None], 0, 255).astype(np.uint8); EXT_N[..., 3] = 255
-print('  fist fill materials', [tuple(int(v) for v in c) for c in _kmed], [int((_srcN & (_kmap == j)).sum()) for j in range(len(_MAT))])
-_kd = np.zeros((512, 512), bool)
-for _sy, _sx in ((0, 1), (1, 0)): _kd |= _kfill != np.roll(_kfill, (-_sy, -_sx), (0, 1))
-EXT_N[BAND_N & _kd, :3] = (34, 30, 34)   # 채운 띠 안에서 재질이 바뀌는 곳 = 외곽선 1px(원화처럼 판·천 경계에 선)
-# 주먹 오른쪽 아래 크림 배 판: 원화에선 판 왼쪽 위 외곽선(236,336 → 227,347)과 왼쪽 아래 외곽선(224,369 → 228,373)만 보이고 그 사이 판 가장자리는
-#   주먹 외곽선이 겸함 → 주먹이 비키면 판이 외곽선 없이 톱니로 끝나 '흰 조각'(DHL 동그라미 1). 두 선을 주먹 밑으로 이어(만나는 점 ≈ 216,361) 판을 그리고 안쪽 2px 외곽선,
-#   선 밖은 위 재질 채움(밤색 천). 판 색 = 가장 가까운 원화 판 픽셀
-_d1 = (XX - (227 - 0.8 * (YY - 347))) / math.hypot(1, 0.8); _d2 = (XX - (224 + (YY - 369))) / math.sqrt(2)
+_MAR = (_R - _B >= 18) & (_R - _G >= 12) & (_lumA >= 45) & (_lumA <= 140); _NAV = (_B - _R >= 4) & (_lumA >= 25) & (_lumA <= 95)
+_near = body & ~FN & ~RING_N & (RA[..., 3] > 200) & dil(FN, 16)
+_marc = body & ~FN & ~RING_N & _MAR & (XX >= 203) & (XX <= 226) & (YY >= 344) & (YY <= 372)   # 밤색 천 색 = 주먹 오른쪽 천에서만(주먹 둘레 전체 중앙값은 주머니·허리띠 가죽이 섞여 갈색으로 떴음)
+C_MAR = np.median(RA[_marc][:, :3], 0); C_NAV = np.median(RA[_near & _NAV][:, :3], 0)
+UNDER_N = FN | RING_N
+_nz = np.clip(cv2.GaussianBlur(np.random.default_rng(4).normal(0, 1, (512, 512)).astype(np.float32), (0, 0), 3) * 12, -5, 5)[..., None]
+EXT_N = RA.copy(); EXT_N[..., 3] = 255; EXT_N[..., :3] = np.clip(C_NAV + _nz, 0, 255).astype(np.uint8)   # 바탕 = 남색 천(셔츠)
+_d1 = (XX - (227 - 0.8 * (YY - 347))) / math.hypot(1, 0.8); _d2 = (XX - (224 + (YY - 369))) / math.sqrt(2)   # 크림 배 판 왼쪽 위·왼쪽 아래 외곽선(원화에서 보이는 두 선을 주먹 밑으로 이음, 만나는 점 ≈ 216,361)
+_pr = np.minimum(_d1, _d2)   # 판 모서리(두 선 안쪽)까지의 거리(밖 = 음수) — 띠는 이 거리로 매끈하게
+# 밤색 띠 = 판 모서리 둘레(위 7px → 버클 위 16px, 원화에서 그 자리는 밤색 천이 허리띠까지 넓게 보임 — 남색으로 두면 원화 밤색과 톱니로 만남)
+_mw = 7 + 9 * np.clip((YY - 350) / 12.0, 0, 1)   # 띠 너비: 위(주먹 오른쪽) 7px → 아래(버클 위) 16px 로 매끈하게 — 넓은 칸을 네모(세로·가로 경계)로 두니 덧댄 천처럼 보였음
+_mz = (_pr <= 0) & (_pr > -_mw) & (YY >= 330) & (YY <= 380) & (XX >= 189)   # x < 189 = 주머니 옆 어두운 틈(남색) — 위 CUT 의 상체·치마 나눔과 같은 세로선
+_zd = _ndi.distance_transform_edt(_mz) - 0.5   # 띠 안쪽으로 잰 거리(가장자리 = 0)
+_sc = np.clip(C_MAR + _nz, 0, 255); _oa = np.clip(1.6 - _zd, 0, 1)[..., None] * (_pr < -1)[..., None]   # 띠 바깥(남색 쪽) 외곽선 1.5px — 판 쪽은 판 외곽선이 있음
+_sc = _sc * (1 - _oa) + np.array([34, 30, 34]) * _oa
+EXT_N[_mz, :3] = np.clip(_sc, 0, 255)[_mz].astype(np.uint8)   # 주먹 밑만이 아니라 겹침 띠(아래 _ovl)에도 같은 그림 — 상체·치마가 같은 '뒤 그림'(BEH)에서 가져가야 이음매가 맞음
 _plate = body & (_lumA > 150) & (XX >= 214) & (XX <= 245) & (YY >= 330) & (YY <= 380) & ~FN & ~RING_N
-PLATE_H = (FN | RING_N) & (_d1 > 0) & (_d2 > 0) & (YY >= 340) & (YY <= 375)
+PLATE_H = UNDER_N & (_d1 > 0) & (_d2 > 0) & (YY >= 340) & (YY <= 375)
 _dp, _ip = _ndi.distance_transform_edt(~_plate, return_indices=True)
 _o = np.clip(2.3 - np.minimum(_d1, _d2), 0, 1)[..., None]
 EXT_N[PLATE_H, :3] = np.clip(RA[_ip[0], _ip[1], :3] * (1 - _o) + np.array([34, 30, 34]) * _o, 0, 255)[PLATE_H].astype(np.uint8)
-BAND_N |= PLATE_H
-print('  fist ring', int(RING_N.sum()), 'band', int(BAND_N.sum()), 'hidden plate', int(PLATE_H.sum()))
+BEH = EXT_N.copy()   # 주먹·주머니 뒤 그림(남색 천 + 밤색 띠 + 판 모서리, 주머니 없음) — 상체 몫은 모두 이것(주머니는 치마에만)
+# 주머니 가려진 오른쪽 위 = 원화 주머니 좌우 뒤집기(걸쇠 가운데 x 155.5 — 왼쪽 끝 125 ↔ 오른쪽 끝 186)
+_mx = np.clip(np.round(311 - XX).astype(int), 0, 511)
+_msrc = body & ~FN & ~RING_N & (RA[..., 3] > 200) & ~_NAV   # 뒤집어 가져올 원화 주머니 픽셀(남색 천은 아래 바탕으로)
+#   주머니 상자 = 왼쪽 125 · 오른쪽 186 · 윗변 356, 오른쪽 위 모서리 둥글게(반지름 6) — 뒤집은 원화가 없는 칸(원화에서도 가려짐)은 뚜껑 가운데 색, 상자 가장자리 2px 외곽선
+_pbd = np.minimum(YY - 356.0, 186.0 - XX); _cr6 = (XX > 180) & (YY < 362); _pbd = np.where(_cr6, 6.0 - np.hypot(XX - 180.0, YY - 362.0), _pbd)
+POUCH_M = UNDER_N & (XX >= 125) & (_pbd >= 0) & (YY <= 400)
+_lid = body & ~FN & ~RING_N & (XX >= 128) & (XX <= 182) & (YY >= 358) & (YY <= 376) & (_lumA > 35) & ~_NAV & (RA[..., 3] > 200)
+C_LID = np.median(RA[_lid][:, :3], 0)
+_pm_ok = POUCH_M & _msrc[YY, _mx] & (_mx >= 125)
+EXT_N[POUCH_M, :3] = np.clip(C_LID + _nz, 0, 255)[POUCH_M].astype(np.uint8); EXT_N[_pm_ok, :3] = RA[YY, _mx][_pm_ok][:, :3]
+_po = np.clip(2.2 - _pbd, 0, 1)[..., None]
+EXT_N[POUCH_M, :3] = np.clip(EXT_N[..., :3] * (1 - _po) + np.array([30, 24, 22]) * _po, 0, 255)[POUCH_M].astype(np.uint8)
+REV_U = POUCH_M
+BAND_N = UNDER_N
+print('  under fist: pouch mirror', int(POUCH_M.sum()), 'px, navy/strip/plate', int((UNDER_N & ~POUCH_M).sum()), 'px, colours navy', C_NAV.astype(int).tolist(), 'maroon', C_MAR.astype(int).tolist())
 bflat2, fillO = flat_fill(body, (OCC | _frag) & (SHOULDER_R > 0))
 fillO &= ~(_zone & ~(stw[..., 3] > 100))   # 오른쪽 위(칼·먼 팔 자리)는 시트 상체 윤곽 안만 — 밖을 남색으로 채우면 팔이 떠난 뒤 남색 깃발처럼 보였음(10-20 09:00)   # 그 밖의 앞 조각(칼 날밑·손잡이·먼 토시·수염) 밑도 시트가 못 덮는 곳은 남색 천 — 칼을 들면 날밑 자리에 배경 구멍·찢어진 조각이 보였음
-_OK = (~_zone | (SHOULDER_R > 0)) & (YY < cut_y + OVL)
+_OK = (~_zone | (SHOULDER_R > 0)) & (YY < cut_t + OVL)
 # 먼 어깨(시트 3 2번, 10-20 08:23 — 수염 오른쪽 세로 크림 판·금 단추·가죽 끈·남색 어깨 천): 칼 날밑·손·토시에 가려졌던 어깨를 이 조각으로 먼저 메움(SIFT 맞춤)
 sh3 = cv2.warpAffine(desp(np.array(Image.open(os.path.join(PC, 'p3_shoulderF3.png')).convert('RGBA'))), np.array(GEO['p3_shoulderF3']['M'], np.float32), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
 # 날밑·손·토시 경계 4px 띠(어깨 쪽): 원화 몸 픽셀은 톱니 외곽선 조각 → 시트 어깨로 바꿈(시트 어깨가 없는 곳은 지움). 대기엔 날밑·손이 거의 덮음
@@ -170,10 +199,15 @@ _Zrep = _zone & body & _sh3s & (YY < 300)   # 시트 어깨가 있는 곳 = 시�
 _Zcut = _zone & body & (SHOULDER_R == 0) & ~(cv2.dilate(_sh3s.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0) & (YY < 300)   # 어깨 윤곽·시트 어깨 밖으로 삐죽 나온 조각
 _ring = _ring | _Zrep | _Zcut
 SEAM = _ring.copy()   # 대기 그대로를 위해 원화 경계 픽셀은 seamF(서 있을 때만 그림)로 따로 남김
-_t0 = art(body & (YY < cut_y + OVL)); _t0[_ring & (sh3[..., 3] > 200)] = sh3[_ring & (sh3[..., 3] > 200)]; _t0[_ring & (sh3[..., 3] <= 200), 3] = 0
+_t0 = art(body & (YY < cut_t + OVL)); _t0[_ring & (sh3[..., 3] > 200)] = sh3[_ring & (sh3[..., 3] > 200)]; _t0[_ring & (sh3[..., 3] <= 200), 3] = 0
 print('  shoulder ring', int(_ring.sum()), 'px')
-torso = under(under(under(under(_t0, sh3, (OCC | _frag) & (SHOULDER_R > 0) & (YY < cut_y + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_y + OVL)), bflat2, fillO & (YY < cut_y + OVL))
-_bt = BAND_N & (YY < cut_y + OVL); torso[_bt] = EXT_N[_bt]   # 주먹 밑 띠 = 둘레 원화 몸 색 이음(위 '가까운 주먹 둘레')
+torso = under(under(under(under(_t0, sh3, (OCC | _frag) & (SHOULDER_R > 0) & (YY < cut_t + OVL)), stw, (OCC | _frag) & _OK), bflat, fillN & (YY < cut_t + OVL)), bflat2, fillO & (YY < cut_t + OVL))
+_bt = BAND_N & (YY < cut_t + OVL); torso[_bt] = BEH[_bt]   # 주먹 밑 = 위 '주먹 밑' 뒤 그림(남색 천·밤색 띠·판 모서리) — 주머니 거울 조각은 치마에만(상체에 두면 공격 때 주머니 위로 갈색 귀·검은 줄)
+# 상체 아래 겹침 띠(치마 위 끝 밑 14px)의 주머니·허리띠·버클 = 뒤 그림(남색 천·밤색 띠): 원화에선 치마가 덮어 안 보이지만 공격 때 상체가 기울면 상체 쪽 주머니 윗부분·버클이
+#   치마 주머니 위로 갈색 덩어리·회색 얼룩처럼 삐져나왔음(DHL 15:00 동그라미). 주머니·허리띠 뒤는 셔츠(남색 천)·밤색 천
+_ovl = (body | BAND_N) & (YY >= cut_y) & (YY < cut_t + OVL) & (XX >= 108) & (XX <= 215)
+torso[_ovl] = BEH[_ovl]
+print('  torso overlap under pouch/belt -> cloth behind', int(_ovl.sum()), 'px')
 o_torso = save('torso', torso)
 # 공격용 상체 torsoM (10-20 10:41 DHL '29 타격 때 어깨 위치를 무시하고 팔이 너무 아래로' → 손을 올리니 먼 어깨 둘레가 더 보임):
 #   먼 어깨 둘레 원화 부스러기(칼·손·토시 경계에서 라벨이 갈라진 크림 왕관·검은 뾰족 조각)는 빼고, 시트 3 먼 어깨(sh3)를 자기 알파로 통째 덮고,
@@ -191,7 +225,11 @@ o_tm = save('torsoM', tm); print('  torsoM: debris', int(_deb.sum()), 'hole', in
 # 치마: 주먹 밑(주머니 윗덮개·허리띠)은 시트 골반의 주머니를 원화 주머니 위 두 모서리에 맞춰(시트 10,10 → 138,355 · 90,12 → 198,357) — 시트 전체 맞춤은 3/4 휘어짐이 달라 안 맞음
 shp = warp(col_match(sheet('hips'), body & (YY >= cut_y)), simil((10, 10), (90, 12), (138, 355), (198, 357)))
 skirt = under(under(art(body & (YY >= cut_y) & ~SKIRT_CUT), shp, lab('foreN') & (YY >= cut_y)), bflat, fillN & (YY >= cut_y))   # 밑단 아래 토시·끈은 서 있는 다리로
-_bs = BAND_N & (YY >= cut_y); skirt[_bs] = EXT_N[_bs]
+_bs = BAND_N & (YY >= cut_y); skirt[_bs] = 0
+#   치마 몫 주먹 밑: x < 212(주머니·버클 위) = 남색 천(띠 자리는 밤색) + 주머니 — 비우면 공격 때 상체가 들려 상체 아래 끝과 치마 사이가 배경으로 뚫림
+#   x ≥ 212(크림 판 모서리 쪽) = 비움 — 상체가 허리띠까지 덮고, 치마에 띠·판을 넣으면 공격 때 따로 움직여 밤색 띠가 판 위로 가로질렀음
+_bsL = _bs & (XX < 212); skirt[_bsL] = BEH[_bsL]   # 상체 겹침 띠와 같은 뒤 그림 → 대기에 이음매 없음
+_bsP = _bs & POUCH_M; skirt[_bsP] = EXT_N[_bsP]
 o_skirt = save('skirt', skirt)
 # 머리+수염 (원화 그대로, 꽁지머리·귀·안경 포함)
 o_head = save('head', art(lab('head')))
