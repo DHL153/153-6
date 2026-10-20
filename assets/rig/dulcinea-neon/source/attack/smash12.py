@@ -148,20 +148,18 @@ smash = {
     'face': [[0, 'focus'], [.08, 'effort'], [WIND, 'shout'], [HIT + .14, 'focus'], [RET + .08, None]],
     # 공격 중 망치 = weaponA(쇠 머리 왼쪽 아래 홈·흰 앞머리 외곽선 초승달 정리, build _fix_hammer) — 대기 자리를 떠난 뒤 .061 ~ 돌아오기 전 .93 (21:40)
     'fade': {'weapon': k((0, 1), (.06, 1, 'lin'), (.061, 0), (.93, 0, 'lin'), (.931, 1)), 'weaponA': k((0, 0), (.06, 0, 'lin'), (.061, 1), (.93, 1, 'lin'), (.931, 0))},
-    # 그리는 순서: 대기(먼 팔뚝 몸 뒤) → 움직이는 동안(먼 팔뚝이 머리·몸 앞 — 얼굴 오른쪽 바깥이라 얼굴은 안 가림) → 대기 순서 — 바꾸는 순간은 움직일 때
-    'order': [[0, 'drawA'], [.03, 'drawP'], [SW2, 'drawM'], [RET1 + .045, 'drawU'], [.86, 'drawA0'], [.875, 'drawA']],   # (12 네온 10-20 DHL 11:45 '손·무기 다리 뒤로') drawM = 먼 팔·망치·주먹이 다리·골반·몸 뒤 — .36~.725(.36: 겹침 0 · .725: 팔∩골반 0 · 주먹∩몸 0 · 망치∩다리 26px@.8 뿐, tools/overlap12.py)   # 10-20 06:10 들어 올림~예비 drawP(망치 포니테일 뒤) · .875 부터 대기와 같은 순서   # 21:42 휘두름~버팀 drawM: 먼 팔뚝(붕대)이 망치 자루 끝 위 — 원화처럼 팔뚝 → 주먹이 보임(자루 끝은 팔뚝 밑)   # 휘두름 끝~버팀: 먼 팔꿈치(소매 끝)가 숙인 얼굴 옆에 오므로 먼 팔뚝을 머리 뒤로(얼굴이 앞)
+    # 그리는 순서(10-20 12:18 DHL ②공격 = 손·망치가 머리 뒤 ③공격 = 손·망치가 다리 뒤): 공격 내내 한 순서 drawA — 먼 윗팔·팔뚝·망치·쥔 주먹 = 다리·골반·상체·머리 뒤, 가까운 팔만 앞
+    #   한 순서라 바뀌는 순간이 없음(앞뒤 튐 0). 대기·달리기 draw 도 같은 앞뒤(build_neon12 draw) — 공격 시작·끝에서도 안 바뀜. 검사 tools/order12.py
+    #   (전: v1.3 .36~.725 만 다리 뒤 · 들어 올림 때 주먹이 머리카락 앞 · 돌아옴 때 망치가 골반·다리 앞)
+    'order': [[0, 'drawA']],
 }
 _ov = os.environ.get('SMASH_KEYS')   # 맞추기용: 키 덮어쓰기 JSON
 if _ov: smash.update(json.load(open(_ov)))
 # sideF(재킷 오른쪽 자락을 20px 늘인 조각)는 먼 팔이 올라가면 몸 옆에 네모 덩어리로 떠 보여서(10-19 15:20) 공격 순서에서 뺌
-DRAW_ATK0 = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 돌아옴 .86~.875(망치가 몸통 앞 5px)
-DRAW_ATK = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 망치 = 포니테일 뒤(대기 draw 와 같은 순서)
-DRAW_P = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'weapon', 'weaponA', 'torso', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 10-20 06:10 들어 올림·예비: 망치 = 포니테일·몸통·머리 뒤(이 구간 망치는 몸통과 안 겹침), 먼 팔뚝·주먹 앞
-DRAW_UP = ['legFar', 'legNear', 'hips', 'armF', 'foreFf', 'torso', 'weapon', 'weaponA', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 머리·몸 앞
-DRAW_L = ['legFar', 'legNear', 'hips', 'armF', 'torso', 'weapon', 'weaponA', 'foreFf', 'head', 'foreF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 몸 앞·머리 뒤
-DRAW_M = ['armF', 'foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'hips', 'torso', 'head', 'armU', 'pauldron', 'armL']   # (12 네온 10-20 11:45) 휘두름 끝~버팀~들어 돌림: 먼 팔·망치·쥔 주먹 = 다리 뒤(타격 때 먼 무릎이 주먹·자루를 덮음)   # 21:42 먼 팔뚝이 망치(자루 끝) 위
-# (12 네온 10-20 DHL 11:23 '갑자기 팔이 막대처럼 나오는 것 이상 · 팔 레이어를 몸 뒤쪽으로') 먼 윗팔·팔뚝(armF·foreFf)은 공격 내내 상체·머리 뒤 — 원화 대기처럼 팔뚝이 몸 뒤에서 나와 주먹으로(주먹 foreF 는 그대로 맨 앞). 러스트는 휘두름~돌아옴에 팔뚝이 몸·머리 앞이었음
-SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK, 'drawA0': DRAW_ATK0, 'drawP': DRAW_P, 'drawU': DRAW_UP, 'drawL': DRAW_L, 'drawM': DRAW_M,
+DRAW_ATK = ['armF', 'foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'hips', 'torso', 'head', 'armU', 'pauldron', 'armL']   # (12 네온 10-20 12:18 DHL) 공격 내내: 먼 팔·망치·쥔 주먹 = 다리·골반·상체·머리 뒤(망치∩상체·주먹∩상체는 1/60 전체에서 거의 0 — 상체 앞/뒤는 안 보임)
+#   이전 순서 기록: v1.3 drawM(.36~.725) = 이 순서 · drawP/drawU/drawA0 = 다리·골반 뒤 없음, 주먹이 머리 앞 — 12:18 에 하나로 합침
+# (12 네온 10-20 DHL 11:23 '갑자기 팔이 막대처럼 나오는 것 이상 · 팔 레이어를 몸 뒤쪽으로') 먼 윗팔·팔뚝(armF·foreFf)은 공격 내내 상체·머리 뒤 — 원화 대기처럼 팔뚝이 몸 뒤에서 나와 주먹으로(그때 주먹 foreF 는 맨 앞 → 12:18 주먹·망치도 다리·머리 뒤). 러스트는 휘두름~돌아옴에 팔뚝이 몸·머리 앞이었음
+SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK,
          'swordGrip': {'tipDepth': -205, 'near': {'upper': 'auFart', 'carry': 'gFart'}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0},
          'hidden': ['weaponA']}
 bones.append(dict(name='weaponA', parent='weapon', pos=[0, 0], part='weaponA'))

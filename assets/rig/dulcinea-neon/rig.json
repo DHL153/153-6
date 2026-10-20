@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-neon",
- "version": "0b7b99b2",
+ "version": "52ab3556",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   442.0,
@@ -802,15 +802,15 @@
   }
  },
  "draw": [
-  "legFar",
-  "legNear",
-  "hips",
   "armF",
   "foreF",
   "weapon",
+  "fistF",
+  "legFar",
+  "legNear",
+  "hips",
   "torso",
   "head",
-  "fistF",
   "armU",
   "pauldron",
   "armL"
@@ -1634,106 +1634,11 @@
     [
      0,
      "drawA"
-    ],
-    [
-     0.03,
-     "drawP"
-    ],
-    [
-     0.36,
-     "drawM"
-    ],
-    [
-     0.7250000000000001,
-     "drawU"
-    ],
-    [
-     0.86,
-     "drawA0"
-    ],
-    [
-     0.875,
-     "drawA"
     ]
    ]
   }
  },
  "drawA": [
-  "legFar",
-  "legNear",
-  "hips",
-  "armF",
-  "foreFf",
-  "weapon",
-  "weaponA",
-  "torso",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawA0": [
-  "legFar",
-  "legNear",
-  "hips",
-  "armF",
-  "foreFf",
-  "torso",
-  "weapon",
-  "weaponA",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawP": [
-  "legFar",
-  "legNear",
-  "hips",
-  "armF",
-  "foreFf",
-  "weapon",
-  "weaponA",
-  "torso",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawU": [
-  "legFar",
-  "legNear",
-  "hips",
-  "armF",
-  "foreFf",
-  "torso",
-  "weapon",
-  "weaponA",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawL": [
-  "legFar",
-  "legNear",
-  "hips",
-  "armF",
-  "torso",
-  "weapon",
-  "weaponA",
-  "foreFf",
-  "head",
-  "foreF",
-  "armU",
-  "pauldron",
-  "armL"
- ],
- "drawM": [
   "armF",
   "foreFf",
   "weapon",

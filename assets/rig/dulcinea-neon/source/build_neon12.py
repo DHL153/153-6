@@ -290,7 +290,7 @@ print('  face px', int(FACE.sum()))
 exec(open(os.path.join(HERE, 'attack', 'smash12.py')).read())
 
 # ---------------- 그리는 순서 (뒤 → 앞) — 러스트 v6.4 대기와 같음(망치 = 몸통·머리 뒤, 다리·골반 앞), 포니테일·천자락·허리띠 없음 ----------------
-draw = ['legFar', 'legNear', 'hips', 'armF', 'foreF', 'weapon', 'torso', 'head', 'fistF', 'armU', 'pauldron', 'armL']   # 먼 팔뚝 = 상체 뒤(허리 옆에서 나옴, 러스트와 같음)
+draw = ['armF', 'foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'hips', 'torso', 'head', 'armU', 'pauldron', 'armL']   # (10-20 12:18 DHL ①달리기·대기 = 손·망치가 다리 뒤) 먼 팔뚝·망치·주먹 = 다리·골반·상체·머리 뒤 — 공격 drawA 와 같은 앞뒤. 대기에서 바뀌는 곳 = 자루 끝 마개 아래가 먼 허벅지 뒤(원화는 마개가 앞), 팔뚝∩골반·주먹∩상체는 원화 같은 픽셀이라 그대로   # (전) 먼 팔뚝 = 상체 뒤, 망치 = 다리·골반 앞, 주먹 맨 앞
 rig = {'name': 'dulcinea-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': def_parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': FACES, 'blinkFaces': {'half': 'blink_half', 'closed': 'blink_closed'},
        'metrics': {'bodyHeight': round(2 * (O[1] - 119), 1), 'note': '리그 단위; 머리카락 위(y119)~발바닥(486) ×2, 무기 제외'},
