@@ -148,4 +148,4 @@
 - index.html: `assets/rig/bruno-neon/rig.def.js?v=669a0e51` · REGISTRY 20:'bruno-neon' · rig.js?v=20261021r4 → r7(r5~r7 = boot.runLock · standSwap · standSwapAct opt-in 3개뿐 — 다른 리그 그대로)
 - 스킬 컷인 cutHold .10(두 철퇴 V 자 예비): 후보 .10·.17·.20·.28 을 게임 컷인 PC 1440×900 혼자·7 루시아와 둘로 잼 — 리그 맨 위(무대 위 끝 기준) .10 혼자 7 · 둘 −1 / .17 −9·−19 / .20 −1·−11 / .28 −5·−13. 폰 390×844 혼자 6 · 7 과 둘 8(사이 11px) · 10 과 둘 −2(사이 24px)
 - 확인(palome-rust/source/tools, NUM=20, 차례대로): game_top 공격 중 가장 위 점 PC 1280×800 24 · 폰 430×900 23px(대기와 같음, 잘림 없음) · game_check PC·폰(전투 달리기·공격 13·16장·트레일·스킬 컷인·도감 2장 — 마이룸·전투 둘 다 치마 리그) · game_check2 PC·폰(시작 선택 리그·미리보기·필살기 컷신 Twin Mace Drop 얼굴·마이룸 리그) · game_dexclick PC(도감 클릭 공격) — 페이지 오류 0
-
+- 편집 툴 v177(버전 1792549944-173d): '게임 반영' 표시 · rig.def.js?v=669a0e51(원화 기준 그림 = 치마 char_0020) · 511/511 · rig.js 그대로(da1148bb, r7)
