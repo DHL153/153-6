@@ -1,126 +1,126 @@
 {
- "art": "char_0030.png (ref512.png, DHL 10-21 17:24)",
+ "art": "char_0030.png (ref512.png, DHL 10-21 17:44)",
  "sole_y": 497,
  "hairTop": [
-  215,
-  148
+  210,
+  156
  ],
  "near": {
   "SH": [
-   203,
-   316
+   200,
+   318
   ],
   "EL": [
-   168,
-   320
+   162,
+   325
   ],
   "WR": [
-   150,
-   265
+   141,
+   268
   ],
   "fist": [
-   148,
+   144,
    241
   ],
   "head": [
-   88,
-   73
+   91,
+   75
   ],
   "pommel": [
-   158,
+   151,
    278
   ],
   "len": {
-   "upper": 35.2,
-   "fore_to_wrist": 57.9,
-   "fore_to_fist": 81.5,
-   "fist_to_head": 178.4
+   "upper": 38.6,
+   "fore_to_wrist": 60.7,
+   "fore_to_fist": 85.9,
+   "fist_to_head": 174.3
   },
-  "axis_deg_from_vertical": -19.7
+  "axis_deg_from_vertical": -17.7
  },
  "far": {
   "SH": [
-   300,
-   336
+   298,
+   335
   ],
   "EL": [
-   327,
-   344
+   318,
+   340
   ],
   "WR": [
-   348,
+   342,
    318
   ],
   "fist": [
-   361,
-   291
+   348,
+   292
   ],
   "head": [
    436,
-   148
+   145
   ],
   "pommel": [
-   352,
-   312
+   337,
+   322
   ],
   "len": {
-   "upper": 28.2,
-   "fore_to_wrist": 33.4,
-   "fore_to_fist": 63.0,
-   "fist_to_head": 161.5
+   "upper": 20.6,
+   "fore_to_wrist": 32.6,
+   "fore_to_fist": 56.6,
+   "fist_to_head": 171.3
   },
-  "axis_deg_from_vertical": 27.7
+  "axis_deg_from_vertical": 30.9
  },
  "hip": [
-  256,
-  381
+  262,
+  391
  ],
  "neck": [
-  272,
-  326
+  285,
+  330
  ],
  "legs": {
   "near": {
    "hip": [
-    234,
-    393
+    236,
+    400
    ],
    "knee": [
     210,
-    420
+    418
    ],
    "ankle": [
-    189,
-    461
+    183,
+    458
    ],
    "len": {
-    "thigh": 36.1,
-    "shin": 46.1
+    "thigh": 31.6,
+    "shin": 48.3
    }
   },
   "far": {
    "hip": [
-    276,
-    393
+    280,
+    400
    ],
    "knee": [
-    318,
-    419
+    308,
+    417
    ],
    "ankle": [
-    325,
-    460
+    318,
+    463
    ],
    "len": {
-    "thigh": 49.4,
-    "shin": 41.6
+    "thigh": 32.8,
+    "shin": 47.1
    }
   }
  },
- "bodyH": 349,
+ "bodyH": 341,
  "gameTop_est": {
   "note": "게임 전투 칸 위 끝 ≈ 땅 − 1.81 × 몸 키(9·19 팔로메 game_top 실측 비율) — 게임에 넣기 전 game_top.py 로 다시 잼(실수 36)",
-  "y": -134.7
+  "y": -120.2
  },
- "arm_over_body": 0.334
+ "arm_over_body": 0.365
 }

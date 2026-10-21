@@ -27,7 +27,7 @@ def head_mask(reg):
     w = cv2.warpAffine(HM.astype(np.uint8) * 255, T, (512, 512)) > 60
     return cv2.dilate(w.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
 HEADM = {'near': head_mask((XX < 230) & (YY < 220)), 'far': head_mask((XX > 330) & (YY < 280))}
-UP_END = {'near': (186, 319), 'far': (318, 341)}                                   # 윗팔 = 팔꿈치 → 어깨갑·소매 앞 가장자리까지(그 안은 몸)
+UP_END = {'near': (182, 322), 'far': (308, 338)}                                   # 윗팔 = 팔꿈치 → 어깨갑·소매 앞 가장자리까지(그 안은 몸)
 def arm(sd):
     s = M[sd]
     return AL & (cap(s['EL'], UP_END[sd], 13) | cap(s['EL'], s['WR'], 16) | cap(s['WR'], s['fist'], 17) | cap(s['fist'], s['fist'], 21))

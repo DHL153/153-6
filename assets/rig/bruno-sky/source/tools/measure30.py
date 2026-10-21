@@ -9,11 +9,11 @@ import json, os, math
 from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.dirname(HERE)
 RA = Image.open(os.path.join(SRC, 'ref512.png')).convert('RGBA')
-M = {'art': 'char_0030.png (ref512.png, DHL 10-21 17:24)', 'sole_y': 497, 'hairTop': [215, 148],
-     'near': {'SH': [203, 316], 'EL': [168, 320], 'WR': [150, 265], 'fist': [148, 241], 'head': [88, 73], 'pommel': [158, 278]},
-     'far': {'SH': [300, 336], 'EL': [327, 344], 'WR': [348, 318], 'fist': [361, 291], 'head': [436, 148], 'pommel': [352, 312]},
-     'hip': [256, 381], 'neck': [272, 326],   # 골반 = 허리띠 가운데, 목 = 복면 아래 깃 위(머리 조각 축)
-     'legs': {'near': {'hip': [234, 393], 'knee': [210, 420], 'ankle': [189, 461]}, 'far': {'hip': [276, 393], 'knee': [318, 419], 'ankle': [325, 460]}}}
+M = {'art': 'char_0030.png (ref512.png, DHL 10-21 17:44)', 'sole_y': 497, 'hairTop': [210, 156],
+     'near': {'SH': [200, 318], 'EL': [162, 325], 'WR': [141, 268], 'fist': [144, 241], 'head': [91, 75], 'pommel': [151, 278]},
+     'far': {'SH': [298, 335], 'EL': [318, 340], 'WR': [342, 318], 'fist': [348, 292], 'head': [436, 145], 'pommel': [337, 322]},
+     'hip': [262, 391], 'neck': [285, 330],   # 골반 = 허리띠 가운데, 목 = 복면 아래 깃 위(머리 조각 축)
+     'legs': {'near': {'hip': [236, 400], 'knee': [210, 418], 'ankle': [183, 458]}, 'far': {'hip': [280, 400], 'knee': [308, 417], 'ankle': [318, 463]}}}
 d_ = lambda a, b: round(math.hypot(a[0] - b[0], a[1] - b[1]), 1)
 for sd in ('near', 'far'):
     s = M[sd]; s['len'] = {'upper': d_(s['SH'], s['EL']), 'fore_to_wrist': d_(s['EL'], s['WR']), 'fore_to_fist': d_(s['EL'], s['fist']), 'fist_to_head': d_(s['fist'], s['head'])}
