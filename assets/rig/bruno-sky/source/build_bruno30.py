@@ -329,7 +329,7 @@ def limb_piece(nm, lm, top_pad, bot_pad, ref):
 _thR = (YY >= 386) & (YY <= 418); _shR = (YY >= 410) & (YY <= 460)
 # 관절 점(a·b) = 둥근 끝 안쪽 몇 px — 허벅지 위 끝은 골반 밑, 아래 끝은 정강이 무릎판 밑으로 숨음. a-b ≈ 원화 뼈 길이(허벅지 44.4 · 정강이 48.1)라 엔진 배율 ≈ 2(시트 = 원화 1:1, 늘이지 않음 — 52번)
 #   뼈 길이 = 두 다리 중 긴 쪽(먼 다리: 엉덩이→발목 94.3 이 평균 허벅지+정강이 92.5 보다 길어, 평균을 쓰면 대기에 골반이 3.2px 내려앉음 — idlediff20)
-TH = {'near': limb_piece('thighN', lab('legN'), 14, 12, _thR), 'far': limb_piece('thighF', lab('legF'), 20, 18, _thR)}   # 시트 허벅지가 골반 밑까지 길게 옴(68·80 / 선 40) — 둥근 끝 안쪽을 크게 잡아 a-b ≈ 42
+TH = {'near': limb_piece('thighN', lab('legN'), 27, 0, _thR), 'far': limb_piece('thighF', lab('legF'), 39, 0, _thR)}   # 아래 둥근 끝 = 무릎(b) — 허벅지가 무릎판 위쪽 반을 덮음(DHL 19:19 '무릎 보호대가 반만 보이면'), 위 끝은 골반 밑이라 크게 잡아 a-b ≈ 41   # 시트 허벅지가 골반 밑까지 길게 옴(68·80 / 선 40) — 둥근 끝 안쪽을 크게 잡아 a-b ≈ 42
 SHN = {'near': limb_piece('shinN', lab('legN'), 10, 0, _shR), 'far': limb_piece('shinF', lab('legF'), 11, 0, _shR)}
 # 굵기(DHL 19:01 '달릴 때 다리가 너무 얇음'): 시트 다리 굵기 × 길이 배율이 원화 다리보다 얇음(허벅지 26.5·23.6 · 정강이 19.9·25.2 / 원화 약 30 · 32~38 art px)
 #   → 조각마다 굵기 배율 w = 목표 굵기 ÷ 지금 굵기(허벅지 30 · 정강이 32 art px) — 길이는 그대로(52번: 늘이지 않음은 길이 이야기, 굵기는 원화에 맞춤 — 13 v1.1 교훈)
@@ -422,7 +422,7 @@ for name, parent in BONES:
     if name == 'skirt': b['part'] = 'hips'   # 서 있을 땐 원화 골반(허리띠 + 바지 윗부분)
     bones.append(b)
 # ---------------- 다리 정의(10 v1.1 구조: x = 서 있는 발 자리 · hipX = 다리 뿌리 · runX = 달리는 줄) ----------------
-THIGH_FIRST = os.environ.get('THIGH_FIRST', '1') == '1'   # DHL 19:10 '무릎 보호대를 달릴 때도' — 허벅지를 먼저 그려 정강이 위 끝 은색 무릎판이 허벅지 아래 둥근 끝 위로(엔진 opt-in legs.thighFirst)
+THIGH_FIRST = os.environ.get('THIGH_FIRST', '0') == '1'   # DHL 19:10 '무릎 보호대를 달릴 때도' — 허벅지를 먼저 그려 정강이 위 끝 은색 무릎판이 허벅지 아래 둥근 끝 위로(엔진 opt-in legs.thighFirst)
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
         'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'bootNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], **({} if RUNLOCK is None else {'runLock': RUNLOCK})}, **({'thighFirst': True} if THIGH_FIRST else {})}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
@@ -452,6 +452,9 @@ parts['gF'] = {'src': 'parts/fistF.png', 'pivot': ipt(fi_off, WR_F), 'grip': ipt
 parts['foreFa'] = {'src': 'parts/foreF.png', 'pivot': ipt(fo_off, WR_F), 'elbow': ipt(fo_off, EL_F), 'scale': SC}
 rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
 rig['drawA'] = ['pony', 'tailA', 'hipsU', 'legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'skirt', 'belt', 'torso', 'armU', 'pauldron', 'weapon', 'foreF', 'head', 'axeN', 'armL', 'fistN']
+# 2타(먼 도끼) 구간 = 먼 도끼·먼 주먹이 몸(골반·허리띠·상체·어깨) 뒤 — DHL 19:19 '2번째 공격하는 도끼와 손이 몸 뒤로'. 다리 앞·머리 뒤는 그대로. 바뀌는 시각 = 겹침이 가장 적은 때(ORDER_T)
+rig['drawB'] = ['pony', 'tailA', 'hipsU', 'legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'weapon', 'foreF', 'skirt', 'belt', 'torso', 'armU', 'pauldron', 'head', 'axeN', 'armL', 'fistN']
+ORDER_T = [float(x) for x in os.environ.get('ORDER_T', '0.30,0.90').split(',')]
 E = PLAN['engine']
 trk = lambda f: [[e[0], round(f(e), 4), 'io'] for e in E]
 HIPY_K = float(os.environ.get('HIPY_K', 0))   # 공격 골반 내림 배율 — 0: 골반(허리띠·바지) 높이 고정(DHL 12:16 — 서 있는 원화 다리는 발목에 고정된 한 장이라 골반이 12px 내려앉으면 바지 아래 끝이 다리 위로 미끄러져 잔상). 철퇴 쥔 자리(gy)는 골반 기준이라 몸과 같이 그대로
@@ -463,7 +466,7 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 1.0, 'hitAt':
        'head': [[0, 0], [0.1, -0.05, 'io'], [0.28, 0.06, 'io'], [0.4, -0.03, 'io'], [0.54, 0.07, 'io'], [0.8, 0]],
        'freeArm': True, 'fuA': trk(lambda e: e[6]), 'flA': trk(lambda e: e[7]),
        'face': [[0, 'angry'], [0.24, 'shout'], [0.38, 'angry'], [0.5, 'shout'], [0.7, 'focus'], [0.9, None]],   # 공격 중 눈 뜸(10 DHL 23:57 — 같은 인물), 시트 표정 6장 모두 눈 뜸
-       'order': [[0, 'drawA']],
+       'order': [[0, 'drawA'], [ORDER_T[0], 'drawB'], [ORDER_T[1], 'drawA']],
        'nearLift': [[0, 0], [0.03, 0, 'io'], [0.09, 10, 'io'], [0.15, 0]], 'farLift': [[0, 0], [0.17, 0, 'io'], [0.23, 10, 'io'], [0.29, 0]],
        'aDamp': 9, 'standStep': True}
 rig['actions'] = {'smash': act}

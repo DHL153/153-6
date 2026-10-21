@@ -1,6 +1,6 @@
 {
  "name": "bruno-sky",
- "version": "83c13aab",
+ "version": "913e540c",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   501.0,
@@ -570,13 +570,13 @@
    "part": "thighN",
    "a": [
     16.0,
-    14.0
+    27.0
    ],
    "b": [
     16.0,
-    55.0
+    67.0
    ],
-   "w": 1.281
+   "w": 1.298
   },
   "shinImg": {
    "part": "shinN",
@@ -620,7 +620,6 @@
    ],
    "runLock": 0.0
   },
-  "thighFirst": true,
   "near": {
    "x": -164.0,
    "hipX": -58.0,
@@ -630,13 +629,13 @@
     "part": "thighN",
     "a": [
      16.0,
-     14.0
+     27.0
     ],
     "b": [
      16.0,
-     55.0
+     67.0
     ],
-    "w": 1.281
+    "w": 1.298
    },
    "shinImg": {
     "part": "shinN",
@@ -660,11 +659,11 @@
      "part": "thighN",
      "a": [
       16.0,
-      14.0
+      27.0
      ],
      "b": [
       16.0,
-      55.0
+      67.0
      ],
      "w": 0.001
     },
@@ -716,13 +715,13 @@
     "part": "thighF",
     "a": [
      15.5,
-     20.0
+     39.0
     ],
     "b": [
      15.5,
-     61.0
+     79.0
     ],
-    "w": 1.441
+    "w": 1.534
    },
    "shinImg": {
     "part": "shinF",
@@ -746,11 +745,11 @@
      "part": "thighF",
      "a": [
       15.5,
-      20.0
+      39.0
      ],
      "b": [
       15.5,
-      61.0
+      79.0
      ],
      "w": 0.001
     },
@@ -911,6 +910,27 @@
   "pauldron",
   "weapon",
   "foreF",
+  "head",
+  "axeN",
+  "armL",
+  "fistN"
+ ],
+ "drawB": [
+  "pony",
+  "tailA",
+  "hipsU",
+  "legFar",
+  "legNear",
+  "torsoB",
+  "armF",
+  "foreFb",
+  "weapon",
+  "foreF",
+  "skirt",
+  "belt",
+  "torso",
+  "armU",
+  "pauldron",
   "head",
   "axeN",
   "armL",
@@ -1667,6 +1687,14 @@
    "order": [
     [
      0,
+     "drawA"
+    ],
+    [
+     0.3,
+     "drawB"
+    ],
+    [
+     0.9,
      "drawA"
     ]
    ],
