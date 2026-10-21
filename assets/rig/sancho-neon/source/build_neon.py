@@ -263,7 +263,7 @@ def sole_sheet(n, ank):
 stand = lambda sd, bn: {'fade': [0.05, 0.1], 'boot': {'part': bn, 'sole': sole(bn, LJ[sd]['a'])}, 'thighImg': seg('thigh' + sd[0].upper(), sd, 'h', 'k'), 'shinImg': seg('shin' + sd[0].upper(), sd, 'k', 'a'), 'kneeImg': None}
 legs = {'hip': [0, round(float(LGJ['hipY_off']) * 2, 1)], 'thigh': TH_R, 'shin': SH_R,
         'thighImg': rseg['thighF'], 'shinImg': rseg['shinF'], 'thighFirst': False,
-        'boot': {'part': 'rboot', 'sole': sole_sheet('bootF', RBA), 'ankleRange': [-0.45, 0.75]},
+        'boot': {'part': 'rboot', 'sole': sole_sheet('bootF', RBA), 'ankleRange': [-0.45, 0.75], 'runLock': 0.0},   # runLock 0(엔진 opt-in): 달리기 다리 그림(시트 정강이·부츠)이면 발목 고정 — 부츠가 정강이와 한 줄, 발 구름 없음. DHL 10-21 12:35 '뛸 때 발이 2조각으로 나눠지면 이상 · 발 구르는 것 없이 뛰어도 좋으니 조각을 쪼개지 말아줘요'(서 있는 원화 다리 그림은 원래 범위)
         'near': {'x': round(float(LJ['near']['a'][0] - HIP[0]) * 2, 1), 'hipX': round(float(LJ['near']['h'][0] - HIP[0]) * 2, 1), 'runX': -10, 'shade': 0, 'kneeOut': 1,
                  'thigh': ln('near', 'h', 'k'), 'shin': ln('near', 'k', 'a'), 'thighImg': rseg['thighN'], 'shinImg': rseg['shinN'],
                  'kneeImg': {'part': 'rkneeN', 'mix': 0.5}, 'stand': stand('near', 'bootN')},

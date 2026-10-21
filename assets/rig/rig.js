@@ -1377,6 +1377,7 @@
         let ang = f.ang, sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side);
         for (let it = 0; it < 6; it++) { const al = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r = wrapA(al - Math.PI / 2 - ang);   // wrap: the shin crosses ±180° during the heel kick
           if (r >= r0 - 1e-3 && r <= r1 + 1e-3) break; ang = ang + r - clamp(r, r0, r1); sol = this._ik(H, this._ankleFor(f.x, f.lift, ang, side), soft, kw, side) }
+        if (L.boot.runLock != null) { const al_ = Math.atan2(sol.ankle[1] - sol.knee[1], sol.ankle[0] - sol.knee[0]), r_ = wrapA(al_ - Math.PI / 2 - ang); if (r_ < r0 - 1e-3 || r_ > r1 + 1e-3) ang = ang + r_ - clamp(r_, r0, r1) }   // runLock(opt-in): 6번 다시 풀어도 범위 밖이면(뒤꿈치 차기·다 뻗은 다리) 부츠만 정강이에 맞춤 — 발목이 꺾여 부츠가 두 조각으로 보이지 않게(DHL 10-21 12:35)
         sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side, true); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
       }
       rig.legPose = lp;

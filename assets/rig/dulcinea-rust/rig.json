@@ -1,6 +1,6 @@
 {
  "name": "dulcinea-rust",
- "version": "e3774f82",
+ "version": "c71f24b9",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   414.0,
@@ -747,7 +747,8 @@
    "ankleRange": [
     -0.35,
     0.45
-   ]
+   ],
+   "runLock": 0.0
   },
   "near": {
    "x": -172.0,

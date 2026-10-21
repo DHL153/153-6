@@ -1,6 +1,6 @@
 {
  "name": "lucia-rust",
- "version": "c1beeb10",
+ "version": "56cc3fc7",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   546.0,
@@ -907,7 +907,8 @@
    "ankleRange": [
     -0.35,
     0.6
-   ]
+   ],
+   "runLock": 0.0
   },
   "kneeImg": {
    "part": "kneeF"

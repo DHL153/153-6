@@ -318,7 +318,7 @@ for n in ['thighN', 'thighF']:   # 시트 허벅지: 위 = 반바지 속(곧게 
     print('  run', n, '시트 폭', _wid, '길이 배율', round(s_, 2), '→ 굵기', RUN_THW[n], '(가로 배율', round(RUN_THW[n] / _wid, 2), ')')
 legs['thighImg'] = rseg['thighF']; legs['near']['thighImg'] = rseg['thighN']; legs['far']['thighImg'] = rseg['thighF']
 legs['shinImg'] = {'part': 'rshin', 'a': KNEE_S.tolist(), 'b': ANK_S.tolist(), 'w': 1.0}
-legs['boot'] = {'part': 'rboot', 'sole': sole_sheet(_ft, ANK_S), 'ankleRange': [-0.35, 0.6]}   # 발목 앞 굽힘 .45 → .6: 가까운 정강이가 세로에서 29° 누운 원화(12 는 23°) — .45 면 서 있을 때 발을 7° 돌려 맞춤(15:5x 대기 비교)
+legs['boot'] = {'part': 'rboot', 'sole': sole_sheet(_ft, ANK_S), 'ankleRange': [-0.35, 0.6], 'runLock': 0.0}   # 발목 앞 굽힘 .45 → .6: 가까운 정강이가 세로에서 29° 누운 원화(12 는 23°) — .45 면 서 있을 때 발을 7° 돌려 맞춤(15:5x 대기 비교)
 print('  run thigh', {k: (v['w']) for k, v in rseg.items()})
 
 # ---------------- 표정·깜빡임: 시트 3~10칸(2칸 머리와 같은 그림 자리) → 머리 맞춤(MH)으로 원화 얼굴에 ----------------

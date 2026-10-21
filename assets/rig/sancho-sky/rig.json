@@ -1,6 +1,6 @@
 {
  "name": "sancho-sky",
- "version": "4da2ad8b",
+ "version": "37f07b1c",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   570.0,
@@ -808,7 +808,8 @@
    "ankleRange": [
     -0.45,
     0.75
-   ]
+   ],
+   "runLock": 0.0
   },
   "near": {
    "x": -154.0,

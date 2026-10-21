@@ -1,6 +1,6 @@
 {
  "name": "sancho-neon",
- "version": "5fa8c50e",
+ "version": "62e2c942",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   570.0,
@@ -749,7 +749,8 @@
    "ankleRange": [
     -0.45,
     0.75
-   ]
+   ],
+   "runLock": 0.0
   },
   "near": {
    "x": -146.0,

@@ -1,6 +1,6 @@
 {
  "name": "sancho-rust",
- "version": "fdcffaeb",
+ "version": "a29177fb",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   558.0,
@@ -733,7 +733,8 @@
    "ankleRange": [
     -0.45,
     0.75
-   ]
+   ],
+   "runLock": 0.0
   },
   "near": {
    "x": -138.0,

@@ -301,7 +301,7 @@ legs['thigh'] = RUN_TH if 'RUN_TH' in os.environ else round(float(np.linalg.norm
 print('  run legs thigh', legs['thigh'], 'shin', RUN_SH, '· 무릎', KNEE_F.tolist(), '발목', ANK_F.tolist())
 legs['shinImg'] = {'part': 'rshinF', 'a': KNEE_F.tolist(), 'b': ANK_F.tolist(), 'w': 1.0}
 legs['near']['shinImg'] = {'part': 'rshinN', 'a': KNEE_Nn.tolist(), 'b': ANK_Nn.tolist(), 'w': 1.0}
-legs['boot'] = {'part': 'rbootF', 'sole': sole_sheet(FT_F, ANK_F), 'ankleRange': [-0.35, 0.6]}
+legs['boot'] = {'part': 'rbootF', 'sole': sole_sheet(FT_F, ANK_F), 'ankleRange': [-0.35, 0.6], 'runLock': 0.0}   # runLock 0(엔진 opt-in): 달리기 다리 그림(시트 정강이·부츠)이면 발목 고정 — 부츠가 정강이와 한 줄, 발 구름 없음. DHL 10-21 12:35 '뛸 때 발이 2조각으로 나눠지면 이상 · 발 구르는 것 없이 뛰어도 좋으니 조각을 쪼개지 말아줘요'(서 있는 원화 다리 그림은 원래 범위)
 legs['near']['boot'] = {'part': 'rbootN', 'sole': sole_sheet(FT_N, ANK_Nn), 'ankleRange': [-0.35, 0.6]}
 # 무릎 쇠판(시트 25칸): 무릎 위 — 허벅지·정강이 가운데 각도(엔진 kneeImg)
 for n, sd in (('kneeN', 'near'), ('kneeF', 'far')):
