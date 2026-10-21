@@ -334,6 +334,18 @@ SHN = {'near': limb_piece('shinN', lab('legN'), 10, 0, _shR), 'far': limb_piece(
 # 굵기(DHL 19:01 '달릴 때 다리가 너무 얇음'): 시트 다리 굵기 × 길이 배율이 원화 다리보다 얇음(허벅지 26.5·23.6 · 정강이 19.9·25.2 / 원화 약 30 · 32~38 art px)
 #   → 조각마다 굵기 배율 w = 목표 굵기 ÷ 지금 굵기(허벅지 30 · 정강이 32 art px) — 길이는 그대로(52번: 늘이지 않음은 길이 이야기, 굵기는 원화에 맞춤 — 13 v1.1 교훈)
 LEG_W = {'thigh': float(os.environ.get('THIGH_W', 34)), 'shin': float(os.environ.get('SHIN_W', 36))}   # DHL 19:10 '살짝 더 두껍게' — 30·32 → 34·36
+# 무릎 보호대 조각(DHL 19:30 '달리는 양쪽 무릎에 딱 표시한 대로' — 원화 먼 무릎: 은색 무릎판 + 금 리벳 + 아래 갈색 끈 + 크림 감기 윗단) — 원화 그대로 오려 달릴 때 두 무릎 위에(엔진 opt-in kneeImg)
+def knee_piece():
+    lum = RA[..., :3].astype(int).mean(-1); rgb = RA[..., :3].astype(int); navy = (rgb[..., 2] - rgb[..., 0] > 12) & (lum > 28) & (lum < 95)
+    reg = (XX >= 286) & (XX <= 328) & (YY >= 396) & (YY <= 441) & lab('legF') & (RA[..., 3] > 0)
+    core = reg & ~navy
+    nc, cc = cv2.connectedComponents(core.astype(np.uint8), 8); k = np.zeros_like(core)
+    for i_ in range(1, nc):
+        if (cc == i_).sum() >= 25: k |= cc == i_
+    k = cv2.morphologyEx(k.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8)) > 0
+    k |= dil(k, 2) & reg & (lum < 45)                                         # 둘레 외곽선
+    a = art(k); print('  무릎 보호대 조각 knee:', int(k.sum()), 'px'); return a
+o_knee = save('knee', knee_piece())
 L_TH = float(max(np.linalg.norm(LEG[s]['knee'] - LEG[s]['hip']) for s in LEG)); L_SH = float(max(np.linalg.norm(LEG[s]['ankle'] - LEG[s]['knee']) for s in LEG))
 def _setw(img, bone, kind):
     p = np.array(Image.open(os.path.join(PARTS, img['part'] + '.png')))[..., 3] > 128; ab = float(np.hypot(*(np.subtract(img['b'], img['a']))))
@@ -387,7 +399,7 @@ print('  face patch px', int(face.sum()), 'colour fit', [(round(a, 3), round(b, 
 def piv(name, p): o = np.array(OFF[name], float); q = np.array(p, float) - o; return [round(float(q[0]), 1), round(float(q[1]), 1)]
 parts = {}
 def P_(name, at, **kw): parts[name] = dict({'src': f'parts/{name}.png', 'pivot': piv(name, at), 'scale': SC}, **kw)
-P_('torso', HIP); P_('hips', HIP); P_('belt', HIP); P_('hipsU', HIP); P_('head', NECK); P_('pauldron', SH_N); P_('pony', PONY); P_('tailA', SCARF_ROOT, mesh={'cols': 8, 'rows': 2})
+P_('knee', LEG['far']['knee']); P_('torso', HIP); P_('hips', HIP); P_('belt', HIP); P_('hipsU', HIP); P_('head', NECK); P_('pauldron', SH_N); P_('pony', PONY); P_('tailA', SCARF_ROOT, mesh={'cols': 8, 'rows': 2})
 for _nm, (_par, _pt) in BACKB.items(): P_(_nm, _pt if _pt is not None else SCARF_ROOT)
 P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F))
 P_('armL', EL_N, fist=piv('armL', FI_N)); P_('fistN', FI_N); P_('axeN', FI_N)
@@ -423,8 +435,11 @@ for name, parent in BONES:
     bones.append(b)
 # ---------------- 다리 정의(10 v1.1 구조: x = 서 있는 발 자리 · hipX = 다리 뿌리 · runX = 달리는 줄) ----------------
 THIGH_FIRST = os.environ.get('THIGH_FIRST', '0') == '1'   # DHL 19:10 '무릎 보호대를 달릴 때도' — 허벅지를 먼저 그려 정강이 위 끝 은색 무릎판이 허벅지 아래 둥근 끝 위로(엔진 opt-in legs.thighFirst)
+_kL = LEG['far']; _at = math.atan2(*(_kL['knee'] - _kL['hip'])[::-1]); _as = math.atan2(*(_kL['ankle'] - _kL['knee'])[::-1])
+KNEE_ROT = -(_at + ((_as - _at + math.pi) % (2 * math.pi) - math.pi) * .5 - math.pi / 2)   # 원화 무릎 그림의 다리 축 기울기만큼 되돌림(엔진은 허벅지·정강이 가운데 각으로 돌림)
+KNEE_IMG = {'part': 'knee', 'mix': .5, 'rot': round(KNEE_ROT, 4)}
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
-        'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'bootNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], **({} if RUNLOCK is None else {'runLock': RUNLOCK})}, **({'thighFirst': True} if THIGH_FIRST else {})}
+        'thighImg': TH['near'], 'shinImg': SHN['near'], 'kneeImg': KNEE_IMG, 'boot': {'part': 'bootNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], **({} if RUNLOCK is None else {'runLock': RUNLOCK})}, **({'thighFirst': True} if THIGH_FIRST else {})}
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
     _root = round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1); _rest = round(SC * (LEG[sd]['ankle'][0] - HIP[0]), 1)

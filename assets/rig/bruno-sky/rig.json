@@ -1,6 +1,6 @@
 {
  "name": "bruno-sky",
- "version": "913e540c",
+ "version": "5d86694d",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   501.0,
@@ -9,6 +9,14 @@
  "refScale": 1.0,
  "refLift": 0,
  "parts": {
+  "knee": {
+   "src": "parts/knee.png",
+   "pivot": [
+    24.0,
+    23.0
+   ],
+   "scale": 2.0
+  },
   "torso": {
    "src": "parts/torso.png",
    "pivot": [
@@ -589,6 +597,11 @@
     61.0
    ],
    "w": 1.812
+  },
+  "kneeImg": {
+   "part": "knee",
+   "mix": 0.5,
+   "rot": 0.491
   },
   "boot": {
    "part": "bootNRun",
