@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "161d4bd8",
+ "version": "af1dbbcc",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -804,6 +804,7 @@
    "hipsRun"
   ]
  ],
+ "standSwapAct": "run",
  "swordGrip": {
   "tipDepth": 6,
   "near": {

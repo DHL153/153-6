@@ -1380,7 +1380,7 @@
         sol.foot = ang; sol.lift = f.lift; if (L[side].stand) { sol.standW = this._standW(side, true); sol.boot = (L[side].stand.boot || L.boot).part } lp[side] = sol;
       }
       rig.legPose = lp;
-      if (rig.def.standSwap) { const w_ = ((lp.near && lp.near.standW) || 0) * .5 + ((lp.far && lp.far.standW) || 0) * .5; for (const [a_, b_] of rig.def.standSwap) { rig.alpha[a_] = w_; rig.alpha[b_] = 1 - w_ } }   // standSwap(opt-in, 20 네온 브루노 10-21): [[서 있을 때 뼈, 달릴 때 뼈], …] — 서 있는 원화 다리 그림 비율대로 두 조각을 바꿔 그림(달리면 허벅지 윗끝을 덮는 골반)
+      if (rig.def.standSwap) { const w_ = this.act && rig.def.standSwapAct === 'run' ? 0 : ((lp.near && lp.near.standW) || 0) * .5 + ((lp.far && lp.far.standW) || 0) * .5; for (const [a_, b_] of rig.def.standSwap) { rig.alpha[a_] = w_; rig.alpha[b_] = 1 - w_ } }   // standSwapAct 'run'(opt-in): 공격 중엔 늘 달릴 때 조각(DHL 10-21 09:57 '공격할 때 치마 유지')   // standSwap(opt-in, 20 네온 브루노 10-21): [[서 있을 때 뼈, 달릴 때 뼈], …] — 서 있는 원화 다리 그림 비율대로 두 조각을 바꿔 그림(달리면 허벅지 윗끝을 덮는 골반)
       if (rig.def.carry) {
         const sw = act && act.def.farSwap ? this._tr('farSwap') >= .5 : false; this.farFree = sw;   // far arm: IK arm ↔ the action's own drawing (one-frame swap during fast motion)
         const tw = act && act.def.touch ? this._tr('tw') : 0, ton = tw >= .35; if (!ton) this.touchF0 = null; this.touchOn = ton;
