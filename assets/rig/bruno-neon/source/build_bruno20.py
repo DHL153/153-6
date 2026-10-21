@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.2(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.3(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -24,6 +24,51 @@ def desp(a):
 def sheet(n): return desp(np.array(Image.open(os.path.join(PC, n + '.png')).convert('RGBA')))
 def art(mask): a = RA.copy(); a[..., 3] = np.where(mask, a[..., 3], 0); return a
 def dil(m, r): return cv2.dilate(m.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))) > 0
+# ---------------- 골반 아래 끝 다듬기 (DHL v1.2 검수: 달릴 때 골반 아래가 덜 잘림) ----------------
+#   골반 라벨 아래 끝이 가까운 무릎판 테 윗부분(회색 + 밝은 윗가장자리)과 먼 허리 금빛 병 윗부분을 가로질러, 달리면 골반에 회색 쐐기·밝은 점선·금 줄이 남았음
+#   ① 가까운 무릎판 테: 골반 라벨의 회색(밝기 ≥ 80 · 채도 < 30, x < 240 · y ≥ 388) → 가까운 다리, 그 칸 아래(테 윗선 밑)도 다리로 — 테 윗선 위 어두운 외곽선은 골반에 남아 골반 아래 끝 선이 됨
+#   ② 먼 허리 금빛 병(허리띠에 달린 것): 금빛 덩어리 + 둘레 어두운 외곽선 → 골반 통째(달리면 허리에 매달림)
+def _fix_hips():
+    lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1); H, N_, F_ = LID['hips'], LID['legN'], LID['legF']
+    g = (LAB == H) & (lum >= 80) & (sat < 30) & (XX < 240) & (YY >= 388) & (RA[..., 3] > 128)
+    n1 = int(g.sum()); LAB[g] = N_; n2 = 0
+    for x in range(180, 240):
+        ys_ = np.nonzero(g[:, x])[0]
+        if len(ys_): col = (LAB[:, x] == H) & (np.arange(512) > ys_.min()); n2 += int(col.sum()); LAB[col, x] = N_
+    gold = (RA[..., 0] > 140) & (RA[..., 1] > 60) & (RA[..., 2] < 70) & (RA[..., 0].astype(int) - RA[..., 2] > 100) & (XX >= 278) & (XX <= 310) & (YY >= 378) & (YY <= 412)
+    nc, cc = cv2.connectedComponents(gold.astype(np.uint8), 8); big = np.zeros_like(gold)
+    for i in range(1, nc):
+        if (cc == i).sum() >= 30: big |= cc == i
+    vial = (big | (dil(big, 2) & (lum < 60))) & ((LAB == F_) | (LAB == H)); n3 = int((vial & (LAB != H)).sum()); LAB[vial] = H
+    # ③ 골반 아래 끝 = 정한 선 c(x)(그 위 = 골반, 아래 = 다리): 가까운 쪽은 무릎판 테 윗선(원화 외곽선이 골반 아래 끝 선) · 가랑이는 원화 실루엣 아래 끝(가랑이 V 외곽선까지) ·
+    #    그 사이(가까운 테 오른쪽 ~ 가랑이, 가랑이 ~ 먼 허벅지)는 곧은 선 — 바지를 가로지르는 곳이라 2줄 옅게(달리면 시트 허벅지 위에 부드럽게)
+    op = RA[..., 3] >= 128; gr = (lum >= 80) & (sat < 30) & (RA[..., 3] > 200)
+    def gtop(x): ys_ = np.nonzero(gr[386:410, x])[0]; return 386 + int(ys_.min()) if len(ys_) else None
+    def sil(x): ys_ = np.nonzero(~op[390:425, x])[0]; return 390 + int(ys_.min()) if len(ys_) else None
+    c = {}
+    for x in range(190, 200): c[x] = 396
+    for x in range(200, 232): g_ = gtop(x); c[x] = g_ if g_ is not None and g_ < 402 else 398
+    for x in range(232, 246): c[x] = 398 + (x - 232) * (405 - 398) / 14.0
+    for x in range(246, 259): c[x] = float(min(sil(x) or 405, 405))   # 가랑이 V 꼭짓점 외곽선까지만(V 팔 외곽선은 다리)
+    for x in range(259, 285): c[x] = 406 + (x - 259) * (391 - 406) / 25.0
+    n4 = n5 = 0; col = np.arange(512)
+    for x, v in c.items():
+        yb = int(np.ceil(v)) - 1   # yb 까지 골반
+        dn = (LAB[:, x] == H) & (col > yb) & (col <= 415); LAB[dn, x] = N_ if x < 252 else F_; n4 += int(dn.sum())
+        up = ((LAB[:, x] == N_) | (LAB[:, x] == F_)) & (col <= yb) & (col >= 372) & ~gr[:, x] & (RA[:, x, 3] > 0); LAB[up, x] = H; n5 += int(up.sum())
+        if 232 <= x < 246 or 259 <= x < 285: CUT[x] = yb
+    # ④ 골반 아래쪽(y ≥ 388)의 가는 외곽선 꼬리(폭 ≤ 2px — 테 왼쪽 끝·가랑이 V 팔·먼 허벅지 바깥 선 토막) → 다리
+    Hm = (LAB == H).astype(np.uint8); opn = cv2.morphologyEx(Hm, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0
+    tail = (LAB == H) & ~opn & (YY >= 388) & (XX >= 186) & (XX <= 312) & ~(dil(big, 1))
+    tail |= (LAB == H) & (XX <= 203) & (YY >= 393) & (YY <= 402)   # 쌈지 왼쪽 아래 = 무릎판 테 왼쪽 모서리 윗선(달리면 쌈지 밑 갈고리)
+    n6 = int(tail.sum()); LAB[tail & (XX < 252)] = N_; LAB[tail & (XX >= 252)] = F_
+    for x in list(CUT):
+        ys_ = np.nonzero(LAB[:, x] == H)[0]; ys_ = ys_[ys_ >= 380]
+        if len(ys_): CUT[x] = int(ys_.max())
+        else: CUT.pop(x)
+    print('  골반 다듬기: 무릎판 테 회색 → 다리', n1, '· 테 밑 칸', n2, '· 금빛 병 → 골반', n3, '· 아래 끝 선 골반→다리', n4, '다리→골반', n5, '· 가는 꼬리 → 다리', n6, '· 옅게 열', len(CUT))
+CUT = {}
+_fix_hips()
 OFF = {}
 def despeck(a, minpx=14):   # 조각에서 떨어진 작은 점(라벨 경계에 남은 외곽선 부스러기) 지움
     n, cc, st, _ = cv2.connectedComponentsWithStats((a[..., 3] > 0).astype(np.uint8), 8); a = a.copy()
@@ -195,7 +240,10 @@ def underlay(a, back_m, front_m, r=4):
     band = front_m & dil(back_m, r) & (RA[..., 3] >= 250) & (a[..., 3] == 0); a = a.copy(); a[band] = RA[band]; return a, int(band.sum())
 head_m = lab('head'); hd = with_reveal('head'); o_head = save('head', hd)
 tr, _n2 = underlay(with_reveal('torso'), lab('torso'), head_m | lab('pauldN')); o_tor = save('torso', tr)
-_hp, _n3 = underlay(with_reveal('hips'), lab('hips'), lab('torso')); o_hips = save('hips', _hp)
+_hp, _n3 = underlay(with_reveal('hips'), lab('hips'), lab('torso'))
+for _x, _y in CUT.items():   # 바지를 가로지른 골반 아래 끝 2줄 옅게(대기엔 같은 원화 다리 위라 그대로, 달리면 시트 허벅지 위로 부드럽게)
+    _hp[_y, _x, 3] = (_hp[_y, _x, 3] * 0.45).astype(np.uint8); _hp[_y - 1, _x, 3] = (_hp[_y - 1, _x, 3] * 0.8).astype(np.uint8)
+o_hips = save('hips', _hp)
 o_pd = save('pauldron', with_reveal('pauldN'))
 print('  이음 밑 덧칠 px: 상체←머리·어깨갑', _n2, '· 골반←상체', _n3)
 BACKB = {}

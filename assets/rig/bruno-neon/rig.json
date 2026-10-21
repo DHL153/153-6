@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "ff6391c7",
+ "version": "23d59932",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -20,7 +20,7 @@
   "hips": {
    "src": "parts/hips.png",
    "pivot": [
-    56.0,
+    57.0,
     17.0
    ],
    "scale": 2.0
@@ -207,15 +207,15 @@
    "src": "parts/bootStandN.png",
    "pivot": [
     33.0,
-    89.0
+    82.0
    ],
    "scale": 2.0
   },
   "bootStandF": {
    "src": "parts/bootStandF.png",
    "pivot": [
-    78.0,
-    88.0
+    77.0,
+    84.0
    ],
    "scale": 2.0
   },
