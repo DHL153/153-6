@@ -34,9 +34,16 @@ for r in R:
 for sd in ('near', 'far'):
     print(f"  {sd:4s} 무릎 굽힘 {min(bend[sd]):4.0f}~{max(bend[sd]):4.0f}° (평균 {sum(bend[sd]) / len(bend[sd]):4.0f}) · 기울기 {min(slant[sd]):+4.0f}~{max(slant[sd]):+4.0f}° · 펴짐 {min(ext[sd]):.2f}~{max(ext[sd]):.2f} · 다리 {[round(v, 1) for v in R[-1]['LL'][sd]]}")
 print('  stance', round(R[-1]['st'], 3))
+if os.environ.get('SIDE'):   # 무릎이 엉덩이→발목 선의 앞(+, 진행 방향 오른쪽)인지 뒤(−)인지 — 프레임마다 (17 네온 DHL 12:27 '무릎이 갑자기 반대편')
+    for j, r in enumerate(R):
+        row = []
+        for sd in ('near', 'far'):
+            P = r['P'][sd]; h, k, a = P['hip'], P['knee'], P['ankle']; cr = (a[0] - h[0]) * (k[1] - h[1]) - (a[1] - h[1]) * (k[0] - h[0])
+            d = math.hypot(a[0] - h[0], a[1] - h[1]) or 1; row.append(f"{sd} {'앞' if cr < 0 else '뒤'} {abs(cr) / d:5.1f}px 굽힘 {bend[sd][j]:4.0f} 펴짐 {ext[sd][j]:.2f} 발목dx {a[0] - h[0]:+6.1f}")
+        print(f'   {j:2d} ' + ' | '.join(row))
 if os.environ.get('DBG'):
     for j, r in enumerate(R):
-        P = r['P']['near']; h, k, a = P['hip'], P['knee'], P['ankle']; print(f"   {j:2d} 엉덩이 y {h[1]:6.1f} 발목 y {a[1]:6.1f} dx {a[0] - h[0]:+6.1f} 굽힘 {bend['near'][j]:4.0f} 펴짐 {ext['near'][j]:.2f}")
+        P = r['P'][os.environ.get('DBG') if os.environ.get('DBG') in ('near', 'far') else 'near']; h, k, a = P['hip'], P['knee'], P['ankle']; print(f"   {j:2d} 엉덩이 y {h[1]:6.1f} 발목 y {a[1]:6.1f} dx {a[0] - h[0]:+6.1f} 굽힘 {bend['near'][j]:4.0f} 펴짐 {ext['near'][j]:.2f} 발 각 {math.degrees(P.get('foot', 0)):+5.0f}° 듦 {P.get('lift', 0):5.1f}")
 f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 14)
 ims = [Image.open(io.BytesIO(base64.b64decode(r['img'].split(',')[1]))).convert('RGBA') for r in R]
 w, h = ims[0].size; y0 = int(h * float(os.environ.get('Y0', .42))); x0, x1 = int(w * float(os.environ.get('X0', .2))), int(w * float(os.environ.get('X1', .8))); step = int(os.environ.get('STEP', 3)); sel = list(range(0, N, step))

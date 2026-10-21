@@ -94,13 +94,25 @@ for order, SRC, OWN, AMASK in ((DRAW_B, BODY, ownB, BL), (DRAW_F, RA, own, AL)):
         if n == 'axe': ab &= ~(own['foreF'] | own['upF'])
         m = OWN[n] | ab; a = SRC.copy(); a[..., 3] = np.where(m, SRC[..., 3], 0); ART[n] = a
 for n in DRAW_B:   # 원화에서 이 몸 조각 칸인 곳 = 원화 픽셀(대기에 보이는 그대로) — 지운 원화가 다시 그린 상체 옆 짙은 띠·금색 줄(nofar 의 둥근 어깨와 다름) 등
-    _ob = own.get(n, np.zeros((512, 512), bool)) if n not in ('thighN', 'thighF', 'bootN', 'bootF') else (ownB[n] & AL & (SL == 0))
+    _ob = own.get(n, np.zeros((512, 512), bool)) if n not in ('thighN', 'thighF', 'bootN', 'bootF') else (ownB[n] & AL & ((SL == 0) | (SL == SEGN.index('leg' + n[-1]) + 1)))   # 다리 칸(원화에 보이는 다리 — 방패 오른쪽 테에서 몸으로 돌린 띠 포함)
     _ch = _ob & (np.abs(ART[n].astype(int) - RA.astype(int)).max(-1) > 0)
     ART[n][_ch] = RA[_ch]
     if _ch.any(): print(f'  {n} 원화 픽셀로', int(_ch.sum()))
 for n in ('head', 'collar'):   # 원화에서 상체 칸인 곳(어깨갑 왼쪽 짙은 띠)은 머리·가리개가 덮지 않게 — 몸 그림(nofar)에선 머리 칸으로 들어간 곳
     _k = own['torso'] & (ART[n][..., 3] > 0); ART[n][..., 3][_k] = 0
     if _k.any(): print(f'  {n} 상체 칸 뺌', int(_k.sum()))
+#   방패 뒤(원화 방패 칸) 몸 조각의 가는 부스러기 — 지운 원화가 방패 밑에 그린 골반 왼쪽 끝 가는 선(왼쪽으로 뾰족) 등. 달리면 방패가 출렁여 틈으로 보였음(DHL 12:27 '방패쪽 지저분한 것')
+#   + 원화 실루엣 밖(원화는 빈 곳인데 지운 원화가 그린 곳 — 방패 오른쪽 테와 허벅지 사이 틈의 골반 끝 가는 선) 뺌
+_hid = dil(own['shield'], 1)
+for n in DRAW_B:
+    _a = ART[n][..., 3] > 0; _op = cv2.morphologyEx(_a.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
+    _rm = _a & ((~dil(_op, 1) & _hid) | ~dil(AL, 1)); ART[n][..., 3][_rm] = 0
+    if _rm.any(): print(f'  {n} 방패 뒤 가는 부스러기·원화 밖 뺌', int(_rm.sum()))
+#   골반 왼쪽 아래 가는 꼬리(방패 테 ↔ 가까운 허벅지 사이 비스듬한 외곽선 아래 끝, 원화 칸 없음) → 서 있는 가까운 허벅지 조각으로 옮김:
+#   대기 모습은 그대로, 달리면(서 있는 다리 그림이 옅어짐) 같이 사라짐 — 골반에 붙어 있으면 다리가 움직여도 허공에 남은 선으로 보였음
+_a = ART['hips'][..., 3] > 0; _op = cv2.morphologyEx(_a.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))) > 0
+_tail = _a & ~dil(_op, 1) & (yy > 345) & (xx < 232)
+ART['thighN'][_tail] = ART['hips'][_tail]; ART['hips'][..., 3][_tail] = 0; print('  골반 왼쪽 아래 꼬리 → 가까운 허벅지(서 있는)', int(_tail.sum()))
 OPQ = lambda n: ART[n][..., 3] > 200
 
 # ---- 시트 조각 (cut17.py) ----
@@ -325,12 +337,17 @@ legs['thigh'] = RUN_TH if 'RUN_TH' in os.environ else round(float(np.linalg.norm
 print('  run legs thigh', legs['thigh'], 'shin', RUN_SH, '· 무릎', KNEE_F.tolist(), '발목', ANK_F.tolist())
 legs['shinImg'] = {'part': 'rshinF', 'a': KNEE_F.tolist(), 'b': ANK_F.tolist(), 'w': 1.0}
 legs['near']['shinImg'] = {'part': 'rshinN', 'a': KNEE_Nn.tolist(), 'b': ANK_Nn.tolist(), 'w': 1.0}
-legs['boot'] = {'part': 'rbootF', 'sole': sole_sheet(FT_F, ANK_F), 'ankleRange': [-0.35, 0.6]}
-legs['near']['boot'] = {'part': 'rbootN', 'sole': sole_sheet(FT_N, ANK_Nn), 'ankleRange': [-0.35, 0.6]}
-for n, sd in (('kneeN', 'near'), ('kneeF', 'far')):
+#   발목 범위 위 끝 .6 → .8 (DHL 12:27 '다리 걸음이 삐그덕'): 디딘 발이 뜨는 첫 프레임에 정강이가 .6 을 넘으면 엔진이 부츠를 돌려 맞추는데,
+#   긴 부츠(시트 1:1 ×2)는 돌리면 발끝이 내려가 발목이 48px 들림 → 다리가 짧아져 더 굽음 → 또 돌림(6번) — 한 프레임에 무릎 22° → 96°.
+#   .8 이면 부츠가 거의 평평하게 뜨고 굽힘이 22→32→46→60→71→79→82° 로 이어짐(legprobe17 DBG=near)
+legs['boot'] = {'part': 'rbootF', 'sole': sole_sheet(FT_F, ANK_F), 'ankleRange': [-0.35, 0.8]}
+legs['near']['boot'] = {'part': 'rbootN', 'sole': sole_sheet(FT_N, ANK_Nn), 'ankleRange': [-0.35, 0.8]}
+#   무릎 보호대 = 두 다리 모두 kneeF(네모 판이 앞 = 오른쪽, 금색 관절이 뒤) — DHL 12:27 '무릎이 갑자기 반대편으로 돌아갑니다, 무릎은 동일하게 움직여요':
+#   시트 19칸 왼쪽(kneeN)은 좌우가 거꾸로 그려진 짝이라 가까운 다리 무릎만 뒤를 보는 것처럼 보였음 → 한 그림을 두 다리에(먼 다리는 shade 로 어둡게)
+for n in ('kneeF',):
     a = sheet_rgba(n); m = a[..., 3] > 128; ys_, xs_ = np.nonzero(m)
     Image.fromarray(a).save(os.path.join(OUT, 'parts', n + '.png')); def_parts[n] = dict(src=f'parts/{n}.png', pivot=[round(float(xs_.mean()), 1), round(float(ys_.mean()), 1)], scale=RS)
-legs['near']['kneeImg'] = {'part': 'kneeN'}; legs['far']['kneeImg'] = {'part': 'kneeF'}; legs['kneeImg'] = {'part': 'kneeF'}
+legs['near']['kneeImg'] = {'part': 'kneeF'}; legs['far']['kneeImg'] = {'part': 'kneeF'}; legs['kneeImg'] = {'part': 'kneeF'}
 
 # ---------------- 표정·깜빡임: 시트 3~10칸(2칸 머리와 같은 그림 자리) → 머리 맞춤(MH)으로 원화 얼굴에 ----------------
 _wfs = {n: cv2.warpAffine(sheet_rgba(n), MH, (512, 512), flags=cv2.INTER_LINEAR, borderValue=(0, 0, 0, 0)).astype(np.int16)

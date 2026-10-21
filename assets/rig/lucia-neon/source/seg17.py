@@ -34,6 +34,12 @@ AL = RA[..., 3] > 24
 # ① 방패·먼 팔 칸 (원화 픽셀)
 SHIELD = big_only(diff(RA, NS) & AL & (XX < 250))
 SHIELD = AL & (XX < 250) & ndimage.binary_fill_holes(cv2.morphologyEx(SHIELD.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0)   # 원화·지운 원화 색이 우연히 같은 방패 테 점(초록 반점) 메움
+_op = cv2.morphologyEx(SHIELD.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
+SHIELD &= dil(_op, 1)   # 방패 오른쪽 테 밖 가는 부스러기(무릎판·다리 흰 테 끝, 머리카락 끝 — 원화에서 방패 테에 닿은 1~2px 줄) → 몸으로. 달릴 때 방패 옆에 흰·회색 줄로 남았음(DHL 12:27 '방패쪽 지저분한 것')
+#   방패 오른쪽 아래 곧은 테(y 300~446) = 줄마다 오른쪽 끝에 바깥으로만 튀는 점을 빼며 맞춘 직선 — y 340 아래에서 선 + 1.5px 밖(가까운 무릎판 왼쪽 4~9px 띠가 방패 칸에 들어가 있었음)은 몸으로
+_ys = np.arange(300, 446); _xr = np.array([np.nonzero(SHIELD[y])[0].max() for y in _ys], float); _kp = np.ones(len(_ys), bool)
+for _ in range(8): _ln = np.polyfit(_ys[_kp], _xr[_kp], 1); _kp = _xr - np.polyval(_ln, _ys) <= 1.0
+SHIELD &= ~((YY >= 340) & (YY <= 446) & (XX > np.polyval(_ln, YY) + 1.5))
 FAR = big_only(diff(RA, NF) & AL & (XX > 296))
 # ② 몸 그림
 BODY = RA.copy(); BODY[SHIELD] = NS[SHIELD]; BODY[FAR] = NF[FAR]

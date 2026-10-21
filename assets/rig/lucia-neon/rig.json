@@ -1,6 +1,6 @@
 {
  "name": "lucia-neon",
- "version": "3e94eeb5",
+ "version": "a7231ad9",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   562.0,
@@ -12,7 +12,7 @@
   "head": {
    "src": "parts/head.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -36,7 +36,7 @@
   "hips": {
    "src": "parts/hips.png",
    "pivot": [
-    95.0,
+    80.0,
     23.0
    ],
    "scale": 2.0
@@ -277,14 +277,6 @@
    ],
    "scale": 1.0
   },
-  "kneeN": {
-   "src": "parts/kneeN.png",
-   "pivot": [
-    19.6,
-    16.8
-   ],
-   "scale": 2.0
-  },
   "kneeF": {
    "src": "parts/kneeF.png",
    "pivot": [
@@ -296,7 +288,7 @@
   "face_neutral": {
    "src": "parts/face_neutral.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -304,7 +296,7 @@
   "face_happy": {
    "src": "parts/face_happy.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -312,7 +304,7 @@
   "face_angry": {
    "src": "parts/face_angry.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -320,7 +312,7 @@
   "face_focus": {
    "src": "parts/face_focus.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -328,7 +320,7 @@
   "face_shout": {
    "src": "parts/face_shout.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -336,7 +328,7 @@
   "face_effort": {
    "src": "parts/face_effort.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -344,7 +336,7 @@
   "blink_half": {
    "src": "parts/blink_half.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -352,7 +344,7 @@
   "blink_closed": {
    "src": "parts/blink_closed.png",
    "pivot": [
-    78.0,
+    77.0,
     104.0
    ],
    "scale": 2.0
@@ -785,11 +777,11 @@
     ],
     "ankleRange": [
      -0.35,
-     0.6
+     0.8
     ]
    },
    "kneeImg": {
-    "part": "kneeN"
+    "part": "kneeF"
    }
   },
   "far": {
@@ -923,7 +915,7 @@
    ],
    "ankleRange": [
     -0.35,
-    0.6
+    0.8
    ]
   },
   "kneeImg": {
