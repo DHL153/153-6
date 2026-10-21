@@ -331,7 +331,14 @@ _thR = (YY >= 386) & (YY <= 418); _shR = (YY >= 410) & (YY <= 460)
 #   뼈 길이 = 두 다리 중 긴 쪽(먼 다리: 엉덩이→발목 94.3 이 평균 허벅지+정강이 92.5 보다 길어, 평균을 쓰면 대기에 골반이 3.2px 내려앉음 — idlediff20)
 TH = {'near': limb_piece('thighN', lab('legN'), 14, 12, _thR), 'far': limb_piece('thighF', lab('legF'), 20, 18, _thR)}   # 시트 허벅지가 골반 밑까지 길게 옴(68·80 / 선 40) — 둥근 끝 안쪽을 크게 잡아 a-b ≈ 42
 SHN = {'near': limb_piece('shinN', lab('legN'), 10, 0, _shR), 'far': limb_piece('shinF', lab('legF'), 11, 0, _shR)}
+# 굵기(DHL 19:01 '달릴 때 다리가 너무 얇음'): 시트 다리 굵기 × 길이 배율이 원화 다리보다 얇음(허벅지 26.5·23.6 · 정강이 19.9·25.2 / 원화 약 30 · 32~38 art px)
+#   → 조각마다 굵기 배율 w = 목표 굵기 ÷ 지금 굵기(허벅지 30 · 정강이 32 art px) — 길이는 그대로(52번: 늘이지 않음은 길이 이야기, 굵기는 원화에 맞춤 — 13 v1.1 교훈)
+LEG_W = {'thigh': float(os.environ.get('THIGH_W', 30)), 'shin': float(os.environ.get('SHIN_W', 32))}
 L_TH = float(max(np.linalg.norm(LEG[s]['knee'] - LEG[s]['hip']) for s in LEG)); L_SH = float(max(np.linalg.norm(LEG[s]['ankle'] - LEG[s]['knee']) for s in LEG))
+def _setw(img, bone, kind):
+    p = np.array(Image.open(os.path.join(PARTS, img['part'] + '.png')))[..., 3] > 128; ab = float(np.hypot(*(np.subtract(img['b'], img['a']))))
+    mid = int(p[int((img['a'][1] + img['b'][1]) / 2)].sum()); now = mid * (SC * bone / ab) / SC; img['w'] = round(LEG_W[kind] / max(1.0, now), 3); return round(now, 1), img['w']
+print('  달리는 다리 굵기(원화 px, 지금 → w)', {f'{k}_{sd}': _setw(d[sd], L, k) for k, d, L in (('thigh', TH, L_TH), ('shin', SHN, L_SH)) for sd in ('near', 'far')})
 print('  leg lengths thigh', round(L_TH, 1), 'shin', round(L_SH, 1), '· sheet a-b', {k: round(float(np.hypot(*(np.subtract(v['b'], v['a'])))), 1) for k, v in {**{f'th_{s}': TH[s] for s in TH}, **{f'sh_{s}': SHN[s] for s in SHN}}.items()})
 # ---------------- 표정·깜빡임: 시트 머리 → 원화 머리 자리(SIFT), 무표정과 다른 곳 + 5px 만 ----------------
 sift = cv2.SIFT_create()
