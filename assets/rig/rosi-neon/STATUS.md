@@ -43,3 +43,7 @@
 - 원인: 먼 소매 조각(어깨판 + 윗팔 + 팔꿈치 띠 — 러스트처럼 소매만 어깨에서 돎)을 머리 다음에 그려서, 연사로 상체를 젖히면 머리가 먼 어깨 쪽으로 내려와 어깨판이 턱·입 앞에 그려졌음(러스트 먼 소매는 어깨판이 없어 안 보였던 것)
 - 고침: 그리는 순서 chest → **shoulderF** → neckP → head → shoulderN → gun (먼 어깨 = 목·머리 뒤, 가까운 어깨는 머리 앞 그대로) · review/v11_shoulderF.jpg(왼쪽 고치기 전 · 오른쪽 고친 뒤, 연사 0.30초)
 - 편집 툴 v168
+
+## 09:20 (10-21) 게임 적용 (DHL 09:14 '네온 로시 인게임 반영해 줘요')
+- index.html: REGISTRY 14:'rosi-neon' · rig.def.js 스크립트(4 러스트 로시 다음). 연결 값은 rig.json 안(4 와 같음): ui.attack 'fire' + attackOpts {hold:.2}(짧은 연사 4발) · cutHold .30 · ui.tap heft→nod→hop→surprise · ui.long sway · ui.roomStep · 마이룸 표 14 = 07:30 에 잰 값
+- 확인(NUM=14, PC 1280×800 · 폰 390×844): 시작 선택 · 미리보기 · 전투 달리기 · 연사(첫 발 0.13초 hitDelayMs 133 · 4발) · 스킬 컷인(버티며 쏘기) · 도감 2장(클릭 = 연사) · 필살기 컷신 · 마이룸(터치 차례·길게 · 걸음 2.22/초) 페이지 오류 0 · review/game_v11.jpg
