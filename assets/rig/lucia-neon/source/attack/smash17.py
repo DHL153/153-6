@@ -73,7 +73,8 @@ PT = lambda i, f=lambda v: v: [[r[0], round(f(r[i]), 4)] + ([EZ(r)] if EZ(r) els
 smash = {
     'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': END, 'hitAt': HIT, 'hitStop': .12, 'cancelAt': .78, 'freeArm': True,
     'aDamp': 30, 'standStep': True,
-    'ankleRange': [-.45, 1.1], 'legRun': k((0, 0), (SW1 - .01, 0, 'lin'), (SW1 + .02, 1), (HOLD + .04, 1, 'io'), (RET + .045, .12, 'lin'), (RET + .055, 0)),
+    'ankleRange': [-.45, 1.1], 'legRun': k((0, 0)),   # v1.2(DHL 10-21 15:40 '이 타이밍에 다리를 틀지 말고 이전 다리 모양으로 공격을 완료하고 이동 전에 다리를 틀면'): 공격 내내 서 있는 원화 다리 —
+    #   전엔 러스트처럼 휘두름 .31~.34 에 달리기 다리로, .87 에 다시 서 있는 다리로 바꿈(두 번 틀림). 달리다 공격하면 시작 .09 에 서 있는 다리로 한 번, 공격이 끝나 다시 달릴 때 한 번만 바뀜 · 골반 내림 0(genkeys17)
     'w': k((0, 0, 'io'), (.12, 1), (END - .03, 1, 'io'), (END, 0)),
     'reach': k((0, 0)), 'sN': k((0, 0)),
     'nPiece': k((0, 'gFart'), (.05, 'gFart2'), (.88, 'gFart')),   # 먼 손 = 내내 원화 주먹(러스트 v1.3)
