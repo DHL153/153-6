@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.8(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 = 짧은 치마 hipsRun(standSwap) · 치마 안 종종걸음 · 공격 중 치마 유지 standSwapAct) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.9(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 골반 = 늘 짧은 치마 hipsRun(대기 포함) · 치마 안 종종걸음 · 달리기·공격 상체 torsoAtk(standSwap + standSwapAct) · 어깨갑 왼쪽 위 다듬기) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -76,7 +76,7 @@ def despeck(a, minpx=14):   # 조각에서 떨어진 작은 점(라벨 경계에
         if st[i, 4] < minpx: a[cc == i] = 0
     return a
 def save(name, a, pad=2):
-    if name in ('head', 'torso', 'hips', 'pauldron', 'headB', 'torsoB', 'pauldronB', 'hipsB', 'armU', 'armF', 'armL', 'foreF'):
+    if name in ('head', 'torso', 'torsoAtk', 'hips', 'pauldron', 'headB', 'torsoB', 'pauldronB', 'hipsB', 'armU', 'armF', 'armL', 'foreF'):
         d_ = despeck(a); a = d_ if (d_[..., 3] > 0).any() else a
     ys, xs = np.nonzero(a[..., 3] > 0); x0, y0 = max(0, xs.min() - pad), max(0, ys.min() - pad); x1, y1 = min(a.shape[1], xs.max() + 1 + pad), min(a.shape[0], ys.max() + 1 + pad)
     Image.fromarray(a[y0:y1, x0:x1]).save(os.path.join(PARTS, name + '.png')); OFF[name] = (x0, y0); return np.array([x0, y0], float)
@@ -238,8 +238,30 @@ print('  far mace vertical: pivot', np.round(W_PIV, 1), 'top', np.round(W_TIP, 1
 # ---------------- 머리·상체·골반·어깨갑 + 이음 밑 4px ----------------
 def underlay(a, back_m, front_m, r=4):
     band = front_m & dil(back_m, r) & (RA[..., 3] >= 250) & (a[..., 3] == 0); a = a.copy(); a[band] = RA[band]; return a, int(band.sum())
-head_m = lab('head'); hd = with_reveal('head'); o_head = save('head', hd)
-tr, _n2 = underlay(with_reveal('torso'), lab('torso'), head_m | lab('pauldN')); o_tor = save('torso', tr)
+head_m = lab('head'); hd = with_reveal('head')
+def _thin_off(a, reg):   # 가는 가닥(폭 ≤ 2px) 지움 — DHL 10:37 '공격할 때 표시한 부분이 지저분' 어깨갑 왼쪽 위 머리 가닥 끝
+    m = (a[..., 3] > 40) & reg; op_ = cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0; th = m & ~op_; a = a.copy(); a[th, 3] = 0; return a, int(th.sum())
+hd, _nth = _thin_off(hd, (XX < 196) & (YY >= 286) & (YY <= 326)); print('  머리 어깨 왼쪽 가는 가닥 지움', _nth)
+#   어깨갑 위 끝 바로 위 밝은 테(원화 1px 빛 줄 — 머리 칸에 들어 있어 머리가 움직이면 어깨갑에서 떨어져 점선처럼 보임) → 어깨갑 조각으로
+_lum_ = RA[..., :3].astype(int).mean(-1); RIM = (hd[..., 3] > 0) & (_lum_ > 95) & dil(lab('pauldN'), 3) & ~lab('pauldN') & (YY >= 286) & (YY <= 312) & (XX >= 186) & (XX <= 222)
+hd = hd.copy(); hd[RIM, 3] = 0; print('  어깨갑 위 밝은 테 머리 → 어깨갑', int(RIM.sum()))
+o_head = save('head', hd)
+tr, _n2 = underlay(with_reveal('torso'), lab('torso'), head_m | lab('pauldN'))
+#   머리 ↔ 어깨갑 이음 뒤(상체, 둘보다 먼저 그림)에 머리카락 색 받침 — 공격·숨쉬기로 머리와 어깨갑이 따로 움직여 벌어진 틈에 배경 대신 머리카락 색(대기엔 위 조각에 다 덮임)
+SEAM = (dil(RIM, 2) | (head_m & dil(lab('pauldN'), 3))) & (YY >= 284) & (YY <= 312) & (XX >= 184) & (XX <= 224) & (tr[..., 3] == 0)
+_hc = np.median(RA[head_m & (RA[..., 3] >= 250) & (RA[..., :3].astype(int).mean(-1) < 40)][:, :3], 0).astype(np.uint8)
+tr[SEAM, :3] = _hc; tr[SEAM, 3] = 255; print('  상체 머리·어깨갑 이음 받침', int(SEAM.sum()), 'px', _hc.tolist())
+o_tor = save('torso', tr)
+#   torsoAtk(엔진 opt-in standSwap — 서 있을 땐 원화 상체, 달리기·공격엔 이 조각): 가까운 팔 밑 상체 왼쪽 뾰족한 검은 자락(x 176~198)은 대기엔 팔 밑으로 이어지는 재킷이지만
+#   팔을 들면 위가 끊겨 떨어진 깃발처럼 보임(DHL 10:37) → 몸 옆선(어깨갑 왼쪽 아래 → 허리띠 왼쪽) 밖을 자르고 잘린 끝에 외곽선
+TA_LINE = [(318, 203.0), (330, 200.0), (346, 198.5), (362, 198.0)]
+def torso_atk():
+    a = tr.copy(); cl = np.interp(YY, [p[0] for p in TA_LINE], [p[1] for p in TA_LINE]); cut = (XX < cl - 0.5) & (YY >= 318) & (YY <= 362) & (a[..., 3] > 0)
+    n_ = int(cut.sum()); a[cut, 3] = 0
+    oc = np.array([18, 16, 20], float); edge = (a[..., 3] > 0) & (YY >= 318) & (YY <= 362) & (XX < cl + 1.5) & (XX >= cl - 0.5)
+    a[edge, :3] = (0.35 * a[edge, :3] + 0.65 * oc).astype(np.uint8)
+    print('  torsoAtk: 팔 밑 검은 자락 자름', n_, 'px'); return a
+o_torA = save('torsoAtk', torso_atk())
 _hp, _n3 = underlay(with_reveal('hips'), lab('hips'), lab('torso'))
 for _x, _y in CUT.items():   # 바지를 가로지른 골반 아래 끝 2줄 옅게(대기엔 같은 원화 다리 위라 그대로, 달리면 시트 허벅지 위로 부드럽게)
     _hp[_y, _x, 3] = (_hp[_y, _x, 3] * 0.45).astype(np.uint8); _hp[_y - 1, _x, 3] = (_hp[_y - 1, _x, 3] * 0.8).astype(np.uint8)
@@ -283,7 +305,16 @@ def hips_run(K=4):
     print('  달릴 때 골반 hipsRun(치마): 단 y', SKIRT[5][1], '· 치마 px', int((fill > .5).sum()), '· 바지 색', pc.astype(int).tolist(), '· 외곽선', oc.astype(int).tolist())
     return np.clip(out, 0, 255).astype(np.uint8)
 o_hipsR = save('hipsRun', hips_run())
-o_pd = save('pauldron', with_reveal('pauldN'))
+_pd = with_reveal('pauldN'); _pd[RIM] = RA[RIM]   # 밝은 테(머리에서 옮김)
+_mr = (_pd[..., 3] > 0) & (_pd[..., 0].astype(int) > 80) & (_pd[..., 0].astype(int) - _pd[..., 1] > 40) & (_pd[..., 0].astype(int) - _pd[..., 2] > 30) & (_pd[..., 1] < 100) & (XX < 200)
+_pd[_mr, 3] = 0   # 윗팔 자줏빛 띠 조각(대기엔 밑의 윗팔 그림이 같은 픽셀) — 팔이 비키면 어깨갑 왼쪽 안에 붉은 줄
+_pd, _nu = underlay(_pd, lab('pauldN'), head_m, r=3)   # 어깨갑 위 끝 밑 머리 3px(머리 밑에 그려져 대기엔 안 보임)
+#   어깨갑 두 날개 사이 오목한 곳(원화 = 윗팔의 검은 소매 띠)을 어깨갑에 원화 픽셀 그대로 — 팔을 들면 어깨갑 사이가 비어 윗팔 위 끝 원(갈색, 톱니 가장자리)이 비쳤음(DHL 10:37)
+_pm = lab('pauldN').astype(np.uint8); _hull = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(_hull, cv2.convexHull(np.stack(np.nonzero(_pm)[::-1], 1).astype(np.int32)), 1)
+_gap = (_hull > 0) & lab('upperN') & (RA[..., 3] >= 250) & (RA[..., :3].astype(int).mean(-1) < 60) & (_pd[..., 3] == 0)
+_pd[_gap] = RA[_gap]; print('  어깨갑 두 날개 사이 검은 소매 띠 → 어깨갑', int(_gap.sum()))
+print('  어깨갑: 자줏빛 띠 조각 지움', int(_mr.sum()), '· 위 끝 밑 머리', _nu)
+o_pd = save('pauldron', _pd)
 print('  이음 밑 덧칠 px: 상체←머리·어깨갑', _n2, '· 골반←상체', _n3)
 BACKB = {}
 _PAR = {'head': ('head', NECK), 'torso': ('torso', HIP), 'hips': ('skirt', HIP), 'pauldN': ('pauldron', SH_N)}
@@ -389,7 +420,7 @@ print('  face patch px', int(face.sum()), 'colour fit', [(round(a, 3), round(b, 
 def piv(name, p): o = np.array(OFF[name], float); q = np.array(p, float) - o; return [round(float(q[0]), 1), round(float(q[1]), 1)]
 parts = {}
 def P_(name, at, **kw): parts[name] = dict({'src': f'parts/{name}.png', 'pivot': piv(name, at), 'scale': SC}, **kw)
-P_('torso', HIP); P_('hips', HIP); P_('hipsRun', HIP); P_('head', NECK); P_('pauldron', SH_N)
+P_('torso', HIP); P_('torsoAtk', HIP); P_('hips', HIP); P_('hipsRun', HIP); P_('head', NECK); P_('pauldron', SH_N)
 for _nm, (_par, _pt) in BACKB.items(): P_(_nm, _pt)
 P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F))
 P_('armL', EL_N, fist=piv('armL', FI_N)); P_('fistN', FI_N); P_('maceN', FI_N)
@@ -405,11 +436,11 @@ WEAPON_ANG = math.atan2(UF[1], UF[0]) + math.pi / 2
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘 → 뼈 rot +0.3(그 자식 철퇴·주먹도) → 대기 = 원화(10 과 같음)
 world = {'root': (O, 0.0), 'hip': (HIP, 0.0), 'skirt': (HIP, 0.0), 'cape': (NECK, 0.0), 'scarf': (NECK, 0.0), 'pouch': (HIP, 0.0), 'pauldron': (SH_N, 0.0), 'pauldronF': (SH_F, 0.0), 'torso': (HIP, 0.0), 'head': (NECK, 0.0),
          'armU': (SH_N, 0.0), 'armL': (EL_N, ARML_REST), 'maceN': (FI_N, ARML_REST), 'fistN': (FI_N, ARML_REST),
-         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (FI_F, WEAPON_ANG), 'foreFb': (WR_F, 0.0), 'hipsRun': (HIP, 0.0)}
+         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (FI_F, WEAPON_ANG), 'foreFb': (WR_F, 0.0), 'torsoAtk': (HIP, 0.0)}
 for _nm, (_par, _pt) in BACKB.items(): world[_nm] = (_pt, 0.0)
 BONES = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('torso', 'hip'), ('head', 'torso'), ('armF', 'torso'), ('foreF', 'armF'), ('fistF', 'foreF'), ('weapon', 'fistF'),
          ('armU', 'torso'), ('armL', 'armU'), ('maceN', 'armL'), ('fistN', 'armL'), ('foreFb', 'torso'),
-         ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldron', 'torso'), ('pauldronF', 'torso'), ('hipsRun', 'skirt')]
+         ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldron', 'torso'), ('pauldronF', 'torso'), ('torsoAtk', 'torso')]
 BONES += [(_nm, _par) for _nm, (_par, _pt) in BACKB.items()]
 WANG = {'armL': ARML_REST, 'maceN': ARML_REST, 'fistN': ARML_REST, 'weapon': WEAPON_ANG}
 bones = []
@@ -421,7 +452,7 @@ for name, parent in BONES:
     b = {'name': name, 'parent': parent, 'pos': [round(c * dv[0] - s * dv[1], 1), round(s * dv[0] + c * dv[1], 1)]}
     if abs(ca - pa) > 1e-4: b['rot'] = round(ca - pa, 4)
     if name in parts: b['part'] = name
-    if name == 'skirt': b['part'] = 'hips'
+    if name == 'skirt': b['part'] = 'hipsRun'   # 골반 = 짧은 치마 늘(DHL 10:37 '치마가 있을 수 있도록' — 대기 포함)
     bones.append(b)
 # ---------------- 다리 정의(10 v1.1 구조: x = 서 있는 발 자리 · hipX = 다리 뿌리 · runX = 달리는 줄) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
@@ -434,7 +465,7 @@ for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', la
 idle = {sd: legs[sd]['x'] for sd in ('near', 'far')}
 # ---------------- 그리는 순서(뒤 → 앞): 다리 · 뒤 조각 · 먼 윗팔·팔뚝 · 골반 · 상체 · 가까운 윗팔 · 어깨갑 · 먼 철퇴·주먹 · 머리 · 가까운 철퇴 · 팔뚝 · 주먹 ----------------
 draw = ['legFar', 'legNear'] + list(BACKB) + DRAW_IDLE[2:]
-draw.insert(draw.index('skirt') + 1, 'hipsRun')   # 달릴 때 골반(standSwap)
+draw.insert(draw.index('torso') + 1, 'torsoAtk')   # 달리기·공격 상체(standSwap)
 rig = {'name': 'bruno-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
@@ -442,7 +473,7 @@ rig = {'name': 'bruno-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', '
                 'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2, 철퇴 제외"},
-       'ui': {'attack': 'smash', 'touch': 'hop'}, 'standSwap': [['skirt', 'hipsRun']], 'standSwapAct': 'run'}   # 공격 중엔 늘 치마(DHL 09:57)
+       'ui': {'attack': 'smash', 'touch': 'hop'}, 'standSwap': [['torso', 'torsoAtk']], 'standSwapAct': 'run'}   # 서 있을 땐 원화 상체, 달리기·공격엔 torsoAtk
 # ---------------- 공격: 번갈아 내려찍기(tools/plan_alt20.py 키 그대로) ----------------
 fo_off = np.array(OFF['foreF'], float); fi_off = np.array(OFF['fistF'], float)
 ipt = lambda off, p: [round(float(p[0] - off[0]), 1), round(float(p[1] - off[1]), 1)]
@@ -451,7 +482,7 @@ parts['gF'] = {'src': 'parts/fistF.png', 'pivot': ipt(fi_off, WR_F), 'grip': ipt
                'shaftDir': [round(float(UF[0]), 4), round(float(UF[1]), 4)], 'fore': 'foreFa', 'foreBone': 'foreFb', 'foreDir': [round(float(ud[0]), 4), round(float(ud[1]), 4)]}
 parts['foreFa'] = {'src': 'parts/foreF.png', 'pivot': ipt(fo_off, WR_F), 'elbow': ipt(fo_off, EL_F), 'scale': SC}
 rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
-rig['drawA'] = ['legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'skirt', 'hipsRun', 'torso', 'armU', 'pauldron', 'weapon', 'foreF', 'head', 'maceN', 'armL', 'fistN']
+rig['drawA'] = ['legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'skirt', 'torso', 'torsoAtk', 'armU', 'pauldron', 'weapon', 'foreF', 'head', 'maceN', 'armL', 'fistN']
 E = PLAN['engine']
 trk = lambda f: [[e[0], round(f(e), 4), 'io'] for e in E]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 1.0, 'hitAt': PLAN['summary']['hits'][0], 'hitStop': 0.05, 'cancelAt': 0.8,

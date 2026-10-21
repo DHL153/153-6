@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "a7b253a8",
+ "version": "87fdf307",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -13,7 +13,15 @@
    "src": "parts/torso.png",
    "pivot": [
     77.0,
-    82.0
+    85.0
+   ],
+   "scale": 2.0
+  },
+  "torsoAtk": {
+   "src": "parts/torsoAtk.png",
+   "pivot": [
+    70.0,
+    85.0
    ],
    "scale": 2.0
   },
@@ -45,7 +53,7 @@
    "src": "parts/pauldron.png",
    "pivot": [
     24.0,
-    20.0
+    23.0
    ],
    "scale": 2.0
   },
@@ -342,7 +350,7 @@
     0.0,
     0.0
    ],
-   "part": "hips"
+   "part": "hipsRun"
   },
   {
    "name": "torso",
@@ -486,13 +494,13 @@
    ]
   },
   {
-   "name": "hipsRun",
-   "parent": "skirt",
+   "name": "torsoAtk",
+   "parent": "torso",
    "pos": [
     0.0,
     0.0
    ],
-   "part": "hipsRun"
+   "part": "torsoAtk"
   },
   {
    "name": "torsoB",
@@ -745,8 +753,8 @@
   "armF",
   "foreF",
   "skirt",
-  "hipsRun",
   "torso",
+  "torsoAtk",
   "armU",
   "pauldron",
   "weapon",
@@ -800,8 +808,8 @@
  },
  "standSwap": [
   [
-   "skirt",
-   "hipsRun"
+   "torso",
+   "torsoAtk"
   ]
  ],
  "standSwapAct": "run",
@@ -829,8 +837,8 @@
   "armF",
   "foreFb",
   "skirt",
-  "hipsRun",
   "torso",
+  "torsoAtk",
   "armU",
   "pauldron",
   "weapon",
