@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.9(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 골반 = 늘 짧은 치마 hipsRun(대기 포함) · 치마 안 종종걸음 · 달리기·공격 상체 torsoAtk(standSwap + standSwapAct) · 어깨갑 왼쪽 위 다듬기) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v2.0(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 = 허리띠만 hipsRun + 다리 뒤 가랑이 메움 hipsU(standSwap, 치마 없앰) · 달리기·공격 상체 torsoAtk(standSwap + 공격 tPiece) · 어깨갑 왼쪽 위 다듬기) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -266,45 +266,48 @@ _hp, _n3 = underlay(with_reveal('hips'), lab('hips'), lab('torso'))
 for _x, _y in CUT.items():   # 바지를 가로지른 골반 아래 끝 2줄 옅게(대기엔 같은 원화 다리 위라 그대로, 달리면 시트 허벅지 위로 부드럽게)
     _hp[_y, _x, 3] = (_hp[_y, _x, 3] * 0.45).astype(np.uint8); _hp[_y - 1, _x, 3] = (_hp[_y - 1, _x, 3] * 0.8).astype(np.uint8)
 o_hips = save('hips', _hp)
-# 달릴 때 골반(hipsRun, 엔진 opt-in standSwap): 서 있을 땐 원화 골반(hips), 달리기 다리 그림이면 이 조각
-#   DHL v1.4 검수(09:36) '치마 형태로 · 살짝 더 아래로' — 허리띠 아래를 짧은 치마로: 원화 허리띠·쌈지·금빛 병(픽셀 그대로) + 바지 천 색 치마(양옆 살짝 퍼짐,
-#   단 = 관절 밑 +25 안팎, 가랑이 홈 없이 한 줄) + 세로 주름 그늘 3줄 · 단 위 그늘 · 옆·단 외곽선. 허벅지 윗끝을 다 덮고 허벅지는 단 밑으로 나옴
-SKIRT = [(204, 378), (199, 391), (192, 410.5), (206, 413), (228, 415), (252, 416), (276, 415), (296, 412.5), (309, 409), (305, 397), (299, 380)]
-SK_W = float(os.environ.get('SK_W', 14)); SK_D = float(os.environ.get('SK_D', 5))   # 치마 넓힘(단에서 양옆 px, 위로 갈수록 0) · 단 내림 px — DHL 10:09 '서서 공격 때 다리가 치마 옆으로 살짝 튀어나옴 → 치마를 살짝 키우기' (W 0·6·10·14 를 skirtprobe20 로 견줌)
-def _sk(pt):
-    x, y = pt; t = np.clip((y - 380) / 30.0, 0, 1); dx = -SK_W * t if x < 252 else SK_W * t; dy = SK_D * t; return (x + dx, y + dy)
-SKIRT = [_sk(p) for p in SKIRT]
-SKIRT_FOLDS = [((226, 397), (221, 414)), ((252, 399), (252, 415.5)), ((278, 397), (283, 414))]
-def hips_run(K=4):
-    base, _ = underlay(with_reveal('hips'), lab('hips'), lab('torso')); lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1)
-    Hm = lab('hips'); pc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum >= 45) & (lum <= 75) & (sat < 15)][:, :3], 0).astype(float); oc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum < 30)][:, :3], 0).astype(float)
+# 달릴 때 골반(hipsRun, 엔진 opt-in standSwap): 서 있을 땐 원화 골반(hips = 허리띠 + 바지 윗부분), 달리기 다리 그림이면 허리띠만
+#   DHL 11:59 '치마를 없애는 것이 좋을 것 같아요 · 러스트 브루노처럼 깔끔하게 허리띠만 나오도록' — v1.5~1.9 치마 대신:
+#   원화 골반 칸에서 허리띠·쌈지·버클·끈·금빛 병(바지 천이 아닌 색) + 그 둘레 원화 외곽선만 남기고 바지 천은 뺌 → 허리띠 아래 = 시트 허벅지(바지)
+#   허리띠 밑 가랑이 사이는 다리 뒤 조각 hipsU(바지 천 색, 다리보다 먼저 그림)가 메움 — 허벅지 윗끝 둥근 끝 사이로 배경이 안 보이게
+def belt_run():
+    base, _ = underlay(with_reveal('hips'), lab('hips'), lab('torso')); Hm = lab('hips')
+    lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1)
+    pants = (lum >= 32) & (lum <= 85) & (sat < 20); dark = lum < 32
+    stuff = Hm & (RA[..., 3] > 128) & ~pants & ~dark                      # 허리띠·쌈지·버클·끈·금빛 병
+    nc, cc = cv2.connectedComponents(stuff.astype(np.uint8), 8); st2 = np.zeros_like(stuff)
+    for i_ in range(1, nc):
+        if (cc == i_).sum() >= 12: st2 |= cc == i_                       # 바지 주름 빛 부스러기 뺌
+    keep = st2 | (Hm & dark & dil(st2, 2)) | (Hm & (YY < 379))            # 그 둘레 외곽선 2px · 허리띠 윗부분은 통째
+    keep = cv2.morphologyEx(keep.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8)) > 0
+    keep &= Hm | (base[..., 3] > 0)
+    nc, cc = cv2.connectedComponents(keep.astype(np.uint8), 8); k2 = np.zeros_like(keep)
+    for i_ in range(1, nc):
+        if (cc == i_).sum() >= 40: k2 |= cc == i_
+    out = base.copy(); out[~k2, 3] = 0
+    print('  달릴 때 골반 hipsRun(허리띠만):', int(k2.sum()), 'px · 원화 골반', int((base[..., 3] > 0).sum()), 'px')
+    return out
+o_hipsR = save('hipsRun', belt_run())
+#   hipsU — 허리띠 밑 가랑이 메움(다리 뒤): 두 다리 뿌리 사이 아래로 둥근 바지 천(원화 바지 색 + 아래 둥근 끝 외곽선). 서 있을 땐 원화 골반·다리에 다 덮임
+def hips_under(K=4):
+    Hm = lab('hips'); lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1)
+    pc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum >= 45) & (lum <= 75) & (sat < 15)][:, :3], 0).astype(float)
+    oc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum < 30)][:, :3], 0).astype(float)
     from PIL import ImageDraw as _D
-    def ss(draw_fn):   # 4배로 그려 줄여 덮는 비율(부드러운 가장자리)
-        im = Image.new('L', (512 * K, 512 * K), 0); draw_fn(_D.Draw(im)); return np.array(im.resize((512, 512), Image.BOX)).astype(float) / 255.0
-    P = [(x * K, y * K) for x, y in SKIRT]
-    fill = ss(lambda d: d.polygon(P, fill=255))
-    edge_pts = P[1:-1]   # 위 끝(허리띠 밑)은 빼고 양옆·단만 외곽선
-    line = ss(lambda d: d.line(edge_pts, fill=255, width=int(2.2 * K), joint='curve'))
-    folds = np.zeros((512, 512))
-    for (a_, b_) in SKIRT_FOLDS:
-        f_ = ss(lambda d: d.line([(a_[0] * K, a_[1] * K), (b_[0] * K, b_[1] * K)], fill=255, width=int(2.0 * K))); t_ = np.clip((YY - a_[1]) / max(1.0, b_[1] - a_[1]), 0, 1); folds = np.maximum(folds, f_ * (0.25 + 0.75 * t_))
-    hem = np.interp(XX, [p[0] for p in SKIRT[2:9]], [p[1] for p in SKIRT[2:9]])
-    shade = 1.0 - 0.22 * folds - 0.10 * np.clip(1 - np.abs(YY - (hem - 3.5)) / 2.5, 0, 1) * fill + 0.05 * np.clip((240 - XX) / 40.0, 0, 1)   # 주름 그늘 · 단 위 그늘 · 왼쪽 조금 밝게
-    col = np.clip(pc[None, None, :] * shade[..., None], 0, 255)
-    col = col * (1 - line[..., None]) + oc[None, None, :] * line[..., None]
-    a = np.zeros_like(RA, dtype=float); al = np.clip(np.maximum(fill, line), 0, 1); a[..., :3] = col; a[..., 3] = al * 255
-    # 원화 위쪽(허리띠·쌈지·끈·금빛 병) 덮기 — 바지 천은 y 393 근처에서 치마 색으로 옅게 이어짐, 무릎판 테 윗선(서 있을 때 아래 끝 선)은 안 씀
-    gold = (RA[..., 0] > 140) & (RA[..., 1] > 60) & (RA[..., 2] < 70) & (RA[..., 0].astype(int) - RA[..., 2] > 100) & (XX >= 278) & (XX <= 310) & (YY >= 378) & (YY <= 412)
-    vial = dil(gold, 2) & Hm
-    pants = Hm & (sat < 30) & (lum < 95) & ~vial & (YY >= 384)
-    keep = np.where(pants, np.clip((393.0 - YY) / 4.0 + 0.5, 0, 1), 1.0) * (base[..., 3] / 255.0)
-    keep[Hm & ~vial & (YY >= 396)] = 0
-    ob = np.clip(keep, 0, 1)[..., None]
-    out = np.zeros_like(RA, dtype=float); out[..., :3] = base[..., :3] * ob + a[..., :3] * (a[..., 3:4] / 255.0) * (1 - ob)
-    out_a = ob[..., 0] + (a[..., 3] / 255.0) * (1 - ob[..., 0]); out[..., :3] = out[..., :3] / np.maximum(out_a[..., None], 1e-3); out[..., 3] = out_a * 255
-    print('  달릴 때 골반 hipsRun(치마): 단 y', SKIRT[5][1], '· 치마 px', int((fill > .5).sum()), '· 바지 색', pc.astype(int).tolist(), '· 외곽선', oc.astype(int).tolist())
-    return np.clip(out, 0, 255).astype(np.uint8)
-o_hipsR = save('hipsRun', hips_run())
+    hx = sorted([LEG['near']['hip'][0], LEG['far']['hip'][0]]); hy = max(LEG['near']['hip'][1], LEG['far']['hip'][1])
+    x0, x1, yt, yb = hx[0] - HU_W, hx[1] + HU_W, 378, hy + HU_D; rr = HU_R
+    def ss(fn):
+        im = Image.new('L', (512 * K, 512 * K), 0); fn(_D.Draw(im)); return np.array(im.resize((512, 512), Image.BOX)).astype(float) / 255.0
+    body = ss(lambda d: d.rounded_rectangle([x0 * K, yt * K, x1 * K, yb * K], radius=int(rr * K), fill=255))
+    inner = ss(lambda d: d.rounded_rectangle([(x0 + 2) * K, yt * K, (x1 - 2) * K, (yb - 2) * K], radius=int(max(1, rr - 2) * K), fill=255))
+    line = np.clip(body - inner, 0, 1) * (YY > yt + 6)
+    shade = 1.0 - 0.18 * np.clip((YY - yt) / max(1.0, yb - yt), 0, 1)
+    col = np.clip(pc[None, None, :] * shade[..., None], 0, 255); col = col * (1 - line[..., None]) + oc[None, None, :] * line[..., None]
+    a = np.zeros_like(RA); a[..., :3] = col.astype(np.uint8); a[..., 3] = np.clip(body * 255, 0, 255).astype(np.uint8)
+    print('  가랑이 메움 hipsU: x', x0, '~', x1, '· y', yt, '~', yb, '· 바지 색', pc.astype(int).tolist())
+    return a
+HU_D = float(os.environ.get('HU_D', 10)); HU_W = float(os.environ.get('HU_W', 22)); HU_R = float(os.environ.get('HU_R', 10))   # 다리 뿌리 아래로 몇 px · 뿌리 밖으로 몇 px · 모서리 반지름 — 허벅지 윗끝 둥근 끝 둘레가 배경 대신 바지 천
+o_hipsU = save('hipsU', hips_under())
 _pd = with_reveal('pauldN'); _pd[RIM] = RA[RIM]   # 밝은 테(머리에서 옮김)
 _mr = (_pd[..., 3] > 0) & (_pd[..., 0].astype(int) > 80) & (_pd[..., 0].astype(int) - _pd[..., 1] > 40) & (_pd[..., 0].astype(int) - _pd[..., 2] > 30) & (_pd[..., 1] < 100) & (XX < 200)
 _pd[_mr, 3] = 0   # 윗팔 자줏빛 띠 조각(대기엔 밑의 윗팔 그림이 같은 픽셀) — 팔이 비키면 어깨갑 왼쪽 안에 붉은 줄
@@ -420,7 +423,7 @@ print('  face patch px', int(face.sum()), 'colour fit', [(round(a, 3), round(b, 
 def piv(name, p): o = np.array(OFF[name], float); q = np.array(p, float) - o; return [round(float(q[0]), 1), round(float(q[1]), 1)]
 parts = {}
 def P_(name, at, **kw): parts[name] = dict({'src': f'parts/{name}.png', 'pivot': piv(name, at), 'scale': SC}, **kw)
-P_('torso', HIP); P_('torsoAtk', HIP); P_('hips', HIP); P_('hipsRun', HIP); P_('head', NECK); P_('pauldron', SH_N)
+P_('torso', HIP); P_('torsoAtk', HIP); P_('hips', HIP); P_('hipsRun', HIP); P_('hipsU', HIP); P_('head', NECK); P_('pauldron', SH_N)
 for _nm, (_par, _pt) in BACKB.items(): P_(_nm, _pt)
 P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F))
 P_('armL', EL_N, fist=piv('armL', FI_N)); P_('fistN', FI_N); P_('maceN', FI_N)
@@ -436,11 +439,11 @@ WEAPON_ANG = math.atan2(UF[1], UF[0]) + math.pi / 2
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘 → 뼈 rot +0.3(그 자식 철퇴·주먹도) → 대기 = 원화(10 과 같음)
 world = {'root': (O, 0.0), 'hip': (HIP, 0.0), 'skirt': (HIP, 0.0), 'cape': (NECK, 0.0), 'scarf': (NECK, 0.0), 'pouch': (HIP, 0.0), 'pauldron': (SH_N, 0.0), 'pauldronF': (SH_F, 0.0), 'torso': (HIP, 0.0), 'head': (NECK, 0.0),
          'armU': (SH_N, 0.0), 'armL': (EL_N, ARML_REST), 'maceN': (FI_N, ARML_REST), 'fistN': (FI_N, ARML_REST),
-         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (FI_F, WEAPON_ANG), 'foreFb': (WR_F, 0.0), 'torsoAtk': (HIP, 0.0)}
+         'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (WR_F, 0.0), 'weapon': (FI_F, WEAPON_ANG), 'foreFb': (WR_F, 0.0), 'torsoAtk': (HIP, 0.0), 'hipsRun': (HIP, 0.0), 'hipsU': (HIP, 0.0)}
 for _nm, (_par, _pt) in BACKB.items(): world[_nm] = (_pt, 0.0)
 BONES = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('torso', 'hip'), ('head', 'torso'), ('armF', 'torso'), ('foreF', 'armF'), ('fistF', 'foreF'), ('weapon', 'fistF'),
          ('armU', 'torso'), ('armL', 'armU'), ('maceN', 'armL'), ('fistN', 'armL'), ('foreFb', 'torso'),
-         ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldron', 'torso'), ('pauldronF', 'torso'), ('torsoAtk', 'torso')]
+         ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldron', 'torso'), ('pauldronF', 'torso'), ('torsoAtk', 'torso'), ('hipsRun', 'skirt'), ('hipsU', 'skirt')]
 BONES += [(_nm, _par) for _nm, (_par, _pt) in BACKB.items()]
 WANG = {'armL': ARML_REST, 'maceN': ARML_REST, 'fistN': ARML_REST, 'weapon': WEAPON_ANG}
 bones = []
@@ -452,7 +455,7 @@ for name, parent in BONES:
     b = {'name': name, 'parent': parent, 'pos': [round(c * dv[0] - s * dv[1], 1), round(s * dv[0] + c * dv[1], 1)]}
     if abs(ca - pa) > 1e-4: b['rot'] = round(ca - pa, 4)
     if name in parts: b['part'] = name
-    if name == 'skirt': b['part'] = 'hipsRun'   # 골반 = 짧은 치마 늘(DHL 10:37 '치마가 있을 수 있도록' — 대기 포함)
+    if name == 'skirt': b['part'] = 'hips'   # 서 있을 땐 원화 골반(허리띠 + 바지 윗부분)
     bones.append(b)
 # ---------------- 다리 정의(10 v1.1 구조: x = 서 있는 발 자리 · hipX = 다리 뿌리 · runX = 달리는 줄) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
@@ -464,16 +467,17 @@ for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', la
                 'stand': {'fade': [0.05, 0.1], 'thighImg': hide, 'shinImg': dict(hide, part=SHN[sd]['part'], a=SHN[sd]['a'], b=SHN[sd]['b']), 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], SOLE)}}}
 idle = {sd: legs[sd]['x'] for sd in ('near', 'far')}
 # ---------------- 그리는 순서(뒤 → 앞): 다리 · 뒤 조각 · 먼 윗팔·팔뚝 · 골반 · 상체 · 가까운 윗팔 · 어깨갑 · 먼 철퇴·주먹 · 머리 · 가까운 철퇴 · 팔뚝 · 주먹 ----------------
-draw = ['legFar', 'legNear'] + list(BACKB) + DRAW_IDLE[2:]
+draw = ['hipsU', 'legFar', 'legNear'] + list(BACKB) + DRAW_IDLE[2:]   # hipsU = 다리 뒤 가랑이 메움
+draw.insert(draw.index('skirt') + 1, 'hipsRun')   # 달릴 때 골반 = 허리띠만(standSwap)
 draw.insert(draw.index('torso') + 1, 'torsoAtk')   # 달리기·공격 상체(standSwap)
 rig = {'name': 'bruno-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
-       'gait': {'stance': 0.32, 'strideBase': 24, 'strideK': 0.06, 'hipBase': -26, 'bob': 5, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.15, 'dropCap': 16,   # 치마 안 종종걸음(DHL 09:42 '다리가 치마 안에서만'): 보폭·무릎 들기·뒤꿈치 차기 줄이고 골반을 13px 올려 허벅지를 세움 — tools/skirtprobe20.py
+       'gait': {'stance': 0.26, 'strideBase': 40, 'strideK': 0.12, 'hipBase': 6, 'bob': 8, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.7, 'heelKick': 0.5, 'dropCap': 16,   # 10 러스트 브루노와 같은 걸음(치마 안 종종걸음 v1.6~1.9 는 치마를 없애며 되돌림 — DHL 11:59)
                 'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2, 철퇴 제외"},
-       'ui': {'attack': 'smash', 'touch': 'hop'}, 'standSwap': [['torso', 'torsoAtk']], 'standSwapAct': 'run'}   # 서 있을 땐 원화 상체, 달리기·공격엔 torsoAtk
+       'ui': {'attack': 'smash', 'touch': 'hop'}, 'standSwap': [['skirt', 'hipsRun'], ['torso', 'torsoAtk']]}   # 서 있는 원화 다리 그림이면 원화 골반·상체, 달리기 다리면 허리띠만·torsoAtk (공격 중 상체는 tPiece torsoAtk)
 # ---------------- 공격: 번갈아 내려찍기(tools/plan_alt20.py 키 그대로) ----------------
 fo_off = np.array(OFF['foreF'], float); fi_off = np.array(OFF['fistF'], float)
 ipt = lambda off, p: [round(float(p[0] - off[0]), 1), round(float(p[1] - off[1]), 1)]
@@ -482,11 +486,12 @@ parts['gF'] = {'src': 'parts/fistF.png', 'pivot': ipt(fi_off, WR_F), 'grip': ipt
                'shaftDir': [round(float(UF[0]), 4), round(float(UF[1]), 4)], 'fore': 'foreFa', 'foreBone': 'foreFb', 'foreDir': [round(float(ud[0]), 4), round(float(ud[1]), 4)]}
 parts['foreFa'] = {'src': 'parts/foreF.png', 'pivot': ipt(fo_off, WR_F), 'elbow': ipt(fo_off, EL_F), 'scale': SC}
 rig['swordGrip'] = {'tipDepth': 6, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
-rig['drawA'] = ['legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'skirt', 'torso', 'torsoAtk', 'armU', 'pauldron', 'weapon', 'foreF', 'head', 'maceN', 'armL', 'fistN']
+rig['drawA'] = ['hipsU', 'legFar', 'legNear'] + list(BACKB) + ['armF', 'foreFb', 'skirt', 'hipsRun', 'torso', 'torsoAtk', 'armU', 'pauldron', 'weapon', 'foreF', 'head', 'maceN', 'armL', 'fistN']
 E = PLAN['engine']
 trk = lambda f: [[e[0], round(f(e), 4), 'io'] for e in E]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 1.0, 'hitAt': PLAN['summary']['hits'][0], 'hitStop': 0.05, 'cancelAt': 0.8,
-       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]], 'ikSideK': {'N': [[0, 1]]},
+       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]], 'ikSideK': {'N': [[0, 1]]}, 'tPiece': [[0, 'torsoAtk']],   # 공격 내내 상체 = torsoAtk(팔 밑 자락 자름 — DHL 10:37), 서 있는 원화 다리 그림이어도
+      
        'gx': trk(lambda e: SC * e[1]), 'gy': trk(lambda e: SC * (e[2] - e[5])), 'sa': trk(lambda e: math.radians(e[3])),
        'lean': trk(lambda e: e[4]), 'hipY': trk(lambda e: SC * e[5]),
        'head': [[0, 0], [0.1, -0.05, 'io'], [0.28, 0.06, 'io'], [0.4, -0.03, 'io'], [0.54, 0.07, 'io'], [0.8, 0]],
@@ -500,7 +505,7 @@ rig['cutHold'] = 0.1   # 스킬 컷인 멈춤(10-21 게임 넣기): 후보 .10·
 _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters', 'char_0020.png')).convert('RGBA').resize((160, 160), Image.BOX))[..., 3]
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
 rig['gameRef'] = {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
-                  'note': f'게임 그림 char_0020.png(512) = 0번 합격 원화(ref512) + 치마(tools/art_skirt20.py — 리그 대기와 같은 치마, DHL 10-21). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
+                  'note': f'게임 그림 char_0020.png(512) = 0번 합격 원화(ref512, 치마 없앰 — DHL 10-21 11:59). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
 rig['note'] = '20 네온 브루노 v1(대기·달리기·번갈아 내려찍기). 10 러스트 브루노 v1.2 구조. 조각 = 원화를 부품별로 나눔(seg20.py) + 가려진 곳 = 팔·철퇴만 지운 원화(프롬프트 2·3: sheets/nonear_0614·nofar_0623), 시트 = 표정·깜빡임·달리는 다리·부츠·철퇴 자루 끝'
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(PARTS)): _h.update(fn.encode()); _h.update(open(os.path.join(PARTS, fn), 'rb').read())

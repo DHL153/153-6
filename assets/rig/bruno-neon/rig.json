@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "669a0e51",
+ "version": "51e4c325",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -36,8 +36,16 @@
   "hipsRun": {
    "src": "parts/hipsRun.png",
    "pivot": [
-    77.0,
-    17.0
+    56.0,
+    13.0
+   ],
+   "scale": 2.0
+  },
+  "hipsU": {
+   "src": "parts/hipsU.png",
+   "pivot": [
+    48.0,
+    0.0
    ],
    "scale": 2.0
   },
@@ -350,7 +358,7 @@
     0.0,
     0.0
    ],
-   "part": "hipsRun"
+   "part": "hips"
   },
   {
    "name": "torso",
@@ -501,6 +509,24 @@
     0.0
    ],
    "part": "torsoAtk"
+  },
+  {
+   "name": "hipsRun",
+   "parent": "skirt",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "hipsRun"
+  },
+  {
+   "name": "hipsU",
+   "parent": "skirt",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "hipsU"
   },
   {
    "name": "torsoB",
@@ -747,12 +773,14 @@
   }
  },
  "draw": [
+  "hipsU",
   "legFar",
   "legNear",
   "torsoB",
   "armF",
   "foreF",
   "skirt",
+  "hipsRun",
   "torso",
   "torsoAtk",
   "armU",
@@ -777,15 +805,15 @@
   "closed": "face_closed"
  },
  "gait": {
-  "stance": 0.32,
-  "strideBase": 24,
-  "strideK": 0.06,
-  "hipBase": -26,
-  "bob": 5,
+  "stance": 0.26,
+  "strideBase": 40,
+  "strideK": 0.12,
+  "hipBase": 6,
+  "bob": 8,
   "lean": 0.1,
   "headBob": 3,
-  "kneeLift": 0.2,
-  "heelKick": 0.15,
+  "kneeLift": 0.7,
+  "heelKick": 0.5,
   "dropCap": 16,
   "swingReach": 0.05,
   "landAng": -0.04,
@@ -808,11 +836,14 @@
  },
  "standSwap": [
   [
+   "skirt",
+   "hipsRun"
+  ],
+  [
    "torso",
    "torsoAtk"
   ]
  ],
- "standSwapAct": "run",
  "swordGrip": {
   "tipDepth": 6,
   "near": {
@@ -831,12 +862,14 @@
   "shoulderPush": 0
  },
  "drawA": [
+  "hipsU",
   "legFar",
   "legNear",
   "torsoB",
   "armF",
   "foreFb",
   "skirt",
+  "hipsRun",
   "torso",
   "torsoAtk",
   "armU",
@@ -895,6 +928,12 @@
      ]
     ]
    },
+   "tPiece": [
+    [
+     0,
+     "torsoAtk"
+    ]
+   ],
    "gx": [
     [
      0.0,
@@ -1654,7 +1693,7 @@
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0020.png(512) = 0번 합격 원화(ref512) + 치마(tools/art_skirt20.py — 리그 대기와 같은 치마, DHL 10-21). x = 도감 칸(fitArt 중심 258.5, index.html measureBox 와 같은 계산)에서 골반(hip x 252)이 가운데"
+  "note": "게임 그림 char_0020.png(512) = 0번 합격 원화(ref512, 치마 없앰 — DHL 10-21 11:59). x = 도감 칸(fitArt 중심 258.5, index.html measureBox 와 같은 계산)에서 골반(hip x 252)이 가운데"
  },
  "note": "20 네온 브루노 v1(대기·달리기·번갈아 내려찍기). 10 러스트 브루노 v1.2 구조. 조각 = 원화를 부품별로 나눔(seg20.py) + 가려진 곳 = 팔·철퇴만 지운 원화(프롬프트 2·3: sheets/nonear_0614·nofar_0623), 시트 = 표정·깜빡임·달리는 다리·부츠·철퇴 자루 끝"
 }
