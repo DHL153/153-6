@@ -45,14 +45,19 @@ def save(name, rgba, bone, mask=None):
     info[name] = [int(x0), int(y0), int(x1), int(y1)]; return x0, y0
 # ---------- 원화에서 ----------
 # 총 묶음: 총 + 두 팔뚝·장갑(라벨 foreN·foreF) — 손잡이와 한 몸
-gunM = lab2('gun', 'foreN', 'foreF', cl=3); gunM[1300:, :612] = 0; gx0, gy0 = save('gun', O2, 'gun', gunM)   # 총 왼쪽 끝(x 153) 왼쪽 아래 = 탄띠(사슬이 그림)
+gunM = lab2('gun', 'foreN', 'foreF', cl=3); gunM = np.maximum(gunM, dil(lab2('foreN', 'foreF'), 10) * lab2('armN', 'armF'))   # 팔뚝을 소매 안으로 10px 더(소매 밑에 숨음) — 소매·팔뚝 이음에 배경이 비치던 가는 선(10-21 12:55)
+gunM[1300:, :612] = 0; gx0, gy0 = save('gun', O2, 'gun', gunM)   # 총 왼쪽 끝(x 153) 왼쪽 아래 = 탄띠(사슬이 그림)
 # 소매: 어깨판 + 부푼 소매(라벨 armN/armF — 손으로 따라 그린 다각형) · 맨살(팔뚝) 뺌
 rgb8 = O2[..., :3] * 255; skin = ((rgb8[..., 0] > 190) & (rgb8[..., 1] > 120) & (rgb8[..., 1] < 200) & (rgb8[..., 2] > 90) & (rgb8[..., 2] < 175) & (rgb8[..., 0] - rgb8[..., 1] > 40)).astype(np.float32)   # 크림 소매(r−g 10~25)는 살 아님
-noskin = 1 - dil(cv2.morphologyEx(skin, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)), 2)
+noskin = 1 - dil(cv2.morphologyEx(skin, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)), 2)   # 맨살만 뺌(소매 입구 외곽선은 소매에 남김 — 밑의 팔뚝 조각이 소매 안으로 10px 더 있어 틈 없음)
 # 소매 입구 안(팔뚝 맨살이 있던 곳) = 어두운 소매 속 색 — 소매가 몇 도 돌 때 팔뚝 옆으로 배경이 비치지 않게(총 묶음 팔뚝이 그 위)
 inner = np.array([0.30, 0.22, 0.20])
+ARM_ = {'armN': [(150,252),(170,243),(192,241),(201,249),(201,266),(199,290),(197,306),(190,311),(170,315),(150,316),(142,306),(140,292),(142,276),(147,262)],   # seg24.py ARM 과 같음
+        'armF': [(276,250),(292,247),(302,255),(312,267),(326,275),(329,292),(321,306),(301,307),(290,297),(282,283),(276,266)]}
 for nm_, lb_, bn_ in (('sleeveN', 'armN', 'shoulderN'), ('sleeveF', 'armF', 'shoulderF')):
-    m_ = lab2(lb_, cl=2); sk_ = (1 - noskin) * m_; im_ = O2.copy(); im_[..., :3] = im_[..., :3] * (1 - sk_[..., None]) + inner * sk_[..., None]; save(nm_, im_, bn_, m_)
+    # 소매 = 소매 라벨 + 소매 다각형 안의 팔뚝 라벨 천(맨살 아님) — 두 라벨 경계가 크림 천 가운데를 지나 반투명 금이 생기던 것(10-21 13:00)
+    m_ = np.maximum(lab2(lb_, cl=2), lab2('fore' + lb_[3:]) * dil(poly512(ARM_[lb_]), 3)) * noskin
+    m_ = (cv2.GaussianBlur((m_ > .5).astype(np.float32), (0, 0), 1.0)) * (m_ > .02); save(nm_, O2, bn_, m_)   # 소매 = 천만(맨살 = 투명) — 소매가 총 묶음(팔뚝) 위에 그려져 소매 입구가 팔뚝을 덮음(10-21 12:50)
 # 머리: 원화 머리(머리카락·얼굴)
 headM = lab2('head', cl=3); save('head', O2, 'head', headM)
 # ---------- 지운 원화에서 (팔·총·호스 뒤가 그려져 있음) ----------
@@ -63,18 +68,36 @@ SCARF = [(134, 246), (160, 239), (172, 250), (160, 264), (138, 264)]   # 가방 
 pbox = poly512(PACKBOX); scD = dil(poly512(SCARF), 2); plN = dil(poly512(PLATE_N), 2); headD = dil(headM, 2); headD4 = dil(headM, 5)
 BODYBOX = [(138, 226), (300, 226), (314, 250), (316, 372), (146, 372), (138, 300)]
 packVis = pbox * nop * (1 - headD) * (1 - plN) * (1 - scD)
-hole = ((pbox > .5) & ((headD > .5) | (plN > .5) | (scD > .5))).astype(np.uint8) * 255   # 머리카락·어깨판 밑(가려진 가방) — 둘레 색으로 메움
-pk = cv2.cvtColor((N2[..., :3] * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
-fill = cv2.cvtColor(cv2.inpaint(pk, hole, 9, cv2.INPAINT_TELEA), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.
-packImg = N2.copy(); hm_ = hole > 0; packImg[hm_, :3] = fill[hm_]; packImg[hm_, 3] = 1
-save('pack', packImg, 'pack', np.clip(packVis + hm_.astype(np.float32) * pbox, 0, 1))
+# 가려진 가방(머리·어깨판·스카프 자락 밑) = 조각 시트 18번 '가방 단독'을 보이는 가방에 맞춰(SIFT → ECC) 채움 — 10-21 12:30 DHL 12:19
+#   (전에는 둘레 색 메움(inpaint)이라 머리 크림 테두리가 번져 '스카프 잔상'이 생기고, 가방 오른쪽이 x 176 에서 끊겨 연사 때 젖히면 머리 옆이 비었음)
+SP = np.array(Image.open(os.path.join(H, 'pieces', '18_pack.png')).convert('RGBA')).astype(np.uint8)
+gry = lambda a: cv2.cvtColor(np.ascontiguousarray((a[..., :3] * 255).astype(np.uint8) if a.dtype != np.uint8 else a[..., :3]), cv2.COLOR_RGB2GRAY)
+vis8 = (packVis > .5).astype(np.uint8) * 255
+sf_ = cv2.SIFT_create(6000); k1, d1 = sf_.detectAndCompute(gry(SP), (SP[..., 3] > 128).astype(np.uint8) * 255); k2, d2 = sf_.detectAndCompute(gry(N2), vis8)
+mm = [a for a, b in cv2.BFMatcher().knnMatch(d1, d2, k=2) if a.distance < .75 * b.distance]
+MA, inl = cv2.estimateAffinePartial2D(np.float32([k1[a.queryIdx].pt for a in mm]), np.float32([k2[a.trainIdx].pt for a in mm]), ransacReprojThreshold=5)
+WP = cv2.warpAffine(SP, MA, (2048, 2048), flags=cv2.INTER_CUBIC).astype(np.float32) / 255.
+gb = lambda a: cv2.GaussianBlur(cv2.cvtColor((np.clip(a[..., :3], 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY), (0, 0), 2).astype(np.float32)
+ecc_m = ((packVis > .5) & (WP[..., 3] > .5)).astype(np.uint8)
+try:
+    cc, D = cv2.findTransformECC(gb(N2), gb(WP), np.eye(2, 3, dtype=np.float32), cv2.MOTION_AFFINE, (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 1e-6), ecc_m, 5)
+    WP = cv2.warpAffine(WP, D, (2048, 2048), flags=cv2.INTER_CUBIC | cv2.WARP_INVERSE_MAP)
+except Exception as e: cc = None
+both = (packVis > .5) & (WP[..., 3] > .5); gain = np.median(N2[both, :3], 0) / np.maximum(np.median(WP[both, :3], 0), 1e-3)
+WP[..., :3] = np.clip(WP[..., :3] * gain, 0, 1)
+PACKFULL = [(26, 114), (226, 114), (226, 336), (26, 336)]   # 가방 전체(시트 가방이 머리 뒤 x 216 까지)
+pfull = poly512(PACKFULL) * WP[..., 3]
+vf = cv2.GaussianBlur(packVis.astype(np.float32), (0, 0), 1.5) * packVis   # 보이는 곳 = 지운 원화 그대로, 가장자리만 부드럽게
+packImg = N2.copy(); packImg[..., :3] = N2[..., :3] * vf[..., None] + WP[..., :3] * (1 - vf[..., None]); packImg[..., 3] = 1
+print('pack sheet fit', int(inl.sum()), 'ECC', None if cc is None else round(float(cc), 3), 'gain', np.round(gain, 3))
+save('pack', packImg, 'pack', np.clip(np.maximum(packVis, pfull), 0, 1))
 # 몸: 지운 원화에서 머리·보이는 가방 뺀 것(어깨판은 몸)
 bodyZ = np.clip(nop * (1 - headD4) * (1 - packVis) * poly512(BODYBOX), 0, 1)
 bodyZ = bodyZ * clean(bodyZ > .5, 2)
 YY = np.arange(2048)[:, None] / 4.0
 save('torso', N2, 'chest', bodyZ * (YY < 304)); save('torsoFill', N2, 'torsoFill', bodyZ * (YY < 330)); save('skirt', N2, 'skirt', bodyZ * ((YY >= 300) & (YY < 352)))   # 허리 = 허리띠 + 바지 위(주머니 단추까지)
 # 목: 턱 밑(머리 뒤) — 머리를 지우고 깃 둘레 색으로 메운 작은 판(끄덕일 때 턱 밑이 비지 않게)
-neckZ = poly512([(228, 224), (270, 222), (276, 236), (266, 248), (236, 248), (226, 238)])
+neckZ = poly512([(186, 214), (228, 216), (270, 222), (276, 236), (266, 248), (236, 250), (200, 250), (184, 236)])   # 턱 밑 + 귀덮개 밑(스카프) — 연사로 젖힐 때 머리 아래가 비지 않게(DHL 12:19)
 nk = cv2.cvtColor((N2[..., :3] * 255).astype(np.uint8), cv2.COLOR_RGB2BGR); nh = ((neckZ > .5) & (dil(headM, 6) > .5)).astype(np.uint8) * 255
 dark = np.median(N2[240 * 4:246 * 4, 236 * 4:262 * 4, :3].reshape(-1, 3), 0)   # 턱 밑 = 스카프 색
 neckImg = N2.copy(); hmN = nh > 0; neckImg[hmN, :3] = dark; neckImg[..., 3] = 1

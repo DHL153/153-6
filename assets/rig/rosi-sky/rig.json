@@ -35,8 +35,8 @@
   "gun": {
    "src": "parts/gun.png",
    "pivot": [
-    388.0,
-    252.0
+    407.0,
+    277.0
    ],
    "scale": 0.5
   },
@@ -67,8 +67,8 @@
   "pack": {
    "src": "parts/pack.png",
    "pivot": [
-    469.0,
-    456.0
+    479.0,
+    471.0
    ],
    "scale": 0.5
   },
@@ -99,8 +99,8 @@
   "neck": {
    "src": "parts/neck.png",
    "pivot": [
-    84.0,
-    96.0
+    252.0,
+    128.0
    ],
    "scale": 0.5
   },
@@ -563,11 +563,11 @@
   "skirt",
   "torsoFill",
   "chest",
+  "gun",
   "shoulderF",
   "neckP",
   "head",
-  "shoulderN",
-  "gun"
+  "shoulderN"
  ],
  "overlays": {},
  "hemRun": {
@@ -685,12 +685,12 @@
     -376
    ],
    "from": [
-    117,
-    432
+    127,
+    447
    ],
    "to": [
-    84,
-    312
+    103,
+    337
    ],
    "reverse": false,
    "linkScale": [
@@ -722,12 +722,12 @@
   "fire": {
    "rate": 14,
    "muzzle": [
-    1152,
-    364
+    1171,
+    389
    ],
    "bore": [
-    868,
-    340
+    887,
+    365
    ],
    "kickX": 22,
    "kickY": 6,

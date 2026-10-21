@@ -26,7 +26,7 @@ for b in d['bones']:
     b.pop('part', None)
     if b['name'] in USE: b['part'] = USE[b['name']]
 d['jointMap'] = {k: list(J[k]) for k in ['hip', 'torso', 'chest', 'neck', 'head', 'shoulderN', 'elbowN', 'wristN', 'shoulderF', 'elbowF', 'wristF']}
-d['draw'] = ['pack', 'belt', 'legFar', 'legNear', 'skirt', 'torsoFill', 'chest', 'shoulderF', 'neckP', 'head', 'shoulderN', 'gun']   # 먼 소매(어깨판) = 목·머리 뒤(DHL 10-21 09:09 '어깨 갑주를 머리 뒤로' — 연사 0.28초 젖힐 때 턱 앞에 그려졌음)
+d['draw'] = ['pack', 'belt', 'legFar', 'legNear', 'skirt', 'torsoFill', 'chest', 'gun', 'shoulderF', 'neckP', 'head', 'shoulderN']   # 소매(어깨판 + 크림 소매)는 총 묶음(팔뚝) 위 — 원화처럼 소매 입구가 팔뚝 위(10-21 12:45) · 먼 소매 = 목·머리 뒤(14 DHL 09:09)
 d['overlays'] = {}
 # 서 있는 발 = 새 원화 부츠 자리(가까운 발목 x ≈ 180 · 먼 288) — 다리가 길어(골반~발목 83px) 14 처럼 뒤꿈치가 들리지 않음
 d['idleStance'] = {'near': -48.0, 'far': 40.0}
