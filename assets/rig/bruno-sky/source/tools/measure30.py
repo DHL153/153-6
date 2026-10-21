@@ -12,8 +12,8 @@ RA = Image.open(os.path.join(SRC, 'ref512.png')).convert('RGBA')
 M = {'art': 'char_0030.png (ref512.png, DHL 10-21 17:44)', 'sole_y': 497, 'hairTop': [210, 156],
      'near': {'SH': [200, 318], 'EL': [162, 325], 'WR': [141, 268], 'fist': [144, 241], 'head': [91, 75], 'pommel': [151, 278]},
      'far': {'SH': [298, 335], 'EL': [318, 340], 'WR': [342, 318], 'fist': [348, 292], 'head': [436, 145], 'pommel': [337, 322]},
-     'hip': [262, 391], 'neck': [285, 330],   # 골반 = 허리띠 가운데, 목 = 복면 아래 깃 위(머리 조각 축)
-     'legs': {'near': {'hip': [236, 400], 'knee': [210, 418], 'ankle': [183, 458]}, 'far': {'hip': [280, 400], 'knee': [308, 417], 'ankle': [318, 463]}}}
+     'hip': [265, 372], 'neck': [282, 318], 'pony': [226, 203],   # 골반 = 허리띠 가운데(버클), 목 = 복면 아래 깃 위(머리 조각 축), 포니테일 = 남색 끈 묶은 곳
+     'legs': {'near': {'hip': [236, 388], 'knee': [210, 418], 'ankle': [183, 458]}, 'far': {'hip': [280, 388], 'knee': [308, 417], 'ankle': [318, 463]}}}
 d_ = lambda a, b: round(math.hypot(a[0] - b[0], a[1] - b[1]), 1)
 for sd in ('near', 'far'):
     s = M[sd]; s['len'] = {'upper': d_(s['SH'], s['EL']), 'fore_to_wrist': d_(s['EL'], s['WR']), 'fore_to_fist': d_(s['EL'], s['fist']), 'fist_to_head': d_(s['fist'], s['head'])}
