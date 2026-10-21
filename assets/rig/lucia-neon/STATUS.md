@@ -187,3 +187,4 @@
   - `tools/game_check2.py` NUM=17 PC 1440×900 · 폰 390×844: 시작 선택(전투·마이룸)·미리보기·전투·필살기 컷신·마이룸 오류 0
 - 진행 그림 `source/review/lucia17_v1.jpg`(tools/progress17.py)
 - 도구 실수(바로잡음): 빌드 맨 앞에서 parts/ 를 지운 뒤 idlecomp 용으로 일찍 끝내 parts 가 비었음 → parts 지우기를 idlecomp 끝 뒤로
+- **편집 툴 v180**(버전 1792552907-3867, 12:21): '17 네온 루시아 v1' 캐릭터 + 진행 칸(진행 그림 data URI) + 원화 기준 그림(1024, rig.def.js 안 MR_REF_ART) · `rigs/lucia-neon/rig.def.js`(조각 data URI 한 파일, 1.5MB, tools/pack_editor.py) · 파일 수 511 그대로(9 팔로메 progress/palome9_v17.jpg 를 페이지 안 data URI 로 옮김 — tools/editor_add17.py) · rig.js = 게임 rig.js 와 같은 해시(bd7e0da8…) · 로컬에서 편집 툴 페이지 열어 17 고르고 공격 — 페이지 오류 0
