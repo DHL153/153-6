@@ -496,11 +496,11 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': 1.0, 'hitAt':
        'nearLift': [[0, 0], [0.03, 0, 'io'], [0.09, 10, 'io'], [0.15, 0]], 'farLift': [[0, 0], [0.17, 0, 'io'], [0.23, 10, 'io'], [0.29, 0]],
        'aDamp': 9, 'standStep': True}
 rig['actions'] = {'smash': act}
-rig['cutHold'] = 0.1
+rig['cutHold'] = 0.1   # 스킬 컷인 멈춤(10-21 게임 넣기): 후보 .10·.17·.20·.28 을 게임 컷인(PC 1440×900, 혼자·7 루시아와 둘)으로 잼(cutpair) — 리그 맨 위 .10 혼자 칸 안 7px · 둘 −1 / .17 −9·−19 / .20 −1·−11 / .28 −5·−13 → .10 예비(가까운 철퇴를 뒤로 젖히고 먼 철퇴 듦 — 두 철퇴 V 자)
 _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters', 'char_0020.png')).convert('RGBA').resize((160, 160), Image.BOX))[..., 3]
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
 rig['gameRef'] = {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
-                  'note': f'게임 그림 char_0020.png(512) = 0번 합격 원화(ref512). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
+                  'note': f'게임 그림 char_0020.png(512) = 0번 합격 원화(ref512) + 치마(tools/art_skirt20.py — 리그 대기와 같은 치마, DHL 10-21). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
 rig['note'] = '20 네온 브루노 v1(대기·달리기·번갈아 내려찍기). 10 러스트 브루노 v1.2 구조. 조각 = 원화를 부품별로 나눔(seg20.py) + 가려진 곳 = 팔·철퇴만 지운 원화(프롬프트 2·3: sheets/nonear_0614·nofar_0623), 시트 = 표정·깜빡임·달리는 다리·부츠·철퇴 자루 끝'
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(PARTS)): _h.update(fn.encode()); _h.update(open(os.path.join(PARTS, fn), 'rb').read())

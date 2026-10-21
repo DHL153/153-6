@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "87fdf307",
+ "version": "669a0e51",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -1654,7 +1654,7 @@
   ],
   "refScale": 2.0,
   "refLift": 0,
-  "note": "게임 그림 char_0020.png(512) = 0번 합격 원화(ref512). x = 도감 칸(fitArt 중심 258.5, index.html measureBox 와 같은 계산)에서 골반(hip x 252)이 가운데"
+  "note": "게임 그림 char_0020.png(512) = 0번 합격 원화(ref512) + 치마(tools/art_skirt20.py — 리그 대기와 같은 치마, DHL 10-21). x = 도감 칸(fitArt 중심 258.5, index.html measureBox 와 같은 계산)에서 골반(hip x 252)이 가운데"
  },
  "note": "20 네온 브루노 v1(대기·달리기·번갈아 내려찍기). 10 러스트 브루노 v1.2 구조. 조각 = 원화를 부품별로 나눔(seg20.py) + 가려진 곳 = 팔·철퇴만 지운 원화(프롬프트 2·3: sheets/nonear_0614·nofar_0623), 시트 = 표정·깜빡임·달리는 다리·부츠·철퇴 자루 끝"
 }
