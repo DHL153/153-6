@@ -1,4 +1,4 @@
-# 24 스카이 로시 표정·깜빡임: 조각 시트(parts1_SKY) 머리 9장을 원화 머리(art_v1_0730, 2048 공간)에 맞춤 → 얼굴만 오린 조각 (4 러스트 faces4.py 와 같은 방법)
+# 24 스카이 로시 표정·깜빡임: 조각 시트(parts1_1133) 머리 9장을 원화 머리(art_v1_0730, 2048 공간)에 맞춤 → 얼굴만 오린 조각 (4 러스트 faces4.py 와 같은 방법)
 #  맞춤 = 머리카락·귀(얼굴 빼고, 머리 라벨 안)에 SIFT 닮음 → ECC affine · 살빛 맞춤
 #  표정 7(웃음·화남·슬픔·놀람·외침·집중·윙크) = 얼굴 전체 · 깜빡임 2 = 눈 부분만(코·입 = 원화)
 #  python3 -I tools/faces24.py  → ../parts/face_*.png · blink_*.png · work/faces24.json · review/faces24.png
@@ -21,7 +21,7 @@ tmask = (headM[Y0:Y0 + Hd, X0:X0 + Wd] & ~(cv2.dilate(fm.astype(np.uint8), np.on
 g = lambda a: cv2.GaussianBlur(cv2.cvtColor(a, cv2.COLOR_RGB2GRAY), (0, 0), 2).astype(np.float32)
 def feath(poly):
     m = pmask(poly); f = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 7); return np.minimum(1, f * 1.7) * m
-S = np.array(Image.open(os.path.join(H, 'sheets/parts1_SKY.png')).convert('RGB')); cells = json.load(open(os.path.join(W, 'cells24.json')))
+S = np.array(Image.open(os.path.join(H, 'sheets/parts1_1133.png')).convert('RGB')); cells = json.load(open(os.path.join(W, 'cells24.json')))
 JOBS = [(2, 'face_happy', FACE), (3, 'face_angry', FACE), (4, 'face_sad', FACE), (5, 'face_surprised', FACE), (6, 'face_shout', FACE), (7, 'face_focus', FACE), (8, 'face_wink', FACE), (9, 'blink_half', EYE), (10, 'blink_closed', EYE)]
 sift = cv2.SIFT_create(5000)
 def crop(ci):

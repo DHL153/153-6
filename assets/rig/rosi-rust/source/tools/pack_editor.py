@@ -6,7 +6,9 @@ S = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); R = os.path.dir
 rig = json.load(open(os.path.join(R, 'rig.json'))); rid = rig['name']
 for k, p in rig['parts'].items():
     if isinstance(p.get('src'), str) and p['src'].startswith('parts/'):
-        p['src'] = 'data:image/png;base64,' + base64.b64encode(open(os.path.join(R, p['src']), 'rb').read()).decode()
+        if os.environ.get('WEBP'):   # 편집 툴 파일 크기 한도(16MB) — 무손실 WebP(픽셀 그대로, PNG 보다 약 30% 작음)
+            bio2 = io.BytesIO(); Image.open(os.path.join(R, p['src'])).save(bio2, 'WEBP', lossless=True, method=4); p['src'] = 'data:image/webp;base64,' + base64.b64encode(bio2.getvalue()).decode()
+        else: p['src'] = 'data:image/png;base64,' + base64.b64encode(open(os.path.join(R, p['src']), 'rb').read()).decode()
 art = Image.open(os.path.join(S, 'ref512.png')).convert('RGBA').resize((1024, 1024), Image.LANCZOS); bio = io.BytesIO(); art.save(bio, 'WEBP', quality=90)
 out = ("// 편집기용: " + rid + " rig.json + 조각 그림 + 원화 기준 그림(1024, MR_REF_ART)을 data URI 로 담음 — 편집기 파일 수 한도 511. 원본 = assets/rig/" + rid + "/rig.json\n"
        "window.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_REF_ART=window.MR_REF_ART||{};\n"

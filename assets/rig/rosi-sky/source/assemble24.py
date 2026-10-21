@@ -28,33 +28,35 @@ for b in d['bones']:
 d['jointMap'] = {k: list(J[k]) for k in ['hip', 'torso', 'chest', 'neck', 'head', 'shoulderN', 'elbowN', 'wristN', 'shoulderF', 'elbowF', 'wristF']}
 d['draw'] = ['pack', 'belt', 'legFar', 'legNear', 'skirt', 'torsoFill', 'chest', 'shoulderF', 'neckP', 'head', 'shoulderN', 'gun']   # 먼 소매(어깨판) = 목·머리 뒤(DHL 10-21 09:09 '어깨 갑주를 머리 뒤로' — 연사 0.28초 젖힐 때 턱 앞에 그려졌음)
 d['overlays'] = {}
-# 서 있는 발 = 새 원화 부츠 자리(가까운 발목 x 182 · 먼 290)
-d['idleStance'] = {'near': -10.0, 'far': 44.0}   # 가까운 발 = 러스트와 같은 자리(발이 다리 뿌리보다 12px 넘게 뒤면 정강이가 누워 뒤꿈치가 들림 — 10-21 측정), 먼 발 = 새 원화 부츠 자리(발목 x 290)
+# 서 있는 발 = 새 원화 부츠 자리(가까운 발목 x ≈ 180 · 먼 288) — 다리가 길어(골반~발목 83px) 14 처럼 뒤꿈치가 들리지 않음
+d['idleStance'] = {'near': -48.0, 'far': 40.0}
 # 치마 자리 = 허리띠·골반(바지) — 천 흔들림 없음
 d['parts']['skirt'].pop('mesh', None)
-# ---------- 다리 (시트 14 허벅지 · 15 정강이(무릎판, 발목판 위에서 자름) · 16 부츠) ----------
+# ---------- 다리 (시트 14 허벅지 = 부푼 바지 위 · 15 정강이 = 바지 아래 + 주름 단 · 16 부츠) — 시트 배율이 머리와 달라 원화 다리 크기에 맞춤 ----------
+#  원화(512): 다리 뿌리 (210,350)·(268,350) → 무릎 y ≈ 398 → 발목 (180,433)·(288,428) · 바지 폭 ≈ 50 · 부츠 길이 57 · 높이 35~45
 def piece(n, crop=None):
     im = Image.open(os.path.join(H, 'pieces', n + '.png')).convert('RGBA')
     if crop: im = im.crop(crop)
     return im
-th = piece('14_thigh'); th.save(os.path.join(PD, 'thigh.png'))
-sh = piece('15_shin'); sh = sh.crop((0, 34, sh.width, 252)); sh.save(os.path.join(PD, 'shin.png'))   # 무릎판 위 검은 덮개·발목판 뺌
+th = piece('14_thigh', (0, 0, 248, 330)); th.save(os.path.join(PD, 'thigh.png'))      # 아래 주름 단은 뺌(정강이 조각이 단을 그림)
+sh = piece('15_shin'); sh.save(os.path.join(PD, 'shin.png'))
 bt = piece('16_boot'); bt.save(os.path.join(PD, 'boot.png'))
-d['parts']['thigh'] = {'src': 'parts/thigh.png', 'pivot': [104, 110], 'scale': 1}
-d['parts']['shin'] = {'src': 'parts/shin.png', 'pivot': [95, 61], 'scale': 1}
-d['parts']['boot'] = {'src': 'parts/boot.png', 'pivot': [100, 45], 'scale': .35}
-L = d['legs']; L['thigh'] = 48.0; L['shin'] = 62.0; L['thighFirst'] = True
-L['thighImg'] = {'part': 'thigh', 'a': [104, 120], 'b': [110, 258], 'w': 1.1}
-L['shinImg'] = {'part': 'shin', 'a': [95, 61], 'b': [96, 209], 'w': 1.12}
-L['boot'] = {'part': 'boot', 'sole': [[-70, 127], [20, 131], [140, 137], [170, 132]], 'toeX': 120.0, 'ankleRange': L['boot']['ankleRange'], 'idleDorsi': L['boot']['idleDorsi']}
-# ---------- 호스 = 시트 17 한 마디 사슬 (러스트 탄띠 _drawChain 그대로) ----------
-hz = piece('17_hose', (88, 16, 170, 161)); hz.save(os.path.join(PD, 'link.png'))
-d['parts']['link'] = {'src': 'parts/link.png', 'pivot': [41, 72], 'scale': .45}
-HOSE512 = [(64, 226), (55, 236), (49, 250), (47, 266), (48, 282), (52, 298), (58, 314), (67, 328), (80, 341), (95, 350), (111, 356), (126, 359), (140, 361)]   # 탄띠 가운데 선(원화 512 — 가방 입구 → C 자 → 총 뒤 아래)
+d['parts']['thigh'] = {'src': 'parts/thigh.png', 'pivot': [124, 40], 'scale': 1}
+d['parts']['shin'] = {'src': 'parts/shin.png', 'pivot': [100, 150], 'scale': 1}
+d['parts']['boot'] = {'src': 'parts/boot.png', 'pivot': [118, 88], 'scale': .294}
+L = d['legs']; L['hip'] = [0, 12]; L['near']['x'] = -60; L['far']['x'] = 56
+L['thigh'] = 96.0; L['shin'] = 92.0; L.pop('thighFirst', None)   # 허벅지(부푼 바지)가 정강이 위를 덮음(무릎 꺾일 때 틈 없음)
+L['thighImg'] = {'part': 'thigh', 'a': [124, 40], 'b': [120, 300], 'w': 1.22}
+L['shinImg'] = {'part': 'shin', 'a': [100, 150], 'b': [96, 330], 'w': 1.05}   # 무릎 위 150px 은 허벅지 밑으로 들어감
+L['boot'] = {'part': 'boot', 'sole': [[-86, 170], [0, 174], [150, 180], [262, 172]], 'toeX': 180.0, 'ankleRange': L['boot']['ankleRange'], 'idleDorsi': L['boot']['idleDorsi']}
+# ---------- 탄띠 = 시트 17 탄 한 발 사슬 (러스트 탄띠 _drawChain 그대로: 그림 x = 탄띠 따라, 탄두(−y) = 곡선 안쪽 — 원화도 탄두가 안쪽) ----------
+lk = piece('17_hose'); lk.save(os.path.join(PD, 'link.png'))
+d['parts']['link'] = {'src': 'parts/link.png', 'pivot': [79, 160], 'scale': .36}   # 탄 길이 289 × .36 = 104 = 원화 탄띠 폭 52px
+HOSE512 = [(62, 230), (58, 242), (55, 254), (53, 266), (53, 278), (55, 290), (58, 302), (63, 313), (69, 323), (77, 332), (86, 340), (96, 347), (107, 352), (119, 356), (132, 358), (145, 359), (156, 360), (166, 360), (174, 360)]   # 탄띠 가운데 선(원화 512) = 바깥 외곽선(가운데 (128,270) 에서 방사) − 탄 길이 반 25 — 10-21 11:50 다시 잼
 rig = lambda p: [round((p[0] - O[0]) * 2, 1), round((p[1] - O[1]) * 2, 1)]
 C = d['carry']; Bt = C['belt']
 pk = B['info']['pack']; gn = B['info']['gun']
-Bt.update({'links': ['link'], 'spacing': 33, 'path': [rig(p) for p in HOSE512], 'chestRest': rig(J['chest']),
+Bt.update({'links': ['link'], 'spacing': 40, 'path': [rig(p) for p in HOSE512], 'chestRest': rig(J['chest']),
            'from': [HOSE512[0][0] * 4 - pk[0], HOSE512[0][1] * 4 - pk[1]], 'to': [HOSE512[-1][0] * 4 - gn[0], HOSE512[-1][1] * 4 - gn[1]], 'linkScale': [1, 1], 'reverse': False})
 # 총구·총열 방향(총 조각 px) — 새 원화 세 총구 가운데 (441,373) · 총열 뒤 (370,367)
 C['fire']['muzzle'] = [441 * 4 - gn[0], 373 * 4 - gn[1]]; C['fire']['bore'] = [370 * 4 - gn[0], 367 * 4 - gn[1]]

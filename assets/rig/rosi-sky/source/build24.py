@@ -45,7 +45,7 @@ def save(name, rgba, bone, mask=None):
     info[name] = [int(x0), int(y0), int(x1), int(y1)]; return x0, y0
 # ---------- 원화에서 ----------
 # 총 묶음: 총 + 두 팔뚝·장갑(라벨 foreN·foreF) — 손잡이와 한 몸
-gunM = lab2('gun', 'foreN', 'foreF', cl=3); gx0, gy0 = save('gun', O2, 'gun', gunM)
+gunM = lab2('gun', 'foreN', 'foreF', cl=3); gunM[1300:, :612] = 0; gx0, gy0 = save('gun', O2, 'gun', gunM)   # 총 왼쪽 끝(x 153) 왼쪽 아래 = 탄띠(사슬이 그림)
 # 소매: 어깨판 + 부푼 소매(라벨 armN/armF — 손으로 따라 그린 다각형) · 맨살(팔뚝) 뺌
 rgb8 = O2[..., :3] * 255; skin = ((rgb8[..., 0] > 190) & (rgb8[..., 1] > 120) & (rgb8[..., 1] < 200) & (rgb8[..., 2] > 90) & (rgb8[..., 2] < 175) & (rgb8[..., 0] - rgb8[..., 1] > 40)).astype(np.float32)   # 크림 소매(r−g 10~25)는 살 아님
 noskin = 1 - dil(cv2.morphologyEx(skin, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)), 2)
@@ -57,7 +57,7 @@ for nm_, lb_, bn_ in (('sleeveN', 'armN', 'shoulderN'), ('sleeveF', 'armF', 'sho
 headM = lab2('head', cl=3); save('head', O2, 'head', headM)
 # ---------- 지운 원화에서 (팔·총·호스 뒤가 그려져 있음) ----------
 nop = (N2[..., 3] > .02).astype(np.float32)
-PACKBOX = [(34, 176), (54, 148), (98, 134), (103, 122), (168, 122), (172, 148), (176, 246), (152, 250), (150, 300), (154, 320), (60, 320), (38, 294), (32, 230)]
+PACKBOX = [(34, 176), (54, 148), (98, 134), (103, 122), (168, 122), (172, 148), (176, 246), (152, 250), (150, 300), (156, 318), (150, 332), (96, 332), (60, 322), (38, 294), (32, 230)]
 PLATE_N = [(146, 256), (164, 245), (196, 243), (206, 254), (204, 284), (186, 292), (160, 290), (146, 276)]
 SCARF = [(134, 246), (160, 239), (172, 250), (160, 264), (138, 264)]   # 가방 앞에 걸친 스카프 자락 = 몸
 pbox = poly512(PACKBOX); scD = dil(poly512(SCARF), 2); plN = dil(poly512(PLATE_N), 2); headD = dil(headM, 2); headD4 = dil(headM, 5)

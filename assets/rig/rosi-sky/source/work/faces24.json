@@ -1,0 +1,168 @@
+{
+ "parts": {
+  "face_happy": {
+   "src": "parts/face_happy.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_angry": {
+   "src": "parts/face_angry.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_sad": {
+   "src": "parts/face_sad.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_surprised": {
+   "src": "parts/face_surprised.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_shout": {
+   "src": "parts/face_shout.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_focus": {
+   "src": "parts/face_focus.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "face_wink": {
+   "src": "parts/face_wink.png",
+   "pivot": [
+    112.0,
+    300.0
+   ],
+   "scale": 0.5
+  },
+  "blink_half": {
+   "src": "parts/blink_half.png",
+   "pivot": [
+    104.0,
+    252.0
+   ],
+   "scale": 0.5
+  },
+  "blink_closed": {
+   "src": "parts/blink_closed.png",
+   "pivot": [
+    104.0,
+    252.0
+   ],
+   "scale": 0.5
+  }
+ },
+ "rep": {
+  "face_happy": {
+   "inliers": 199,
+   "ecc": 0.985,
+   "scale": 1.486,
+   "gain": [
+    1.0,
+    0.9900000095367432,
+    1.0169999599456787
+   ]
+  },
+  "face_angry": {
+   "inliers": 184,
+   "ecc": 0.979,
+   "scale": 1.491,
+   "gain": [
+    1.0,
+    0.9789999723434448,
+    1.00600004196167
+   ]
+  },
+  "face_sad": {
+   "inliers": 182,
+   "ecc": 0.984,
+   "scale": 1.487,
+   "gain": [
+    1.0,
+    0.9779999852180481,
+    0.9990000128746033
+   ]
+  },
+  "face_surprised": {
+   "inliers": 187,
+   "ecc": 0.984,
+   "scale": 1.467,
+   "gain": [
+    1.0,
+    0.9769999980926514,
+    1.003999948501587
+   ]
+  },
+  "face_shout": {
+   "inliers": 190,
+   "ecc": 0.986,
+   "scale": 1.483,
+   "gain": [
+    1.0010000467300415,
+    0.9789999723434448,
+    1.0049999952316284
+   ]
+  },
+  "face_focus": {
+   "inliers": 167,
+   "ecc": 0.979,
+   "scale": 1.473,
+   "gain": [
+    1.0,
+    0.9739999771118164,
+    0.996999979019165
+   ]
+  },
+  "face_wink": {
+   "inliers": 162,
+   "ecc": 0.985,
+   "scale": 1.484,
+   "gain": [
+    1.0,
+    0.9860000014305115,
+    1.0180000066757202
+   ]
+  },
+  "blink_half": {
+   "inliers": 172,
+   "ecc": 0.99,
+   "scale": 1.473,
+   "gain": [
+    1.0,
+    0.996999979019165,
+    1.031999945640564
+   ]
+  },
+  "blink_closed": {
+   "inliers": 182,
+   "ecc": 0.982,
+   "scale": 1.457,
+   "gain": [
+    1.0,
+    0.9879999756813049,
+    1.0140000581741333
+   ]
+  }
+ }
+}
