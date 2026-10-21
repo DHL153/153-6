@@ -1,4 +1,4 @@
-"""5 러스트 그리소스토모 리그 조립 v1 — 대기 · 달리기 · 두 주먹 내려찍기
+"""5 러스트 그리소스토모 리그 조립 v2 — 대기 · 달리기 · 뒷손 펀치(v1 = 두 주먹 내려찍기)
 입력: ref512.png(원화 = 게임 char_0005) · sheets/nonear_2052.png·nofar_2105.png(팔·건틀릿만 지운 원화, 프롬프트 2·3) · work/body512.png·labels.npy(seg5.py)
       pieces/(조각 시트 21칸, cut5.py) · measure5.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png · review/keys5.json
@@ -93,7 +93,7 @@ armF = under(art(UPF_m), place_limb('upperF', SH_F, EL_F), (RA[..., 3] > 200) & 
 foreF = art(GAF_m)   # 먼 건틀릿은 맨 앞 — 가려진 곳 없음(시트 ×1.055 라 채우면 둘레에 테가 생김)
 print('  팔 px: 가까운', int(ARM_N.sum()), '(건틀릿 + 시트 보탬', int(((armL[..., 3] > 0) & ~ARM_N).sum()), ') · 먼 윗팔', int(UPF_m.sum()), '· 먼 건틀릿', int(GAF_m.sum()))
 # ---------------- 몸: 합친 몸 그림(팔 없음)을 라벨로 — 대기에 팔보다 앞에 그리는 조각(상체·머리·상투)의 팔 밑 픽셀은 뒤 조각(…B)으로 ----------------
-DRAW_IDLE = ['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'armL', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony']
+DRAW_IDLE = ['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'armL', 'armLp', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony']
 ARM_OF = {'near': ('armL', ARM_N), 'far': ('armF', ARM_F)}
 BONE_OF = {'head': 'head', 'pony': 'pony', 'torso': 'torso', 'belt': 'belt', 'hips': 'skirt', 'legN': 'legNear', 'legF': 'legFar'}
 def body(n): a = BODY.copy(); a[..., 3] = np.where(LAB == LID[n], a[..., 3], 0); return a
@@ -185,6 +185,17 @@ for n in BACKP:
     nm = n + 'B'; pt = {'torso': HIP, 'head': NECK, 'pony': PONY, 'belt': HIP, 'hips': HIP}[n]; P_(nm, pt); BACKB[nm] = ({'hips': 'skirt'}.get(n, n), pt)
 P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F))
 P_('armL', EL_N, fist=piv('armL', FI_N)); P_('foreF', EL_F)
+# 펀치 건틀릿(armLp): 가까운 건틀릿 그림은 소매 입구가 오른쪽 위·주먹 마디가 아래라 앞으로 곧게 내지르면 마디가 아래·뒤를 봄(v2 첫 렌더) →
+#   공격 동안만 먼 건틀릿 그림(소매 입구 왼쪽 · 주먹 마디 오른쪽 = 원화의 앞으로 내지른 주먹)을 가까운 팔꿈치에 붙여 씀(크기 = 가까운 건틀릿만큼).
+#   대기 자리에서 소매 입구→건틀릿 가운데 방향·거리를 가까운 건틀릿과 같게 놓아, 처음·끝에 제자리에서 겹쳐 바꿈(fade)
+def _cen(a): ys, xs = np.nonzero(a[..., 3] > 100); return np.array([xs.mean(), ys.mean()])
+C_N, C_F = _cen(armL), _cen(foreF)
+A_CN, A_CF = math.degrees(math.atan2(*(C_N - EL_N)[::-1])), math.degrees(math.atan2(*(C_F - EL_F)[::-1]))
+K_P = float(np.linalg.norm(C_N - EL_N) / np.linalg.norm(C_F - EL_F))
+R_P = math.radians(A_CN - A_CF)
+shutil.copy(os.path.join(PARTS, 'foreF.png'), os.path.join(PARTS, 'armLp.png')); OFF['armLp'] = OFF['foreF']
+parts['armLp'] = {'src': 'parts/armLp.png', 'pivot': piv('foreF', EL_F), 'scale': round(SC * K_P, 4)}
+print(f'  펀치 건틀릿: 가까운 가운데 방향 {A_CN:.1f}° · 먼 {A_CF:.1f}° → 돌림 {math.degrees(R_P):.1f}° · 크기 ×{K_P:.3f}')
 UF = (FI_F - EL_F) / np.linalg.norm(FI_F - EL_F)
 parts['gF'] = {'src': 'parts/foreF.png', 'pivot': piv('foreF', EL_F), 'grip': piv('foreF', FI_F), 'elbow': piv('foreF', EL_F), 'scale': SC, 'shaftDir': [round(float(UF[0]), 4), round(float(UF[1]), 4)]}
 parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [2, 2], 'scale': SC, 'tip': [2, 0], 'tips': [[2, 2], [2, 2]], 'pommel': [2, 4]}
@@ -199,9 +210,11 @@ world = {'root': (O, 0.0), 'hip': (HIP, 0.0), 'skirt': (HIP, 0.0), 'cape': (NECK
          'armU': (SH_N, 0.0), 'armL': (EL_N, ARML_REST), 'fistN': (FI_N, ARML_REST),
          'armF': (SH_F, 0.0), 'foreF': (EL_F, 0.0), 'fistF': (FI_F, 0.0), 'weapon': (FI_F, WEAPON_ANG), 'foreFb': (FI_F, 0.0)}
 for _nm, (_par, _pt) in BACKB.items(): world[_nm] = (_pt, 0.0)
+world['armLp'] = (EL_N, 0.0)
 BONES = [('root', None), ('hip', 'root'), ('skirt', 'hip'), ('torso', 'hip'), ('head', 'torso'), ('pony', 'head'), ('armF', 'torso'), ('foreF', 'armF'), ('fistF', 'foreF'), ('weapon', 'fistF'),
          ('armU', 'torso'), ('armL', 'armU'), ('fistN', 'armL'), ('foreFb', 'torso'), ('cape', 'torso'), ('scarf', 'torso'), ('pouch', 'hip'), ('pauldron', 'torso'), ('pauldronF', 'torso'), ('belt', 'torso')]
 BONES += [(_nm, _par) for _nm, (_par, _pt) in BACKB.items()]
+BONES += [('armLp', 'armL')]
 WANG = {'armL': ARML_REST, 'fistN': ARML_REST, 'weapon': WEAPON_ANG}
 bones = []
 for name, parent in BONES:
@@ -214,6 +227,7 @@ for name, parent in BONES:
     if name in parts and name != 'weapon': b['part'] = name
     if name == 'weapon': b['part'] = 'weapon'
     if name == 'skirt': b['part'] = 'hips'
+    if name == 'armLp': b['pos'] = [0, 0]; b['rot'] = round(R_P, 4)
     bones.append(b)
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
@@ -227,62 +241,69 @@ for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', la
 def order(lst): return [x for x in lst if x not in ('torsoB', 'headB', 'ponyB', 'beltB', 'hipsB') or x in BACKB]
 draw = order(DRAW_IDLE)
 rig = {'name': 'grisostomo-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
-       'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': [], 'faces': {n: f'face_{n}' for n in FACE_N},
+       'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'gait': {'stance': 0.26, 'strideBase': 40, 'strideK': 0.12, 'hipBase': 6, 'bob': 8, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.7, 'heelKick': 0.5, 'dropCap': 16,
                 'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'ponySway': 0.8, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2"},
        'ui': {'attack': 'smash', 'touch': 'hop'}}
-# ---------------- 공격: 두 주먹 내려찍기 ----------------
-#   키(원화 좌표·도, 0° = 오른쪽, 90° = 아래): 몸 기울기 lean(rad, + = 앞으로) · 가까운 (윗팔 각, 건틀릿 각) · 먼 (주먹 자리, 건틀릿 각)
+# ---------------- 공격: 뒷손 펀치(DHL 10-22 05:42 '앞으로 펀치 — 주먹이 길어지지 않고 뒤에서 앞으로') — v1 두 주먹 내려찍기 키는 SLAM_KEYS(안 씀) ----------------
+#   키(원화 좌표·도, 0° = 오른쪽, 90° = 아래): 몸 기울기 lean(rad, + = 앞으로) · 가까운 (윗팔 각, 건틀릿 각) · 먼 (주먹 자리, 건틀릿 각) · 가까운 어깨 앞으로(shNx, 원화 px — 몸을 트는 것)
+#   가까운(화면 왼쪽 = 뒷손) 건틀릿: 뒤로 젖혔다가 가슴 높이로 앞으로 곧게 — 팔 길이·건틀릿 크기 그대로(윗팔 30 + 건틀릿 100), 어깨를 앞으로 내밀어 닿는 거리
+#   먼(앞손) 건틀릿: 처음엔 조금 앞으로 겨눴다가 칠 때 턱 옆으로 당겨 막음(머리 뒤)
 u0N = math.degrees(math.atan2(*(EL_N - SH_N)[::-1])); f0N = math.degrees(math.atan2(*(FI_N - EL_N)[::-1])); a0F = math.degrees(math.atan2(*(FI_F - EL_F)[::-1]))
+SLAM_KEYS = [[0.10, -0.04, -40, 40, 400, 190, -30], [0.20, -0.07, -118, -105, 335, 90, -95], [0.28, -0.08, -122, -112, 325, 84, -105], [0.38, 0.30, 32, 74, 420, 352, 74], [0.52, 0.28, 34, 76, 412, 348, 76]]
+#   가까운 건틀릿 각 = 소매 입구→건틀릿 가운데 방향 φ(펀치 건틀릿 armLp 기준, 대기 = A_CN) — 아래에서 엔진 팔뚝 각(소매→주먹 마디, 대기 f0N)으로 바꿈
 KEYS = json.loads(os.environ.get('KEYS', 'null')) or [
-  # t,    lean,  uN,   fN,   GFx, GFy, aF
-  [0.00, 0.00, u0N, f0N, FI_F[0], FI_F[1], a0F],
-  [0.10, -0.04, -40, 40, 400, 190, -30],        # ① 두 주먹을 끌어올림
-  [0.20, -0.07, -118, -105, 335, 90, -95],      # ② 머리 위로 — 얼굴은 보이게 가까운 건틀릿을 머리 뒤 왼쪽 위로
-  [0.28, -0.08, -122, -112, 325, 84, -105],     # ③ 머리 위 멈춤(예비)
-  [0.38, 0.30, 32, 74, 420, 352, 74],           # ④ 내려찍기 — 앞으로 숙이며 두 주먹을 골반 높이 앞으로(먼 팔 펴짐 .93)
-  [0.52, 0.28, 34, 76, 412, 348, 76],           # ⑤ 찍고 버팀
-  [0.78, 0.06, u0N - 4, f0N - 6, 432, 282, 30], # ⑥ 돌아옴
-  [1.00, 0.00, u0N, f0N, FI_F[0], FI_F[1], a0F]]
-HIT_T = float(os.environ.get('HIT_T', 0.38))
+  # t,    lean,  uN,   φN,   GFx, GFy, aF,  shNx
+  [0.00, 0.00, u0N, A_CN, FI_F[0], FI_F[1], a0F, 0],
+  [0.08, -0.03, u0N + 10, A_CN + 15, 428, 266, 16, -3],   # 제자리에서 건틀릿 그림 바꿈(가까운 → 펀치 건틀릿)
+  [0.16, -0.12, 150, 185, 414, 258, 12, -12],    # ① 뒤로 젖힘 — 뒷손 건틀릿을 몸 뒤 왼쪽으로, 상체 뒤로 틈
+  [0.23, 0.03, 80, 40, 410, 250, -20, 8],        # ② 앞으로 — 아래로 돌아 가슴 높이로, 앞손은 턱 쪽으로
+  [0.30, 0.24, 45, 8, 340, 236, -95, 30],        # ③ 타격 — 어깨를 내밀며 가슴 높이로 앞으로 곧게(주먹 마디 오른쪽), 앞손 = 머리 뒤로 당겨 막기
+  [0.44, 0.22, 46, 10, 342, 238, -93, 28],        # ④ 뻗은 채 버팀
+  [0.72, 0.04, u0N - 8, A_CN - 15, 428, 276, 22, 6],   # ⑤ 돌아옴
+  [0.86, 0.01, u0N, A_CN, 432, 270, 21, 0],      # 제자리 — 그림 되돌림
+  [1.00, 0.00, u0N, A_CN, FI_F[0], FI_F[1], a0F, 0]]
+for _k in KEYS: _k[3] = _k[3] + (f0N - A_CN)
+HIT_T = float(os.environ.get('HIT_T', 0.30))
 def wrap(d): return (d + 180) % 360 - 180
 KU = [KEYS[0][:]]
-for k in KEYS[1:]: KU.append([k[0], k[1], KU[-1][2] + wrap(k[2] - KU[-1][2]), KU[-1][3] + wrap(k[3] - KU[-1][3]), k[4], k[5], KU[-1][6] + wrap(k[6] - KU[-1][6])])
+for k in KEYS[1:]: KU.append([k[0], k[1], KU[-1][2] + wrap(k[2] - KU[-1][2]), KU[-1][3] + wrap(k[3] - KU[-1][3]), k[4], k[5], KU[-1][6] + wrap(k[6] - KU[-1][6]), k[7]])
 def rot_about(p, th): c, s = math.cos(th), math.sin(th); q = V(p) - HIP; return HIP + np.array([c * q[0] - s * q[1], s * q[0] + c * q[1]])
 L1N, L2N = np.linalg.norm(EL_N - SH_N), np.linalg.norm(FI_N - EL_N); L1F, L2F = np.linalg.norm(EL_F - SH_F), np.linalg.norm(FI_F - EL_F)
 chk = []
 for k in KU:
-    t, th = k[0], k[1]; S = rot_about(SH_N, th); E = S + L1N * np.array([math.cos(math.radians(k[2])), math.sin(math.radians(k[2]))]); F = E + L2N * np.array([math.cos(math.radians(k[3])), math.sin(math.radians(k[3]))])
+    t, th = k[0], k[1]; S = rot_about(SH_N + [k[7], 0], th); E = S + L1N * np.array([math.cos(math.radians(k[2])), math.sin(math.radians(k[2]))]); F = E + L2N * np.array([math.cos(math.radians(k[3])), math.sin(math.radians(k[3]))])
     SF = rot_about(SH_F, th); d = np.linalg.norm(V(k[4:6]) - SF) / (L1F + L2F)
     chk.append(dict(t=t, nearFist=[round(float(F[0]), 1), round(float(F[1]), 1)], farReach=round(float(d), 3)))
 print('  키 검사', chk)
 assert all(c['farReach'] <= (1.0 if c['t'] in (0.0, 1.0) else 0.95) for c in chk), '먼 팔이 닿지 않음'
-ORDER_T = [float(x) for x in os.environ.get('ORDER_T', '0.14,0.86').split(',')]
+ORDER_T = [float(x) for x in os.environ.get('ORDER_T', '0.08,0.88').split(',')]
 rig['drawA'] = draw
-rig['drawB'] = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armU', 'armL'])
+rig['drawB'] = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armU', 'armL', 'armLp'])
 EA = 'io'
 trk = lambda f: [[k[0], round(f(k), 4), EA] for k in KU]
-act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.environ.get('DUR', 1.1)), 'hitAt': HIT_T, 'hitStop': 0.07, 'cancelAt': 0.8,
+act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.environ.get('DUR', 0.9)), 'hitAt': HIT_T, 'hitStop': 0.07, 'cancelAt': 0.8,
        'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]],
        'gx': trk(lambda k: SC * (k[4] - HIP[0])), 'gy': trk(lambda k: SC * (k[5] - HIP[1])), 'sa': trk(lambda k: math.radians(k[6])),
        'lean': trk(lambda k: k[1]), 'hipY': [[0, 0]],
-       'head': [[0, 0], [0.1, -0.04, 'io'], [0.24, -0.08, 'io'], [0.38, -0.06, 'io'], [0.55, -0.05, 'io'], [0.85, 0]],
+       'head': [[0, 0], [0.14, 0.04, 'io'], [0.3, -0.07, 'io'], [0.44, -0.06, 'io'], [0.75, 0]], 'shNx': trk(lambda k: SC * k[7]),
        'freeArm': True, 'fuA': trk(lambda k: math.radians(k[2] - u0N) - k[1]), 'flA': trk(lambda k: math.radians((k[3] - k[2]) - (f0N - u0N))),
-       'face': [[0, 'angry'], [0.12, 'effort'], [0.32, 'shout'], [0.6, 'angry'], [0.9, None]],
+       'face': [[0, 'angry'], [0.1, 'effort'], [0.26, 'shout'], [0.5, 'angry'], [0.85, None]],
        'order': [[0, 'drawA'], [ORDER_T[0], 'drawB'], [ORDER_T[1], 'drawA']],
-       'shake': [[0, 0], [HIT_T, 0, 'lin'], [HIT_T + 0.01, 1], [HIT_T + 0.14, 0]],
-       'nearLift': [[0, 0]], 'farLift': [[0, 0]], 'aDamp': 9, 'standStep': True}
+       'shake': [[0, 0]],
+       'nearLift': [[0, 0]], 'farLift': [[0, 0]], 'aDamp': 9, 'standStep': True,
+       'fade': {'armL': [[0, 1], [0.07, 1, 'lin'], [0.075, 0], [0.86, 0, 'lin'], [0.865, 1]], 'armLp': [[0, 0], [0.07, 0, 'lin'], [0.075, 1], [0.86, 1, 'lin'], [0.865, 0]]}}
 rig['swordGrip'] = {'tipDepth': 2000, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
 rig['actions'] = {'smash': act}
-rig['cutHold'] = float(os.environ.get('CUT', 0.24))
+rig['cutHold'] = float(os.environ.get('CUT', 0.14))
 _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters', 'char_0005.png')).convert('RGBA').resize((160, 160), Image.BOX))[..., 3]
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
 rig['gameRef'] = {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
                   'note': f'게임 그림 char_0005.png(512) = 원화(ref512). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
-rig['note'] = '5 러스트 그리소스토모 v1(대기·달리기·두 주먹 내려찍기). 조각 = 팔·건틀릿만 지운 원화 2장으로 몸을 드러내 부품별로 나눔(seg5.py) + 팔 = 원화 − 지운 원화(가려진 곳 = 시트 건틀릿), 시트 = 표정·깜빡임·윗팔·달리는 다리·샌들'
+rig['note'] = '5 러스트 그리소스토모 v2(대기·달리기·뒷손 펀치). 조각 = 팔·건틀릿만 지운 원화 2장으로 몸을 드러내 부품별로 나눔(seg5.py) + 팔 = 원화 − 지운 원화(가려진 곳 = 시트 건틀릿), 시트 = 표정·깜빡임·윗팔·달리는 다리·샌들'
 json.dump(dict(keys=KU, check=chk, order=ORDER_T, hit=HIT_T), open(os.path.join(HERE, 'review', 'keys5.json'), 'w'), ensure_ascii=False, indent=1)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(PARTS)): _h.update(fn.encode()); _h.update(open(os.path.join(PARTS, fn), 'rb').read())
