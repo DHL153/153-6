@@ -1,0 +1,238 @@
+{
+ "info": {
+  "gun": [
+   497,
+   1139,
+   1990,
+   1745
+  ],
+  "sleeveN": [
+   556,
+   963,
+   822,
+   1280
+  ],
+  "sleeveF": [
+   1085,
+   979,
+   1304,
+   1245
+  ],
+  "head": [
+   662,
+   361,
+   1368,
+   984
+  ],
+  "pack": [
+   131,
+   488,
+   705,
+   1281
+  ],
+  "torso": [
+   552,
+   923,
+   1227,
+   1216
+  ],
+  "torsoFill": [
+   552,
+   923,
+   1227,
+   1320
+  ],
+  "skirt": [
+   561,
+   1200,
+   1220,
+   1408
+  ],
+  "neck": [
+   904,
+   888,
+   1105,
+   993
+  ]
+ },
+ "parts": {
+  "gun": {
+   "src": "parts/gun.png",
+   "pivot": [
+    503.0,
+    241.0
+   ],
+   "scale": 0.5
+  },
+  "sleeveN": {
+   "src": "parts/sleeveN.png",
+   "pivot": [
+    156.0,
+    85.0
+   ],
+   "scale": 0.5
+  },
+  "sleeveF": {
+   "src": "parts/sleeveF.png",
+   "pivot": [
+    75.0,
+    69.0
+   ],
+   "scale": 0.5
+  },
+  "head": {
+   "src": "parts/head.png",
+   "pivot": [
+    338.0,
+    571.0
+   ],
+   "scale": 0.5
+  },
+  "pack": {
+   "src": "parts/pack.png",
+   "pivot": [
+    469.0,
+    456.0
+   ],
+   "scale": 0.5
+  },
+  "torso": {
+   "src": "parts/torso.png",
+   "pivot": [
+    432.0,
+    165.0
+   ],
+   "scale": 0.5
+  },
+  "torsoFill": {
+   "src": "parts/torsoFill.png",
+   "pivot": [
+    416.0,
+    349.0
+   ],
+   "scale": 0.5
+  },
+  "skirt": {
+   "src": "parts/skirt.png",
+   "pivot": [
+    423.0,
+    88.0
+   ],
+   "scale": 0.5
+  },
+  "neck": {
+   "src": "parts/neck.png",
+   "pivot": [
+    84.0,
+    96.0
+   ],
+   "scale": 0.5
+  }
+ },
+ "J": {
+  "root": [
+   237,
+   460
+  ],
+  "hip": [
+   240,
+   344
+  ],
+  "torso": [
+   242,
+   318
+  ],
+  "chest": [
+   246,
+   272
+  ],
+  "neck": [
+   247,
+   246
+  ],
+  "head": [
+   250,
+   233
+  ],
+  "shoulderN": [
+   178,
+   262
+  ],
+  "elbowN": [
+   165,
+   302
+  ],
+  "wristN": [
+   190,
+   320
+  ],
+  "shoulderF": [
+   290,
+   262
+  ],
+  "elbowF": [
+   308,
+   292
+  ],
+  "wristF": [
+   334,
+   298
+  ],
+  "gun": [
+   250,
+   345
+  ],
+  "pack": [
+   150,
+   236
+  ],
+  "skirt": [
+   246,
+   322
+  ],
+  "gripN": [
+   190,
+   320
+  ],
+  "gripF": [
+   334,
+   298
+  ],
+  "torsoFill": [
+   242,
+   318
+  ],
+  "neckP": [
+   247,
+   246
+  ],
+  "collar": [
+   246,
+   244
+  ],
+  "cape": [
+   150,
+   120
+  ],
+  "handBackN": [
+   178,
+   262
+  ],
+  "gripBackN": [
+   250,
+   345
+  ],
+  "cuffN": [
+   190,
+   320
+  ],
+  "foreRigF": [
+   334,
+   298
+  ],
+  "capeFill": [
+   150,
+   120
+  ]
+ }
+}
