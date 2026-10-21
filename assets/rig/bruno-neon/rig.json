@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "af1dbbcc",
+ "version": "a7b253a8",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -28,7 +28,7 @@
   "hipsRun": {
    "src": "parts/hipsRun.png",
    "pivot": [
-    63.0,
+    77.0,
     17.0
    ],
    "scale": 2.0

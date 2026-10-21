@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.7(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 = 짧은 치마 hipsRun(standSwap) · 치마 안 종종걸음 · 공격 중 치마 유지 standSwapAct) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.8(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 = 짧은 치마 hipsRun(standSwap) · 치마 안 종종걸음 · 공격 중 치마 유지 standSwapAct) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -248,6 +248,10 @@ o_hips = save('hips', _hp)
 #   DHL v1.4 검수(09:36) '치마 형태로 · 살짝 더 아래로' — 허리띠 아래를 짧은 치마로: 원화 허리띠·쌈지·금빛 병(픽셀 그대로) + 바지 천 색 치마(양옆 살짝 퍼짐,
 #   단 = 관절 밑 +25 안팎, 가랑이 홈 없이 한 줄) + 세로 주름 그늘 3줄 · 단 위 그늘 · 옆·단 외곽선. 허벅지 윗끝을 다 덮고 허벅지는 단 밑으로 나옴
 SKIRT = [(204, 378), (199, 391), (192, 410.5), (206, 413), (228, 415), (252, 416), (276, 415), (296, 412.5), (309, 409), (305, 397), (299, 380)]
+SK_W = float(os.environ.get('SK_W', 14)); SK_D = float(os.environ.get('SK_D', 5))   # 치마 넓힘(단에서 양옆 px, 위로 갈수록 0) · 단 내림 px — DHL 10:09 '서서 공격 때 다리가 치마 옆으로 살짝 튀어나옴 → 치마를 살짝 키우기' (W 0·6·10·14 를 skirtprobe20 로 견줌)
+def _sk(pt):
+    x, y = pt; t = np.clip((y - 380) / 30.0, 0, 1); dx = -SK_W * t if x < 252 else SK_W * t; dy = SK_D * t; return (x + dx, y + dy)
+SKIRT = [_sk(p) for p in SKIRT]
 SKIRT_FOLDS = [((226, 397), (221, 414)), ((252, 399), (252, 415.5)), ((278, 397), (283, 414))]
 def hips_run(K=4):
     base, _ = underlay(with_reveal('hips'), lab('hips'), lab('torso')); lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1)
