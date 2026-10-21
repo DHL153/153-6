@@ -1,6 +1,7 @@
 """17 네온 루시아 — 프롬프트 0-3 첨부 2: DHL 09:25 손으로 고친 그림 위에 '옮길 방패 자리'(빨간 외곽선)·가까운 주먹 자리(파란 원)·발바닥(초록)
   방패 외곽 = 09:25 그림에서 방패 윗변 선 아래 · 오른쪽 가장자리 선 왼쪽의 불투명 부분(격자 5배로 읽은 점) → (DX, DY) 만큼 옮김
   옮기는 양 = 러스트 루시아 방패(shield_vs_rust17)와 09:25 사이: 왼쪽 35 · 위 30 → 아래 끝 489 → 459(발바닥 445 + 14)
+  가까운 손 = 방패 뒤 손잡이를 쥐어 안 보임(DHL 09:43 '방패를 들었는데 손가락이 보이면 이상해요') — 주먹 자리 원은 뺌
 실행: python3 -I guide_shield17b.py
 """
 import os
@@ -25,12 +26,10 @@ cs, _ = cv2.findContours(tgt, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 for c in cs:
     pts = [(int(p[0][0] * K), int(p[0][1] * K)) for p in c]
     if len(pts) > 2: d.line(pts + [pts[0]], fill=(230, 0, 0), width=5)
-FX = 233; FY = 330; R = 17                                           # 옮긴 방패 오른쪽 가장자리(배 높이) 바로 오른쪽
-d.ellipse([(FX - R) * K, (FY - R) * K, (FX + R) * K, (FY + R) * K], outline=(0, 90, 255), width=6)
 d.line([(0, 445 * K), (512 * K, 445 * K)], fill=(0, 160, 0), width=3)
 f = ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc', 32)
 BH = 100; out = Image.new('RGB', (512 * K, 512 * K + BH), (255, 255, 255)); out.paste(W, (0, BH)); dd = ImageDraw.Draw(out)
 dd.text((20, 10), '흐린 방패 = 지금 자리 → 빨간 외곽선 = 옮길 자리 (왼쪽 · 위로 조금)', fill=(190, 0, 0), font=f)
-dd.text((20, 52), '파란 원 = 가까운 주먹이 방패 가장자리를 감아 쥐는 곳 · 초록 = 발바닥', fill=(30, 30, 30), font=f)
+dd.text((20, 52), '가까운 손은 방패 뒤(보이지 않음) · 초록 = 발바닥', fill=(30, 30, 30), font=f)
 dd.line([(0, BH - 2), (512 * K, BH - 2)], fill=(200, 200, 200), width=2)
 out.save(os.path.join(SRC, 'refs', 'ref_shield_move17b.png')); print('저장 refs/ref_shield_move17b.png')
