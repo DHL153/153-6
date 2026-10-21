@@ -100,3 +100,8 @@
 ## 19:31 (10-21) v1.4 — DHL 19:30 원화 먼 무릎에 빨간 동그라미 '달리는 양쪽 무릎에 딱 표시한 대로 나오도록' (rig 5d86694d)
 - 무릎 보호대 조각 knee = 원화 먼 무릎(은색 무릎판 + 금 리벳 + 아래 갈색 끈 + 크림 감기 윗단, 바지 남색 뺌 · 둘레 외곽선, 1,293px) — 엔진 opt-in `legs.kneeImg`(허벅지·정강이 가운데 각, rot 0.491 = 원화 먼 다리 축 기울기 되돌림)로 달리기 다리 그림일 때 두 무릎 위에. 서 있는 원화 다리(대기·서서 공격)엔 안 그림(stand 에 kneeImg 없음) — 대기 그대로(차 1.82)
 - 편집 툴 v191(버전 1792578774-b6a6): '30 스카이 브루노 v1.4' · rig.def.js?v=5d86694d · 511/511 · rig.js 그대로
+
+## 19:45 (10-21) 게임 반영 — DHL 19:35 '인게임' (rig 5d86694d)
+- index.html: REGISTRY 30:'bruno-sky' · `assets/rig/bruno-sky/rig.def.js?v=5d86694d`(bruno-neon 태그 다음) · rig.js r8 그대로(엔진 opt-in kneeImg·thighFirst·standSwap·runLock 은 이미 엔진에 있음)
+- game_top: PC 1280×800 위 여유 26px · 폰 430×900 23px(대기와 같은 높이 — 공격 중 도끼가 칸 밖으로 안 나감)
+- game_check PC·폰: 전투 달리기·공격(트레일)·스킬 컷인(cutHold .10 — 두 도끼 V 자 예비, 칸 안)·컷인 뒤 리그 돌아옴·도감 2장 · game_check2(시작 선택·미리보기·필살기 컷신·마이룸 걷기 = 리그) · game_dexclick(도감 클릭 공격) — 페이지 오류 0
