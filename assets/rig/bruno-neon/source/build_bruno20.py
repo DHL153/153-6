@@ -1,4 +1,4 @@
-"""20 네온 브루노 리그 조립 v1.4(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 hipsRun(standSwap)) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
+"""20 네온 브루노 리그 조립 v1.5(달리기 부츠 발목 점 = 원화 발목 높이 · 달리기 다리일 때 발목 고정 boot.runLock · 골반 아래 끝 다듬기 · 달릴 때 골반 = 짧은 치마 hipsRun(standSwap)) — 10 러스트 브루노 v1.2(build_bruno10) 구조, 공격 = 번갈아 내려찍기(tools/plan_alt20.py)
 입력: ref512.png(0번 합격 원화 = 게임 char_0020) · sheets/nonear_0614.png·nofar_0623.png(팔·철퇴만 지운 원화) · work/labels.npy(seg20.py) · pieces/(조각 시트 19칸, cut20.py) · measure20.json · review/plan_alt20.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png
 실행: cd source && python3 -I cut20.py && python3 -I seg20.py && python3 -I tools/plan_alt20.py && python3 -I build_bruno20.py
@@ -244,31 +244,40 @@ _hp, _n3 = underlay(with_reveal('hips'), lab('hips'), lab('torso'))
 for _x, _y in CUT.items():   # 바지를 가로지른 골반 아래 끝 2줄 옅게(대기엔 같은 원화 다리 위라 그대로, 달리면 시트 허벅지 위로 부드럽게)
     _hp[_y, _x, 3] = (_hp[_y, _x, 3] * 0.45).astype(np.uint8); _hp[_y - 1, _x, 3] = (_hp[_y - 1, _x, 3] * 0.8).astype(np.uint8)
 o_hips = save('hips', _hp)
-# 달릴 때 골반(hipsRun, 엔진 opt-in standSwap): 서 있을 땐 원화 골반(hips), 달리기 다리 그림이면 이 조각 — DHL v1.3 검수 '아직 흔적이 많이 있어요'
-#   원화 골반(허리띠·쌈지·금빛 병·바지) + 그 아래를 바지 색으로 이어 '반바지 윗부분'처럼 매끈한 아래 끝 선(외곽선 2px)까지 — 시트 허벅지 윗끝 공(관절 둘레 반지름 ~10)을 덮음
-#   아래 끝 선 cb(x): 가까운 관절(228,387)·먼 관절(268,388) 밑 +17, 가랑이는 원화 V 외곽선 그대로
-CB_PTS = [(199, 396), (210, 401), (228, 404.5), (242, 405.5), (252, 404.0), (262, 405.5), (276, 405), (290, 402), (302, 399), (312, 396)]
-def hips_run():
+# 달릴 때 골반(hipsRun, 엔진 opt-in standSwap): 서 있을 땐 원화 골반(hips), 달리기 다리 그림이면 이 조각
+#   DHL v1.4 검수(09:36) '치마 형태로 · 살짝 더 아래로' — 허리띠 아래를 짧은 치마로: 원화 허리띠·쌈지·금빛 병(픽셀 그대로) + 바지 천 색 치마(양옆 살짝 퍼짐,
+#   단 = 관절 밑 +25 안팎, 가랑이 홈 없이 한 줄) + 세로 주름 그늘 3줄 · 단 위 그늘 · 옆·단 외곽선. 허벅지 윗끝을 다 덮고 허벅지는 단 밑으로 나옴
+SKIRT = [(204, 378), (199, 391), (192, 410.5), (206, 413), (228, 415), (252, 416), (276, 415), (296, 412.5), (309, 409), (305, 397), (299, 380)]
+SKIRT_FOLDS = [((226, 397), (221, 414)), ((252, 399), (252, 415.5)), ((278, 397), (283, 414))]
+def hips_run(K=4):
     base, _ = underlay(with_reveal('hips'), lab('hips'), lab('torso')); lum = RA[..., :3].astype(int).mean(-1); sat = RA[..., :3].max(-1).astype(int) - RA[..., :3].min(-1)
-    xs_, ys_ = zip(*CB_PTS); cb = np.interp(np.arange(512), xs_, ys_, left=-1, right=-1)
-    Hm = lab('hips'); L = lab('legN') | lab('legF'); op = RA[..., 3] > 0
-    reg = op & (Hm | (L & (XX <= 304))) & (XX >= 199) & (XX <= 312) & (YY >= 372) & (YY <= cb[None, :] + 1)
-    cov = np.clip(cb[None, :] - YY + 0.5, 0, 1)   # 선 아래 끝 열마다 덮는 비율(부드러운 끝)
-    pc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum >= 45) & (lum <= 75) & (sat < 15)][:, :3], 0); oc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum < 30)][:, :3], 0)
-    edge = cv2.distanceTransform((RA[..., 3] >= 128).astype(np.uint8), cv2.DIST_L2, 3) <= 2.0
-    colored = (sat >= 30) & (lum > 60) & Hm
-    inner = Hm & (sat < 30) & (YY >= 393) & (XX >= 199) & (XX <= 236) & ~dil(colored, 2)   # 무릎판 테 윗선·그 둘레 회색 번짐(서 있을 땐 골반 아래 끝 선) — 달릴 땐 바지 속이라 바지 색
-    a = base.copy(); fill = (reg & ~Hm) | inner
-    a[fill, :3] = np.where((edge & ~inner)[fill][:, None], RA[fill][:, :3], pc.astype(np.uint8)); a[fill, 3] = np.maximum(RA[fill, 3], a[fill, 3])
-    a[..., 3] = np.where(reg & ~Hm, (a[..., 3] * cov).astype(np.uint8), a[..., 3])
-    hcut = Hm & (YY > cb[None, :] + 0.5) & (cb[None, :] > 0) & (XX < 282); a[hcut, 3] = 0   # 골반 라벨이 선 아래로 내려온 곳(가랑이 V 팔)은 지움 — 금빛 병(x ≥ 282)은 그대로
-    # 아래 끝 선: 잘린 곳(그 아래가 원화 안)만, 선 바로 위 ~2px 어둡게(부드럽게)
-    below_in = np.zeros((512, 512), bool); yi = np.clip(np.ceil(cb).astype(int) + 1, 0, 511)
-    for x in range(199, 313): below_in[:, x] = RA[yi[x], x, 3] >= 128
-    d = np.clip(1.6 - np.abs(YY - (cb[None, :] - 1.2)), 0, 1) * below_in * reg * (cb[None, :] > 0) * (XX < 284)
-    a[..., :3] = (a[..., :3] * (1 - d[..., None]) + oc[None, None, :] * d[..., None]).astype(np.uint8)
-    print('  달릴 때 골반 hipsRun: 바지 색으로 이음', int(fill.sum()), 'px · 바지', pc.astype(int).tolist(), '· 외곽선', oc.astype(int).tolist())
-    return a
+    Hm = lab('hips'); pc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum >= 45) & (lum <= 75) & (sat < 15)][:, :3], 0).astype(float); oc = np.median(RA[Hm & (RA[..., 3] >= 250) & (lum < 30)][:, :3], 0).astype(float)
+    from PIL import ImageDraw as _D
+    def ss(draw_fn):   # 4배로 그려 줄여 덮는 비율(부드러운 가장자리)
+        im = Image.new('L', (512 * K, 512 * K), 0); draw_fn(_D.Draw(im)); return np.array(im.resize((512, 512), Image.BOX)).astype(float) / 255.0
+    P = [(x * K, y * K) for x, y in SKIRT]
+    fill = ss(lambda d: d.polygon(P, fill=255))
+    edge_pts = P[1:-1]   # 위 끝(허리띠 밑)은 빼고 양옆·단만 외곽선
+    line = ss(lambda d: d.line(edge_pts, fill=255, width=int(2.2 * K), joint='curve'))
+    folds = np.zeros((512, 512))
+    for (a_, b_) in SKIRT_FOLDS:
+        f_ = ss(lambda d: d.line([(a_[0] * K, a_[1] * K), (b_[0] * K, b_[1] * K)], fill=255, width=int(2.0 * K))); t_ = np.clip((YY - a_[1]) / max(1.0, b_[1] - a_[1]), 0, 1); folds = np.maximum(folds, f_ * (0.25 + 0.75 * t_))
+    hem = np.interp(XX, [p[0] for p in SKIRT[2:9]], [p[1] for p in SKIRT[2:9]])
+    shade = 1.0 - 0.22 * folds - 0.10 * np.clip(1 - np.abs(YY - (hem - 3.5)) / 2.5, 0, 1) * fill + 0.05 * np.clip((240 - XX) / 40.0, 0, 1)   # 주름 그늘 · 단 위 그늘 · 왼쪽 조금 밝게
+    col = np.clip(pc[None, None, :] * shade[..., None], 0, 255)
+    col = col * (1 - line[..., None]) + oc[None, None, :] * line[..., None]
+    a = np.zeros_like(RA, dtype=float); al = np.clip(np.maximum(fill, line), 0, 1); a[..., :3] = col; a[..., 3] = al * 255
+    # 원화 위쪽(허리띠·쌈지·끈·금빛 병) 덮기 — 바지 천은 y 393 근처에서 치마 색으로 옅게 이어짐, 무릎판 테 윗선(서 있을 때 아래 끝 선)은 안 씀
+    gold = (RA[..., 0] > 140) & (RA[..., 1] > 60) & (RA[..., 2] < 70) & (RA[..., 0].astype(int) - RA[..., 2] > 100) & (XX >= 278) & (XX <= 310) & (YY >= 378) & (YY <= 412)
+    vial = dil(gold, 2) & Hm
+    pants = Hm & (sat < 30) & (lum < 95) & ~vial & (YY >= 384)
+    keep = np.where(pants, np.clip((393.0 - YY) / 4.0 + 0.5, 0, 1), 1.0) * (base[..., 3] / 255.0)
+    keep[Hm & ~vial & (YY >= 396)] = 0
+    ob = np.clip(keep, 0, 1)[..., None]
+    out = np.zeros_like(RA, dtype=float); out[..., :3] = base[..., :3] * ob + a[..., :3] * (a[..., 3:4] / 255.0) * (1 - ob)
+    out_a = ob[..., 0] + (a[..., 3] / 255.0) * (1 - ob[..., 0]); out[..., :3] = out[..., :3] / np.maximum(out_a[..., None], 1e-3); out[..., 3] = out_a * 255
+    print('  달릴 때 골반 hipsRun(치마): 단 y', SKIRT[5][1], '· 치마 px', int((fill > .5).sum()), '· 바지 색', pc.astype(int).tolist(), '· 외곽선', oc.astype(int).tolist())
+    return np.clip(out, 0, 255).astype(np.uint8)
 o_hipsR = save('hipsRun', hips_run())
 o_pd = save('pauldron', with_reveal('pauldN'))
 print('  이음 밑 덧칠 px: 상체←머리·어깨갑', _n2, '· 골반←상체', _n3)
