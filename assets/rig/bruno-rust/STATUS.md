@@ -64,3 +64,6 @@
 - index.html: `assets/rig/bruno-rust/rig.def.js?v=34fb4ff1` · REGISTRY 10:'bruno-rust' · 도감 몸 가운데 gameRef x 236.4(fitArt 중심 243.4) · 맞는 효과 = 1타 .28 한 번(hitAt — 2타 효과는 엔진·게임 opt-in 이 필요해 DHL 결정 대기)
 - 스킬 컷인 cutHold: 후보 .10·.17·.20·.23·.48·.53 → .20(머리 위 도끼)은 PC 컷인 칸 위 끝에 도끼 날이 닿아(1~2px) **.10 예비**(두 도끼 V 자, 화남 얼굴) — rig 버전은 편집 툴과 같은 34fb4ff1
 - 확인(palome-rust/source/tools, NUM=10, 차례대로): game_top PC 1280×800 공격 중 가장 위 점 = 칸 위 끝에서 21px · 폰 430×900 20px(대기와 같음, 잘림 없음) · game_check PC·폰(전투 달리기·공격 12장·트레일·스킬 컷인·컷인 뒤·도감 2장) · game_check2 PC·폰(시작 선택 리그·미리보기·필살기 컷신 Twin Axe Drop·마이룸 리그) · game_dexclick PC(도감 클릭) — 페이지 오류 0
+
+## 10-21 12:30 DHL 결정
+- 20 네온 브루노에서 고친 달리기 부츠 발목 점(밑창 위 16px → 원화 발목 높이)·발목 고정(runLock)을 10 에도 할지 물음 → "아니요" — 10 러스트 브루노는 그대로
