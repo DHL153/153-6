@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "23d59932",
+ "version": "fedb91ab",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -19,6 +19,14 @@
   },
   "hips": {
    "src": "parts/hips.png",
+   "pivot": [
+    57.0,
+    17.0
+   ],
+   "scale": 2.0
+  },
+  "hipsRun": {
+   "src": "parts/hipsRun.png",
    "pivot": [
     57.0,
     17.0
@@ -478,6 +486,15 @@
    ]
   },
   {
+   "name": "hipsRun",
+   "parent": "skirt",
+   "pos": [
+    0.0,
+    0.0
+   ],
+   "part": "hipsRun"
+  },
+  {
    "name": "torsoB",
    "parent": "torso",
    "pos": [
@@ -728,6 +745,7 @@
   "armF",
   "foreF",
   "skirt",
+  "hipsRun",
   "torso",
   "armU",
   "pauldron",
@@ -780,6 +798,12 @@
   "attack": "smash",
   "touch": "hop"
  },
+ "standSwap": [
+  [
+   "skirt",
+   "hipsRun"
+  ]
+ ],
  "swordGrip": {
   "tipDepth": 6,
   "near": {
@@ -804,6 +828,7 @@
   "armF",
   "foreFb",
   "skirt",
+  "hipsRun",
   "torso",
   "armU",
   "pauldron",
