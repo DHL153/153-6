@@ -308,9 +308,9 @@ RUN_THL = round(.96 * 2.0 * _runH - _shL * RS, 1)                          # 달
 print('  달리기 다리: 시트 허벅지', round(_thL, 1), '+ 정강이', round(_shL, 1), 'px · 원화 엉덩이~발목', round(_runH, 1), '→ 허벅지', RUN_THL, '(시트 허벅지 아래쪽만 씀)')
 for sd, bn in (('near', 'bootN'), ('far', 'bootF')):
     KNEE_S, ANK_S, _b, _m = _RS0[sd]; _Y, _X = np.mgrid[0:_b.shape[0], 0:_b.shape[1]]
-    _sh = _b.copy(); _sh[..., 3] = np.where(_Y < ANK_S[1] + 6, _b[..., 3], 0); Image.fromarray(_sh).save(os.path.join(OUT, 'parts', 'rshin' + sd[0].upper() + '.png'))
+    _sh = _b.copy(); _sh[..., 3] = np.where(_Y < ANK_S[1] + float(os.environ.get('SH_EXT', 6)), _b[..., 3], 0); Image.fromarray(_sh).save(os.path.join(OUT, 'parts', 'rshin' + sd[0].upper() + '.png'))
     def_parts['rshin' + sd[0].upper()] = dict(src=f'parts/rshin{sd[0].upper()}.png', pivot=[0, 0], scale=1.0)
-    _ft = _b.copy(); _ft[..., 3] = np.where(_Y > ANK_S[1] - 8, _b[..., 3], 0); Image.fromarray(_ft).save(os.path.join(OUT, 'parts', 'rboot' + sd[0].upper() + '.png'))
+    _ft = _b.copy(); _ft[..., 3] = np.where(_Y > ANK_S[1] - float(os.environ.get('BT_EXT', 8)), _b[..., 3], 0); Image.fromarray(_ft).save(os.path.join(OUT, 'parts', 'rboot' + sd[0].upper() + '.png'))
     def_parts['rboot' + sd[0].upper()] = dict(src=f'parts/rboot{sd[0].upper()}.png', pivot=ANK_S.tolist(), scale=RS)
     if sd == 'far': KNEE_F, ANK_F, FT_F = KNEE_S, ANK_S, _ft
     else: KNEE_Nn, ANK_Nn, FT_N = KNEE_S, ANK_S, _ft

@@ -43,7 +43,7 @@ if os.environ.get('SIDE'):   # 무릎이 엉덩이→발목 선의 앞(+, 진행
         print(f'   {j:2d} ' + ' | '.join(row))
 if os.environ.get('DBG'):
     for j, r in enumerate(R):
-        P = r['P'][os.environ.get('DBG') if os.environ.get('DBG') in ('near', 'far') else 'near']; h, k, a = P['hip'], P['knee'], P['ankle']; print(f"   {j:2d} 엉덩이 y {h[1]:6.1f} 발목 y {a[1]:6.1f} dx {a[0] - h[0]:+6.1f} 굽힘 {bend['near'][j]:4.0f} 펴짐 {ext['near'][j]:.2f} 발 각 {math.degrees(P.get('foot', 0)):+5.0f}° 듦 {P.get('lift', 0):5.1f}")
+        P = r['P'][os.environ.get('DBG') if os.environ.get('DBG') in ('near', 'far') else 'near']; h, k, a = P['hip'], P['knee'], P['ankle']; print(f"   {j:2d} 엉덩이 y {h[1]:6.1f} 발목 y {a[1]:6.1f} dx {a[0] - h[0]:+6.1f} 굽힘 {bend['near'][j]:4.0f} 펴짐 {ext['near'][j]:.2f} 발 각 {math.degrees(P.get('foot', 0)):+5.0f}° 듦 {P.get('lift', 0):5.1f} 정강이↔부츠 {(math.degrees(math.atan2(a[1] - k[1], a[0] - k[0])) - math.degrees(P.get('foot', 0)) - 90 + 180) % 360 - 180:+5.0f}°")
 f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 14)
 ims = [Image.open(io.BytesIO(base64.b64decode(r['img'].split(',')[1]))).convert('RGBA') for r in R]
 w, h = ims[0].size; y0 = int(h * float(os.environ.get('Y0', .42))); x0, x1 = int(w * float(os.environ.get('X0', .2))), int(w * float(os.environ.get('X1', .8))); step = int(os.environ.get('STEP', 3)); sel = list(range(0, N, step))
