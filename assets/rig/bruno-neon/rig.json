@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "5dd7d938",
+ "version": "161d4bd8",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -769,15 +769,15 @@
   "closed": "face_closed"
  },
  "gait": {
-  "stance": 0.26,
-  "strideBase": 40,
-  "strideK": 0.12,
-  "hipBase": 6,
-  "bob": 8,
+  "stance": 0.32,
+  "strideBase": 24,
+  "strideK": 0.06,
+  "hipBase": -26,
+  "bob": 5,
   "lean": 0.1,
   "headBob": 3,
-  "kneeLift": 0.7,
-  "heelKick": 0.5,
+  "kneeLift": 0.2,
+  "heelKick": 0.15,
   "dropCap": 16,
   "swingReach": 0.05,
   "landAng": -0.04,
