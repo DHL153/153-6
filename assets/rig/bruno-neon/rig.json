@@ -1,6 +1,6 @@
 {
  "name": "bruno-neon",
- "version": "51e4c325",
+ "version": "1b2f5692",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   506.0,
@@ -33,8 +33,8 @@
    ],
    "scale": 2.0
   },
-  "hipsRun": {
-   "src": "parts/hipsRun.png",
+  "belt": {
+   "src": "parts/belt.png",
    "pivot": [
     56.0,
     13.0
@@ -45,7 +45,7 @@
    "src": "parts/hipsU.png",
    "pivot": [
     48.0,
-    0.0
+    10.0
    ],
    "scale": 2.0
   },
@@ -511,13 +511,13 @@
    "part": "torsoAtk"
   },
   {
-   "name": "hipsRun",
-   "parent": "skirt",
+   "name": "belt",
+   "parent": "torso",
    "pos": [
     0.0,
     0.0
    ],
-   "part": "hipsRun"
+   "part": "belt"
   },
   {
    "name": "hipsU",
@@ -780,7 +780,7 @@
   "armF",
   "foreF",
   "skirt",
-  "hipsRun",
+  "belt",
   "torso",
   "torsoAtk",
   "armU",
@@ -837,7 +837,7 @@
  "standSwap": [
   [
    "skirt",
-   "hipsRun"
+   "hipsU"
   ],
   [
    "torso",
@@ -869,7 +869,7 @@
   "armF",
   "foreFb",
   "skirt",
-  "hipsRun",
+  "belt",
   "torso",
   "torsoAtk",
   "armU",
@@ -1310,82 +1310,82 @@
     ],
     [
      0.1,
-     6.0,
+     0.0,
      "io"
     ],
     [
      0.19,
-     7.94,
+     0.0,
      "io"
     ],
     [
      0.2,
-     8.0,
+     0.0,
      "io"
     ],
     [
      0.28,
-     16.0,
+     0.0,
      "io"
     ],
     [
      0.34,
-     12.62,
+     0.0,
      "io"
     ],
     [
      0.36,
-     12.0,
+     0.0,
      "io"
     ],
     [
      0.4,
-     9.04,
+     0.0,
      "io"
     ],
     [
      0.42,
-     8.0,
+     0.0,
      "io"
     ],
     [
      0.47,
-     15.4,
+     0.0,
      "io"
     ],
     [
      0.48,
-     16.0,
+     0.0,
      "io"
     ],
     [
      0.5,
-     18.08,
+     0.0,
      "io"
     ],
     [
      0.54,
-     24.0,
+     0.0,
      "io"
     ],
     [
      0.62,
-     20.42,
+     0.0,
      "io"
     ],
     [
      0.64,
-     20.0,
+     0.0,
      "io"
     ],
     [
      0.8,
-     5.66,
+     0.0,
      "io"
     ],
     [
      0.84,
-     4.0,
+     0.0,
      "io"
     ],
     [
