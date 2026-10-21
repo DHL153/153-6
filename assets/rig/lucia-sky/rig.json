@@ -1,6 +1,6 @@
 {
  "name": "lucia-sky",
- "version": "34c6cab5",
+ "version": "6bd7ec65",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   562.0,
@@ -974,7 +974,8 @@
   {
    "bone": "pauldronF",
    "src": "armF",
-   "k": 0.3
+   "k": 1.0,
+   "world": true
   },
   {
    "bone": "shield",

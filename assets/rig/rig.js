@@ -1358,7 +1358,10 @@
       else if (act && D.kind === "staff") this._staffArms(D, at, T, act);   // 봉 키 찌르기 (6 카르덴 opt-in)
       else if (act && !rig.def.carry) { rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.weapon = rig.alpha.armF = 1; rig.drawOrder = null; this._actArms(D, at, T) }   // an attack that cuts a wave short clears the wave-only layers
       else if (!act) { if (rig.drawOrder === rig.def.drawSmash) rig.drawOrder = null; this.trailPts[0].length = this.trailPts[1].length = 0; rig.trail = null; rig.alpha.handL = rig.alpha.handR = rig.alpha.wSleeve = rig.alpha.wFore = rig.alpha.wHand = rig.alpha.wCuff = 0; rig.alpha.foreF = rig.alpha.fistF = rig.alpha.armL = rig.alpha.weapon = rig.alpha.armF = 1; this.gripOn = false; this.handErr = this.rearErr = 0; rig.drawOrder = null; if (rig.def.swordGrip?.guard) this._swordGuard(T) }   // guard(opt-in, 11 네온 알론소): 대기·달리기도 두 손으로 칼을 쥠
-      if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (fb && sb) fb.ar = sb.ar * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
+      if (rig.def.follow) for (const f of rig.def.follow) { const fb = b[f.bone], sb = b[f.src]; if (!fb || !sb) continue;
+        // (opt-in f.world, 27 스카이 루시아 10-21 DHL 20:50 '갑주랑 같이 팔이 올라가면'): 공격 IK 가 팔을 wm(세계 행렬)로 정할 때도 팔이 부모(상체)에 대해 돈 각만큼 따라 돎 — 늘임은 안 따라감
+        const pm = f.world && sb.wm && rig.by[sb.parent] ? rig.by[sb.parent].m : null;
+        fb.ar = (pm ? wrapA(Math.atan2(sb.wm[1], sb.wm[0]) - Math.atan2(pm[1], pm[0]) - (sb.rot || 0)) : sb.ar) * f.k }   // 따라 도는 조각 (18 네온: 먼 어깨갑이 먼 팔을 35%) — opt-in
       // weaponFloor (opt-in, 6 카르덴 10-18): 봉 끝(그림 아래 가운데)이 땅 위 weaponFloor 보다 내려가면 봉을 손 안에서 그만큼 위로 밀어 올림
       //   — 서 있기·달리기 모두 집게를 땅 바로 위까지 내리되(DHL '표시한 곳까지') 팔 흔들림·가속에서 땅을 뚫지 않게. 봉 키 찌르기(staff) 중엔 키가 봉을 정함
       if (rig.def.weaponFloor != null && !(act && act.def.kind === "staff")) { rig.compute(); const wi_ = rig.images.weapon, yb_ = rig.partPoint("weapon", wi_.width / 2, wi_.height)[1], pen_ = yb_ + rig.def.weaponFloor;

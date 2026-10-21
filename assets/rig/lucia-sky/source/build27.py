@@ -413,7 +413,7 @@ rig = {'name': 'lucia-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'r
        'gait': {'stance': 0.26, 'strideBase': 26, 'strideK': 0.08, 'hipBase': 4, 'bob': 4, 'lean': 0.12, 'waddle': 0.03, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.05, 'dropCap': 8,
                 'swingReach': 0.05, 'swingAng': 0, 'landAng': -0.04, 'angK': 0.12, 'strideFlex': [0.75, 1.15], 'headRun': 0.05, 'elbowRun': 0, 'armSwing': 0.5, 'armBias': 0.0},
        'carrySwing': 0.35, 'wristRange': 0.3,
-       'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': 0.3}, {'bone': 'shield', 'src': 'torso', 'k': -0.6}],
+       'follow': [{'bone': 'pauldronF', 'src': 'armF', 'k': float(os.environ.get('PAUL_K', 1.0)), 'world': True}, {'bone': 'shield', 'src': 'torso', 'k': -0.6}],
        'bounce': [{'bone': 'shield', 'stiff': 170, 'damp': 9, 'y': 0.25, 'rot': 0.004, 'max': 8}],
        'ui': {'attack': 'smash', 'touch': 'hop'},
        'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,

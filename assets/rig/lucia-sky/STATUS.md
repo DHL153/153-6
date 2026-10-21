@@ -85,3 +85,9 @@
 - seg27: 주먹 칸이 방패 오른쪽 검은 테를 가져가지 않게(front 없앰, 허용 x > 212) → 주먹을 빼도 방패 외곽선 그대로
 - 주먹 자리 몸 조각 메움 11px + 방패 테 ↔ 몸 사이 원화에서 주먹이 있던 1~6px 틈 inpaint 10px · 전후 review/v11_fist.png
 - 대기 실루엣 .970~.981 그대로 · 게임 index.html rig.def.js?v=34c6cab5 · g_check PC 오류 0
+
+## 21:05 v1.2 — DHL 20:50 '갑주 위로 팔이 올라가는 것은 맞지 않아요, 갑주랑 같이 팔이 올라가면' (rig 6bd7ec65 · rig.js r9 · 편집 툴 v194)
+- 먼 어깨갑 pauldronF 가 먼 윗팔 armF 를 100% 따라 돎(전 30% — 7·17 값). 공격 중엔 엔진 IK 가 윗팔을 wm(세계 행렬)로 정해 ar 이 0 이라 follow 가 안 먹었음 → **엔진 opt-in follow.world**: 팔 wm 이 있으면 부모(상체) 대비 돈 각만큼 따라 돎(늘임은 안 따라감). follow 에 world 가 없는 리그는 그대로
+- 대기 실루엣 그대로 .970~.981 · 진행 그림 review/lucia27_v12.jpg(어깨갑이 들어 올림·휘두름에서 팔과 같이 올라감, 윗팔은 어깨갑 밑에서 나옴)
+- 게임 index.html rig.js?v=20261021r9 · lucia-sky rig.def.js?v=6bd7ec65 · g_check PC·폰 오류 0 · 편집 툴 rig.js 도 같은 파일
+- 같은 구조인 7 러스트·17 네온 루시아는 아직 30% — DHL 에게 같이 바꿀지 물음
