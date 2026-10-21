@@ -99,7 +99,7 @@ for _k, _v in (KF.get('tracks') or {}).items(): smash[_k] = _v
 _ov = os.environ.get('SMASH_KEYS')
 if _ov: smash.update(json.load(open(_ov)))
 # 그리는 순서(공격 내내 한 순서 — 대기 순서와 같은 규칙): 먼 팔뚝·도끼·쥔 주먹 = 다리·골반·머리 뒤 · 다리 = 상체·골반 뒤 · 윗팔 = 상체 앞 · 어깨갑 = 윗팔 앞 · 가리개 = 머리 앞 · 방패 맨 앞
-DRAW_ATK = ['foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'torso', 'armF', 'armFs', 'pauldronF', 'pauldronFs', 'hips', 'head', 'armU', 'armL', 'shield', 'fistN']
+DRAW_ATK = ['foreFf', 'weapon', 'weaponA', 'foreF', 'legFar', 'legNear', 'torso', 'armF', 'armFs', 'pauldronF', 'pauldronFs', 'hips', 'head', 'armU', 'armL', 'shield']
 _hk = [r for r in KEYS if abs(r[0] - HIT) < 1e-6][0]; _Gy = (HIP[1] - O[1]) * 2 + _hk[6] + _hk[2]
 TIPD = round(_Gy + math.sin(math.radians(_hk[3])) * TIPU * 2 + 6, 1)
 SMASH = {'actions': {'smash': smash}, 'drawA': DRAW_ATK,

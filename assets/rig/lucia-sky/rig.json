@@ -1,6 +1,6 @@
 {
  "name": "lucia-sky",
- "version": "0d13323d",
+ "version": "34c6cab5",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   562.0,
@@ -14,14 +14,6 @@
    "pivot": [
     123.0,
     196.0
-   ],
-   "scale": 2.0
-  },
-  "fistN": {
-   "src": "parts/fistN.png",
-   "pivot": [
-    15.0,
-    17.0
    ],
    "scale": 2.0
   },
@@ -519,15 +511,6 @@
    "part": "shield"
   },
   {
-   "name": "fistN",
-   "parent": "shield",
-   "pos": [
-    0.0,
-    136.0
-   ],
-   "part": "fistN"
-  },
-  {
    "name": "pauldronF",
    "parent": "torso",
    "pos": [
@@ -935,8 +918,7 @@
   "head",
   "armU",
   "armL",
-  "shield",
-  "fistN"
+  "shield"
  ],
  "hidden": [
   "weaponA",
@@ -1024,7 +1006,7 @@
   "note": "게임 그림 char_0027.png(512) = 원화(source/ref512.png). x = 도감 칸(fitArt 중심 256.2, index.html measureBox 와 같은 계산 — 20 build_bruno20 과 같음)에서 골반(hip x 295)이 가운데"
  },
  "cutHold": 0.36,
- "note": "27 스카이 루시아 v1 (2026-10-21 — 17 네온 v1.2 구조 + 가까운 주먹 = 방패 자식(7 러스트), 한 손 도끼 내려찍기, 드워프 종종걸음 · 가려진 곳 = 지운 원화 2장 + 시트 19칸)",
+ "note": "27 스카이 루시아 v1.1 (2026-10-21 — 17 네온 v1.2 구조, 가까운 주먹 없음(DHL 20:33 — 방패 뒤), 한 손 도끼 내려찍기, 드워프 종종걸음 · 가려진 곳 = 지운 원화 2장 + 시트 19칸)",
  "actions": {
   "smash": {
    "kind": "sword",
@@ -1673,8 +1655,7 @@
   "head",
   "armU",
   "armL",
-  "shield",
-  "fistN"
+  "shield"
  ],
  "swordGrip": {
   "tipDepth": -229.7,

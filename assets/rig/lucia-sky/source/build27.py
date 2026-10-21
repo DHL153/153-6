@@ -73,7 +73,7 @@ print('  몸 칸', {n: int(m.sum()) for n, m in ownB.items()}, '· 원화 앞 �
 #   몸(BODY 그림): 뒤 → 앞 = 먼 다리 · 가까운 다리 · 상체 · 골반 · 머리 · 목 가리개 — 앞 조각 밑 3px 겹침
 #   앞(원화 그림): 어깨갑 · 윗팔 · 팔뚝 · 도끼 · 주먹 · 방패 — 서로만 3px 겹침(몸 조각 밑으로는 안 들어감: 팔이 움직이면 몸 조각이 붙어 다님)
 DRAW_B = ['thighF', 'bootF', 'thighN', 'bootN', 'torso', 'hips', 'head']
-DRAW_F = ['pauldron', 'upF', 'foreF', 'axe', 'fistF', 'shield', 'fistN']
+DRAW_F = ['pauldron', 'upF', 'foreF', 'axe', 'fistF', 'shield']   # v1.1(DHL 20:33 '표시한 손 삭제') 가까운 주먹 뺌 — 주먹 자리 = 방패+주먹 지운 원화의 몸(허리띠 끝·남색 상의)
 def inpaint_into(a, region, src_ok, r=5):
     rgb = np.ascontiguousarray(a[..., :3].copy()); d, (iy, ix) = ndimage.distance_transform_edt(~src_ok, return_indices=True)
     rgb[~src_ok] = rgb[iy[~src_ok], ix[~src_ok]]
@@ -115,6 +115,13 @@ _a = ART['hips'][..., 3] > 0; _op = cv2.morphologyEx(_a.astype(np.uint8), cv2.MO
 _tail = _a & ~dil(_op, 1) & (yy > 345) & (xx < 232)
 ART['thighN'][_tail] = ART['hips'][_tail]; ART['hips'][..., 3][_tail] = 0; print('  골반 왼쪽 아래 꼬리 → 가까운 허벅지(서 있는)', int(_tail.sum()))
 OPQ = lambda n: ART[n][..., 3] > 200
+#   v1.1 가까운 주먹 뺌(DHL 20:33): 주먹 자리(+2px) 중 몸 조각이 덮지 않은 곳 = 몸 그림(방패+주먹 지운 원화) 픽셀로 상체에 채움 — 빈 틈 없게
+_fz = dil(own['fistN'], 2) & BL & ~np.logical_or.reduce([ART[n][..., 3] > 128 for n in DRAW_B])
+ART['torso'][_fz] = BODY[_fz]; print('  가까운 주먹 자리 상체 메움', int(_fz.sum()))
+_cov = np.logical_or.reduce([ART[n][..., 3] > 200 for n in DRAW_B + DRAW_F if n != 'fistN'])
+_gap = AL & (RA[..., 3] > 200) & ~_cov & (xx > 200) & (xx < 242) & (yy > 288) & (yy < 386)   # 방패 테 ↔ 몸 사이 원화에서 주먹·띠가 있던 1~6px 틈
+if _gap.any(): ART['torso'] = inpaint_into(ART['torso'], _gap, (ART['torso'][..., 3] > 200) & ~dil(LUM < 40, 0), r=3)
+print('  방패 ↔ 몸 틈 메움', int(_gap.sum()))
 
 # ---- 시트 조각 (cut27.py) ----
 if not os.path.exists(os.path.join(HERE, 'pieces', 'index.json')):
@@ -228,7 +235,7 @@ def part(name, src, pivot, scale=2.0, **kw):
     shutil.copy(src, os.path.join(OUT, 'parts', name + '.png')); def_parts[name] = dict(src=f'parts/{name}.png', pivot=pivot, scale=scale, **kw)
 A = lambda n: os.path.join(W, n + 'Art.png')
 _empty = os.path.join(W, 'empty.png'); Image.new('RGBA', (2, 2), (0, 0, 0, 0)).save(_empty)   # 가까운 팔 뼈(armU·armL) 빈 그림 — 팔은 방패 뒤
-part('head', A('head'), pc(NECK, O_['head'])); part('fistN', A('fistN'), pc(FIST_N, O_['fistN']))
+part('head', A('head'), pc(NECK, O_['head']))
 part('torso', A('torso'), pc(HIP, O_['torso'])); part('hips', A('hips'), pc(HIP, O_['hips']))
 part('pauldronF', A('pauldron'), pc(SH_F, O_['pauldron'])); part('pauldronFs', A('pauldronS'), pc(SH_F, O_['pauldronS']))
 part('shield', A('shield'), pc(SH_N, O_['shield']))
@@ -265,7 +272,7 @@ def bone(name, parent, at, parent_at, part_=None, rot=0.0):
 bone('hips', 'hip', HIP, HIP, 'hips')
 bone('torso', 'hip', HIP, HIP, 'torso'); bone('head', 'torso', NECK, HIP, 'head')
 bone('armU', 'torso', SH_N, HIP, 'armU'); bone('armL', 'armU', SH_N + np.array([0, 13.0]), SH_N, 'armL', rot=0.3)
-bone('shield', 'torso', SH_N, HIP, 'shield'); bone('fistN', 'shield', FIST_N, SH_N, 'fistN')
+bone('shield', 'torso', SH_N, HIP, 'shield')
 bone('pauldronF', 'torso', SH_F, HIP, 'pauldronF'); bones.append(dict(name='pauldronFs', parent='pauldronF', pos=[0, 0], part='pauldronFs'))
 bone('armF', 'torso', SH_F, HIP, 'upF'); bone('foreF', 'armF', EL_F, SH_F, 'foreF'); bone('fistF', 'foreF', WR_F, EL_F, 'fistF')
 bone('weapon', 'fistF', G, WR_F, 'weapon', rot=HTH)
@@ -394,7 +401,7 @@ exec(open(os.path.join(HERE, 'attack', 'smash27.py')).read())
 #   7 러스트 v1.5 규칙: 먼 팔뚝·도끼·쥔 주먹 = 다리·골반·머리 뒤 · 다리 = 상체·골반 뒤 · 윗팔 = 상체 앞
 #   네온: 먼 어깨갑은 윗팔 판 뒤(원화 — 회색 판이 어깨갑 아래 끝 위) · 목 가리개 = 머리 앞 · 방패 = 맨 앞
 #   먼 어깨갑 = 윗팔 앞(윗팔이 어깨갑 밑에서 나옴 — 러스트와 같음). 원화는 회색 판 위 끝·팔뚝 갑 모서리가 어깨갑 테 위에 조금 걸침(131+63px) → 대기에선 어깨갑 테가 그만큼 덮음
-draw = ['foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'torso', 'armF', 'pauldronF', 'hips', 'head', 'armU', 'armL', 'shield', 'fistN']
+draw = ['foreF', 'weapon', 'fistF', 'legFar', 'legNear', 'torso', 'armF', 'pauldronF', 'hips', 'head', 'armU', 'armL', 'shield']
 _top = MS['hatTop'][1]
 _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters', 'char_0027.png')).convert('RGBA').resize((160, 160), Image.BOX))[..., 3]
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
@@ -412,7 +419,7 @@ rig = {'name': 'lucia-sky', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'r
        'gameRef': {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
                    'note': f'게임 그림 char_0027.png(512) = 원화(source/ref512.png). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산 — 20 build_bruno20 과 같음)에서 골반(hip x {HIP[0]:.0f})이 가운데'},
        'cutHold': float(os.environ.get('CUTHOLD', 0.36)),   # 스킬 컷인 = 도끼를 앞으로 휘둘러 내리는 중(외침 얼굴). 7 러스트 .34 는 네온 도끼(위 끝 52, 러스트 57)가 칸 위로 PC 혼자 3·둘 13 · 폰 2·4px 잘림 → .36 PC 12·11 · 폰 18·16px 안(tools/cutpair17.py HOLD7)
-       'note': '27 스카이 루시아 v1 (2026-10-21 — 17 네온 v1.2 구조 + 가까운 주먹 = 방패 자식(7 러스트), 한 손 도끼 내려찍기, 드워프 종종걸음 · 가려진 곳 = 지운 원화 2장 + 시트 19칸)'}
+       'note': '27 스카이 루시아 v1.1 (2026-10-21 — 17 네온 v1.2 구조, 가까운 주먹 없음(DHL 20:33 — 방패 뒤), 한 손 도끼 내려찍기, 드워프 종종걸음 · 가려진 곳 = 지운 원화 2장 + 시트 19칸)'}
 rig.update(SMASH)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(os.path.join(OUT, 'parts'))): _h.update(fn.encode()); _h.update(open(os.path.join(OUT, 'parts', fn), 'rb').read())

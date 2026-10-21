@@ -75,7 +75,7 @@ def ws(img_rgba, mask, seeds, order, allow, front=()):
 F = M['far']
 # ③-0 방패 ↔ 가까운 주먹 (원화 픽셀)
 FN_ = M['FIST_N']
-SL0 = ws(RA, SHF, {'shield': SHF & ((XX < 205) | (YY < 316) | (YY > 366)), 'fistN': disk(FN_, 5)}, ['shield', 'fistN'], {'fistN': disk(FN_, 22) & (XX > 204)}, front=(('fistN', ('shield',)),))
+SL0 = ws(RA, SHF, {'shield': SHF & ((XX < 205) | (YY < 316) | (YY > 366)), 'fistN': disk(FN_, 5)}, ['shield', 'fistN'], {'fistN': disk(FN_, 22) & (XX > 212)})   # 방패 오른쪽 검은 테는 방패 칸(주먹을 지워도 방패 외곽선이 남게 — DHL 20:33)
 SHIELD, FISTN = SL0['shield'], SL0['fistN']
 # ③-가 먼 팔 칸 나누기(원화 픽셀)
 far_seeds = {
