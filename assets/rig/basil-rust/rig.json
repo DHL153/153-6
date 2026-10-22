@@ -1,6 +1,6 @@
 {
  "name": "basil-rust",
- "version": "fddf1c6b",
+ "version": "ffc161c6",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   457.0,
@@ -72,25 +72,25 @@
   "armF": {
    "src": "parts/armF.png",
    "pivot": [
-    17.0,
+    18.0,
     24.0
    ],
    "scale": 2.0,
    "elbow": [
-    49.0,
+    50.0,
     40.0
    ]
   },
   "armFA": {
    "src": "parts/armFA.png",
    "pivot": [
-    17.0,
-    24.0
+    25.0,
+    20.0
    ],
    "scale": 2.0,
    "elbow": [
-    49.0,
-    40.0
+    57.0,
+    36.0
    ]
   },
   "armL": {

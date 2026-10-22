@@ -109,7 +109,7 @@ _oc = np.array([28, 16, 12], np.uint8); armF[_ring, :3] = _oc; armF[_ring, 3] = 
 print('  먼 윗팔 = 원화 살', int(_sk.sum()), '+ 외곽선', int(_line.sum() + _ring.sum()), 'px · 건틀릿', int(GAF_m.sum()))
 # v3.7 (DHL 15:14 '팔이 비어 있어요'): 원화에 보이는 윗팔 살은 턱·건틀릿 사이 가는 쐐기뿐 → 팔을 들면 건틀릿 소매 입구까지 빈 곳
 #   → 어깨~소매 입구 안쪽까지 둥근 팔 통(반지름 ARM_R)을 원화 살색으로 깔고 외곽선, 원화 살·선은 그 위 그대로. 대기엔 머리·건틀릿이 덮음
-ARM_R = float(os.environ.get('ARM_R', 15)); _ud = (EL_F - SH_F) / np.linalg.norm(EL_F - SH_F)
+ARM_R = float(os.environ.get('ARM_R', 16)); _ud = (EL_F - SH_F) / np.linalg.norm(EL_F - SH_F)
 _tubeA = capm(SH_F, EL_F + _ud * 16, ARM_R)   # 공격용 통(전부)
 _tube = _tubeA & (RA[..., 3] > 200) & ~(lab('torso') & ~dil(_sk, 3))   # 대기용: 원화 실루엣 안·조끼 밖만(대기에 삐져나오지 않게)
 _skc = np.median(RA[_sk & (_lumR > 150)][:, :3], 0).astype(np.uint8)
@@ -120,7 +120,17 @@ _tb[_shade & ~_tin, :3] = (_skc.astype(float) * .82).astype(np.uint8)
 _tbA = np.zeros_like(RA); _tbA[_tubeA, :3] = _skc; _tbA[_tubeA, 3] = 255
 _tinA = _tubeA & ~(cv2.erode(_tubeA.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0); _tbA[_shade & ~_tinA, :3] = (_skc.astype(float) * .82).astype(np.uint8); _tbA[_tinA, :3] = _oc
 _shadeA = _tubeA & (((XX - SH_F[0]) * -_ud[1] + (YY - SH_F[1]) * _ud[0]) > ARM_R * .35); _tbA[_shadeA & ~_tinA, :3] = (_skc.astype(float) * .82).astype(np.uint8)
-armFA = under(armF, _tbA, _tubeA & (armF[..., 3] < 250))   # 공격 동안 먼 윗팔(nUpper) — 팔을 들어도 소매 입구까지 빈 곳 없음
+# v3.8 (DHL 15:32 '표시한 부분 이상 — 통으로 어깨부터 연결된 이미지로, 앞 팔처럼'): 공격용 윗팔 = 둥근 팔 통 하나(외곽선 = 통 가장자리)
+#   원화 살 쐐기의 뾰족한 외곽선을 위에 얹지 않음 — 통 안쪽에만 원화 살 무늬(밝은 살·흉터, 어두운 선 뺌)를 옮겨 그림
+#   v3.8b: 통 대신 시트 14번 먼 윗팔(근육·음영 그린 팔)을 어깨→팔꿈치 방향으로(배율 1.1 — 굵기 = 원화 팔), 원화 살색으로 색 맞춤
+_sp = place_limb('upperF', SH_F, EL_F)
+_sp = cv2.warpAffine(_sp, cv2.getRotationMatrix2D((float(SH_F[0]), float(SH_F[1])), 0, float(os.environ.get('UPF_K', 1.25))), (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
+_m = _sp[..., 3] > 200; _ref = RA[_sk & (_lumR > 120)][:, :3].astype(float)
+_spf = _sp.astype(float)
+for c in range(3):
+    v = _spf[..., c][_m]; _spf[..., c] = np.where(_sp[..., 3] > 0, (_spf[..., c] - v.mean()) / max(1.0, v.std()) * _ref[:, c].std() + _ref[:, c].mean(), _spf[..., c])
+_dark = (_sp[..., :3].astype(int).mean(-1) < 70); _spf[_dark, :3] = _sp[_dark, :3]   # 외곽선은 시트 선 그대로
+armFA = np.clip(_spf, 0, 255).astype(np.uint8)
 armF = under(armF, _tb, _tube & (armF[..., 3] < 250))
 print('  먼 윗팔 통 깔기', int((_tube & ~UPF_m).sum()), 'px · 반지름', ARM_R)
 foreF = art(GAF_m)   # 먼 건틀릿은 맨 앞 — 가려진 곳 없음(시트 ×1.055 라 채우면 둘레에 테가 생김)
