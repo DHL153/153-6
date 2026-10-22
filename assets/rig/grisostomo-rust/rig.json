@@ -1,6 +1,6 @@
 {
  "name": "grisostomo-rust",
- "version": "67e938cb",
+ "version": "91a13ffa",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   457.0,
@@ -474,29 +474,29 @@
    0,
    48.0
   ],
-  "thigh": 119.8,
-  "shin": 74.4,
+  "thigh": 66.0,
+  "shin": 56.0,
   "thighImg": {
    "part": "thighN",
    "a": [
     28.5,
-    13.5
+    44.0
    ],
    "b": [
     28.5,
-    73.5
+    77.0
    ],
-   "w": 1.0
+   "w": 0.75
   },
   "shinImg": {
    "part": "shinN",
    "a": [
     24.0,
-    9.9
+    10.0
    ],
    "b": [
     24.0,
-    47.1
+    38.0
    ],
    "w": 0.72
   },
@@ -533,33 +533,35 @@
   "near": {
    "x": -224.0,
    "hipX": -80.0,
-   "runX": -80.0,
+   "runX": -110.0,
    "shade": 0,
    "thighImg": {
     "part": "thighN",
     "a": [
      28.5,
-     13.5
+     44.0
     ],
     "b": [
      28.5,
-     73.5
+     77.0
     ],
-    "w": 1.0
+    "w": 0.75
    },
    "shinImg": {
     "part": "shinN",
     "a": [
      24.0,
-     9.9
+     10.0
     ],
     "b": [
      24.0,
-     47.1
+     38.0
     ],
     "w": 0.72
    },
    "runBoot": "sandalNRun",
+   "thigh": 119.8,
+   "shin": 74.4,
    "stand": {
     "fade": [
      0.05,
@@ -569,11 +571,11 @@
      "part": "thighN",
      "a": [
       28.5,
-      13.5
+      44.0
      ],
      "b": [
       28.5,
-      73.5
+      77.0
      ],
      "w": 0.001
     },
@@ -581,11 +583,11 @@
      "part": "shinN",
      "a": [
       24.0,
-      9.9
+      10.0
      ],
      "b": [
       24.0,
-      47.1
+      38.0
      ],
      "w": 0.001
     },
@@ -619,33 +621,35 @@
   "far": {
    "x": 90.0,
    "hipX": 46.0,
-   "runX": 46.0,
+   "runX": 62.0,
    "shade": 0,
    "thighImg": {
     "part": "thighF",
     "a": [
      28.0,
-     4.0
+     25.0
     ],
     "b": [
      28.0,
-     64.0
+     58.0
     ],
-    "w": 1.0
+    "w": 0.75
    },
    "shinImg": {
     "part": "shinF",
     "a": [
      23.5,
-     6.4
+     10.0
     ],
     "b": [
      23.5,
-     43.6
+     38.0
     ],
     "w": 0.72
    },
    "runBoot": "sandalFRun",
+   "thigh": 119.8,
+   "shin": 74.4,
    "stand": {
     "fade": [
      0.05,
@@ -655,11 +659,11 @@
      "part": "thighF",
      "a": [
       28.0,
-      4.0
+      25.0
      ],
      "b": [
       28.0,
-      64.0
+      58.0
      ],
      "w": 0.001
     },
@@ -667,11 +671,11 @@
      "part": "shinF",
      "a": [
       23.5,
-      6.4
+      10.0
      ],
      "b": [
       23.5,
-      43.6
+      38.0
      ],
      "w": 0.001
     },
@@ -733,15 +737,15 @@
   "closed": "face_closed"
  },
  "gait": {
-  "stance": 0.26,
-  "strideBase": 40,
-  "strideK": 0.12,
-  "hipBase": 6,
-  "bob": 8,
+  "stance": 0.3,
+  "strideBase": 30,
+  "strideK": 0.08,
+  "hipBase": -24,
+  "bob": 4,
   "lean": 0.1,
   "headBob": 3,
-  "kneeLift": 0.7,
-  "heelKick": 0.5,
+  "kneeLift": 0.2,
+  "heelKick": 0.15,
   "dropCap": 16,
   "swingReach": 0.05,
   "landAng": -0.04,

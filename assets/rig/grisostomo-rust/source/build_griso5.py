@@ -129,14 +129,21 @@ def run_boot(nm, sd):
     return piv, [[round(float(x - piv[0]), 1), round(float(bot[x] - piv[1]), 1)] for x in sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))]
 RB = {'near': run_boot('sandalN', 'near'), 'far': run_boot('sandalF', 'far')}
 L_TH = float(max(np.linalg.norm(LEG[s]['knee'] - LEG[s]['hip']) for s in LEG)); L_SH = float(max(np.linalg.norm(LEG[s]['ankle'] - LEG[s]['knee']) for s in LEG))
+# 달리는 다리 길이(DHL 10-22 09:36 '달릴 때 너무 구부린 다리, 살짝 펴 주세요'): 원화 다리는 옆으로 벌린 길이(허벅지 59.9)라 옆모습 달리기엔 엉덩이~발목 높이(63)보다 훨씬 김 → 늘 무릎이 107~180° 접힘
+#   → 엉덩이~무릎(바짓단) 세로 · 무릎~발목 세로로: 허벅지 36 · 정강이 30(합 66 ≈ 엉덩이~발목 63 + 걸음 여유) — 시트 조각은 길이만 줄여 그림(굵기 w 따로)
+L_TH0, L_SH0 = L_TH, L_SH   # 서 있을 때(원화 다리 그림) 다리 길이 — 엔진 legs.near/far.thigh·shin(A 0) → 달리기(A 1) legs.thigh·shin 으로 섞임
+L_TH = float(os.environ.get('RUN_TH', 33)); L_SH = float(os.environ.get('RUN_SH', 28))
 def limb_piece(nm, L):   # 관절 점 a·b = 위·아래 끝에서 같은 만큼 안쪽 — a-b = 뼈 길이(배율 ≈ 1, 늘이지 않음)
     p = sheet(nm); Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))
-    ys, xs = np.nonzero(p[..., 3] > 128); cx = float((xs.min() + xs.max()) / 2); h = ys.max() - ys.min(); pad = max(2.0, (h - L) / 2)
-    return {'part': nm, 'a': [round(cx, 1), round(float(ys.min() + pad), 1)], 'b': [round(cx, 1), round(float(ys.max() - pad), 1)], 'w': 1.0}
+    ys, xs = np.nonzero(p[..., 3] > 128); cx = float((xs.min() + xs.max()) / 2)
+    if nm.startswith('thigh'): b = float(ys.max() - 10); a = b - L   # 무릎(아래 둥근 끝 가운데) = b, 위로 남는 바지는 반바지 밑에 숨음
+    else: a = float(ys.min() + 10); b = a + L                       # 무릎(위 둥근 끝 가운데) = a, 아래 남는 붕대는 샌들 쪽
+    return {'part': nm, 'a': [round(cx, 1), round(a, 1)], 'b': [round(cx, 1), round(b, 1)], 'w': 1.0}
 TH = {'near': limb_piece('thighN', L_TH), 'far': limb_piece('thighF', L_TH)}
 SHN = {'near': limb_piece('shinN', L_SH), 'far': limb_piece('shinF', L_SH)}
 SHIN_W = float(os.environ.get('SHIN_W', 0.72))   # 시트 정강이 48px(무릎 공 포함) → 원화 종아리 굵기 ≈ 34
 for _d in SHN.values(): _d['w'] = SHIN_W
+for _d in TH.values(): _d['w'] = float(os.environ.get('THIGH_W', 0.75))   # 바지 다리 — 반바지 밑단 밖으로 불룩 나오지 않게
 print('  다리 길이 허벅지', round(L_TH, 1), '정강이', round(L_SH, 1), '· 시트 a-b', {k: round(v['b'][1] - v['a'][1], 1) for k, v in {**{'th_' + s: TH[s] for s in TH}, **{'sh_' + s: SHN[s] for s in SHN}}.items()})
 # ---------------- 표정·깜빡임: 시트 머리 → 원화 머리 자리(SIFT), 무표정과 다른 곳(눈·눈썹·입 둘레 타원 안)만 ----------------
 head_m = lab('head')
@@ -232,10 +239,11 @@ for name, parent in BONES:
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
         'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], 'runLock': 0.0}}
+RUNX = {'near': -110.0, 'far': 62.0}   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
     _root = round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1); _rest = round(SC * (LEG[sd]['ankle'][0] - HIP[0]), 1)
-    legs[sd] = {'x': _rest, 'hipX': _root, 'runX': _root, 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun',
+    legs[sd] = {'x': _rest, 'hipX': _root, 'runX': RUNX[sd], 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun', 'thigh': round(SC * L_TH0, 1), 'shin': round(SC * L_SH0, 1),
                 'stand': {'fade': [0.05, 0.1], 'thighImg': hide, 'shinImg': dict(hide, part=SHN[sd]['part'], a=SHN[sd]['a'], b=SHN[sd]['b']), 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], SOLE)}}}
 # ---------------- 그리는 순서 ----------------
 def order(lst): return [x for x in lst if x not in ('torsoB', 'headB', 'ponyB', 'beltB', 'hipsB') or x in BACKB]
@@ -243,7 +251,7 @@ draw = order(DRAW_IDLE)
 rig = {'name': 'grisostomo-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
-       'gait': {'stance': 0.26, 'strideBase': 40, 'strideK': 0.12, 'hipBase': 6, 'bob': 8, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.7, 'heelKick': 0.5, 'dropCap': 16,
+       'gait': {'stance': 0.3, 'strideBase': 30, 'strideK': 0.08, 'hipBase': -24, 'bob': 4, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.15, 'dropCap': 16,
                 'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'ponySway': 0.8, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2"},
