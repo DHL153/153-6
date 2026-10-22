@@ -113,6 +113,15 @@ PIECE['torso'], _u1 = underlay(PIECE['torso'], lab('torso'), lab('head', 'pony')
 PIECE['belt'], _u2 = underlay(PIECE['belt'], lab('belt'), lab('torso'), 5)
 PIECE['hips'], _u3 = underlay(PIECE['hips'], lab('hips'), lab('belt'), 8)
 PIECE['head'], _u4 = underlay(PIECE['head'], lab('head'), lab('pony'), 4)
+# 턱 오른쪽 외곽선(DHL 10:33 '이 부분 깨져요' — 공격 .30 먼 어깨가 움직이면 턱 가장자리가 점선): 원화에서 먼 윗팔과 맞닿은 턱 외곽선 픽셀이 '바뀐 곳'(먼 팔 몫)에 들어가 머리 조각에 없었음
+#   → 머리 칸 3px 안의 어두운 외곽선(밝기 < 90) 중 먼 팔 몫인 것을 머리 조각에도 원화 그대로(팔 조각에도 남김 — 대기 그대로)
+_lumR = RA[..., :3].astype(int).mean(-1)
+#   원인: 몸 그림(지운 원화 — 턱 외곽선이 깨끗)에서 턱 오른쪽 외곽선이 머리 칸 밖(상체 라벨)으로 감 → 머리 칸 4px 안 어두운 몸 그림 픽셀(턱 오른쪽·아래)을 머리 조각에
+_hm = (PIECE['head'][..., 3] > 128); _hm = cv2.morphologyEx(_hm.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0   # 머리 실루엣(가장자리 부스러기 뺌)
+_zone = (XX > 285) & (XX < 330) & (YY > 175) & (YY < 285)
+_jaw = dil(_hm, 2) & ~(cv2.erode(_hm.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & _zone   # 턱 오른쪽 가장자리 2~3px 띠 = 원화 외곽선 색으로 매끈하게 다시 그음
+_oc = np.median(RA[lab('head') & (RA[..., :3].astype(int).mean(-1) < 40) & (RA[..., 3] > 250)][:, :3], 0).astype(np.uint8)
+_hp = PIECE['head'].copy(); _hp[_zone & ~_hm] = 0; _hp[_jaw, :3] = _oc; _hp[_jaw, 3] = 255; PIECE['head'] = _hp; print('  턱 외곽선 다시 그음 → 머리 조각', int(_jaw.sum()), 'px · 색', _oc.tolist())
 print('  이음 밑 덧칠 px 상체←머리', _u1, '· 허리띠←상체', _u2, '· 바지←허리띠', _u3, '· 머리←상투', _u4)
 for n, nm in (('head', 'head'), ('pony', 'pony'), ('torso', 'torso'), ('belt', 'belt'), ('hips', 'hips')): save(nm, PIECE[n])
 for n, b_ in BACKP.items(): save(n + 'B', b_)
