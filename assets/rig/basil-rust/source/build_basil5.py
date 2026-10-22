@@ -91,6 +91,17 @@ def biggest(m):   # 가장 큰 덩어리만(건틀릿 둘레에 떨어진 부스
     n, cc, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), 8); return (cc == 1 + int(np.argmax(st[1:, 4]))) if n > 1 else m
 _isl = UPF_m & ~biggest(UPF_m); UPF_m = UPF_m & ~_isl; GAF_m = GAF_m | _isl
 armF = under(art(UPF_m), place_limb('upperF', SH_F, EL_F), (RA[..., 3] > 200) & ~UPF_m & (lab('head', 'pony') | GAF_m))   # 턱·건틀릿에 가려진 곳만
+# v3.4(DHL 11:08 '공격하는 팔이 깨져서 나옴 — 턱 아님, 팔을 기존 팔에서'): 먼 윗팔 조각 = 원화 팔 + 시트 팔이 턱 외곽선 자리에서 갈라져 대각선 틈·검은 선 토막
+#   → 원화 팔(살) 덩어리를 바탕으로, 팔 볼록 껍질 안 빈 곳·턱 외곽선 토막(어두운 선, 팔 안쪽)을 원화 살색으로 메움(inpaint) — 끊김 없는 한 덩어리 팔
+_am = armF[..., 3] > 100; _hull = np.zeros((512, 512), np.uint8); cv2.fillConvexPoly(_hull, cv2.convexHull(np.stack(np.nonzero(_am)[::-1], 1).astype(np.int32)), 1); _hull = _hull > 0
+_edge = _hull & ~(cv2.erode(_hull.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0)
+_lumA = armF[..., :3].astype(int).mean(-1)
+_jl = dil(lab('head'), 4) & (RA[..., :3].astype(int).mean(-1) < 120) & (RA[..., 3] > 0)   # 턱 외곽선(안티에일리어스 포함)
+_bad = (_hull & ~_edge & ~_am) | (_hull & _jl & _am) | (_hull & ~_edge & (_lumA < 60))   # 빈 곳 + 턱 외곽선 + 팔 안쪽 어두운 토막
+JAW_OUT = _hull & _jl   # 원화 턱 외곽선(팔 틈으로 상체 조각에서 보이던 것 포함) → 머리 조각이 가짐(대기 = 원화)
+_ip = cv2.inpaint(np.ascontiguousarray(armF[..., :3]), (_bad * 255).astype(np.uint8), 4, cv2.INPAINT_TELEA)
+armF = armF.copy(); armF[_bad, :3] = _ip[_bad]; armF[_bad, 3] = 255
+print('  먼 윗팔 틈 메움', int(_bad.sum()), 'px')
 foreF = art(GAF_m)   # 먼 건틀릿은 맨 앞 — 가려진 곳 없음(시트 ×1.055 라 채우면 둘레에 테가 생김)
 print('  팔 px: 가까운', int(ARM_N.sum()), '(건틀릿 + 시트 보탬', int(((armL[..., 3] > 0) & ~ARM_N).sum()), ') · 먼 윗팔', int(UPF_m.sum()), '· 먼 건틀릿', int(GAF_m.sum()))
 # ---------------- 몸: 합친 몸 그림(팔 없음)을 라벨로 — 대기에 팔보다 앞에 그리는 조각(상체·머리·상투)의 팔 밑 픽셀은 뒤 조각(…B)으로 ----------------
@@ -113,15 +124,7 @@ PIECE['torso'], _u1 = underlay(PIECE['torso'], lab('torso'), lab('head', 'pony')
 PIECE['belt'], _u2 = underlay(PIECE['belt'], lab('belt'), lab('torso'), 5)
 PIECE['hips'], _u3 = underlay(PIECE['hips'], lab('hips'), lab('belt'), 8)
 PIECE['head'], _u4 = underlay(PIECE['head'], lab('head'), lab('pony'), 4)
-# 턱 오른쪽 외곽선(DHL 10:33 '이 부분 깨져요' — 공격 .30 먼 어깨가 움직이면 턱 가장자리가 점선): 원화에서 먼 윗팔과 맞닿은 턱 외곽선 픽셀이 '바뀐 곳'(먼 팔 몫)에 들어가 머리 조각에 없었음
-#   → 머리 칸 3px 안의 어두운 외곽선(밝기 < 90) 중 먼 팔 몫인 것을 머리 조각에도 원화 그대로(팔 조각에도 남김 — 대기 그대로)
-_lumR = RA[..., :3].astype(int).mean(-1)
-#   원인: 몸 그림(지운 원화 — 턱 외곽선이 깨끗)에서 턱 오른쪽 외곽선이 머리 칸 밖(상체 라벨)으로 감 → 머리 칸 4px 안 어두운 몸 그림 픽셀(턱 오른쪽·아래)을 머리 조각에
-_hm = (PIECE['head'][..., 3] > 128); _hm = cv2.morphologyEx(_hm.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0   # 머리 실루엣(가장자리 부스러기 뺌)
-_zone = (XX > 285) & (XX < 330) & (YY > 175) & (YY < 285)
-_jaw = dil(_hm, 2) & ~(cv2.erode(_hm.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & _zone   # 턱 오른쪽 가장자리 2~3px 띠 = 원화 외곽선 색으로 매끈하게 다시 그음
-_oc = np.median(RA[lab('head') & (RA[..., :3].astype(int).mean(-1) < 40) & (RA[..., 3] > 250)][:, :3], 0).astype(np.uint8)
-_hp = PIECE['head'].copy(); _hp[_zone & ~_hm] = 0; _hp[_jaw, :3] = _oc; _hp[_jaw, 3] = 255; PIECE['head'] = _hp; print('  턱 외곽선 다시 그음 → 머리 조각', int(_jaw.sum()), 'px · 색', _oc.tolist())
+PIECE['head'] = PIECE['head'].copy(); PIECE['head'][JAW_OUT] = RA[JAW_OUT]; print('  턱 외곽선(먼 팔 몫이던 것) → 머리 조각', int(JAW_OUT.sum()), 'px')
 print('  이음 밑 덧칠 px 상체←머리', _u1, '· 허리띠←상체', _u2, '· 바지←허리띠', _u3, '· 머리←상투', _u4)
 for n, nm in (('head', 'head'), ('pony', 'pony'), ('torso', 'torso'), ('belt', 'belt'), ('hips', 'hips')): save(nm, PIECE[n])
 for n, b_ in BACKP.items(): save(n + 'B', b_)
@@ -282,9 +285,9 @@ PUNCH_V2_KEYS = [[0.16, -0.12, 150, 185, 414, 258, 12, -12], [0.23, 0.03, 80, 40
 JAB = json.loads(os.environ.get('JAB', 'null')) or [
   # t,    lean,  dx,  dy (원화 px — 먼 주먹·어깨를 같이 옮김), hx(골반 앞으로, 원화 px)
   [0.00, 0.00, 0, 0, 0],
-  [0.18, -0.10, -24, -3, -4],     # ① 뒤로 살짝 당김(상체 뒤로)
-  [0.30, 0.20, 46, 11, 10],       # ② 앞으로 곧게 — 타격(상체를 앞으로 숙이고 골반도 조금 앞으로: 어깨가 몸에서 떨어지지 않게)
-  [0.46, 0.18, 42, 10, 9],        # ③ 뻗은 채 버팀
+  [0.18, -0.10, -24, -3, -9],     # ① 뒤로 살짝 당김(상체 뒤로)
+  [0.30, 0.20, 46, 11, 17],       # ② 앞으로 곧게 — 타격(상체를 앞으로 숙이고 골반도 조금 앞으로: 어깨가 몸에서 떨어지지 않게)
+  [0.46, 0.18, 42, 10, 15],        # ③ 뻗은 채 버팀
   [0.78, 0.02, 4, 0, 1],         # ④ 돌아옴
   [1.00, 0.00, 0, 0, 0]]
 def _rot(v, th): c, s_ = math.cos(th), math.sin(th); return np.array([c * v[0] - s_ * v[1], s_ * v[0] + c * v[1]])
