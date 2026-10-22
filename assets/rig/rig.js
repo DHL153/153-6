@@ -454,7 +454,7 @@
     /* 다리 길이: legs.near/far.thigh·shin (opt-in, 11 네온 알론소) = 서 있을 때(동작 포함) 쪽마다 다른 길이 — 3/4 보기 원화처럼 앞으로 뻗은 다리가 길게.
        달릴수록(this.A) 공통 길이(legs.thigh·shin)로 → 달리기는 두 다리 같은 길이 */
     _legLen(side) { const L = this.L, S = side && L[side]; if (!S || (S.thigh == null && S.shin == null)) return [L.thigh, L.shin];
-      const a = Math.max(this.A || 0, this.legRunV || 0); return [lerp(S.thigh ?? L.thigh, L.thigh, a), lerp(S.shin ?? L.shin, L.shin, a)] }
+      const a = L.lenByStand ? 1 - this._standW(side, true) : Math.max(this.A || 0, this.legRunV || 0); return [lerp(S.thigh ?? L.thigh, L.thigh, a), lerp(S.shin ?? L.shin, L.shin, a)] }   // legs.lenByStand(opt-in, 5 러스트 바실 10-22): 쪽별 서 있는 다리 길이 ↔ 달리기 길이를 다리 그림이 바뀌는 때(standW)에 맞춤 — A 로 섞으면 달리다 공격할 때 달리기 그림이 긴 뼈로 늘어나 무릎이 큰 공처럼 보였음
     _ik(H, A, soft = 0, kw = 0, side = null) { // two-bone IK, knee bends forward (+x); kw>0 = knee turned outward (kneeOut)
       const [L1, L2] = this._legLen(side); let dx = A[0] - H[0], dy = A[1] - H[1], d = Math.hypot(dx, dy);
       // soft IK for a foot in the air: near full extension the knee angle changes infinitely fast (acos singularity),
