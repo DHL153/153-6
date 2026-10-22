@@ -1,4 +1,4 @@
-# 5 러스트 로시난테 조각 시트 1(21칸, 3072×2048, 자홍 배경, 6×4 칸 — 22~24 빈 칸) 자르기 — cut30 과 같음(키잉·덩어리 = 6 카르덴 cut_sheet), 이름 = 칸 번호(프롬프트 1 순서)
+# 5 러스트 바실 조각 시트 1(21칸, 3072×2048, 자홍 배경, 6×4 칸 — 22~24 빈 칸) 자르기 — cut30 과 같음(키잉·덩어리 = 6 카르덴 cut_sheet), 이름 = 칸 번호(프롬프트 1 순서)
 # python3 -I cut5.py  → pieces/<이름>.png + pieces/index.json + review/cut_overview.png
 import json, os, sys
 import numpy as np

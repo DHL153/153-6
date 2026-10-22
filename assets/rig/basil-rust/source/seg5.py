@@ -1,6 +1,6 @@
-"""5 러스트 로시난테 — 몸(두 팔·건틀릿 지운 원화를 합친 그림 work/body512.png)을 부품별로 나누기(씨앗 + watershed, 경계 = 외곽선) — seg20 구조
+"""5 러스트 바실 — 몸(두 팔·건틀릿 지운 원화를 합친 그림 work/body512.png)을 부품별로 나누기(씨앗 + watershed, 경계 = 외곽선) — seg20 구조
   몸 그림 = 원화 + 가까운 팔 자리는 프롬프트 2(nonear_2052), 먼 팔 자리는 프롬프트 3(nofar_2105) — 팔이 없으니 몸만 나눔
-  팔 쪽(건틀릿·윗팔)은 build_rocinante5.py 에서 '원화 − 지운 원화'로 따로 오림
+  팔 쪽(건틀릿·윗팔)은 build_basil5.py 에서 '원화 − 지운 원화'로 따로 오림
 출력: work/body512.png · work/labels.npy · work/label_names.json · review/seg_labels.png
 실행: python3 -I seg5.py
 """

@@ -1,4 +1,4 @@
-"""5 로시난테 — 공격 키 시각 그림 한 줄: python3 -I keyshots5.py 출력.png [t,t,...]"""
+"""5 바실 — 공격 키 시각 그림 한 줄: python3 -I keyshots5.py 출력.png [t,t,...]"""
 import sys, os, subprocess, json
 from PIL import Image
 H = os.path.dirname(os.path.abspath(__file__)); R = json.load(open(os.path.join(H, '..', '..', 'rig.json'))); dur = R['actions']['smash']['dur']

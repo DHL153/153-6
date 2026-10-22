@@ -48,8 +48,8 @@
     {
       "id": "char_0005",
       "index": 4,
-      "name": "로시난테",
-      "title": "산골의 철권 양치기",
+      "name": "바실",
+      "title": "산골의 철권 씨름꾼",
       "tier": "U",
       "path": "assets/art/characters/char_0005.png",
       "defaultOwned": false,
@@ -158,8 +158,8 @@
     {
       "id": "char_0015",
       "index": 14,
-      "name": "로시난테",
-      "title": "네온 라만차의 강철 양치기",
+      "name": "바실",
+      "title": "네온 라만차의 강철 씨름꾼",
       "tier": "U",
       "path": "assets/art/characters/char_0015.png",
       "defaultOwned": false,
@@ -268,8 +268,8 @@
     {
       "id": "char_0025",
       "index": 24,
-      "name": "로시난테",
-      "title": "스카이아크 라만차의 황동 양치기",
+      "name": "바실",
+      "title": "스카이아크 라만차의 황동 씨름꾼",
       "tier": "R",
       "path": "assets/art/characters/char_0025.png",
       "defaultOwned": false,

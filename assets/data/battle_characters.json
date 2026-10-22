@@ -100,7 +100,7 @@
     {
       "id": "battle_char_0005",
       "index": 4,
-      "name": "로시난테",
+      "name": "바실",
       "skillName": "하트브레이크 너클",
       "tier": "R",
       "idle": "assets/art/battle_characters/battle_char_0005_Idle.png",

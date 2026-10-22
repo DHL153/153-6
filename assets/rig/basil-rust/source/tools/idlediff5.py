@@ -1,4 +1,4 @@
-"""5 러스트 로시난테 — 대기 리그 vs 원화 차이(숨쉬기 여러 위상, 깜빡임 없는 장면) — python3 -I idlediff5.py [출력.png]
+"""5 러스트 바실 — 대기 리그 vs 원화 차이(숨쉬기 여러 위상, 깜빡임 없는 장면) — python3 -I idlediff5.py [출력.png]
   shot.py 로 k=0.5(= 원화 512) 어두운 배경(34343e) 렌더 → 원화와 RGB 차(알파 곱)·알파 IoU·차이 큰 곳 그림
 """
 import sys, os, subprocess
