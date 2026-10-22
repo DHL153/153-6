@@ -3911,7 +3911,7 @@ spawnBead(p);if(p>.75)spawnBead(p);nextSpawn=t+(800-730*p*p)*(.7+Math.random()*.
 </div>
 </div>
 <script src="assets/ui/icon-nodes.js"></script>
-<script src="assets/data/fx_tuning.js?v=98b427db"></script>
+<script src="assets/data/fx_tuning.js?v=bea84562"></script>
 <script src="assets/ui/presentation.js"></script>
 <script id="mr-battle-sprite-effects-player">
 /* Battle-only sprite playback. Original sheets stay lossless on disk.
@@ -4180,10 +4180,13 @@ window.MRBattleFX=(()=>{
    watchCut();if(cutsceneActive())return false;
    if(!isShownOrRig(document.getElementById(sourceId)))return false;
    // 2026-10-16: 공격은 트레일 하나로 통일 (예전 베기·불꽃 번갈아 쓰기는 중단, 시트 파일은 보존)
+   // 2026-10-22 DHL: 흰 칼 트레일은 전투에서 뺌 — fx_tuning.js trail.off(캐릭터별 chars.N.trail.off 로 다시 켤 수 있음), 시트 파일·코드는 보존. 새로 넣은 플립북(custom)은 그대로 나옴
+   const who=charNum(sourceId),tr=tuneFor('trail',who),hitMs=window.MRRig?.hitDelayMs?.(sourceId);
+   if(tr.off){playCustom('attack',sourceId,hitMs!=null?hitMs:100,0,who);return false;}
    if(!sheets.trail.ready)return false;
    attackIndex++;
    // 2026-10-19 DHL: 트레일 가장 진한 칸(가운데, 약 95ms)이 리그 타격 순간에 오도록 늦게 시작 · 그림 캐릭터는 공격 그림으로 바뀐 뒤 살짝(60ms)
-   const who=charNum(sourceId),tr=tuneFor('trail',who),len=reduced.matches?80:num(tr.len,190),hitMs=window.MRRig?.hitDelayMs?.(sourceId),delay=hitMs!=null?Math.max(0,hitMs+num(tr.lead,-len/2)):num(tr.imgDelay,60);
+   const len=reduced.matches?80:num(tr.len,190),delay=hitMs!=null?Math.max(0,hitMs+num(tr.lead,-len/2)):num(tr.imgDelay,60);
    playCustom('attack',sourceId,hitMs!=null?hitMs:100,0,who);
    return add({type:'attack',name:'trail',delay,duration:delay+len, /* 2026-10-19 DHL: 나왔다 사라지는 시간 2배 빠르게 (380 → 190ms) */sourceId,tr,up:!!window.MRRig?.trailUp?.(sourceId),anchor:target(sourceId,true,tr.x,tr.y),reduced:reduced.matches});
   },
