@@ -62,3 +62,10 @@
 - 그리는 순서 하나(대기·달리기·공격): 다리 → 바지 → 허리띠 → 상체 뒤 → 가까운 윗팔 → 상체 → 먼 팔 → 머리 → 상투 → **가까운 건틀릿(맨 앞)**
   - 원화에서 조끼 자락이 덮던 건틀릿 오른쪽 위는 이제 건틀릿이 덮음 · 조끼 뒤 소매 입구(시트 주황 통)는 안 채움(턱 앞에 보였음), 실루엣 안 구멍만 시트로 · 대기 차 > 60 px 105 → 141
 - 달리는 다리 뿌리 = 반바지 밑단 구멍 위(원화 x 167 · 300 → 리그 −190 · +76), 발 줄 −204 · +92 · 공격 aDamp 9 → 18(달리다 공격할 때 다리가 서는 자세로 빨리 바뀜)
+
+## 2026-10-22 10:15 — 게임 반영 + 이름 바꿈 (DHL 10:06 '좋아요, 인게임 넣어주세요 · 그리소스토모를 로시난테로 이름을 바꾸고 이에 따른 모든 것도')
+- 게임: REGISTRY 5 = rocinante-rust · rig.def.js?v=e54d35ff(v3.2 그대로, 이름만 바뀌어 해시 바뀜) · 마이룸 표는 원화 그대로라 안 바꿈
+  - game_top PC 53 · 폰 49px(칸 안 여유) · 시작 선택·미리보기·전투·보스 처치 필살기 컷신·마이룸 오류 0(live rocinante-rust)
+- 이름: 캐릭터 5·15·25 · 전투 캐릭터 5(index.html FALLBACK_ASSET_DATA + assets/data/characters.json·battle_characters.json) · 언어별 이름 표(Rocinante · ロシナンテ · 罗西南特 · 羅西南特 · Rossinante · Росинант · Ronzinante · Rosynant · Rosinante)
+- 리그 폴더 grisostomo-rust → rocinante-rust · build_griso5.py → build_rocinante5.py · 프로젝트 문서 grisostomo5 → rocinante5-rig-sheets.md · 세계관·등급 문서 이름 · 편집 툴 항목
+- 그대로 둔 것: 칭호(산골의 철권 양치기 등)·스킬(하트브레이크 너클 등) — DHL 확인 필요
