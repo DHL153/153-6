@@ -4,3 +4,7 @@
 - 기준 = 5 러스트 바실 v3.8 (앞손 곧게 치기 · 종종걸음 · lenByStand · 부품은 원화 재질로 나눔)
 - 지금 원화 자세가 러스트와 다름(가까운 건틀릿 어깨 높이로 뒤를 향함) → 러스트 자세 새 원화(프롬프트 0) — 첨부 1 `source/refs/ref_design_char0015.png` · 2 `source/refs/ref_pose_char0005.png`
 - 0번 합격 뒤: char_0015 교체 + 마이룸 표 4개 · 프롬프트 1·2·3
+
+## 2026-10-22 18:06 — 0번 합격(DHL 17:59) · 관절·가이드 · 프롬프트 1·2·3
+- char_0015 교체(커밋 5b257e1) · 마이룸 표 15 = FACE [.49,.37] · TOP .19 · FOOT .94 · ROOM_BODY [.19,.94,.48] · 게임 오류 0
+- measure15.json · tools/guides15.py → refs/ref_W15·X15·B15 · 프롬프트 = 프로젝트 문서 claude/basil15-rig-sheets.md
