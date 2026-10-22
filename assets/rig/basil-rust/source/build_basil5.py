@@ -107,6 +107,22 @@ armF = art(UPF_m)
 _ring = dil(_sk, 2) & ~_sk & ~_line & _jl                     # 턱과 맞닿던 쪽 = 윗팔 자기 외곽선
 _oc = np.array([28, 16, 12], np.uint8); armF[_ring, :3] = _oc; armF[_ring, 3] = 255
 print('  먼 윗팔 = 원화 살', int(_sk.sum()), '+ 외곽선', int(_line.sum() + _ring.sum()), 'px · 건틀릿', int(GAF_m.sum()))
+# v3.7 (DHL 15:14 '팔이 비어 있어요'): 원화에 보이는 윗팔 살은 턱·건틀릿 사이 가는 쐐기뿐 → 팔을 들면 건틀릿 소매 입구까지 빈 곳
+#   → 어깨~소매 입구 안쪽까지 둥근 팔 통(반지름 ARM_R)을 원화 살색으로 깔고 외곽선, 원화 살·선은 그 위 그대로. 대기엔 머리·건틀릿이 덮음
+ARM_R = float(os.environ.get('ARM_R', 15)); _ud = (EL_F - SH_F) / np.linalg.norm(EL_F - SH_F)
+_tubeA = capm(SH_F, EL_F + _ud * 16, ARM_R)   # 공격용 통(전부)
+_tube = _tubeA & (RA[..., 3] > 200) & ~(lab('torso') & ~dil(_sk, 3))   # 대기용: 원화 실루엣 안·조끼 밖만(대기에 삐져나오지 않게)
+_skc = np.median(RA[_sk & (_lumR > 150)][:, :3], 0).astype(np.uint8)
+_tin = _tube & ~(cv2.erode(_tube.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0)
+_tb = np.zeros_like(RA); _tb[_tube, :3] = _skc; _tb[_tube, 3] = 255; _tb[_tin, :3] = _oc
+_ys2 = (YY - SH_F[1]).astype(float); _shade = _tube & (((XX - SH_F[0]) * -_ud[1] + (YY - SH_F[1]) * _ud[0]) > ARM_R * .35)   # 아래쪽 그늘
+_tb[_shade & ~_tin, :3] = (_skc.astype(float) * .82).astype(np.uint8)
+_tbA = np.zeros_like(RA); _tbA[_tubeA, :3] = _skc; _tbA[_tubeA, 3] = 255
+_tinA = _tubeA & ~(cv2.erode(_tubeA.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0); _tbA[_shade & ~_tinA, :3] = (_skc.astype(float) * .82).astype(np.uint8); _tbA[_tinA, :3] = _oc
+_shadeA = _tubeA & (((XX - SH_F[0]) * -_ud[1] + (YY - SH_F[1]) * _ud[0]) > ARM_R * .35); _tbA[_shadeA & ~_tinA, :3] = (_skc.astype(float) * .82).astype(np.uint8)
+armFA = under(armF, _tbA, _tubeA & (armF[..., 3] < 250))   # 공격 동안 먼 윗팔(nUpper) — 팔을 들어도 소매 입구까지 빈 곳 없음
+armF = under(armF, _tb, _tube & (armF[..., 3] < 250))
+print('  먼 윗팔 통 깔기', int((_tube & ~UPF_m).sum()), 'px · 반지름', ARM_R)
 foreF = art(GAF_m)   # 먼 건틀릿은 맨 앞 — 가려진 곳 없음(시트 ×1.055 라 채우면 둘레에 테가 생김)
 print('  팔 px: 가까운', int(ARM_N.sum()), '(건틀릿 + 시트 보탬', int(((armL[..., 3] > 0) & ~ARM_N).sum()), ') · 먼 윗팔', int(UPF_m.sum()), '· 먼 건틀릿', int(GAF_m.sum()))
 # ---------------- 몸: 합친 몸 그림(팔 없음)을 라벨로 — 대기에 팔보다 앞에 그리는 조각(상체·머리·상투)의 팔 밑 픽셀은 뒤 조각(…B)으로 ----------------
@@ -133,7 +149,7 @@ PIECE['head'] = PIECE['head'].copy(); PIECE['head'][JAW_OUT] = RA[JAW_OUT]; prin
 print('  이음 밑 덧칠 px 상체←머리', _u1, '· 허리띠←상체', _u2, '· 바지←허리띠', _u3, '· 머리←상투', _u4)
 for n, nm in (('head', 'head'), ('pony', 'pony'), ('torso', 'torso'), ('belt', 'belt'), ('hips', 'hips')): save(nm, PIECE[n])
 for n, b_ in BACKP.items(): save(n + 'B', b_)
-save('armU', armU); save('armL', armL); save('armF', armF); save('foreF', foreF)
+save('armU', armU); save('armL', armL); save('armF', armF); save('armFA', armFA); save('foreF', foreF)
 Image.fromarray(np.zeros((4, 4, 4), np.uint8)).save(os.path.join(PARTS, 'weapon.png'))
 # ---------------- 다리: 서 있을 땐 원화 다리(발목 핀), 달리면 시트 허벅지·정강이·샌들 ----------------
 def sole_pts(m, ankle, ground=None):
@@ -209,7 +225,7 @@ P_('torso', HIP); P_('hips', HIP); P_('belt', HIP); P_('head', NECK); P_('pony',
 BACKB = {}
 for n in BACKP:
     nm = n + 'B'; pt = {'torso': HIP, 'head': NECK, 'pony': PONY, 'belt': HIP, 'hips': HIP}[n]; P_(nm, pt); BACKB[nm] = ({'hips': 'skirt'}.get(n, n), pt)
-P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F))
+P_('armU', SH_N, elbow=piv('armU', EL_N)); P_('armF', SH_F, elbow=piv('armF', EL_F)); P_('armFA', SH_F, elbow=piv('armFA', EL_F))
 P_('armL', EL_N, fist=piv('armL', FI_N)); P_('foreF', EL_F)
 # 펀치 건틀릿(armLp): 가까운 건틀릿 그림은 소매 입구가 오른쪽 위·주먹 마디가 아래라 앞으로 곧게 내지르면 마디가 아래·뒤를 봄(v2 첫 렌더) →
 #   공격 동안만 먼 건틀릿 그림(소매 입구 왼쪽 · 주먹 마디 오른쪽 = 원화의 앞으로 내지른 주먹)을 가까운 팔꿈치에 붙여 씀(크기 = 가까운 건틀릿만큼).
@@ -329,7 +345,7 @@ rig['drawB'] = draw
 EA = 'io'
 trk = lambda f: [[k[0], round(f(k), 4), EA] for k in KU]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.environ.get('DUR', 0.8)), 'hitAt': HIT_T, 'hitStop': 0.07, 'cancelAt': 0.8,
-       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]],
+       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF'], [0.06, 'armFA'], [0.9, 'armF']], 'armIK': [[0, 1]],
        'gx': trk(lambda k: SC * (k[4] - HIP[0])), 'gy': trk(lambda k: SC * (k[5] - HIP[1])), 'sa': trk(lambda k: math.radians(k[6])),
        'lean': trk(lambda k: k[1]), 'hipY': [[0, 0]], 'hipX': [[0, 0]],
        'head': [[0, 0], [0.18, 0.02, 'io'], [0.3, -0.03, 'io'], [0.46, -0.02, 'io'], [0.78, 0]],
