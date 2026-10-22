@@ -81,7 +81,8 @@ def place_limb(nm, S, E):   # 시트 윗팔(곧게 선 그림) → 어깨 S 에�
     return cv2.warpAffine(p, T, (512, 512), flags=cv2.INTER_LANCZOS4, borderValue=(0, 0, 0, 0))
 def art(m): a = RA.copy(); a[..., 3] = np.where(m, a[..., 3], 0); return a
 # 가까운 건틀릿(armL) = 원화 가까운 팔 전부 + 가려진 곳(조끼 자락 뒤 소매 입구) = 시트 건틀릿
-armL = under(art(ARM_N), GW_N, GM_N & (RA[..., 3] > 200) & ~ARM_N & lab('torso', 'head', 'pony'))   # 원화에서 다른 것(조끼 자락)에 가려진 곳만 — 실루엣 밖은 안 채움(대기 = 원화)
+_holes = (cv2.morphologyEx(ARM_N.astype(np.uint8), cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21))) > 0) & ~ARM_N
+armL = under(art(ARM_N), GW_N, GM_N & _holes)   # v3.2: 건틀릿이 늘 맨 앞(DHL 09:49) — 조끼 자락 뒤 소매 입구(시트 주황 통)는 안 채움(턱 앞에 주황 통이 보였음), 실루엣 안 구멍만 시트로   # 원화에서 다른 것(조끼 자락)에 가려진 곳만 — 실루엣 밖은 안 채움(대기 = 원화)
 # 가까운 윗팔(armU) = 시트 윗팔(대기엔 조끼·건틀릿 뒤라 안 보임)
 armU = place_limb('upperN', SH_N, EL_N)
 # 먼 팔: 원화 − 지운 원화 = 윗팔 맨살 + 건틀릿 → 시트 건틀릿 자리로 나눔
@@ -239,15 +240,16 @@ for name, parent in BONES:
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
         'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], 'runLock': 0.0}}
-RUNX = {'near': -110.0, 'far': 62.0}   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
+RUNX = {'near': -204.0, 'far': 92.0}; ROOTX = {'near': -190.0, 'far': 76.0}   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
+#   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
     _root = round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1); _rest = round(SC * (LEG[sd]['ankle'][0] - HIP[0]), 1)
-    legs[sd] = {'x': _rest, 'hipX': _root, 'runX': RUNX[sd], 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun', 'thigh': round(SC * L_TH0, 1), 'shin': round(SC * L_SH0, 1),
+    legs[sd] = {'x': _rest, 'hipX': ROOTX[sd], 'runX': RUNX[sd], 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun', 'thigh': round(SC * L_TH0, 1), 'shin': round(SC * L_SH0, 1),
                 'stand': {'fade': [0.05, 0.1], 'thighImg': hide, 'shinImg': dict(hide, part=SHN[sd]['part'], a=SHN[sd]['a'], b=SHN[sd]['b']), 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], SOLE)}}}
 # ---------------- 그리는 순서 ----------------
 def order(lst): return [x for x in lst if x not in ('torsoB', 'headB', 'ponyB', 'beltB', 'hipsB') or x in BACKB]
-draw = order(DRAW_IDLE)
+draw = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armL', 'armLp'])   # DHL 09:49 '주먹이 옷 레이어보다 위로' — 가까운 건틀릿 늘 맨 앞(대기 포함, 원화의 조끼 자락이 건틀릿을 덮던 곳은 건틀릿이 덮음)
 rig = {'name': 'grisostomo-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
@@ -300,7 +302,7 @@ print('  키 검사', chk)
 assert all(c['farReach'] <= 1.0 for c in chk), '먼 팔이 닿지 않음'
 ORDER_T = None
 rig['drawA'] = draw
-rig['drawB'] = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armU', 'armL', 'armLp'])
+rig['drawB'] = draw
 EA = 'io'
 trk = lambda f: [[k[0], round(f(k), 4), EA] for k in KU]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.environ.get('DUR', 0.8)), 'hitAt': HIT_T, 'hitStop': 0.07, 'cancelAt': 0.8,
@@ -313,7 +315,7 @@ act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.envi
        'face': [[0, 'angry'], [0.12, 'effort'], [0.26, 'shout'], [0.5, 'angry'], [0.85, None]],
        'order': [[0, 'drawA']],
        'shake': [[0, 0]],
-       'nearLift': [[0, 0]], 'farLift': [[0, 0]], 'aDamp': 9, 'standStep': True}
+       'nearLift': [[0, 0]], 'farLift': [[0, 0]], 'aDamp': 18, 'standStep': True}
 rig['swordGrip'] = {'tipDepth': 2000, 'near': {'upper': 'armF', 'carry': 'gF', 'pieces': []}, 'far': {'upper': 'armU', 'pieces': ['armL'], 'sPref': 0}, 'stretchMax': 1.05, 'shoulderPush': 0}
 rig['actions'] = {'smash': act}
 rig['cutHold'] = float(os.environ.get('CUT', 0.18))

@@ -1,6 +1,6 @@
 {
  "name": "grisostomo-rust",
- "version": "91a13ffa",
+ "version": "377beef8",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   457.0,
@@ -107,7 +107,7 @@
     29.0,
     49.0
    ],
-   "scale": 2.2487
+   "scale": 2.4801
   },
   "gF": {
    "src": "parts/foreF.png",
@@ -466,7 +466,7 @@
     0
    ],
    "part": "armLp",
-   "rot": 2.114
+   "rot": 2.1143
   }
  ],
  "legs": {
@@ -532,8 +532,8 @@
   },
   "near": {
    "x": -224.0,
-   "hipX": -80.0,
-   "runX": -110.0,
+   "hipX": -190.0,
+   "runX": -204.0,
    "shade": 0,
    "thighImg": {
     "part": "thighN",
@@ -620,8 +620,8 @@
   },
   "far": {
    "x": 90.0,
-   "hipX": 46.0,
-   "runX": 62.0,
+   "hipX": 76.0,
+   "runX": 92.0,
    "shade": 0,
    "thighImg": {
     "part": "thighF",
@@ -714,13 +714,13 @@
   "belt",
   "torsoB",
   "armU",
-  "armL",
-  "armLp",
   "torso",
   "armF",
   "foreF",
   "head",
-  "pony"
+  "pony",
+  "armL",
+  "armLp"
  ],
  "hidden": [
   "armLp"
@@ -774,13 +774,13 @@
   "belt",
   "torsoB",
   "armU",
-  "armL",
-  "armLp",
   "torso",
   "armF",
   "foreF",
   "head",
-  "pony"
+  "pony",
+  "armL",
+  "armLp"
  ],
  "drawB": [
   "legFar",
@@ -788,12 +788,12 @@
   "skirt",
   "belt",
   "torsoB",
+  "armU",
   "torso",
   "armF",
   "foreF",
   "head",
   "pony",
-  "armU",
   "armL",
   "armLp"
  ],
@@ -1219,7 +1219,7 @@
      0
     ]
    ],
-   "aDamp": 9,
+   "aDamp": 18,
    "standStep": true
   }
  },
