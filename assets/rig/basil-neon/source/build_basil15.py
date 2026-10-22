@@ -173,7 +173,7 @@ def sole_pts(m, ankle, ground=None):
     xlow = max(bot, key=lambda x: bot[x]); cols_ = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
     lift = 0.0 if ground is None else float(ground - bot[xlow]); return [[float(x - ankle[0]), float(bot[x] - ankle[1] + lift)] for x in cols_ if x in bot]
 # v2: 원화 다리로 걸으면 다리 윗끝(반바지에 가려 자른 줄)이 밑단 밖으로 보임 → 반바지 밑으로 다리를 위로 EXT px 늘여 둠(열마다 윗끝 아래 3 px 색 복사 — 외곽선 열은 외곽선으로 이어짐). 쉴 땐 반바지가 덮음
-_EXT = int(os.environ.get('LEGEXT', 18)); _shorts = dil(lab('hips') | lab('belt'), 2)
+_EXT = int(os.environ.get('LEGEXT', 0)); _shorts = dil(lab('hips') | lab('belt'), 2)
 for _ln in ('legN', 'legF'):
     _a = PIECE[_ln].copy(); _m = _a[..., 3] > 0; _n = 0
     for x in range(512):
@@ -187,7 +187,7 @@ for _ln in ('legN', 'legF'):
     PIECE[_ln] = _a; print('  다리 위로 늘임', _ln, _n, 'px')
 save('bootStandN', PIECE['legN']); save('bootStandF', PIECE['legF'])
 def run_boot(nm, sd):
-    up = SOLE - LEG[sd]['ankle'][1]; b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * 0.32), ys.max() - up)
+    up = SOLE - LEG[sd]['ankle'][1]; b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * float(os.environ.get('BOOT_PX', 0.45))), ys.max() - up)
     Image.fromarray(b).save(os.path.join(PARTS, f'{nm}Run.png')); bot = {x: ys[xs == x].max() for x in range(xs.min(), xs.max() + 1) if (xs == x).any()}; xl, xr = min(bot), max(bot)
     return piv, [[round(float(x - piv[0]), 1), round(float(bot[x] - piv[1]), 1)] for x in sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))]
 RB = {'near': run_boot('sandalN', 'near'), 'far': run_boot('sandalF', 'far')}
@@ -196,21 +196,27 @@ L_TH = float(max(np.linalg.norm(LEG[s]['knee'] - LEG[s]['hip']) for s in LEG)); 
 #   → 엉덩이~무릎(바짓단) 세로 · 무릎~발목 세로로: 허벅지 36 · 정강이 30(합 66 ≈ 엉덩이~발목 63 + 걸음 여유) — 시트 조각은 길이만 줄여 그림(굵기 w 따로)
 STAND_K = float(os.environ.get('STAND_K', 0.95))   # v3.6: 서 있는 다리 뼈 = 원화 길이 ×.95 — 다리 뿌리를 안쪽으로 옮기니 ×1 이면 서 있는 원화 다리가 발목에서 끌려 대기가 원화와 달라짐(차 > 60 px 878)
 L_TH0, L_SH0 = L_TH * STAND_K, L_SH * STAND_K   # 서 있을 때(원화 다리 그림) 다리 길이 — 엔진 legs.near/far.thigh·shin(A 0) → 달리기(A 1) legs.thigh·shin 으로 섞임
-L_TH = float(os.environ.get('RUN_TH', 33)); L_SH = float(os.environ.get('RUN_SH', 28))
+L_TH = float(os.environ.get('RUN_TH', 20)); L_SH = float(os.environ.get('RUN_SH', 42))
 def limb_piece(nm, L):   # 관절 점 a·b = 위·아래 끝에서 같은 만큼 안쪽 — a-b = 뼈 길이(배율 ≈ 1, 늘이지 않음)
     p = sheet(nm); Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))
     ys, xs = np.nonzero(p[..., 3] > 128); cx = float((xs.min() + xs.max()) / 2)
     if nm.startswith('thigh'): b = float(ys.max() - 10); a = b - L   # 무릎(아래 둥근 끝 가운데) = b, 위로 남는 바지는 반바지 밑에 숨음
-    else: a = float(ys.min() + 10); b = a + L                       # 무릎(위 둥근 끝 가운데) = a, 아래 남는 붕대는 샌들 쪽
+    if nm.startswith('thigh'):   # v3 (DHL 19:40 '다리가 바지를 튀어나가는 것 없이'): 네온 시트 바지 다리가 길어(110 px) 뼈 위쪽 60 px 가 돌 때 반바지 옆으로 나왔음 → 엉덩이 점 위 TH_TOP px 만 남기고 자름
+        p = p.copy(); p[:max(0, int(a) - int(os.environ.get('TH_TOP', 4))), :, 3] = 0; Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))
+    if not nm.startswith('thigh'): a = float(ys.min() + 10); b = a + L                       # 무릎(위 둥근 끝 가운데) = a, 아래 남는 붕대는 샌들 쪽
+    if not nm.startswith('thigh') and os.environ.get('SH_CUT', '10') != '0':   # v3: 정강이 위 무릎 공을 자름(무릎이 반바지 다리 사이로 주황 공처럼 삐져 보였음) — 무릎 아래 SH_CUT px 부터만 그림
+        p = p.copy(); p[:int(a) + int(os.environ.get('SH_CUT', '10')), :, 3] = 0; Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))
     return {'part': nm, 'a': [round(cx, 1), round(a, 1)], 'b': [round(cx, 1), round(b, 1)], 'w': 1.0}
 TH = {'near': limb_piece('thighN', L_TH), 'far': limb_piece('thighF', L_TH)}
 SHN = {'near': limb_piece('shinN', L_SH), 'far': limb_piece('shinF', L_SH)}
-SHIN_W = float(os.environ.get('SHIN_W', 0.72))   # 시트 정강이 48px(무릎 공 포함) → 원화 종아리 굵기 ≈ 34
+SHIN_W = float(os.environ.get('SHIN_W', 0.6))   # 시트 정강이 48px(무릎 공 포함) → 원화 종아리 굵기 ≈ 34
 for _d in SHN.values(): _d['w'] = SHIN_W
-for _d in TH.values(): _d['w'] = float(os.environ.get('THIGH_W', 0.75))   # 바지 다리 — 반바지 밑단 밖으로 불룩 나오지 않게
+for _d in TH.values(): _d['w'] = float(os.environ.get('THIGH_W', 0.75))
+if os.environ.get('HIDE_TH', '1') == '1':   # v3 (DHL 19:40 '다리가 바지를 튀어나가는 것 없이' · 7 루시아처럼): 허벅지는 늘 반바지 속 — 그리지 않음, 무릎(정강이 둥근 위 끝)이 밑단 바로 밑에서 나옴
+    for _d in TH.values(): _d['w'] = 0.001   # 바지 다리 — 반바지 밑단 밖으로 불룩 나오지 않게
 # v2 (DHL 19:05 '다리가 더 이상하게'): 달리는 다리도 원화 다리를 무릎·발목 줄로 잘라 씀(시트 허벅지·정강이·샌들 안 씀)
 #   허벅지 = 무릎 아래 8 px 까지 원화(a = 무릎에서 뼈 길이만큼 위 — 늘이지 않음, 위쪽은 반바지 밑에 숨음) · 정강이 = 무릎 위 8 ~ 무릎 + 뼈 길이 + 4 · 샌들 = 원화 발목 줄 아래(축 = 원화 발목)
-if os.environ.get('ARTLEG', '1') == '1':
+if os.environ.get('ARTLEG', '0') == '1':
     def _proj(P, Q): d = (Q - P) / np.linalg.norm(Q - P); return (XX - P[0]) * d[0] + (YY - P[1]) * d[1], d
     for sd, ln, tg in (('near', 'legN', 'N'), ('far', 'legF', 'F')):
         Lg = LEG[sd]; leg = PIECE[ln]; m = leg[..., 3] > 0
@@ -322,11 +328,11 @@ for name, parent in BONES:
     if name == 'armLp': b['pos'] = [0, 0]; b['rot'] = round(R_P, 4)
     bones.append(b)
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
-STANDWALK = os.environ.get('STANDWALK', '1') == '1'   # v2 DHL 19:05 '뒤뚱뒤뚱 걸으면서': 걸을 때도 원화 다리 그림 그대로(발목 고정 한 장) — 짧은 걸음·발 들기 + 몸 좌우 흔들기
+STANDWALK = os.environ.get('STANDWALK', '0') == '1'   # v2 DHL 19:05 '뒤뚱뒤뚱 걸으면서': 걸을 때도 원화 다리 그림 그대로(발목 고정 한 장) — 짧은 걸음·발 들기 + 몸 좌우 흔들기
 STAND_FADE = [5.0, 6.0] if STANDWALK else [0.05, 0.1]
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
         'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-0.1, 0.1] if STANDWALK else [-1.2, 1.4], 'runLock': 0.0}, 'lenByStand': True}
-_rx = json.loads(os.environ.get('ROOTS', 'null')) or ([-150.0, 92.0, 0, 0] if os.environ.get('STANDWALK', '1') == '1' else [-150.0, 92.0, -138.0, 64.0])   # v2: 15 네온 반바지 밑단 구멍 가운데(원화 x 170·291) — v1 은 5 러스트 값이라 먼 다리가 가랑이 안에서 나왔음
+_rx = json.loads(os.environ.get('ROOTS', 'null')) or ([-150.0, 92.0, 0, 0] if os.environ.get('STANDWALK', '0') == '1' else [-125.0, 60.0, -115.0, 40.0])   # v3 DHL 19:40: 무릎이 반바지 옆으로 안 나오게 뿌리를 밑단 안쪽으로   # v2: 15 네온 반바지 밑단 구멍 가운데(원화 x 170·291) — v1 은 5 러스트 값이라 먼 다리가 가랑이 안에서 나왔음
 ROOTX = {'near': _rx[0], 'far': _rx[1]}; RUNX = {'near': _rx[2], 'far': _rx[3]}   # v3.6 DHL 14:24 '다리 사이 조금 좁게, 루시아 참고 걸음' — 뿌리 간격 266 → 206(몸 키의 .23, 7 루시아 .23)   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
 #   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
 def _ankR(sd):   # 쉴 때(엔진 IK 와 같은 풀이) 정강이 방향 − 90° − 부츠 각 0 = r_rest → 범위 r_rest ± ANK
@@ -349,7 +355,7 @@ draw = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'torso', '
 rig = {'name': 'basil-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
-       'gait': {'stance': 0.26, 'strideBase': float(os.environ.get('STRIDE', 8 if STANDWALK else 26)), 'strideK': 0.0 if STANDWALK else 0.08, 'hipBase': -18, 'bob': float(os.environ.get('BOB', 7)), 'lean': 0.08, 'waddle': float(os.environ.get('WAD', 0.10)),   # v2 DHL 19:05 '뒤뚱뒤뚱' — 걸음마다 몸이 좌우로 흔들림 크게 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.0 if STANDWALK else 0.05, 'dropCap': 8, 'angK': 0.12, 'strideFlex': [0.75, 1.15],   # 7 러스트 루시아 종종걸음(드워프)
+       'gait': {'stance': 0.26, 'strideBase': float(os.environ.get('STRIDE', 8 if STANDWALK else 18)), 'strideK': 0.0 if STANDWALK else 0.08, 'hipBase': -18, 'bob': float(os.environ.get('BOB', 4)), 'lean': 0.12, 'waddle': float(os.environ.get('WAD', 0.03)),   # v2 DHL 19:05 '뒤뚱뒤뚱' — 걸음마다 몸이 좌우로 흔들림 크게 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.0 if STANDWALK else 0.05, 'dropCap': 8, 'angK': 0.12, 'strideFlex': [0.75, 1.15],   # 7 러스트 루시아 종종걸음(드워프)
                 'swingReach': 0.05, 'landAng': 0.0 if STANDWALK else -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'ponySway': 0.0, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2"},
