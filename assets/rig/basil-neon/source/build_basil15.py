@@ -45,8 +45,8 @@ def save(name, a, pad=2):
 SOLE = float(M['sole_y']); HIP = V(M['hip']); NECK = V(M['neck']); PONY = V(M['pony'])
 LEG = {sd: {k: V(v) for k, v in M['legs'][sd].items() if k != 'len'} for sd in ('near', 'far')}
 O = V([(LEG['near']['ankle'][0] + LEG['far']['ankle'][0]) / 2, SOLE])
-SH_N, EL_N, FI_N = V([167, 243]), V([196, 250]), V([148, 338])
-SH_F, EL_F, FI_F = V([306, 218]), V([338, 234]), V([440, 272])
+SH_N, EL_N, FI_N = V(M['near']['SH']), V(M['near']['EL']), V(M['near']['fist'])   # v2: 15 네온 원화 관절(measure15) — v1 은 5 러스트 관절을 그대로 써서 조각·축이 어긋났음
+SH_F, EL_F, FI_F = V(M['far']['SH']), V(M['far']['EL']), V(M['far']['fist'])
 # ---------------- 팔 = 원화 − 지운 원화 ----------------
 NONEAR = np.array(Image.open(os.path.join(HERE, 'sheets', 'nonear_1852.png')).convert('RGBA')); NOFAR = np.array(Image.open(os.path.join(HERE, 'sheets', 'nofar_1852.png')).convert('RGBA'))
 def poly(pts): m = np.zeros((512, 512), np.uint8); cv2.fillPoly(m, [np.array(pts, np.int32)], 1); return m > 0
@@ -99,7 +99,7 @@ _sk = biggest(_sk); _sk = cv2.morphologyEx(_sk.astype(np.uint8), cv2.MORPH_CLOSE
 _sk = (_sk | (ARM_F & (cv2.morphologyEx(_sk.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8)) > 0))) & (RA[..., 3] > 0)   # 살 안 흉터·점
 _jl = dil(lab('head'), 4) & (_lumR < 120) & (RA[..., 3] > 0)
 JAW_OUT = _jl & dil(_sk, 3)                                   # 턱 외곽선 → 머리 조각
-_line = dil(_sk, 2) & ARM_F & (_lumR < 70) & ~_sk & ~_jl & (XX < 340)   # 윗팔 위·아래 원화 외곽선(소매 테 쪽은 건틀릿 몫)
+_line = dil(_sk, 2) & ARM_F & (_lumR < 70) & ~_sk & ~_jl & (XX < EL_F[0] + 2)   # 윗팔 위·아래 원화 외곽선(소매 테 쪽은 건틀릿 몫)
 UPF_m = _sk | _line; GAF_m = ARM_F & ~UPF_m
 _gop = biggest(cv2.morphologyEx(GAF_m.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)) > 0); _str = GAF_m & ~dil(_gop, 1)   # 건틀릿 밖 가는 선 토막(윗팔 위 외곽선 끝) → 윗팔
 UPF_m = UPF_m | (_str & dil(_sk, 6)); GAF_m = GAF_m & ~_str
@@ -131,7 +131,7 @@ for c in range(3):
     v = _spf[..., c][_m]; _spf[..., c] = np.where(_sp[..., 3] > 0, (_spf[..., c] - v.mean()) / max(1.0, v.std()) * _ref[:, c].std() + _ref[:, c].mean(), _spf[..., c])
 _dark = (_sp[..., :3].astype(int).mean(-1) < 70); _spf[_dark, :3] = _sp[_dark, :3]   # 외곽선은 시트 선 그대로
 armFA = np.clip(_spf, 0, 255).astype(np.uint8)
-armF = under(armF, _tb, _tube & (armF[..., 3] < 250))
+if os.environ.get('TUBE'): armF = under(armF, _tb, _tube & (armF[..., 3] < 250))   # v2(DHL 19:05 '뻗는 팔은 가공하지 말고 있는 그대로'): 통 안 깔음 — 원화 팔 그대로
 print('  먼 윗팔 통 깔기', int((_tube & ~UPF_m).sum()), 'px · 반지름', ARM_R)
 foreF = art(GAF_m)   # 먼 건틀릿은 맨 앞 — 가려진 곳 없음(시트 ×1.055 라 채우면 둘레에 테가 생김)
 print('  팔 px: 가까운', int(ARM_N.sum()), '(건틀릿 + 시트 보탬', int(((armL[..., 3] > 0) & ~ARM_N).sum()), ') · 먼 윗팔', int(UPF_m.sum()), '· 먼 건틀릿', int(GAF_m.sum()))
@@ -157,6 +157,12 @@ PIECE['hips'], _u3 = underlay(PIECE['hips'], lab('hips'), lab('belt'), 8)
 PIECE['head'], _u4 = underlay(PIECE['head'], lab('head'), lab('pony'), 4)
 PIECE['head'] = PIECE['head'].copy(); PIECE['head'][JAW_OUT] = RA[JAW_OUT]; print('  턱 외곽선(먼 팔 몫이던 것) → 머리 조각', int(JAW_OUT.sum()), 'px')
 print('  이음 밑 덧칠 px 상체←머리', _u1, '· 허리띠←상체', _u2, '· 바지←허리띠', _u3, '· 머리←상투', _u4)
+# v2: 반바지 밑단 가시(허벅지 외곽선 토막) → 다리 조각으로(달릴 때 밑단에 가시가 붙어 다니지 않게, 대기 그림은 같음)
+_hm = PIECE['hips'][..., 3] > 0; _ho = cv2.morphologyEx(_hm.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0
+_sp_ = _hm & ~_ho & (YY > HIP[1] + 25)
+for _ln, _side in (('legN', XX < HIP[0]), ('legF', XX >= HIP[0])):
+    _mv = _sp_ & _side; PIECE[_ln] = PIECE[_ln].copy(); PIECE[_ln][_mv] = PIECE['hips'][_mv]
+PIECE['hips'] = PIECE['hips'].copy(); PIECE['hips'][_sp_, 3] = 0; print('  밑단 가시 → 다리', int(_sp_.sum()), 'px')
 for n, nm in (('head', 'head'), ('pony', 'pony'), ('torso', 'torso'), ('belt', 'belt'), ('hips', 'hips')): save(nm, PIECE[n])
 for n, b_ in BACKP.items(): save(n + 'B', b_)
 save('armU', armU); save('armL', armL); save('armF', armF); save('armFA', armFA); save('foreF', foreF)
@@ -166,6 +172,19 @@ def sole_pts(m, ankle, ground=None):
     ys, xs = np.nonzero(m); xl, xr = xs.min(), xs.max(); bot = {x: ys[xs == x].max() for x in range(xl, xr + 1) if (xs == x).any()}
     xlow = max(bot, key=lambda x: bot[x]); cols_ = sorted(set([int(round(xl + (xr - xl) * f)) for f in (0.02, 0.2, 0.8, 0.98)] + [xlow]))
     lift = 0.0 if ground is None else float(ground - bot[xlow]); return [[float(x - ankle[0]), float(bot[x] - ankle[1] + lift)] for x in cols_ if x in bot]
+# v2: 원화 다리로 걸으면 다리 윗끝(반바지에 가려 자른 줄)이 밑단 밖으로 보임 → 반바지 밑으로 다리를 위로 EXT px 늘여 둠(열마다 윗끝 아래 3 px 색 복사 — 외곽선 열은 외곽선으로 이어짐). 쉴 땐 반바지가 덮음
+_EXT = int(os.environ.get('LEGEXT', 18)); _shorts = dil(lab('hips') | lab('belt'), 2)
+for _ln in ('legN', 'legF'):
+    _a = PIECE[_ln].copy(); _m = _a[..., 3] > 0; _n = 0
+    for x in range(512):
+        ys_ = np.nonzero(_m[:, x])[0]
+        if not len(ys_): continue
+        y0 = ys_.min(); src = _a[min(y0 + 3, ys_.max()), x].copy()
+        if y0 > 0 and not _shorts[y0 - 1, x]: continue
+        for yy in range(y0 - 1, max(-1, y0 - 1 - _EXT), -1):
+            if not _shorts[yy, x] or _a[yy, x, 3] > 0: break
+            _a[yy, x] = src; _a[yy, x, 3] = 255; _n += 1
+    PIECE[_ln] = _a; print('  다리 위로 늘임', _ln, _n, 'px')
 save('bootStandN', PIECE['legN']); save('bootStandF', PIECE['legF'])
 def run_boot(nm, sd):
     up = SOLE - LEG[sd]['ankle'][1]; b = sheet(nm); ys, xs = np.nonzero(b[..., 3] > 128); piv = (float(xs.min() + (xs.max() - xs.min()) * 0.32), ys.max() - up)
@@ -189,6 +208,27 @@ SHN = {'near': limb_piece('shinN', L_SH), 'far': limb_piece('shinF', L_SH)}
 SHIN_W = float(os.environ.get('SHIN_W', 0.72))   # 시트 정강이 48px(무릎 공 포함) → 원화 종아리 굵기 ≈ 34
 for _d in SHN.values(): _d['w'] = SHIN_W
 for _d in TH.values(): _d['w'] = float(os.environ.get('THIGH_W', 0.75))   # 바지 다리 — 반바지 밑단 밖으로 불룩 나오지 않게
+# v2 (DHL 19:05 '다리가 더 이상하게'): 달리는 다리도 원화 다리를 무릎·발목 줄로 잘라 씀(시트 허벅지·정강이·샌들 안 씀)
+#   허벅지 = 무릎 아래 8 px 까지 원화(a = 무릎에서 뼈 길이만큼 위 — 늘이지 않음, 위쪽은 반바지 밑에 숨음) · 정강이 = 무릎 위 8 ~ 무릎 + 뼈 길이 + 4 · 샌들 = 원화 발목 줄 아래(축 = 원화 발목)
+if os.environ.get('ARTLEG', '1') == '1':
+    def _proj(P, Q): d = (Q - P) / np.linalg.norm(Q - P); return (XX - P[0]) * d[0] + (YY - P[1]) * d[1], d
+    for sd, ln, tg in (('near', 'legN', 'N'), ('far', 'legF', 'F')):
+        Lg = LEG[sd]; leg = PIECE[ln]; m = leg[..., 3] > 0
+        tk, dk = _proj(Lg['hip'], Lg['knee']); ts, ds = _proj(Lg['knee'], Lg['ankle']); Ls_art = float(np.linalg.norm(Lg['ankle'] - Lg['knee']))
+        _dk = np.hypot(XX - Lg['knee'][0], YY - Lg['knee'][1]); KR = float(os.environ.get('KR', 9))
+        th_m = m & ((tk <= np.linalg.norm(Lg['knee'] - Lg['hip'])) | (_dk <= KR))   # 무릎 = 둥근 끝(곧은 자른 선이 안 보이게)
+        sh_m = m & (((ts >= 0) & (ts <= min(Ls_art - 2, L_SH + 4))) | (_dk <= KR))
+        bt_m = m & (ts >= Ls_art - 6)
+        for nm, mm in (('thighA' + tg, th_m), ('shinA' + tg, sh_m)):
+            a_ = leg.copy(); a_[~mm, 3] = 0; save(nm, a_, pad=2)
+        ox, oy = OFF['thighA' + tg]; kn = Lg['knee']; A_ = kn - dk * L_TH
+        TH[sd] = {'part': 'thighA' + tg, 'a': [round(float(A_[0] - ox), 1), round(float(A_[1] - oy), 1)], 'b': [round(float(kn[0] - ox), 1), round(float(kn[1] - oy), 1)], 'w': 1.0}
+        ox, oy = OFF['shinA' + tg]; B_ = kn + ds * L_SH
+        SHN[sd] = {'part': 'shinA' + tg, 'a': [round(float(kn[0] - ox), 1), round(float(kn[1] - oy), 1)], 'b': [round(float(B_[0] - ox), 1), round(float(B_[1] - oy), 1)], 'w': 1.0}
+        b_ = leg.copy(); b_[~bt_m, 3] = 0; nmb = 'sandal' + tg + 'Run'; save(nmb, b_, pad=2); ox, oy = OFF[nmb]
+        piv = (float(Lg['ankle'][0] - ox), float(Lg['ankle'][1] - oy)); ys, xs = np.nonzero(bt_m); bot = {x: ys[xs == x].max() for x in range(xs.min(), xs.max() + 1) if (xs == x).any()}; xl, xr = min(bot), max(bot)
+        RB[sd] = (piv, [[round(float(x - Lg['ankle'][0]), 1), round(float(bot[x] - Lg['ankle'][1]), 1)] for x in sorted(set(int(round(xl + (xr - xl) * f)) for f in (0.03, 0.25, 0.5, 0.75, 0.97)))])
+    print('  달리는 다리 = 원화 다리 조각', {k: (TH[k]['part'], SHN[k]['part']) for k in TH})
 print('  다리 길이 허벅지', round(L_TH, 1), '정강이', round(L_SH, 1), '· 시트 a-b', {k: round(v['b'][1] - v['a'][1], 1) for k, v in {**{'th_' + s: TH[s] for s in TH}, **{'sh_' + s: SHN[s] for s in SHN}}.items()})
 # ---------------- 표정·깜빡임: 시트 머리 → 원화 머리 자리(SIFT), 무표정과 다른 곳(눈·눈썹·입 둘레 타원 안)만 ----------------
 head_m = lab('head')
@@ -254,7 +294,7 @@ parts['weapon'] = {'src': 'parts/weapon.png', 'pivot': [2, 2], 'scale': SC, 'tip
 for n in FACE_N + BLINK_N: parts[f'face_{n}'] = {'src': f'parts/face_{n}.png', 'pivot': parts['head']['pivot'], 'scale': SC}
 for nm, sd in [('bootStandN', 'near'), ('bootStandF', 'far')]: P_(nm, LEG[sd]['ankle'])
 for _sd, _nm in (('near', 'sandalNRun'), ('far', 'sandalFRun')): parts[_nm] = {'src': f'parts/{_nm}.png', 'pivot': [round(RB[_sd][0][0], 1), round(RB[_sd][0][1], 1)], 'scale': SC}
-for nm in ('thighN', 'thighF', 'shinN', 'shinF'): parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [0, 0], 'scale': 1}
+for nm in sorted({d['part'] for d in list(TH.values()) + list(SHN.values())}): parts[nm] = {'src': f'parts/{nm}.png', 'pivot': [0, 0], 'scale': 1}
 WEAPON_ANG = math.atan2(UF[1], UF[0]) + math.pi / 2
 ARML_REST = 0.3   # 엔진이 서 있을 때 자유 팔뚝을 −0.3 rad 굽힘 → 뼈 rot +0.3 → 대기 = 원화(10·20·30 브루노와 같음)
 world = {'root': (O, 0.0), 'hip': (HIP, 0.0), 'skirt': (HIP, 0.0), 'cape': (NECK, 0.0), 'scarf': (NECK, 0.0), 'pouch': (HIP, 0.0), 'pauldron': (SH_N, 0.0), 'pauldronF': (SH_F, 0.0),
@@ -282,23 +322,35 @@ for name, parent in BONES:
     if name == 'armLp': b['pos'] = [0, 0]; b['rot'] = round(R_P, 4)
     bones.append(b)
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
+STANDWALK = os.environ.get('STANDWALK', '1') == '1'   # v2 DHL 19:05 '뒤뚱뒤뚱 걸으면서': 걸을 때도 원화 다리 그림 그대로(발목 고정 한 장) — 짧은 걸음·발 들기 + 몸 좌우 흔들기
+STAND_FADE = [5.0, 6.0] if STANDWALK else [0.05, 0.1]
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
-        'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], 'runLock': 0.0}, 'lenByStand': True}
-RUNX = {'near': -148.0, 'far': 16.0}; ROOTX = {'near': -160.0, 'far': 46.0}   # v3.6 DHL 14:24 '다리 사이 조금 좁게, 루시아 참고 걸음' — 뿌리 간격 266 → 206(몸 키의 .23, 7 루시아 .23)   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
+        'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-0.1, 0.1] if STANDWALK else [-1.2, 1.4], 'runLock': 0.0}, 'lenByStand': True}
+_rx = json.loads(os.environ.get('ROOTS', 'null')) or ([-150.0, 92.0, 0, 0] if os.environ.get('STANDWALK', '1') == '1' else [-150.0, 92.0, -138.0, 64.0])   # v2: 15 네온 반바지 밑단 구멍 가운데(원화 x 170·291) — v1 은 5 러스트 값이라 먼 다리가 가랑이 안에서 나왔음
+ROOTX = {'near': _rx[0], 'far': _rx[1]}; RUNX = {'near': _rx[2], 'far': _rx[3]}   # v3.6 DHL 14:24 '다리 사이 조금 좁게, 루시아 참고 걸음' — 뿌리 간격 266 → 206(몸 키의 .23, 7 루시아 .23)   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
 #   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
+def _ankR(sd):   # 쉴 때(엔진 IK 와 같은 풀이) 정강이 방향 − 90° − 부츠 각 0 = r_rest → 범위 r_rest ± ANK
+    H = V([SC * ROOTX[sd], SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1])]); A_ = V([SC * (LEG[sd]['ankle'][0] - HIP[0]), SC * (LEG[sd]['ankle'][1] - HIP[1])])
+    L1, L2 = SC * L_TH0, SC * L_SH0; d = float(np.linalg.norm(A_ - H)); d = min(d, (L1 + L2) * .999); u = (A_ - H) / np.linalg.norm(A_ - H); A2 = H + u * d
+    a = (L1 * L1 - L2 * L2 + d * d) / (2 * d); h = math.sqrt(max(0.0, L1 * L1 - a * a)); P = H + u * a; n = np.array([-u[1], u[0]])
+    k1, k2 = P + n * h, P - n * h; K = k1 if k1[0] > k2[0] else k2
+    r = math.atan2(A2[1] - K[1], A2[0] - K[0]) - math.pi / 2; r = (r + math.pi) % (2 * math.pi) - math.pi; w = float(os.environ.get('ANK', 0.1))
+    _f = os.path.join(HERE, 'work', 'ankr.json')   # tools/ankr15.py 가 엔진에서 잰 쉴 때 정강이-부츠 각(엔진 IK·발목 높이 그대로) — 있으면 그 값
+    if os.path.exists(_f) and not os.environ.get('ANK_MEASURE'): r = json.load(open(_f))[sd]
+    return [round(r - w, 4), round(r + w, 4)]
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
     _root = round(SC * (LEG[sd]['hip'][0] - HIP[0]), 1); _rest = round(SC * (LEG[sd]['ankle'][0] - HIP[0]), 1)
-    legs[sd] = {'x': _rest, 'hipX': ROOTX[sd], 'runX': RUNX[sd], 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun', 'thigh': round(SC * L_TH0, 1), 'shin': round(SC * L_SH0, 1),
-                'stand': {'fade': [0.05, 0.1], 'thighImg': hide, 'shinImg': dict(hide, part=SHN[sd]['part'], a=SHN[sd]['a'], b=SHN[sd]['b']), 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], SOLE)}}}
+    legs[sd] = {'x': _rest, 'hipX': ROOTX[sd], 'runX': _rest if STANDWALK else RUNX[sd], 'shade': 0, 'thighImg': TH[sd], 'shinImg': SHN[sd], 'runBoot': 'sandalNRun' if sd == 'near' else 'sandalFRun', 'thigh': round(SC * L_TH0, 1), 'shin': round(SC * L_SH0, 1),
+                'stand': {'fade': STAND_FADE, **({'ankleRange': _ankR(sd)} if STANDWALK else {}), 'thighImg': hide, 'shinImg': dict(hide, part=SHN[sd]['part'], a=SHN[sd]['a'], b=SHN[sd]['b']), 'boot': {'part': nm, 'sole': sole_pts(lm, LEG[sd]['ankle'], SOLE)}}}
 # ---------------- 그리는 순서 ----------------
 def order(lst): return [x for x in lst if x not in ('torsoB', 'headB', 'ponyB', 'beltB', 'hipsB') or x in BACKB]
 draw = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armL', 'armLp'])   # DHL 09:49 '주먹이 옷 레이어보다 위로' — 가까운 건틀릿 늘 맨 앞(대기 포함, 원화의 조끼 자락이 건틀릿을 덮던 곳은 건틀릿이 덮음)
 rig = {'name': 'basil-neon', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
-       'gait': {'stance': 0.26, 'strideBase': 26, 'strideK': 0.08, 'hipBase': -18, 'bob': 4, 'lean': 0.12, 'waddle': 0.03, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.05, 'dropCap': 8, 'angK': 0.12, 'strideFlex': [0.75, 1.15],   # 7 러스트 루시아 종종걸음(드워프)
-                'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
+       'gait': {'stance': 0.26, 'strideBase': float(os.environ.get('STRIDE', 8 if STANDWALK else 26)), 'strideK': 0.0 if STANDWALK else 0.08, 'hipBase': -18, 'bob': float(os.environ.get('BOB', 7)), 'lean': 0.08, 'waddle': float(os.environ.get('WAD', 0.10)),   # v2 DHL 19:05 '뒤뚱뒤뚱' — 걸음마다 몸이 좌우로 흔들림 크게 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.0 if STANDWALK else 0.05, 'dropCap': 8, 'angK': 0.12, 'strideFlex': [0.75, 1.15],   # 7 러스트 루시아 종종걸음(드워프)
+                'swingReach': 0.05, 'landAng': 0.0 if STANDWALK else -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'ponySway': 0.0, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2"},
        'ui': {'attack': 'smash', 'touch': 'hop'}}
@@ -322,10 +374,10 @@ PUNCH_V2_KEYS = [[0.16, -0.12, 150, 185, 414, 258, 12, -12], [0.23, 0.03, 80, 40
 JAB = json.loads(os.environ.get('JAB', 'null')) or [
   # t,    lean,  u
   [0.00, 0.00, None],
-  [0.18, -0.08, -30],      # ① 팔을 올림 — 윗팔을 위로 세워 건틀릿이 어깨 위로, 몸은 살짝 뒤로
-  [0.30, 0.16, 18],         # ② 앞으로 — 윗팔을 앞으로 눕히며 몸을 앞으로 숙임(타격)
-  [0.46, 0.14, 20],         # ③ 뻗은 채 버팀
-  [0.78, 0.02, None],      # ④ 돌아옴
+  [0.16, -0.04, 48],       # v2 DHL 19:05 '뻗는 팔은 있는 그대로 살짝' — ① 살짝 당김(윗팔 대기 35° → 48°, 몸 조금 뒤로)
+  [0.28, 0.08, 16],        # ② 살짝 뻗음 — 주먹 앞으로 약 18 px(원화), 건틀릿 돌지 않음
+  [0.46, 0.07, 18],        # ③ 버팀
+  [0.76, 0.01, None],      # ④ 돌아옴
   [1.00, 0.00, None]]
 def _rot(v, th): c, s_ = math.cos(th), math.sin(th); return np.array([c * v[0] - s_ * v[1], s_ * v[0] + c * v[1]])
 _L1F = float(np.linalg.norm(EL_F - SH_F)); _u0F = math.degrees(math.atan2(*(EL_F - SH_F)[::-1])); _EF = FI_F - EL_F
@@ -336,7 +388,7 @@ for t_, ln, u in JAB:
     KEYS.append([t_, ln, u0N, A_CN, float(G_[0]), float(G_[1]), a0F, 0]); SHF.append([t_, 0.0, 0.0]); HX.append([t_, 0.0])
 print('  먼 주먹 자리(원화 px)', [(k[0], round(k[4], 1), round(k[5], 1)) for k in KEYS])
 for _k in KEYS: _k[3] = _k[3] + (f0N - A_CN)
-HIT_T = float(os.environ.get('HIT_T', 0.30))
+HIT_T = float(os.environ.get('HIT_T', 0.28))
 def wrap(d): return (d + 180) % 360 - 180
 KU = [KEYS[0][:]]
 for k in KEYS[1:]: KU.append([k[0], k[1], KU[-1][2] + wrap(k[2] - KU[-1][2]), KU[-1][3] + wrap(k[3] - KU[-1][3]), k[4], k[5], KU[-1][6] + wrap(k[6] - KU[-1][6]), k[7]])
@@ -355,10 +407,10 @@ rig['drawB'] = draw
 EA = 'io'
 trk = lambda f: [[k[0], round(f(k), 4), EA] for k in KU]
 act = {'kind': 'sword', 'rigid': True, 'orderAlways': True, 'dur': float(os.environ.get('DUR', 0.8)), 'hitAt': HIT_T, 'hitStop': 0.07, 'cancelAt': 0.8,
-       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF'], [0.06, 'armFA'], [0.9, 'armF']], 'armIK': [[0, 1]],
+       'w': [[0, 1]], 'reach': [[0, 0]], 'nPiece': [[0, 'gF']], 'nUpper': [[0, 'armF']], 'armIK': [[0, 1]],
        'gx': trk(lambda k: SC * (k[4] - HIP[0])), 'gy': trk(lambda k: SC * (k[5] - HIP[1])), 'sa': trk(lambda k: math.radians(k[6])),
        'lean': trk(lambda k: k[1]), 'hipY': [[0, 0]], 'hipX': [[0, 0]],
-       'head': [[0, 0], [0.18, 0.02, 'io'], [0.3, -0.03, 'io'], [0.46, -0.02, 'io'], [0.78, 0]],
+       'head': [[0, 0], [0.16, 0.01, 'io'], [0.28, -0.02, 'io'], [0.46, -0.015, 'io'], [0.76, 0]],
        'freeArm': True, 'fuA': trk(lambda k: math.radians(k[2] - u0N) - k[1]), 'flA': trk(lambda k: math.radians((k[3] - k[2]) - (f0N - u0N))),
        'face': [[0, 'angry'], [0.12, 'effort'], [0.26, 'shout'], [0.5, 'angry'], [0.85, None]],
        'order': [[0, 'drawA']],
