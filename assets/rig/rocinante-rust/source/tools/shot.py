@@ -8,7 +8,7 @@ srv=socketserver.ThreadingTCPServer(('127.0.0.1',0),functools.partial(Q,director
 threading.Thread(target=srv.serve_forever,daemon=True).start()
 with sync_playwright() as p:
     b=p.chromium.launch();pg=b.new_page(viewport={'width':1200,'height':900});errs=[];pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text))
-    pg.goto(f'http://127.0.0.1:{port}/assets/rig/grisostomo-rust/source/tools/view.html?'+sys.argv[1])
+    pg.goto(f'http://127.0.0.1:{port}/assets/rig/rocinante-rust/source/tools/view.html?'+sys.argv[1])
     pg.wait_for_function("document.title==='done'||document.title.startsWith('ERR')",timeout=20000)
     if pg.title()!='done':print(pg.title())
     pg.locator('#c').screenshot(path=sys.argv[2]);print('ERR',errs);b.close()

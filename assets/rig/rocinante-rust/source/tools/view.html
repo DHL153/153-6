@@ -2,7 +2,7 @@
 <script src="../../../rig.js"></script><script src="../../rig.def.js"></script>
 <script>
 // 사용: view.html?mode=idle|run|atk&t=초&n=장수&step=프레임&ov=1(원화 겹침)
-(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['grisostomo-rust'],base='../../';
+(async()=>{const Q=new URLSearchParams(location.search),def=window.MR_RIG_DEFS['rocinante-rust'],base='../../';
 const ims=Object.fromEntries(await Promise.all(Object.entries(def.parts).map(([k,p])=>new Promise(r=>{const i=new Image();i.onload=()=>r([k,i]);i.onerror=()=>r([k,null]);i.src=base+p.src}))));
 const ref=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src='../ref512.png'});
 const rig=new CharacterRig(def,ims),an=new RunAnimator(rig,{runSpeed:620});window.__rig=rig;window.__an=an;if(Q.get('expr'))an.setExpression(Q.get('expr'));

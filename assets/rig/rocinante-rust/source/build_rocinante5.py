@@ -1,8 +1,8 @@
-"""5 러스트 그리소스토모 리그 조립 v2 — 대기 · 달리기 · 뒷손 펀치(v1 = 두 주먹 내려찍기)
+"""5 러스트 로시난테 리그 조립 v2 — 대기 · 달리기 · 뒷손 펀치(v1 = 두 주먹 내려찍기)
 입력: ref512.png(원화 = 게임 char_0005) · sheets/nonear_2052.png·nofar_2105.png(팔·건틀릿만 지운 원화, 프롬프트 2·3) · work/body512.png·labels.npy(seg5.py)
       pieces/(조각 시트 21칸, cut5.py) · measure5.json
 출력: ../rig.json · ../rig.def.js · ../parts/*.png · review/keys5.json
-실행: cd source && python3 -I cut5.py && python3 -I seg5.py && python3 -I build_griso5.py
+실행: cd source && python3 -I cut5.py && python3 -I seg5.py && python3 -I build_rocinante5.py
 원칙(DHL): 대기 = 원화 · 건틀릿 크기 그대로 · 팔다리 길이 고정 · 공격 중 눈 뜸 · 달릴 때 발목 고정
 구조: 무기 없음 — 엔진 sword 동작(swordGrip)을 그대로 씀: 먼 건틀릿 = 쥔 팔 조각(gF, 주먹 자리 gx·gy 를 키로, 먼 팔 길이 고정 IK),
       가까운 건틀릿 = freeArm(윗팔 fuA·건틀릿 flA 각 키). weapon 뼈 = 먼 주먹 자리의 보이지 않는 점(맞는 자리 = 먼 주먹)
@@ -250,7 +250,7 @@ for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', la
 # ---------------- 그리는 순서 ----------------
 def order(lst): return [x for x in lst if x not in ('torsoB', 'headB', 'ponyB', 'beltB', 'hipsB') or x in BACKB]
 draw = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'torso', 'headB', 'armF', 'foreF', 'head', 'pony', 'armL', 'armLp'])   # DHL 09:49 '주먹이 옷 레이어보다 위로' — 가까운 건틀릿 늘 맨 앞(대기 포함, 원화의 조끼 자락이 건틀릿을 덮던 곳은 건틀릿이 덮음)
-rig = {'name': 'grisostomo-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
+rig = {'name': 'rocinante-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
        'gait': {'stance': 0.3, 'strideBase': 30, 'strideK': 0.08, 'hipBase': -24, 'bob': 4, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.15, 'dropCap': 16,
@@ -323,11 +323,11 @@ _a = np.array(Image.open(os.path.join(HERE, '..', '..', '..', 'art', 'characters
 _ys, _xs = np.nonzero(_a > 40); FIT_CX = round(float(((_xs.min() + _xs.max() + 1) / 2 + _xs.mean() + .5) / 2 / 160 * 512), 1)
 rig['gameRef'] = {'refOrigin': [round(float(O[0] - (HIP[0] - FIT_CX)), 1), float(O[1])], 'refScale': 2.0, 'refLift': 0,
                   'note': f'게임 그림 char_0005.png(512) = 원화(ref512). x = 도감 칸(fitArt 중심 {FIT_CX}, index.html measureBox 와 같은 계산)에서 골반(hip x {HIP[0]:.0f})이 가운데'}
-rig['note'] = '5 러스트 그리소스토모 v3(대기·달리기·앞손 곧게 치기). 조각 = 팔·건틀릿만 지운 원화 2장으로 몸을 드러내 부품별로 나눔(seg5.py) + 팔 = 원화 − 지운 원화(가려진 곳 = 시트 건틀릿), 시트 = 표정·깜빡임·윗팔·달리는 다리·샌들'
+rig['note'] = '5 러스트 로시난테 v3(대기·달리기·앞손 곧게 치기). 조각 = 팔·건틀릿만 지운 원화 2장으로 몸을 드러내 부품별로 나눔(seg5.py) + 팔 = 원화 − 지운 원화(가려진 곳 = 시트 건틀릿), 시트 = 표정·깜빡임·윗팔·달리는 다리·샌들'
 json.dump(dict(keys=KU, check=chk, order=ORDER_T, hit=HIT_T), open(os.path.join(HERE, 'review', 'keys5.json'), 'w'), ensure_ascii=False, indent=1)
 _h = hashlib.md5(json.dumps({k: v for k, v in rig.items() if k != 'version'}, sort_keys=True).encode())
 for fn in sorted(os.listdir(PARTS)): _h.update(fn.encode()); _h.update(open(os.path.join(PARTS, fn), 'rb').read())
 rig['version'] = _h.hexdigest()[:8]
 json.dump(rig, open(os.path.join(OUT, 'rig.json'), 'w'), ensure_ascii=False, indent=1)
-open(os.path.join(OUT, 'rig.def.js'), 'w').write("// 자동 생성: rig.json을 JS로 감싼 것. 원본은 같은 폴더의 rig.json (source/build_griso5.py)\nwindow.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS['grisostomo-rust']=" + json.dumps(rig, ensure_ascii=False) + ";\n")
+open(os.path.join(OUT, 'rig.def.js'), 'w').write("// 자동 생성: rig.json을 JS로 감싼 것. 원본은 같은 폴더의 rig.json (source/build_rocinante5.py)\nwindow.MR_RIG_DEFS=window.MR_RIG_DEFS||{};window.MR_RIG_DEFS['rocinante-rust']=" + json.dumps(rig, ensure_ascii=False) + ";\n")
 print('ok', len(parts), 'parts, version', rig['version'], 'draw', draw, 'FIT_CX', FIT_CX)

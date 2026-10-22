@@ -1,4 +1,4 @@
-"""5 러스트 그리소스토모 조각 시트 1 검수 — python3 -I tools/check_sheet5.py (check_sheet20 구조)
+"""5 러스트 로시난테 조각 시트 1 검수 — python3 -I tools/check_sheet5.py (check_sheet20 구조)
   ①1번 pose ↔ 원화 SIFT(배율·이동) ②머리·표정·깜빡임 9장 ↔ 원화 머리 SIFT(배율·자리 — 대기 머리와 같은 자리에 놓을 변환) ③조각 길이 ÷ 선 길이(measure5)·굵기 ÷ 원화 굵기
   ④도끼 ↔ 원화 먼 도끼 머리 SIFT(배율) ⑤표정 확대 그림(눈 뜸 판정) → review/sheet5_faces.png
 """

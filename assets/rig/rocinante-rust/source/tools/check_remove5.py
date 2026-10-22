@@ -1,4 +1,4 @@
-"""5 러스트 그리소스토모 — 프롬프트 2·3 '팔·건틀릿만 지운 원화' 검수 (check_remove30 구조, 지운 곳 = guides5 빨간 곳)
+"""5 러스트 로시난테 — 프롬프트 2·3 '팔·건틀릿만 지운 원화' 검수 (check_remove30 구조, 지운 곳 = guides5 빨간 곳)
 실행: python3 -I check_remove5.py near|far 받은그림.png
 """
 import json, os, sys

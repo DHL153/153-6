@@ -48,7 +48,7 @@
     {
       "id": "char_0005",
       "index": 4,
-      "name": "그리소스토모",
+      "name": "로시난테",
       "title": "산골의 철권 양치기",
       "tier": "U",
       "path": "assets/art/characters/char_0005.png",
@@ -158,7 +158,7 @@
     {
       "id": "char_0015",
       "index": 14,
-      "name": "그리소스토모",
+      "name": "로시난테",
       "title": "네온 라만차의 강철 양치기",
       "tier": "U",
       "path": "assets/art/characters/char_0015.png",
@@ -268,7 +268,7 @@
     {
       "id": "char_0025",
       "index": 24,
-      "name": "그리소스토모",
+      "name": "로시난테",
       "title": "스카이아크 라만차의 황동 양치기",
       "tier": "R",
       "path": "assets/art/characters/char_0025.png",
