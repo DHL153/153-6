@@ -1,6 +1,6 @@
 {
  "name": "basil-rust",
- "version": "6761284a",
+ "version": "c69be861",
  "units": "rig px (원화 512 ×2)",
  "refOrigin": [
   457.0,
@@ -533,8 +533,8 @@
   "lenByStand": true,
   "near": {
    "x": -224.0,
-   "hipX": -190.0,
-   "runX": -204.0,
+   "hipX": -160.0,
+   "runX": -148.0,
    "shade": 0,
    "thighImg": {
     "part": "thighN",
@@ -561,8 +561,8 @@
     "w": 0.72
    },
    "runBoot": "sandalNRun",
-   "thigh": 119.8,
-   "shin": 74.4,
+   "thigh": 113.8,
+   "shin": 70.7,
    "stand": {
     "fade": [
      0.05,
@@ -621,8 +621,8 @@
   },
   "far": {
    "x": 90.0,
-   "hipX": 76.0,
-   "runX": 92.0,
+   "hipX": 46.0,
+   "runX": 16.0,
    "shade": 0,
    "thighImg": {
     "part": "thighF",
@@ -649,8 +649,8 @@
     "w": 0.72
    },
    "runBoot": "sandalFRun",
-   "thigh": 119.8,
-   "shin": 74.4,
+   "thigh": 113.8,
+   "shin": 70.7,
    "stand": {
     "fade": [
      0.05,
@@ -738,16 +738,22 @@
   "closed": "face_closed"
  },
  "gait": {
-  "stance": 0.3,
-  "strideBase": 30,
+  "stance": 0.26,
+  "strideBase": 26,
   "strideK": 0.08,
-  "hipBase": -24,
+  "hipBase": -18,
   "bob": 4,
-  "lean": 0.1,
+  "lean": 0.12,
+  "waddle": 0.03,
   "headBob": 3,
   "kneeLift": 0.2,
-  "heelKick": 0.15,
-  "dropCap": 16,
+  "heelKick": 0.05,
+  "dropCap": 8,
+  "angK": 0.12,
+  "strideFlex": [
+   0.75,
+   1.15
+  ],
   "swingReach": 0.05,
   "landAng": -0.04,
   "elbowRun": 0.12,

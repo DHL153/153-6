@@ -149,7 +149,8 @@ RB = {'near': run_boot('sandalN', 'near'), 'far': run_boot('sandalF', 'far')}
 L_TH = float(max(np.linalg.norm(LEG[s]['knee'] - LEG[s]['hip']) for s in LEG)); L_SH = float(max(np.linalg.norm(LEG[s]['ankle'] - LEG[s]['knee']) for s in LEG))
 # 달리는 다리 길이(DHL 10-22 09:36 '달릴 때 너무 구부린 다리, 살짝 펴 주세요'): 원화 다리는 옆으로 벌린 길이(허벅지 59.9)라 옆모습 달리기엔 엉덩이~발목 높이(63)보다 훨씬 김 → 늘 무릎이 107~180° 접힘
 #   → 엉덩이~무릎(바짓단) 세로 · 무릎~발목 세로로: 허벅지 36 · 정강이 30(합 66 ≈ 엉덩이~발목 63 + 걸음 여유) — 시트 조각은 길이만 줄여 그림(굵기 w 따로)
-L_TH0, L_SH0 = L_TH, L_SH   # 서 있을 때(원화 다리 그림) 다리 길이 — 엔진 legs.near/far.thigh·shin(A 0) → 달리기(A 1) legs.thigh·shin 으로 섞임
+STAND_K = float(os.environ.get('STAND_K', 0.95))   # v3.6: 서 있는 다리 뼈 = 원화 길이 ×.95 — 다리 뿌리를 안쪽으로 옮기니 ×1 이면 서 있는 원화 다리가 발목에서 끌려 대기가 원화와 달라짐(차 > 60 px 878)
+L_TH0, L_SH0 = L_TH * STAND_K, L_SH * STAND_K   # 서 있을 때(원화 다리 그림) 다리 길이 — 엔진 legs.near/far.thigh·shin(A 0) → 달리기(A 1) legs.thigh·shin 으로 섞임
 L_TH = float(os.environ.get('RUN_TH', 33)); L_SH = float(os.environ.get('RUN_SH', 28))
 def limb_piece(nm, L):   # 관절 점 a·b = 위·아래 끝에서 같은 만큼 안쪽 — a-b = 뼈 길이(배율 ≈ 1, 늘이지 않음)
     p = sheet(nm); Image.fromarray(p).save(os.path.join(PARTS, nm + '.png'))
@@ -257,7 +258,7 @@ for name, parent in BONES:
 # ---------------- 다리 정의(30 브루노와 같은 틀) ----------------
 legs = {'hip': [0, round(SC * (float(np.mean([LEG[s]['hip'][1] for s in LEG])) - HIP[1]), 1)], 'thigh': round(SC * L_TH, 1), 'shin': round(SC * L_SH, 1),
         'thighImg': TH['near'], 'shinImg': SHN['near'], 'boot': {'part': 'sandalNRun', 'sole': RB['near'][1], 'ankleRange': [-1.2, 1.4], 'runLock': 0.0}, 'lenByStand': True}
-RUNX = {'near': -204.0, 'far': 92.0}; ROOTX = {'near': -190.0, 'far': 76.0}   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
+RUNX = {'near': -148.0, 'far': 16.0}; ROOTX = {'near': -160.0, 'far': 46.0}   # v3.6 DHL 14:24 '다리 사이 조금 좁게, 루시아 참고 걸음' — 뿌리 간격 266 → 206(몸 키의 .23, 7 루시아 .23)   # DHL 09:49 '다리는 바지 다리 구멍 안에서' — 다리 뿌리 = 반바지 밑단 구멍 가운데 위(원화 x 167 · 300), 발 줄은 그보다 조금 뒤
 #   # 달리는 발 줄(리그 px, 골반 기준) — DHL 09:36 '다리를 뒤로': legprobe 로 두 다리 기울기 평균이 발이 조금 뒤(+5~+12°)가 되게 고름(먼 다리는 뿌리보다 +16 이어야 같은 기울기)
 for sd, nm, lm in [('near', 'bootStandN', lab('legN')), ('far', 'bootStandF', lab('legF'))]:
     hide = {'part': TH[sd]['part'], 'a': TH[sd]['a'], 'b': TH[sd]['b'], 'w': 0.001}
@@ -270,7 +271,7 @@ draw = order(['legFar', 'legNear', 'skirt', 'belt', 'torsoB', 'armU', 'torso', '
 rig = {'name': 'basil-rust', 'version': 1, 'units': 'rig px (원화 512 ×2)', 'refOrigin': [float(O[0] * 2), float(O[1] * 2)], 'refScale': 1.0, 'refLift': 0,
        'parts': parts, 'bones': bones, 'legs': legs, 'draw': draw, 'hidden': ['armLp'], 'faces': {n: f'face_{n}' for n in FACE_N},
        'blinkFaces': {'half': 'face_half', 'closed': 'face_closed'},
-       'gait': {'stance': 0.3, 'strideBase': 30, 'strideK': 0.08, 'hipBase': -24, 'bob': 4, 'lean': 0.1, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.15, 'dropCap': 16,
+       'gait': {'stance': 0.26, 'strideBase': 26, 'strideK': 0.08, 'hipBase': -18, 'bob': 4, 'lean': 0.12, 'waddle': 0.03, 'headBob': 3, 'kneeLift': 0.2, 'heelKick': 0.05, 'dropCap': 8, 'angK': 0.12, 'strideFlex': [0.75, 1.15],   # 7 러스트 루시아 종종걸음(드워프)
                 'swingReach': 0.05, 'landAng': -0.04, 'elbowRun': 0.12, 'armSwing': 0.06, 'armBias': 0.0, 'headRun': 0.05},
        'carrySwing': 0.15, 'wristRange': 0.2, 'dropLift': 8, 'ponySway': 0.8, 'bounce': [],
        'metrics': {'bodyHeight': round(2 * (SOLE - M['hairTop'][1])), 'note': f"rig units; 상투 위(y{M['hairTop'][1]})~발바닥({SOLE:.0f}) ×2"},
